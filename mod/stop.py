@@ -5,22 +5,32 @@ Loadable.Loadable subclass
 class stop(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,1)
-        self.paramre=re.compile(r"^\s+(\d+)\s+(\S+)")
+        self.paramre=re.compile(r"^\s+(\d+[mk]?)\s+(\S+)")
         self.usage=self.__class__.__name__ + " <number> <ship to stop>"
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
         if not m:
             return 0
-
-        m=self.paramre.search(m.group(1))
+        params=m.group(1)
+        m=self.paramre.search(params)
         if not m:
+            if re.search("\s+hammertime",params,re.I):
+                self.client.reply(prefix,nick,target,"Can't touch this!")
+                return 1
             self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
             return 0
 
-        ship_number=int(m.group(1))
-        bogey=m.group(2).lower()
-        
+        ship_number=m.group(1)
+
+        if ship_number[-1].lower()=='k':
+            ship_number=1000*int(ship_number[:-1])
+        elif ship_number[-1].lower()=='m':
+            ship_number=1000000*int(ship_number[:-1])
+        else:
+            ship_number=int(ship_number)        
+
+        bogey=m.group(2)        
         
         if access < self.level:
             self.client.reply(prefix,nick,target,"You do not have enough access to use this command")

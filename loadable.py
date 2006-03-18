@@ -209,14 +209,12 @@ class alliance:
         return 1    
 
 class user:
-    def __init__(self,id=-1,pnick=None,userlevel=-1,planet_id=-1,stay=False):
+    def __init__(self,id=-1,pnick=None,userlevel=-1,planet_id=-1):
         self.id=id
         self.pnick=pnick
         self.userlevel=userlevel
         self.planet_id=planet_id
         self.planet=None
-        self.stay=False
-        self.pref=False
 #        if planet_id > 0:
 #            self.planet=planet(id=planet_id)
 #        else:
@@ -225,21 +223,19 @@ class user:
 
     def load_from_db(self,conn,client,cursor):
         if self.pnick:
-            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.userlevel AS userlevel, t2.planet_id AS planet_id, t2.stay AS stay FROM user_list AS t1, user_pref AS t2 WHERE t2.id=t1.id AND t1.pnick ILIKE %s"
+            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.userlevel AS userlevel, t2.planet_id AS planet_id FROM user_list AS t1, user_pref AS t2 WHERE t2.id=t1.id AND t1.pnick ILIKE %s"
             cursor.execute(query,(self.pnick,))
         elif self.id > 0:
-            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.userlevel AS userlevel, t2.planet_id AS planet_id, t2.stay AS stay FROM user_list AS t1, user_pref AS t2 WHERE t2.id=t1.id AND t1.id=%s"
+            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.userlevel AS userlevel, t2.planet_id AS planet_id FROM user_list AS t1, user_pref AS t2 WHERE t2.id=t1.id AND t1.id=%s"
             cursor.execute(query,(self.pnick,))            
         u=cursor.dictfetchone()
         if u:
             self.id=u['id']
             self.pnick=u['pnick']
             self.userlevel=u['userlevel']
-            self.planet_id=u['planet_id']
+            self.planet_id=u['planet_id'] 
             self.planet=planet(id=self.planet_id)
             self.planet.load_most_recent(conn,client,cursor)
-            self.stay=u['stay']
-            self.pref=True
             return 1
         else:
             query="SELECT t1.id AS id, t1.pnick AS pnick, t1.userlevel AS userlevel FROM user_list AS t1 WHERE t1.pnick ILIKE %s"

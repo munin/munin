@@ -45,8 +45,6 @@ class pref(loadable.loadable):
                     self.client.reply(prefix,nick,target,"You must provide coordinates (x:y:z) for the planet option")
                     continue
                 self.save_planet(prefix,nick,target,u,x,y,z)
-            if opt == "stay":
-                self.save_stay(prefix,nick,target,u,val,access)
                 
 
         return 1
@@ -65,24 +63,7 @@ class pref(loadable.loadable):
             query="INSERT INTO user_pref (id,planet_id) VALUES (%s,%s)"
             self.cursor.execute(query,(u.id,p.id))
             self.client.reply(prefix,nick,target,"Your planet has been saved as %s:%s:%s" % (x,y,z))
-        
-    def save_stay(self,prefix,nick,target,u,status,access):
-        if access < 100:
-            return 0
-        print "Trying to set stay to %s"%(status,)
-        query=""
-        args=()
-        if u.pref:
-            query="UPDATE user_pref SET stay=%s WHERE id=%s"
-            args+=(status,u.id)
-        else:
-            query="INSERT INTO user_pref (id,stay) VALUES (%s,%s)"
-            args+=(u.id,status)
-        reply="Your stay status has been saved as %s"%(status,)
-        try:
-            self.cursor.execute(query,args)
-        except psycopg.ProgrammingError :
-            reply="Your stay status '%s' is not a valid value. If you are staying for next round, it should be 'yes'. Otherwise it should be 'no'." %(status,)
-        self.client.reply(prefix,nick,target,reply)
-
+                                    
             
+        
+        

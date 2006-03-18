@@ -109,8 +109,7 @@ CREATE TABLE channel_list (
 
 CREATE TABLE user_pref (
 	id integer PRIMARY KEY REFERENCES user_list(id) ON DELETE CASCADE,
-	planet_id integer REFERENCES planet_canon(id) ON DELETE CASCADE,
-	stay BOOLEAN DEFAULT FALSE
+	planet_id integer REFERENCES planet_canon(id) ON DELETE CASCADE
 );
 
 CREATE TABLE target ( 

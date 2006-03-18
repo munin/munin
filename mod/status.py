@@ -33,8 +33,9 @@ class status(loadable.loadable):
             y=m.group(2)
             z=m.group(4)
             when=m.group(6)
-            if when:
-                when=int(when)
+            if when: when=int(when)
+                
+
             if when and when < 80:
                 tick=curtick+when
                 eta=when
@@ -89,7 +90,7 @@ class status(loadable.loadable):
                         owner="nick:"+r['nick']
                         if r['pnick']:
                             owner="user:"+r['pnick']
-                        prev.append("(%s %s)" % (r['tick'],owner))
+                            prev.append("(%s %s)" % (r['tick'],owner))
 
                     reply+=" "+string.join(prev,', ')
                 self.client.reply(prefix,nick,target,reply)
@@ -166,7 +167,7 @@ class status(loadable.loadable):
                 query+=" t1.tick > (SELECT MAX(tick) FROM updates)"
                 
             query+=" AND t3.tick = (SELECT MAX(tick) FROM updates) AND (t1.nick ILIKE %s OR t2.pnick ILIKE %s)"
-            self.cursor.execute(query,args+('%'+subject+'%','%'+subject+'%'))
+            self.cursor.execute(query,args+(subject,subject))
             if self.cursor.rowcount < 1:
                 reply="No active bookings matching nick/user %s" %(subject)
                 self.client.reply(prefix,nick,target,reply)

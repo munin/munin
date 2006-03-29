@@ -1,8 +1,8 @@
 #!/bin/sh
 
-botexe="/home/andreaja/usr/src/wd/odin/hugin.py"
-botname="/home/andreaja/usr/src/wd/odin/pid.hugin"
-botdir="/home/andreaja/usr/src/wd/odin"
+botexe="/home/idimmu/Projects/odin/hugin.py"
+botname="/home/idimmu/Projects/odin/pid.hugin"
+botdir="/home/idimmu/Projects/odin"
 
 cd $botdir
 if test -r $botname; then

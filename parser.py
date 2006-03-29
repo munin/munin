@@ -6,6 +6,10 @@ import re, psycopg, sys, os, traceback,string
 
 import loadable 
 
+sys.path.insert(0, "custom")
+
+from scan import scan
+
 DEBUG = 1
 
 class parser:
@@ -58,6 +62,8 @@ class parser:
         #self.remtargre=re.compile(r"^(\d{1,3}):(\d{1,2}):(\d{1,2})\s*")
         #self.coordre=re.compile(r"^(\d{1,3}):(\d{1,2}):(\d{1,2})$")
         
+	#http://game.planetarion.com/showscan.pl?scan_id=750337894
+	self.scanre=re.compile("http://game.planetarion.com/showscan.pl\?scan_id=(\d+)")
 
     def parse(self,line):
         m=self.welcomre.search(line)
@@ -119,6 +125,11 @@ class parser:
                         self.client.reply(self.prefix_to_numeric(prefix),nick,target,"Successfully loaded module '%s'" % (mod_name,))
                     return "Successfully loaded module '%s'" % (mod_name,)
 
+		print "running scan parse"
+		for m in self.scanre.finditer(command):
+			print "loop"
+			return self.scan(m.group(1))
+
                 m=self.helpre.search(command)
                 if m:
                     return self.help(nick,username,host,target,message,self.prefix_to_numeric(prefix),command,user,access,m.group(2))
@@ -128,6 +139,9 @@ class parser:
                             
                 #do stuff!
         return None
+
+    def scan(self, rand_id):
+        s = scan(rand_id)
 
     # split off parse into a func?
 

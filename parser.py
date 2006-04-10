@@ -25,7 +25,7 @@ class parser:
         #database variables (also private)
         self.mod_dir="mod"
         self.user="andreaja"
-        self.dbname="patools16"
+        self.dbname="patest"
 
         # database connection and cursor
         self.conn=psycopg.connect("user=%s dbname=%s" % (self.user,self.dbname))
@@ -196,15 +196,38 @@ class parser:
         if param:
             if self.ctrl_list.has_key(param):
                 if access >= self.ctrl_list[param].level:
-                    self.client.reply(prefix,nick,target,param+": "+self.ctrl_list[param].help())
-                    return
-        
+                    try:
+                        self.client.reply(prefix,nick,target,param+": "+self.ctrl_list[param].help())
+                        return
+                    except Exception, e:
+                        ctrl=self.ctrl_list[param]
+                        del self.ctrl_list[param]
+                        print "Exception in "+ ctrl.__class__.__name__ +" module dumped"
+                        self.client.reply(prefix,nick,target,"Error in module '"+ ctrl.__class__.__name__ +"'. Please report the command you used to jester as soon as possible.")
+                        print e.__str__()
+                        traceback.print_exc()
+                        if DEBUG:
+                            print "nick: '%s'" % (nick,)
+                            print "username: '%s'" % (username,)
+                            print "host: '%s'" % (host,)
+                            print "target: '%s'" % (target,)
+                            print "message: '%s'" % (message,)
+                            print "prefix: '%s'" % (prefix,)
+                            print "command: '%s'" % (command,)
+                            print "user: '%s'" % (user,)
+                            print "access: '%s'" % (access,)
+                            err_msg=self.load_mod(param)
+                            if err_msg:
+                                self.client.reply(prefix,nick,target,"Unable to reload module '%s', this may seriously impede further use" % (k,))
+                                print err_msg
+                        return
         self.client.reply(prefix,nick,target,
                           "Munin help. For more information use: <"+self.notprefix.replace("|","")+self.pubprefix.replace("|","")+self.privprefix.replace("|","")+">help <command>. Built-in commands: help" + (bool(access>=1000) and ", loadmod" or ""))
         command_list=[]
         for ctrl in self.ctrl_list.values():
             if access >= ctrl.level:
                 command_list.append(ctrl.__class__.__name__)
+        command_list.sort()
         self.client.reply(prefix,nick,target,"Loaded modules: "+string.join(command_list,', '))
         
                           

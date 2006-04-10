@@ -236,8 +236,11 @@ class user:
             self.pnick=u['pnick']
             self.userlevel=u['userlevel']
             self.planet_id=u['planet_id']
-            self.planet=planet(id=self.planet_id)
-            self.planet.load_most_recent(conn,client,cursor)
+            if u['planet_id']:
+                self.planet=planet(id=self.planet_id)
+                self.planet.load_most_recent(conn,client,cursor)                
+            else:
+                self.planet=None
             self.stay=u['stay']
             self.pref=True
             return 1

@@ -74,7 +74,7 @@ class xp(loadable.loadable):
             if not u.load_from_db(self.conn,self.client,self.cursor):
                 self.client.reply(prefix,nick,target,"Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
                 return 1
-            if u.planet:
+            if u.planet_id:
                 attacker = u.planet
             else:
                 self.client.reply(prefix,nick,target,"Usage: %s (you must be registered for automatic lookup)" % (self.usage,))

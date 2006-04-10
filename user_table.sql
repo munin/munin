@@ -1,9 +1,14 @@
+-- CREATE DATABASE patools17 WITH ENCODING = 'LATIN1';
+-- createlang plpgsql patest | CREATE LANGUAGE plpgqsl
+
+
 CREATE TABLE updates (
  id serial ,
  tick smallint UNIQUE,
  planets smallint,
  galaxies smallint,
  alliances smallint,
+ timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT now(), 
  PRIMARY KEY (id)
 );
 
@@ -84,34 +89,108 @@ CREATE TABLE alliance_dump (
  members_rank smallint NOT NULL,
  score_avg int NOT NULL,
  size_avg smallint NOT NULL,
+ score_avg_rank smallint NOT NULL,
+ size_avg_rank smallint NOT NULL,
  id integer NOT NULL REFERENCES alliance_canon(id),
  PRIMARY KEY(tick, name)
 );
+
+CREATE INDEX planet_dump_tick_index ON planet_dump(tick);
+
+CREATE INDEX planet_dump_id_index ON planet_dump(id);
+
+CREATE INDEX galaxy_dump_tick_index ON galaxy_dump(tick);
+
+CREATE INDEX galaxy_dump_id_index ON galaxy_dump(id);
+
+CREATE INDEX alliance_dump_tick_index ON alliance_dump(tick);
+
+CREATE INDEX alliance_dump_id_index ON alliance_dump(id);
 
 
 
 CREATE TABLE user_list (
 	id SERIAL PRIMARY KEY,
-	pnick TEXT NOT NULL UNIQUE,
+	pnick VARCHAR(15) NOT NULL UNIQUE,
+	sponsor VARCHAR(15),
 	passwd CHAR(30),
 	userlevel INTEGER NOT NULL,
 	posflags VARCHAR(30),
 	negflags VARCHAR(30)
 );
 
+CREATE FUNCTION user_create_prefs() RETURNS trigger AS $PROC$
+BEGIN
+	INSERT INTO user_pref (id) VALUES (NEW.id);
+        RETURN NEW;
+END
+$PROC$ LANGUAGE plpgsql;
+
+CREATE TRIGGER user_create_prefs AFTER INSERT ON user_list FOR EACH ROW EXECUTE PROCEDURE user_create_prefs();
+
+INSERT INTO user_list (pnick,sponsor,userlevel) VALUES ('jester','Munin',1000);
+
 CREATE TABLE channel_list (
 	id SERIAL PRIMARY KEY,
 	chan TEXT NOT NULL UNIQUE,
         userlevel INTEGER NOT NULL,
+	max_level INTEGER NOT NULL,
         posflags VARCHAR(30),
         negflags VARCHAR(30)
-  );
+);
+
+--DROP TRIGGER chan_max_level ON channel_list;
+--DROP FUNCTION chan_max_level();
+CREATE FUNCTION chan_max_level() RETURNS trigger AS $PROC$
+BEGIN
+	NEW.max_level := NEW.userlevel;
+	RETURN NEW;
+END
+$PROC$ LANGUAGE plpgsql;
+
+CREATE TRIGGER chan_max_level BEFORE INSERT ON channel_list FOR EACH ROW EXECUTE PROCEDURE chan_max_level();
 
 CREATE TABLE user_pref (
 	id integer PRIMARY KEY REFERENCES user_list(id) ON DELETE CASCADE,
 	planet_id integer REFERENCES planet_canon(id) ON DELETE CASCADE,
-	stay BOOLEAN DEFAULT FALSE
+	stay BOOLEAN DEFAULT FALSE,
+	invites smallint NOT NULL DEFAULT 0 CHECK (invites >= 0)
 );
+
+CREATE VIEW user_list_with_pref AS 
+	SELECT t1.id,t1.pnick,t1.passwd,t1.userlevel,t1.posflags,t1.negflags,t2.planet_id,t2.stay,t2.invites
+	FROM user_list AS t1 
+	LEFT JOIN user_pref AS t2
+	ON t1.id=t2.id
+;
+
+-- If we ever want to do updates into the view, we'll need a rule
+-- However, these are a headache (scanners style) and the view is primarily to simplify complex joins anyway
+--CREATE RULE user_list_with_pref_upd AS ON UPDATE 
+--	TO user_list_with_pref
+--	DO UPDATE 
+
+CREATE TABLE sponsor (
+	id SERIAL PRIMARY KEY,
+	sponsor_id integer REFERENCES user_list(id) ON DELETE CASCADE,
+	pnick VARCHAR(15) NOT NULL UNIQUE,--CHECK (pnick NOT IN (SELECT pnick FROM user_list)),
+	comment VARCHAR(512),
+	timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT now()
+);
+
+/*
+CREATE FUNCTION recruit_not_member() RETURNS trigger AS $PROC$
+BEGIN
+	IF NEW.pnick IN (SELECT pnick FROM user_list) THEN
+		RAISE EXCEPTION '% is already a member', NEW.pnick;
+	END IF;
+        RETURN NEW;
+END
+$PROC$ LANGUAGE plpgsql;
+
+CREATE TRIGGER recruit_not_member BEFORE INSERT ON sponsor FOR EACH ROW EXECUTE PROCEDURE recruit_not_member();
+*/
+
 
 CREATE TABLE target ( 
 	id serial PRIMARY KEY,
@@ -160,23 +239,10 @@ CREATE TABLE tag (
 	UNIQUE(pid,tick)
 );
 
-CREATE INDEX planet_dump_tick_index ON planet_dump(tick);
-
-CREATE INDEX planet_dump_id_index ON planet_dump(id);
-
-CREATE INDEX galaxy_dump_tick_index ON galaxy_dump(tick);
-
-CREATE INDEX galaxy_dump_id_index ON galaxy_dump(id);
-
-CREATE INDEX alliance_dump_tick_index ON alliance_dump(tick);
-
-CREATE INDEX alliance_dump_id_index ON alliance_dump(id);
-
 CREATE TABLE slogan (
 	id serial PRIMARY KEY,
 	slogan text NOT NULL
 );
-
 
 CREATE TABLE scan (
 	id serial PRIMARY KEY,
@@ -233,7 +299,7 @@ CREATE TABLE unit (
 );
 
 CREATE VIEW unit_ranges AS 
-	SELECT t2.pid AS pid,max(amount)/1.2 AS min_amount,min(t1.amount) AS max_amount
+	SELECT t2.pid AS pid,max(amount)/1.2 AS min_amount,min(t1.amount)*.8 AS max_amount
 	FROM unit AS t1
 	INNER JOIN scan AS t2
 	ON t1.scan_id=t2.id
@@ -256,3 +322,5 @@ CREATE TABLE fleet_content (
 	ship_id integer NOT NULL REFERENCES ship(id),
 	amount integer NOT NULL
 );
+
+

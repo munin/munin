@@ -1,0 +1,57 @@
+"""
+Loadable.Loadable subclass
+"""
+
+class gimp(loadable.loadable):
+    def __init__(self,client,conn,cursor):
+        loadable.loadable.__init__(self,client,conn,cursor,100)
+        self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
+        self.paramre=re.compile(r"^(\s+(\S+))?")
+        self.usage=self.__class__.__name__ + "<gimp's pnick>"
+        
+    def execute(self,nick,username,host,target,prefix,command,user,access):
+        m=self.commandre.search(command)
+        if not m:
+            return 0
+
+        if access < self.level:
+            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            return 0
+        
+        m=self.paramre.search(m.group(1))
+        if not m:
+            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            return 0
+        
+        # assign param variables
+        gimp=m.group(2)
+        
+        # do stuff here
+        reply=""
+        if gimp:
+            query="SELECT t1.pnick AS gimp,t1.comment AS comment,t2.pnick AS sponsor FROM sponsor AS t1 INNER JOIN user_list AS t2 ON t1.sponsor_id=t2.id WHERE t1.pnick=%s"
+            self.cursor.execute(query,(gimp,))
+            if self.cursor.rowcount < 1:
+                reply+="No gimps matching '%s'. This command requires a full match to display results."
+            else:
+                r=self.cursor.dictfetchone()
+                reply+="Gimp: %s, Sponsor: %s, Comment: %s" % (r['gimp'],r['sponsor'],r['comment'])
+        else:
+            query="SELECT t1.pnick AS gimp,t2.pnick AS sponsor FROM sponsor AS t1 INNER JOIN user_list AS t2 ON t1.sponsor_id=t2.id"
+            self.cursor.execute(query)
+            if self.cursor.rowcount < 1:
+                reply+="There are currently no gimps up for recruit"
+            else:
+                reply+="Current gimps (with sponsor):"
+
+                prev=[]
+                for p in self.cursor.dictfetchall():
+                    prev.append("(%s,%s)" % (p['gimp'],p['sponsor']))
+                reply+=" "+string.join(prev,', ')
+
+            
+        
+        self.client.reply(prefix,nick,target,reply)
+        
+        return 1
+                                                                                                                                            

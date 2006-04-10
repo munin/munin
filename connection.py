@@ -32,8 +32,8 @@ class connection:
     else:
       if DEBUG:
         print ">>>", line;
-      while self.lastcommand + 2 >= time.time():
-        time.sleep(0.5)
+      while self.lastcommand + 1.5 >= time.time():
+        time.sleep(0.1)
       while len(line) > 0:
         self.sock.send(line[:512] + CRLF)
         line=line[512:]

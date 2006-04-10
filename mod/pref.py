@@ -57,7 +57,7 @@ class pref(loadable.loadable):
             self.client.reply(prefix,nick,target,"%s:%s:%s is not a valid planet" % (x,y,z))
             return 0
 
-        if u.planet_id > 0:
+        if u.pref:
             query="UPDATE user_pref SET planet_id=%s WHERE id=%s"
             self.cursor.execute(query,(p.id,u.id))
             self.client.reply(prefix,nick,target,"Your planet has been saved as %s:%s:%s" % (x,y,z))

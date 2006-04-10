@@ -10,7 +10,7 @@ class scan:
 		else:
 			# database connection and cursor
 			self.user="andreaja"
-		        self.dbname="patools16"
+		        self.dbname="patest"
 		        self.conn=psycopg.connect("user=%s dbname=%s" % (self.user,self.dbname))
 		        self.conn.serialize()
 		        self.conn.autocommit()

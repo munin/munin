@@ -116,17 +116,11 @@ CREATE TABLE user_list (
 	passwd CHAR(30),
 	userlevel INTEGER NOT NULL,
 	posflags VARCHAR(30),
-	negflags VARCHAR(30)
+	negflags VARCHAR(30),
+	planet_id integer REFERENCES planet_canon(id) ON DELETE CASCADE,
+	stay BOOLEAN DEFAULT FALSE,
+	invites smallint NOT NULL DEFAULT 0 CHECK (invites >= 0)
 );
-
-CREATE FUNCTION user_create_prefs() RETURNS trigger AS $PROC$
-BEGIN
-	INSERT INTO user_pref (id) VALUES (NEW.id);
-        RETURN NEW;
-END
-$PROC$ LANGUAGE plpgsql;
-
-CREATE TRIGGER user_create_prefs AFTER INSERT ON user_list FOR EACH ROW EXECUTE PROCEDURE user_create_prefs();
 
 INSERT INTO user_list (pnick,sponsor,userlevel) VALUES ('jester','Munin',1000);
 
@@ -149,26 +143,6 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 CREATE TRIGGER chan_max_level BEFORE INSERT ON channel_list FOR EACH ROW EXECUTE PROCEDURE chan_max_level();
-
-CREATE TABLE user_pref (
-	id integer PRIMARY KEY REFERENCES user_list(id) ON DELETE CASCADE,
-	planet_id integer REFERENCES planet_canon(id) ON DELETE CASCADE,
-	stay BOOLEAN DEFAULT FALSE,
-	invites smallint NOT NULL DEFAULT 0 CHECK (invites >= 0)
-);
-
-CREATE VIEW user_list_with_pref AS 
-	SELECT t1.id,t1.pnick,t1.passwd,t1.userlevel,t1.posflags,t1.negflags,t2.planet_id,t2.stay,t2.invites
-	FROM user_list AS t1 
-	LEFT JOIN user_pref AS t2
-	ON t1.id=t2.id
-;
-
--- If we ever want to do updates into the view, we'll need a rule
--- However, these are a headache (scanners style) and the view is primarily to simplify complex joins anyway
---CREATE RULE user_list_with_pref_upd AS ON UPDATE 
---	TO user_list_with_pref
---	DO UPDATE 
 
 CREATE TABLE sponsor (
 	id SERIAL PRIMARY KEY,

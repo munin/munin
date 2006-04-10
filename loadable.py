@@ -225,10 +225,10 @@ class user:
 
     def load_from_db(self,conn,client,cursor):
         if self.pnick:
-            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.userlevel AS userlevel, t2.planet_id AS planet_id, t2.stay AS stay FROM user_list AS t1, user_pref AS t2 WHERE t2.id=t1.id AND t1.pnick ILIKE %s"
+            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.stay AS stay FROM user_list AS t1 WHERE t1.pnick ILIKE %s"
             cursor.execute(query,(self.pnick,))
         elif self.id > 0:
-            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.userlevel AS userlevel, t2.planet_id AS planet_id, t2.stay AS stay FROM user_list AS t1, user_pref AS t2 WHERE t2.id=t1.id AND t1.id=%s"
+            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.stay AS stay FROM user_list AS t1 WHERE  t1.id=%s"
             cursor.execute(query,(self.pnick,))            
         u=cursor.dictfetchone()
         if u:

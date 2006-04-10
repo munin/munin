@@ -192,7 +192,7 @@ CREATE FUNCTION sponsor(inviter text,recruit text,comment_text text) RETURNS mun
 DECLARE
 	ret munin_return%ROWTYPE;
 BEGIN
-UPDATE user_pref SET invites=invites-1 WHERE id=(SELECT id FROM user_list WHERE pnick=inviter);
+UPDATE user_list SET invites=invites-1 WHERE pnick=inviter;
 INSERT INTO sponsor (pnick,sponsor_id,comment) VALUES (recruit,(SELECT id FROM user_list WHERE pnick=inviter),comment_text);
 ret := ROW(TRUE,recruit ||' sponsored');
 RETURN ret;
@@ -216,7 +216,7 @@ BEGIN
 SELECT INTO r sponsor.id AS id,count(sponsor.id) AS count FROM sponsor WHERE pnick=recruit AND sponsor_id=(SELECT id FROM user_list WHERE pnick=inviter) GROUP BY id;
 IF r.count > 0 THEN 
 	DELETE FROM sponsor WHERE id=r.id;
-	UPDATE user_pref SET invites=invites+1 WHERE id=(SELECT id FROM user_list WHERE pnick=inviter);
+	UPDATE user_list SET invites=invites+1 WHERE pnick=inviter;
 	ret=ROW(TRUE,'Removed sponsorship of '||recruit);
 	RETURN ret;
 ELSE

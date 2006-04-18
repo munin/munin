@@ -43,7 +43,7 @@ class remchan(loadable.loadable):
         try:
             self.cursor.execute(query,(real_chan,))
             if self.cursor.rowcount>0:
-                self.client.reply(prefix,nick,target,"Removed cannel %s" % (real_chan,))
+                self.client.reply(prefix,nick,target,"Removed channel %s" % (real_chan,))
             else:
                 self.client.reply(prefix,nick,target,"No channel removed" )
         except:

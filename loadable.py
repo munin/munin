@@ -12,14 +12,18 @@ class loadable:
         self.coordre=re.compile(r"(\d+)[. :-](\d+)([. :-](\d+))?")
         self.planet_coordre=re.compile(r"(\d+)[. :-](\d+)[. :-](\d+)")
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)",re.I)
+        self.helptext=None
         pass
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
         print "Loadable execute"
         pass
 
-    def help(self):
-        return self.usage
+    def help(self,nick,username,host,target,prefix,user,access):
+        self.client.reply(prefix,nick,target,self.usage)
+        if self.helptext:
+            for h in self.helptext:
+                self.client.reply(prefix,nick,target,h)
 
     def format_value(self,cost):
         value=cost/100
@@ -175,12 +179,15 @@ class alliance:
         self.members_rank=-1
         self.score_avg=-1
         self.size_avg=-1
+        self.score_avg_rank=-1
+        self.size_avg_rank=-1
+
         self.id=id
         
     def __str__(self):
         retstr="'%s' Members: %s (%s) " % (self.name,self.members,self.members_rank)
-        retstr+="Score: %s (%s) Avg: %s " % (self.score,self.score_rank,self.score_avg)
-        retstr+="Size: %s (%s) Avg: %s " % (self.size,self.size_rank,self.size_avg)
+        retstr+="Score: %s (%s) Avg: %s (%s) " % (self.score,self.score_rank,self.score_avg,self.score_avg_rank)
+        retstr+="Size: %s (%s) Avg: %s (%s)" % (self.size,self.size_rank,self.size_avg,self.size_avg_rank)
         return retstr
         pass
 
@@ -188,7 +195,7 @@ class alliance:
         a={}
         if self.name:
             #load from fuzzy name
-            query="SELECT name,size,members,score,size_rank,members_rank,score_rank,score_avg,size_avg,id FROM alliance_dump WHERE name ILIKE %s AND tick=(SELECT MAX(tick) FROM updates)"
+            query="SELECT name,size,members,score,size_rank,members_rank,score_rank,score_avg,size_avg,score_avg_rank,size_avg_rank,id FROM alliance_dump WHERE name ILIKE %s AND tick=(SELECT MAX(tick) FROM updates)"
             cursor.execute(query,("%"+self.name+"%",))
             pass
         else:
@@ -205,6 +212,8 @@ class alliance:
         self.members_rank=a['members_rank']
         self.score_avg=a['score_avg']
         self.size_avg=a['size_avg']
+        self.score_avg_rank=a['score_avg_rank']
+        self.size_avg_rank=a['size_avg_rank']        
         self.id=a['id']
         return 1    
 

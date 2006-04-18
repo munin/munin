@@ -126,23 +126,25 @@ INSERT INTO user_list (pnick,sponsor,userlevel) VALUES ('jester','Munin',1000);
 
 CREATE TABLE channel_list (
 	id SERIAL PRIMARY KEY,
-	chan TEXT NOT NULL UNIQUE,
+	chan VARCHAR(150) NOT NULL UNIQUE,
         userlevel INTEGER NOT NULL,
-	max_level INTEGER NOT NULL,
+	maxlevel INTEGER NOT NULL,
         posflags VARCHAR(30),
         negflags VARCHAR(30)
 );
 
 --DROP TRIGGER chan_max_level ON channel_list;
 --DROP FUNCTION chan_max_level();
+/*
+IT WOULD BE NICE IF THIS WORKED, REALLY IT WOULD 
 CREATE FUNCTION chan_max_level() RETURNS trigger AS $PROC$
 BEGIN
-	NEW.max_level := NEW.userlevel;
+	NEW.maxlevel := NEW.userlevel;
 	RETURN NEW;
 END
 $PROC$ LANGUAGE plpgsql;
 
-CREATE TRIGGER chan_max_level BEFORE INSERT ON channel_list FOR EACH ROW EXECUTE PROCEDURE chan_max_level();
+CREATE TRIGGER chan_max_level BEFORE INSERT ON channel_list FOR EACH ROW EXECUTE PROCEDURE chan_max_level();*/
 
 CREATE TABLE sponsor (
 	id SERIAL PRIMARY KEY,
@@ -177,7 +179,7 @@ CREATE TABLE target (
 
 CREATE TABLE intel (
 	id serial PRIMARY KEY,
-	pid integer UNIQUE REFERENCES planet_canon(id),
+	pid integer NOT NULL UNIQUE REFERENCES planet_canon(id),
 	nick VARCHAR(20),
 	fakenick VARCHAR(20),
 	alliance VARCHAR(20),
@@ -187,6 +189,31 @@ CREATE TABLE intel (
 	distwhore BOOLEAN DEFAULT FALSE,
 	comment VARCHAR(512)	
 );
+
+CREATE FUNCTION intel_update_nulls() RETURNS trigger AS $PROC$
+BEGIN
+IF NEW.nick = '?' THEN
+	NEW.nick=NULL;
+END IF;
+IF NEW.fakenick = '?' THEN
+	NEW.fakenick=NULL;
+END IF;
+IF NEW.alliance = '?' THEN
+        NEW.alliance=NULL;
+END IF;
+IF NEW.reportchan = '?' THEN
+        NEW.reportchan=NULL;
+END IF;
+IF NEW.comment = '?' THEN
+        NEW.comment=NULL;
+END IF;
+RETURN NEW;
+END
+$PROC$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER intel_update_nulls BEFORE UPDATE ON intel FOR EACH ROW EXECUTE PROCEDURE intel_update_nulls();
+CREATE TRIGGER intel_insert_nulls BEFORE INSERT ON intel FOR EACH ROW EXECUTE PROCEDURE intel_update_nulls();
 
 CREATE TABLE ship (
 	id SERIAL PRIMARY KEY,
@@ -222,19 +249,24 @@ CREATE TABLE scan (
 	id serial PRIMARY KEY,
 	tick smallint NOT NULL REFERENCES updates(tick),
 	pid integer NOT NULL REFERENCES planet_canon(id),
-	scantype VARCHAR(10) NOT NULL CHECK(scantype in ('planet','structure','technology','unit','news','jgp','fleet'))
+	nick VARCHAR(15) NOT NULL,
+	pnick VARCHAR(15) ,
+	rand_id integer NOT NULL,
+	scantype VARCHAR(10) NOT NULL CHECK(scantype in ('unknown','planet','structure','technology','unit','news','jgp','fleet')),
+	UNIQUE(rand_id,tick)
+
 );
 
 CREATE TABLE planet (
 	id serial PRIMARY KEY,
 	scan_id integer NOT NULL REFERENCES scan(id),
-	timestamp TIME WITHOUT TIME ZONE DEFAULT now(),
+	timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
 	roid_metal smallint NOT NULL,
 	roid_crystal smallint NOT NULL,
 	roid_eonium smallint NOT NULL,
-	res_metal smallint NOT NULL,
-	res_crystal smallint NOT NULL,
-	res_eonium smallint NOT NULL
+	res_metal integer NOT NULL,
+	res_crystal integer NOT NULL,
+	res_eonium integer NOT NULL
 );
 
 CREATE TABLE structure (

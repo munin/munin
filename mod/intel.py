@@ -19,6 +19,9 @@ class intel(loadable.loadable):
         self.optionsre['scanner']=re.compile("^(t|f)",re.I)        
         self.optionsre['distwhore']=re.compile("^(t|f)",re.I)
         self.optionsre['comment']=re.compile("^(.*)")                
+        options=self.optionsre.keys()
+        options.sort()
+        self.helptext=["Valid options: %s" % (string.join(options,', '))]
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
@@ -109,10 +112,8 @@ class intel(loadable.loadable):
                 active_opt=None
         return param_dict
     
-    def help(self):
-        options=self.optionsre.keys()
-        options.sort()
-        return "Usage: %s Valid options: %s" % (self.usage,string.join(options,', '))
+#    def help(self):
+
 
 
     def exec_gal(self,nick,username,host,target,prefix,command,user,access,x,y):

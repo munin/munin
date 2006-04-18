@@ -2,7 +2,7 @@
 Loadable.Loadable subclass
 """
 
-class victim(loadable.loadable):
+class whore(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,100)
         self.paramre=re.compile("\s+(.*)")
@@ -17,11 +17,28 @@ class victim(loadable.loadable):
         if not m:
             return 0
 
+        
         m=self.paramre.search(m.group(1))
         if not m:
             self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
             return 0
 
+        if not user:
+            self.client.reply(prefix,nick,target,"You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
+            return 1
+
+
+        attacker=None
+        u=loadable.user(pnick=user)
+        if not u.load_from_db(self.conn,self.client,self.cursor):
+            self.client.reply(prefix,nick,target,"Usage: %s (you must set your planet in preferences to use this command (!pref planet=x:y:z))" % (self.usage,))
+            return 1
+        if u.planet_id:
+            attacker = u.planet
+        else:
+            self.client.reply(prefix,nick,target,"Usage: %s (you must set your planet in preferences to use this command (!pref planet=x:y:z))" % (self.usage,))
+            return 1
+                                                                                                                
         
         # assign param variables
         
@@ -62,7 +79,7 @@ class victim(loadable.loadable):
 
 
         
-        victims=self.victim(alliance,race,size_mod,size,value_mod,value)
+        victims=self.victim(alliance,race,size_mod,size,value_mod,value,attacker.score,attacker.value)
         i=0
         if not len(victims):
             reply="No"
@@ -70,7 +87,7 @@ class victim(loadable.loadable):
                 reply+=" %s"%(race,)
             reply+=" planets"
             if alliance:
-                reply+=" in intel matching Alliance: %s"%(alliance,)
+                reply+=" in intel matching alliance: %s"%(alliance,)
             else:
                 reply+=" matching"
             if size:
@@ -80,7 +97,7 @@ class victim(loadable.loadable):
             self.client.reply(prefix,nick,target,reply)
         for v in victims:
             reply="%s:%s:%s (%s)" % (v['x'],v['y'],v['z'],v['race'])
-            reply+=" Value: %s Size: %s" % (v['value'],v['size'])
+            reply+=" Value: %s Size: %s Scoregain: %d" % (v['value'],v['size'],v['xp_gain']*50)
             if v['nick']:
                 reply+=" Nick: %s" % (v['nick'],)
             if not alliance and v['alliance']:
@@ -95,9 +112,10 @@ class victim(loadable.loadable):
         
         return 1
     
-    def victim(self,alliance='ascendancy',race=None,size_mod='>',size=None,value_mod='<',value=None):
-        args=()
+    def victim(self,alliance=None,race=None,size_mod='>',size=None,value_mod='<',value=None,att_score=1,att_value=1):
+        args=(att_score,att_value)
         query="SELECT t1.x AS x,t1.y AS y,t1.z AS z,t1.size AS size,t1.size_rank AS size_rank,t1.value AS value,t1.value_rank AS value_rank,t1.race AS race,t2.alliance AS alliance,t2.nick AS nick"
+        query+=", (t1.size/4) * 5 * float8smaller(2,(t1.score::float/%s::float))*float8smaller(2,(t1.value::float/%s::float)) AS xp_gain" 
         query+=" FROM planet_dump AS t1 INNER JOIN planet_canon AS t3 ON t1.id=t3.id"
         query+=" LEFT JOIN intel AS t2 ON t3.id=t2.pid"
         query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates)"
@@ -114,7 +132,7 @@ class victim(loadable.loadable):
         if value:
             query+=" AND value %s " % (value_mod) + "%s"
             args+=(value,)
-        query+=" ORDER BY t1.size DESC, t1.value DESC"
+        query+=" ORDER BY xp_gain DESC, t1.size DESC, t1.value DESC"
         self.cursor.execute(query,args)
         return self.cursor.dictfetchall()
 

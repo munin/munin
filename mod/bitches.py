@@ -25,7 +25,9 @@ class bitches(loadable.loadable):
         query+=" LEFT JOIN user_list AS t2 ON t1.uid=t2.id"
 
         m=self.paramre.search(m.group(1))
+        tick=None
         if m:
+            tick=m.group(1)
             query+=" WHERE t1.tick >= ((SELECT MAX(tick) FROM updates)+%s)"
             args+=(m.group(1),)
         else:
@@ -48,4 +50,31 @@ class bitches(loadable.loadable):
 
         reply+=" "+string.join(prev,', ')
         self.client.reply(prefix,nick,target,reply)
+
+
+        #begin finding of all alliance targets
+
+        args=()
+        query="SELECT alliance,count(*) AS number"
+        query+=" FROM target AS t1"
+        query+=" INNER JOIN planet_dump AS t3 on t1.pid=t3.id"
+        query+=" LEFT JOIN intel AS t2 ON t3.id=t2.pid"
+        if tick:
+            query+=" WHERE t1.tick >= ((SELECT MAX(tick) FROM updates)+%s)"
+            args+=(tick,)
+        else:
+            query+=" WHERE t1.tick > (SELECT MAX(tick) FROM updates)"
+        query+="  AND t3.tick = (SELECT MAX(tick) FROM updates)"
+        query+=" GROUP BY alliance ORDER BY alliance"
+        self.cursor.execute(query,args)
+
+        if self.cursor.rowcount < 1:
+            "This should never happen"
+        reply="Active bitches:"
+        prev=[]
+        for b in self.cursor.dictfetchall():
+            prev.append("%s (%s)"%(b['alliance'] or "Unknown",b['number']))
+        reply+=" "+string.join(prev,', ')
+        self.client.reply(prefix,nick,target,reply)
+        
         return 1

@@ -8,6 +8,7 @@ class invite(loadable.loadable):
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(\S+)")
         self.usage=self.__class__.__name__ + " <gimp>"
+        self.helptext=["This command adds a recruit to the private channel and gives them access to me. Since this is done automatically, make sure P is online and responding before you do this. You should also make sure that you correctly typed the person's pnick when you sponsored them."]
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)

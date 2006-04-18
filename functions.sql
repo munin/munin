@@ -22,13 +22,12 @@ BEGIN
 -- deactive missing
 UPDATE planet_canon SET active=FALSE WHERE ROW(rulername,planetname) NOT IN (SELECT rulername,planetname FROM ptmp);
 -- insert new into canonical and update IDs
---EXECUTE 'SELECT t1.rulername,t1.planetname FROM '||quote_ident(tmptab)||' AS t1 WHERE ROW(t1.rulername,t1.planetname) NOT IN (SELECT rulername,planetname FROM planet_canon)' INTO r;
---RAISE EXCEPTION 'Foo: %',r;
 INSERT INTO planet_canon (rulername,planetname) SELECT t1.rulername,t1.planetname FROM ptmp AS t1 WHERE ROW(t1.rulername,t1.planetname) NOT IN (SELECT rulername,planetname FROM planet_canon);
 -- insert IDs for existing
 ALTER TABLE ptmp ADD COLUMN id integer DEFAULT -1;
 UPDATE ptmp SET id=t1.id FROM planet_canon AS t1 WHERE ptmp.rulername=t1.rulername AND ptmp.planetname=t1.planetname;
-
+CREATE INDEX ptmp_id_index ON ptmp(id);
+ANALYZE ptmp;
 END 
 $PROC$ LANGUAGE plpgsql;
 
@@ -82,14 +81,10 @@ BEGIN
 EXECUTE 'ALTER TABLE '||quote_ident(tmptab)||' ADD COLUMN '||quote_ident(colname)||'_rank smallint DEFAULT -1';
 --CREATE TEMP SEQUENCE rank;
 --PERFORM setval('rank',1,false);
-
 FOR r IN EXECUTE 'SELECT id FROM '||quote_ident(tmptab)||' ORDER BY '||quote_ident(colname)||' DESC' LOOP
  rank := rank + 1;
--- RAISE EXCEPTION 'r: %,rank: %',r,rank;
  EXECUTE 'UPDATE '||quote_ident(tmptab)||' SET '||quote_ident(colname)||'_rank='||rank||' WHERE id='||r.id;
 END LOOP;
--- This is broken, can't do ordering in UPDATE. Perhaps a subquery can fix this?
---EXECUTE 'UPDATE '||tmptab||' SET '||colname||'_rank = nextval(''rank'') FROM tmptab AS t1 JOIN tmptab AS t2 ON t1.x=t2.x AND t1.y=t2.y AND t1.z=t2.z ORDER BY t1.'||colname||' DESC';
 END
 $PROC$ LANGUAGE plpgsql;
 
@@ -103,6 +98,66 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
+-- PLANET SPECIFIC RANK FUNCTIONS FOR PERFORMANCE 
+
+DROP FUNCTION add_rank_planet_size();
+CREATE FUNCTION add_rank_planet_size() RETURNS void AS $PROC$
+DECLARE
+r RECORD;
+rank INT := 0;
+BEGIN
+ALTER TABLE ptmp ADD COLUMN size_rank smallint DEFAULT -1;
+FOR r IN SELECT id FROM ptmp ORDER BY size DESC LOOP
+ rank := rank + 1;
+ UPDATE ptmp SET size_rank=rank WHERE id=r.id;
+END LOOP;
+END
+$PROC$ LANGUAGE plpgsql;
+
+DROP FUNCTION add_rank_planet_score();
+CREATE FUNCTION add_rank_planet_score() RETURNS void AS $PROC$
+DECLARE
+r RECORD;
+rank INT := 0;
+BEGIN
+ALTER TABLE ptmp ADD COLUMN score_rank smallint DEFAULT -1;
+FOR r IN SELECT id FROM ptmp ORDER BY score DESC LOOP
+ rank := rank + 1;
+ UPDATE ptmp SET score_rank=rank WHERE id=r.id;
+END LOOP;
+END
+$PROC$ LANGUAGE plpgsql;
+
+DROP FUNCTION add_rank_planet_value();
+CREATE FUNCTION add_rank_planet_value() RETURNS void AS $PROC$
+DECLARE
+r RECORD;
+rank INT := 0;
+BEGIN
+ALTER TABLE ptmp ADD COLUMN value_rank smallint DEFAULT -1;
+FOR r IN SELECT id FROM ptmp ORDER BY value DESC LOOP
+ rank := rank + 1;
+ UPDATE ptmp SET value_rank=rank WHERE id=r.id;
+END LOOP;
+END
+$PROC$ LANGUAGE plpgsql;
+
+DROP FUNCTION add_rank_planet_xp();
+CREATE FUNCTION add_rank_planet_xp() RETURNS void AS $PROC$
+DECLARE
+r RECORD;
+rank INT := 0;
+BEGIN
+ALTER TABLE ptmp ADD COLUMN xp_rank smallint DEFAULT -1;
+FOR r IN SELECT id FROM ptmp ORDER BY xp DESC LOOP
+ rank := rank + 1;
+ UPDATE ptmp SET xp_rank=rank WHERE id=r.id;
+END LOOP;
+END
+$PROC$ LANGUAGE plpgsql;
+
+
+
 DROP FUNCTION store_planets(smallint);
 CREATE FUNCTION store_planets(curtick smallint) RETURNS void AS $PROC$
 BEGIN 
@@ -112,10 +167,15 @@ BEGIN
 	--generate IDs, insert missing into canonical, deactive missing planets
 	PERFORM gen_planet_id();
 	--generate ranks, this will add the appropriate columns to the temp table
-	PERFORM add_rank('ptmp','size');
+	PERFORM add_rank_planet_size();
+	PERFORM add_rank_planet_score();
+	PERFORM add_rank_planet_value();
+	PERFORM add_rank_planet_xp();
+
+/*	PERFORM add_rank('ptmp','size');
 	PERFORM add_rank('ptmp','score');
 	PERFORM add_rank('ptmp','value');
-	PERFORM add_rank('ptmp','xp');
+	PERFORM add_rank('ptmp','xp');*/
 
 	--transfer temporary data into permanent dump 
 	INSERT INTO planet_dump (tick,x,y,z,planetname,rulername,race,size,score,value,xp,size_rank,score_rank,value_rank,xp_rank,id)
@@ -213,10 +273,10 @@ DECLARE
 	r RECORD;
 BEGIN
 --RAISE EXCEPTION 'Foo %',quote_literal(inviter);
-SELECT INTO r sponsor.id AS id,count(sponsor.id) AS count FROM sponsor WHERE pnick=recruit AND sponsor_id=(SELECT id FROM user_list WHERE pnick=inviter) GROUP BY id;
+SELECT INTO r sponsor.id AS id,count(sponsor.id) AS count FROM sponsor WHERE pnick ILIKE recruit AND sponsor_id=(SELECT id FROM user_list WHERE pnick ILIKE inviter) GROUP BY id;
 IF r.count > 0 THEN 
 	DELETE FROM sponsor WHERE id=r.id;
-	UPDATE user_list SET invites=invites+1 WHERE pnick=inviter;
+	UPDATE user_list SET invites=invites+1 WHERE pnick ILIKE inviter;
 	ret=ROW(TRUE,'Removed sponsorship of '||recruit);
 	RETURN ret;
 ELSE
@@ -232,12 +292,12 @@ DECLARE
         ret munin_return%ROWTYPE;
         r RECORD;
 BEGIN
-SELECT INTO r EXTRACT(HOUR FROM now() - t1.timestamp) AS age,t1.pnick AS gimp,t2.pnick AS sponsor 
+SELECT INTO r (EXTRACT(DAYS FROM now()-t1.timestamp)*24+EXTRACT(HOUR FROM now() - t1.timestamp)) AS age,t1.pnick AS gimp,t2.pnick AS sponsor 
 	FROM sponsor AS t1 INNER JOIN user_list AS t2 ON t1.sponsor_id=t2.id 
-	WHERE t1.pnick=recruit AND t2.pnick=inviter LIMIT 1;
+	WHERE t1.pnick ILIKE recruit AND t2.pnick ILIKE inviter LIMIT 1;
 IF r.age > 36 THEN
 	INSERT INTO user_list (userlevel,pnick,sponsor) VALUES (100,recruit,inviter);
-	DELETE FROM sponsor WHERE pnick=r.gimp;
+	DELETE FROM sponsor WHERE pnick ILIKE r.gimp;
 	ret=ROW(TRUE,recruit||' successfully invited');
        	RETURN ret;	
 ELSIF r.age <= 36 THEN
@@ -256,7 +316,32 @@ EXCEPTION
 END
 $PROC$ LANGUAGE plpgsql;
 
+DROP FUNCTION access_level(text,text);
+CREATE FUNCTION access_level(username text,target text) RETURNS int AS $PROC$
+DECLARE
+        chanrec RECORD;
+	uslvl INT;
+	access INT;
+BEGIN 
+SELECT INTO chanrec userlevel,maxlevel FROM channel_list WHERE chan ILIKE target;
+SELECT INTO uslvl COALESCE((SELECT userlevel FROM user_list WHERE pnick ILIKE username),0);
+SELECT INTO access CASE WHEN chanrec.userlevel > uslvl THEN chanrec.userlevel ELSE uslvl END;
+--RAISE EXCEPTION 'access: %, chanrec: %, userrec: %',access, chanrec, uslvl;
+SELECT INTO access CASE WHEN access > chanrec.maxlevel THEN chanrec.maxlevel ELSE access END;
+RETURN access; 
+END
+$PROC$ LANGUAGE plpgsql;
 
+
+DROP FUNCTION max_tick();
+CREATE FUNCTION max_tick() RETURNS int AS $PROC$
+DECLARE
+	mt INT;
+BEGIN
+RETURN MAX(tick) FROM updates;
+--RETURN mt;
+END
+$PROC$ LANGUAGE plpgsql;
 
 
 -- END MUNIN RELATED FUNCTIONS

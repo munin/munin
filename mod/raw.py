@@ -21,7 +21,7 @@ class raw(loadable.loadable):
         irc_command=m.group(1)
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to send raw ocmmands")
+            self.client.reply(prefix,nick,target,"You do not have enough access to send raw commands")
             return 0
 
         print "%s sent raw '%s'" % (user,irc_command)

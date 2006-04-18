@@ -15,7 +15,7 @@ ofile.close()
 
 try:
     
-    conn=psycopg.connect("dbname=patest user=andreaja")
+    conn=psycopg.connect("dbname=patools17 user=andreaja")
     cursor=conn.cursor()
     
     cursor.execute("SELECT MAX(tick) FROM updates")
@@ -26,21 +26,21 @@ try:
     while True:
         try:
             try:
-                planets = urllib2.urlopen("http://goat.no-ip.com/botfiles/18-planet_listing.txt")
+                planets = urllib2.urlopen("http://game.planetarion.com/botfiles/planet_listing.txt")
             except Exception, e:
                 print "Failed gathering planet listing."
                 print e.__str__()
                 time.sleep(300)
                 continue
             try:
-                galaxies = urllib2.urlopen("http://goat.no-ip.com/botfiles/18-galaxy_listing.txt")
+                galaxies = urllib2.urlopen("http://game.planetarion.com/botfiles/galaxy_listing.txt")
             except Exception, e:
                 print "Failed gathering galaxy listing."
                 print e.__str__()
                 time.sleep(300)
                 continue    
             try:
-                alliances = urllib2.urlopen("http://goat.no-ip.com/botfiles/18-alliance_listing.txt")
+                alliances = urllib2.urlopen("http://game.planetarion.com/botfiles/alliance_listing.txt")
             except Exception, e:
                 print "Failed gathering alliance listing."
                 print e.__str__()

@@ -27,10 +27,10 @@ class addchan(loadable.loadable):
             self.client.reply(prefix,nick,target,"You may not add a channel with equal or higher access to your own")
             return 0
         
-        query="INSERT INTO channel_list (chan,userlevel) VALUES (%s,%s)"
+        query="INSERT INTO channel_list (chan,userlevel,maxlevel) VALUES (%s,%s,%s)"
         
         try:
-            self.cursor.execute(query,(chan,access_lvl))
+            self.cursor.execute(query,(chan,access_lvl,access_lvl))
             if self.cursor.rowcount>0:
                 self.client.reply(prefix,nick,target,"Added chan %s at level %s" % (chan,access_lvl))
         except psycopg.IntegrityError:

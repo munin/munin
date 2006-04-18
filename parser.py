@@ -8,7 +8,7 @@ import loadable
 
 sys.path.insert(0, "custom")
 
-from scan import scan
+import scan
 
 DEBUG = 1
 
@@ -25,7 +25,7 @@ class parser:
         #database variables (also private)
         self.mod_dir="mod"
         self.user="andreaja"
-        self.dbname="patest"
+        self.dbname="patools17"
 
         # database connection and cursor
         self.conn=psycopg.connect("user=%s dbname=%s" % (self.user,self.dbname))
@@ -63,7 +63,7 @@ class parser:
         #self.coordre=re.compile(r"^(\d{1,3}):(\d{1,2}):(\d{1,2})$")
         
 	#http://game.planetarion.com/showscan.pl?scan_id=750337894
-	self.scanre=re.compile("http://game.planetarion.com/showscan.pl\?scan_id=(\d+)")
+	self.scanre=re.compile("http://[^.]+.planetarion.com/showscan.pl\?scan_id=(\d+)")
 
     def parse(self,line):
         m=self.welcomre.search(line)
@@ -82,6 +82,12 @@ class parser:
             host=m.group(3).lower()
             target=m.group(4).lower()
             message=m.group(5)
+
+            user=self.getpnick(host)
+
+            #print "running scan parse"
+            for m in self.scanre.finditer(message):
+                self.scan(m.group(1),nick,user)
             
             m=self.commandre.search(message)
             if not m:
@@ -89,28 +95,11 @@ class parser:
             prefix=m.group(1)
             command=m.group(2)#;params=m.group(3)
             
-            access=0
-            useraccess=0
-            chanaccess=None
-            
-            m=self.ischannelre.search(target)
-            if m:
-                chanaccess=self.get_chan_access(target)
 
-            user=self.getpnick(host)
-            if not user and not chanaccess:
-                return None
-            else:
-                useraccess=self.get_user_access(user)
-
-                
-            #if not useraccess:
-            #    return "No user access for: %s" % (nick,)
-            if useraccess < chanaccess:
-                access=chanaccess
-            else:
-                access=useraccess
-                
+            query="SELECT * FROM access_level(%s,%s)"
+            self.cursor.execute(query,(user,target))
+            access=self.cursor.dictfetchone()['access_level'] or 0
+            print "access: %d, user: %s, #channel: %s"%(access,user,target)
             if access > 0:
                 m=self.loadmodre.search(command)
                 if m:
@@ -125,10 +114,7 @@ class parser:
                         self.client.reply(self.prefix_to_numeric(prefix),nick,target,"Successfully loaded module '%s'" % (mod_name,))
                     return "Successfully loaded module '%s'" % (mod_name,)
 
-		print "running scan parse"
-		for m in self.scanre.finditer(command):
-			print "loop"
-			return self.scan(m.group(1))
+
 
                 m=self.helpre.search(command)
                 if m:
@@ -140,8 +126,9 @@ class parser:
                 #do stuff!
         return None
 
-    def scan(self, rand_id):
-        s = scan(rand_id)
+    def scan(self, rand_id,nick,pnick):
+        s = scan.scan(rand_id,self.client,self.conn,self.cursor,nick,pnick)
+        s.run()
 
     # split off parse into a func?
 
@@ -184,6 +171,9 @@ class parser:
                 loadable = reload(sys.modules['loadable'])
                 self.reg_controllers()
                 return None
+            if mod_name == 'scan':
+                loadable = reload(sys.modules['scan'])
+                return None
             filename=os.path.join(self.mod_dir,mod_name+'.py')
             execfile(filename)
             self.ctrl_list[mod_name] = locals().get(mod_name)(self.client,self.conn,self.cursor)
@@ -197,8 +187,9 @@ class parser:
             if self.ctrl_list.has_key(param):
                 if access >= self.ctrl_list[param].level:
                     try:
-                        self.client.reply(prefix,nick,target,param+": "+self.ctrl_list[param].help())
-                        return
+                        #self.client.reply(prefix,nick,target,param+": "+self.ctrl_list[param].help())
+                        self.ctrl_list[param].help(nick,username,host,target,prefix,user,access)
+                        return "Successfully executed help for '%s' with key '%s'" % (self.ctrl_list[param].__class__.__name__,param)
                     except Exception, e:
                         ctrl=self.ctrl_list[param]
                         del self.ctrl_list[param]

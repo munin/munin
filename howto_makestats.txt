@@ -1,0 +1,6 @@
+a) copy stats from html to excel
+b) remove efficiency columns, add total cost column
+c) make temp table = ship table without id column
+d) \copy temptablename from stdin
+e) copy ships from excel to stdin
+f) insert into ship (name,class,target,type,init,armor,damage,metal,crystal,eonium,race,total_cost) select * from foo ;

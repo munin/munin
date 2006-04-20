@@ -4,7 +4,7 @@ Loadable.Loadable subclass
 
 class details(loadable.loadable):
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,1000)
+        loadable.loadable.__init__(self,client,conn,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(\d+)[. :-](\d+)[. :-](\d+)")
         self.usage=self.__class__.__name__ + " <x:y:z>"

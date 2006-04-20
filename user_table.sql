@@ -247,7 +247,7 @@ CREATE TABLE slogan (
 
 CREATE TABLE scan (
 	id serial PRIMARY KEY,
-	tick smallint NOT NULL REFERENCES updates(tick),
+	tick smallint NOT NULL,
 	pid integer NOT NULL REFERENCES planet_canon(id),
 	nick VARCHAR(15) NOT NULL,
 	pnick VARCHAR(15) ,
@@ -304,22 +304,27 @@ CREATE TABLE unit (
 	amount integer NOT NULL
 );
 
-CREATE VIEW unit_ranges AS 
-	SELECT t2.pid AS pid,max(amount)/1.2 AS min_amount,min(t1.amount)*.8 AS max_amount
+/*CREATE VIEW unit_ranges AS --broken
+	SELECT t2.pid AS pid,t3.name,max(amount::float)/1.2 AS min_amount,min(t1.amount::float)*.8 AS max_amount
 	FROM unit AS t1
+	INNER JOIN ship AS t3
+	ON t1.ship_id=t3.id
 	INNER JOIN scan AS t2
 	ON t1.scan_id=t2.id
-	GROUP BY t2.tick,t2.pid
+	GROUP BY t2.tick,t2.pid,t3.name
 	HAVING t2.tick=max(t2.tick)
-;
+;*/
 
 CREATE TABLE fleet (
 	id serial PRIMARY KEY,
 	scan_id integer NOT NULL REFERENCES scan(id),
-	pid integer NOT NULL REFERENCES planet_canon(id),
-	fleet_size integer NOT NULL, 
+	owner integer NOT NULL REFERENCES planet_canon(id),
+	target integer NOT NULL REFERENCES planet_canon(id),
+	fleet_size integer, 
 	fleet_name VARCHAR(24) NOT NULL,
-	landing_tick smallint NOT NULL
+	launch_tick smallint, 
+	landing_tick smallint NOT NULL,
+	mission varchar(7) NOT NULL CHECK(mission in ('defense','attack','unknown','return'))
 );
 
 CREATE TABLE fleet_content (
@@ -330,3 +335,9 @@ CREATE TABLE fleet_content (
 );
 
 
+CREATE TABLE covop (
+	id serial PRIMARY KEY,
+	scan_id integer NOT NULL REFERENCES scan(id),
+	covopper integer NOT NULL REFERENCES planet_canon(id),
+	target integer NOT NULL REFERENCES planet_canon(id)
+);

@@ -30,7 +30,7 @@ class scans(loadable.loadable):
 
         p=loadable.planet(x=x,y=y,z=z)
         if not p.load_most_recent(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"No planet matching '%s' found"%(param,))
+            self.client.reply(prefix,nick,target,"No planet matching '%s:%s:%s' found"%(x,y,z))
             return 1
 
         query="SELECT scantype,max(tick) AS latest,count(*) AS count FROM scan WHERE pid=%s GROUP BY scantype"

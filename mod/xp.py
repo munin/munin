@@ -31,10 +31,10 @@ class xp(loadable.loadable):
         victim = None
         attacker = None
         
-        m=self.countre.search(params)
-        if m and not ':.-'.rfind(m.group(2))>-1:
-            roid_count=int(m.group(1))
-            params=m.group(3)
+        #m=self.countre.search(params)
+        #if m and not ':.-'.rfind(m.group(2))>-1:
+            #roid_count=int(m.group(1))
+            #params=m.group(3)
 
         m=self.planet_coordre.search(params)
         if m:
@@ -81,7 +81,7 @@ class xp(loadable.loadable):
 
             bravery = min(20,5*(float(victim_val)/attacker_val)*(float(victim_score)/attacker_score))
             xp=int(bravery*roid_count)
-            reply+="XP: %s, Score: %s (Bravery: %.2f)" % (xp,xp*60,bravery)
+            reply+="XP: %s, Score: %s (Bravery: %.2f)" % (xp,xp*50,bravery)
             self.client.reply(prefix,nick,target,reply)
         else:
             reply="Target "
@@ -103,7 +103,7 @@ class xp(loadable.loadable):
             
             cap=total_roids/4
             xp=int(cap*bravery)
-            reply+="| Roids: %s | XP: %s | Score: %s" % (cap,xp,xp*60)
+            reply+="| Roids: %s | XP: %s | Score: %s" % (cap,xp,xp*50)
             self.client.reply(prefix,nick,target,reply)
         
                 

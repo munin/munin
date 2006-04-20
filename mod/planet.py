@@ -4,12 +4,12 @@ Loadable.Loadable subclass
 
 class planet(loadable.loadable):
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,1000)
+        loadable.loadable.__init__(self,client,conn,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(.*)")
         self.idre=re.compile(r"(\d{1,9})")
         self.usage=self.__class__.__name__ + ""
-	self.help=None
+	self.helptext=None
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
@@ -83,9 +83,4 @@ class planet(loadable.loadable):
                 reply+=" Roids: (m:%s, c:%s, e:%s) | Resources: (m:%s, c:%s, e:%s)" % (s['roid_metal'],s['roid_crystal'],s['roid_eonium'],s['res_metal'],s['res_crystal'],s['res_eonium'])
 
         self.client.reply(prefix,nick,target,reply)
-        
-                       
-
-        # do stuff here
-
         return 1

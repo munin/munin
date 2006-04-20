@@ -29,7 +29,7 @@ class scan(threading.Thread):
     def unsafe_method(self):
         page = urllib2.urlopen('http://game.planetarion.com/showscan.pl?scan_id=' + self.rand_id).read()
 
-        m = re.search('>([^>]+) Scan on (\d+)\:(\d+)\:(\d+) in tick (\d+)', page)
+        m = re.search('>([^>]+) on (\d+)\:(\d+)\:(\d+) in tick (\d+)', page)
         if not m:
             print "Expired/non-matchinng scan (id: %s)" %(self.rand_id,)
             return
@@ -69,28 +69,26 @@ class scan(threading.Thread):
                 self.parse_technology(next_id,page)
                 
             elif scantype=='unit':
-                query="DELETE FROM scan WHERE id=%s"
-                self.cursor.execute(query,(next_id,))
-                self.parse_unit(page)
-                
+                self.parse_unit(next_id,page)
+
             elif scantype=='news':
-                query="DELETE FROM scan WHERE id=%s"
-                self.cursor.execute(query,(next_id,))
-                self.parse_news(page)
+                self.parse_news(next_id,page)
+#                query="DELETE FROM scan WHERE id=%s"
+#                self.cursor.execute(query,(next_id,))
+                
                 
             elif scantype=='jgp':
-                query="DELETE FROM scan WHERE id=%s"
-                self.cursor.execute(query,(next_id,))                
-                self.parse_jumpgate(page)
+                self.parse_jumpgate(next_id,page)
+                
         
     def name_to_type(self,name):
-        if name=='Planet':
+        if name=='Planet Scan':
             return "planet"
-        elif name=='Surface Analysis':
+        elif name=='Surface Analysis Scan':
             return "structure"
-        elif name=='Technology Analysis':
+        elif name=='Technology Analysis Scan':
             return "technology"
-        elif name=='Unit':
+        elif name=='Unit Scan':
             return "unit"
         elif name=='News Scan':
             return "news"
@@ -98,13 +96,16 @@ class scan(threading.Thread):
             return "jgp"
         print "Name: "+name
         
-    def parse_news(self, page):
+    def parse_news(self, scan_id,page):
         m = re.search('on (\d+)\:(\d+)\:(\d+) in tick (\d+)', page)
         x = m.group(1)
         y = m.group(2)
         z = m.group(3)
         tick = m.group(4)
 
+        p=loadable.planet(x, y, z)
+        if not p.load_most_recent(self.conn, 0 ,self.cursor): #really, this should never, ever fail.
+            return
     #incoming fleets
     #<td class=left valign=top>Incoming</td><td valign=top>851</td><td class=left valign=top>We have detected an open jumpgate from Tertiary, located at 18:5:11. The fleet will approach our system in tick 855 and appears to have roughly 95 ships.</td>
         for m in re.finditer('<td class=left valign=top>Incoming</td><td valign=top>(\d+)</td><td class=left valign=top>We have detected an open jumpgate from ([^<]+), located at (\d+):(\d+):(\d+). The fleet will approach our system in tick (\d+) and appears to have roughly (\d+) ships.</td>', page):
@@ -116,7 +117,18 @@ class scan(threading.Thread):
             arrivaltick = m.group(6)
             numships = m.group(7)
 
-            print 'Incoming:' + newstick + ':' + fleetname + ':' + originx + ':' + originy + ':' + originz + ':' + arrivaltick + ':' + numships
+            owner=loadable.planet(originx,originy,originz)
+            if not owner.load_most_recent(self.conn, 0 ,self.cursor):
+                continue
+            query="INSERT INTO fleet (scan_id,owner,target,fleet_size,fleet_name,launch_tick,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,%s,'unknown')"
+            try:
+                self.cursor.execute(query,(scan_id,owner.id,p.id,numships,fleetname,newstick,arrivaltick))
+            except Exception, e:
+                print "Exception in news: "+e.__str__()
+                traceback.print_exc()
+                continue
+            
+            print 'Incoming: ' + newstick + ':' + fleetname + '-' + originx + ':' + originy + ':' + originz + '-' + arrivaltick + '|' + numships
 
     #launched attacking fleets
     #<td class=left valign=top>Launch</td><td valign=top>848</td><td class=left valign=top>The Disposable Heroes fleet has been launched, heading for 15:9:8, on a mission to Attack. Arrival tick: 857</td>
@@ -127,6 +139,18 @@ class scan(threading.Thread):
             originy = m.group(4)
             originz = m.group(5)
             arrivaltick = m.group(6)
+
+            target=loadable.planet(originx,originy,originz)
+            if not target.load_most_recent(self.conn, 0 ,self.cursor):
+                continue
+            query="INSERT INTO fleet (scan_id,owner,target,fleet_name,launch_tick,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,'attack')"
+            
+            try:
+                self.cursor.execute(query,(scan_id,p.id,target.id,fleetname,newstick,arrivaltick))
+            except Exception, e:
+                print "Exception in news: "+e.__str__()
+                traceback.print_exc()
+                continue            
 
             print 'Attack:' + newstick + ':' + fleetname + ':' + originx + ':' + originy + ':' + originz + ':' + arrivaltick
 
@@ -139,6 +163,18 @@ class scan(threading.Thread):
             originy = m.group(4)
             originz = m.group(5)
             arrivaltick = m.group(6)
+
+            target=loadable.planet(originx,originy,originz)
+            if not target.load_most_recent(self.conn, 0 ,self.cursor):
+                continue
+            query="INSERT INTO fleet (scan_id,owner,target,fleet_name,launch_tick,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,'defend')"
+            
+            try:
+                self.cursor.execute(query,(scan_id,p.id,target.id,fleetname,newstick,arrivaltick))
+            except Exception, e:
+                print "Exception in news: "+e.__str__()
+                traceback.print_exc()
+                continue            
 
             print 'Defend:' + newstick + ':' + fleetname + ':' + originx + ':' + originy + ':' + originz + ':' + arrivaltick
 
@@ -160,6 +196,19 @@ class scan(threading.Thread):
             originy = m.group(4)
             originz = m.group(5)
 
+            covopper=loadable.planet(originx,originy,originz)
+            if not covopper.load_most_recent(self.conn, 0 ,self.cursor):
+                continue
+            
+            query="INSERT INTO covop (scan_id,covopper,target) VALUES (%s,%s,%s)"
+            
+            try:
+                self.cursor.execute(query,(scan_id,covopper.id,p.id))
+            except Exception, e:
+                print "Exception in unit: "+e.__str__()
+                traceback.print_exc()
+                continue            
+            
             print 'Security:' + newstick + ':' + ruler + ':' + originx + ':' + originy + ':' + originz
 
     #fleet report
@@ -258,171 +307,28 @@ class scan(threading.Thread):
 
         print 'Technology: '+x+':'+y+':'+z
 
-    def parse_unit(self, page):
+    def parse_unit(self, scan_id, page):
         m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)', page)
         x = m.group(1)
         y = m.group(2)
         z = m.group(3)
         tick = m.group(4)
 
-        harpy = gryphon = phoenix = chimera = pegasus = barghest = syren = wyvern = dragon = ziz = leviathan = behemoth = 0
-        spider = beetle = viper = recluse = blackwidow = scarab = tarantula = roach = mantis = mosquito = hornet = termite = 0
-        phantom = vsharrak = fireblade = arrowhead = tzen = ghost = peacekeeper = wraith = broadsword = dagger = sabre = predator = 0
-        interceptor = cutlass = thief = assassin = clipper = buccaneer = rogue = marauder = pirate = privateer = ironclad = galleon = 0
-
-        m = re.search('Harpy</td><td>(\d*)</td>', page)
-        if m:
-            harpy = m.group(1)
-        m = re.search('Gryphon</td><td>(\d*)</td>', page)
-        if m:
-            gryphon = m.group(1)
-        m = re.search('Phoenix</td><td>(\d*)</td>', page)
-        if m:
-            phoenix = m.group(1)
-        m = re.search('Chimera</td><td>(\d*)</td>', page)
-        if m:
-            chimera = m.group(1)
-        m = re.search('Pegasus</td><td>(\d*)</td>', page)
-        if m:
-            pegasus = m.group(1)
-        m = re.search('Barghest</td><td>(\d*)</td>', page)
-        if m:
-            barghest = m.group(1)
-        m = re.search('Syren</td><td>(\d*)</td>', page)
-        if m:
-            syren = m.group(1)
-        m = re.search('Wyvern</td><td>(\d*)</td>', page)
-        if m:
-            wyvern = m.group(1)
-        m = re.search('Dragon</td><td>(\d*)</td>', page)
-        if m:
-            dragon = m.group(1)
-        m = re.search('Ziz</td><td>(\d*)</td>', page)
-        if m:
-            ziz = m.group(1)
-        m = re.search('Leviathan</td><td>(\d*)</td>', page)
-        if m:
-            leviathan = m.group(1)
-        m = re.search('Behemoth</td><td>(\d*)</td>', page)
-        if m:
-            behemoth = m.group(1)
-
-        m = re.search('Spider</td><td>(\d*)</td>', page)
-        if m:
-            spider = m.group(1)
-        m = re.search('Beetle</td><td>(\d*)</td>', page)
-        if m:
-            beetle = m.group(1)
-        m = re.search('Viper</td><td>(\d*)</td>', page)
-        if m:
-            viper = m.group(1)
-        m = re.search('Recluse</td><td>(\d*)</td>', page)
-        if m:
-            recluse = m.group(1)
-        m = re.search('Black Widow</td><td>(\d*)</td>', page)
-        if m:
-            blackwidow = m.group(1)
-        m = re.search('Scarab</td><td>(\d*)</td>', page)
-        if m:
-            scarab = m.group(1)
-        m = re.search('Tarantula</td><td>(\d*)</td>', page)
-        if m:
-            tarantula = m.group(1)
-        m = re.search('Roach</td><td>(\d*)</td>', page)
-        if m:
-            roach = m.group(1)
-        m = re.search('Mantis</td><td>(\d*)</td>', page)
-        if m:
-            mantis = m.group(1)
-        m = re.search('Mosquito</td><td>(\d*)</td>', page)
-        if m:
-            mosquito = m.group(1)
-        m = re.search('Hornet</td><td>(\d*)</td>', page)
-        if m:
-            hornet = m.group(1)
-        m = re.search('Termite</td><td>(\d*)</td>', page)
-        if m:
-            termite = m.group(1)
-
-        m = re.search('Phantom</td><td>(\d*)</td>', page)
-        if m:
-            phantom = m.group(1)
-        m = re.search('Vsharrak</td><td>(\d*)</td>', page)
-        if m:
-            vsharrak = m.group(1)
-        m = re.search('Fireblade</td><td>(\d*)</td>', page)
-        if m:
-            fireblade = m.group(1)
-        m = re.search('Arrowhead</td><td>(\d*)</td>', page)
-        if m:
-            arrowhead = m.group(1)
-        m = re.search('Tzen</td><td>(\d*)</td>', page)
-        if m:
-            tzen = m.group(1)
-        m = re.search('Ghost</td><td>(\d*)</td>', page)
-        if m:
-            ghost = m.group(1)
-        m = re.search('Peacekeeper</td><td>(\d*)</td>', page)
-        if m:
-            peacekeeper = m.group(1)
-        m = re.search('Wraith</td><td>(\d*)</td>', page)
-        if m:
-            wraith = m.group(1)
-        m = re.search('Broadsword</td><td>(\d*)</td>', page)
-        if m:
-            broadsword = m.group(1)
-        m = re.search('Dagger</td><td>(\d*)</td>', page)
-        if m:
-            dagger = m.group(1)
-        m = re.search('Sabre</td><td>(\d*)</td>', page)
-        if m:
-            sabre = m.group(1)
-        m = re.search('Predator</td><td>(\d*)</td>', page)
-        if m:
-            predator = m.group(1)
-
-        m = re.search('Interceptor</td><td>(\d*)</td>', page)
-        if m:
-            interceptor = m.group(1)
-        m = re.search('Cutlass</td><td>(\d*)</td>', page)
-        if m:
-            cutlass = m.group(1)
-        m = re.search('Thief</td><td>(\d*)</td>', page)
-        if m:
-            thief = m.group(1)
-        m = re.search('Assassin</td><td>(\d*)</td>', page)
-        if m:
-            assassin = m.group(1)
-        m = re.search('Clipper</td><td>(\d*)</td>', page)
-        if m:
-            clipper = m.group(1)
-        m = re.search('Buccaneer</td><td>(\d*)</td>', page)
-        if m:
-            buccaneer = m.group(1)
-        m = re.search('Rogue</td><td>(\d*)</td>', page)
-        if m:
-            rogue = m.group(1)
-        m = re.search('Marauder</td><td>(\d*)</td>', page)
-        if m:
-            marauder = m.group(1)
-        m = re.search('Pirate</td><td>(\d*)</td>', page)
-        if m:
-            pirate = m.group(1)
-        m = re.search('Privateer</td><td>(\d*)</td>', page)
-        if m:
-            privateer = m.group(1)
-        m = re.search('Ironclad</td><td>(\d*)</td>', page)
-        if m:
-            ironclad = m.group(1)
-        m = re.search('Galleon</td><td>(\d*)</td>', page)
-        if m:
-            galleon = m.group(1)
-
-        print harpy
-
+        for m in re.finditer('(\w+\s?\w*)</td><td>(\d+)</td>', page):
+            print m.groups()
+            shipname=m.group(1)
+            amount=m.group(2)
+            query="INSERT INTO unit (scan_id,ship_id,amount) VALUES (%s,(SELECT id FROM ship WHERE name=%s),%s)"
+            try:
+                self.cursor.execute(query,(scan_id,shipname,amount))
+            except Exception, e:
+                print "Exception in unit: "+e.__str__()
+                traceback.print_exc()
+                continue
+                                        
         print 'Unit: '+x+':'+y+':'+z
 
-    def parse_jumpgate(self, page):
+    def parse_jumpgate(self, scan_id,page):
         m = re.search('on (\d+)\:(\d+)\:(\d+) in tick (\d+)', page)
         x = m.group(1)
         y = m.group(2)
@@ -430,6 +336,10 @@ class scan(threading.Thread):
         tick = m.group(4)
         # <td class=left>Origin</td><td class=left>Mission</td><td>Fleet</td><td>ETA</td><td>Fleetsize</td>
         # <td class=left>13:10:5</td><td class=left>Attack</td><td>Gamma</td><td>5</td><td>265</td>
+
+        p=loadable.planet(x, y, z)
+        if not p.load_most_recent(self.conn, 0 ,self.cursor): #really, this should never, ever fail, but exiles might bork it
+            return
 
         for m in re.finditer('<td class=left>(\d+)\:(\d+)\:(\d+)</td><td class=left>([^<]+)</td><td>([^<]+)</td><td>(\d+)</td><td>(\d+)</td>', page):
             originx = m.group(1)
@@ -439,5 +349,19 @@ class scan(threading.Thread):
             fleet = m.group(5)
             eta = m.group(6)
             fleetsize = m.group(7)
+            
+            attacker=loadable.planet(originx,originy,originz)
+            if not attacker.load_most_recent(self.conn, 0 ,self.cursor):
+                continue
+            query="INSERT INTO fleet (scan_id,owner,target,fleet_size,fleet_name,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,%s)"
+
+            try:
+                self.cursor.execute(query,(scan_id,attacker.id,p.id,fleetsize,fleet,int(tick)+int(eta),mission.lower()))
+            except Exception, e:
+                print "Exception in news: "+e.__str__()
+                traceback.print_exc()
+                continue
+                                                                                                            
+            
         
         print 'Jumpgate: '+x+':'+y+':'+z

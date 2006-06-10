@@ -3,6 +3,9 @@ Loadable.Loadable subclass
 """
 
 class tech(loadable.loadable):
+    """
+    foo
+    """
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
@@ -46,10 +49,10 @@ class tech(loadable.loadable):
             self.cursor.execute(query,(p.id,))
                 
             if self.cursor.rowcount < 1:
-                reply+="No surface scans available on %s:%s:%s" % (p.x,p.y,p.z)
+                reply+="No tech scans available on %s:%s:%s" % (p.x,p.y,p.z)
             else:
                 s=self.cursor.dictfetchone()
-                reply+="Newest surface scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,p.y,p.z,s['rand_id'],s['tick'])
+                reply+="Newest tech scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,p.y,p.z,s['rand_id'],s['tick'])
                 reply+=" Travel: %s, Infrajerome: %s, Hulls: %s, Waves: %s, Core: %s, Covop: %s, Mining: %s"%(s['travel'],self.infra(s['infrastructure']),self.hulls(s['hulls']),
                                                                                                               self.waves(s['waves']),s['core'],self.covop(s['covert_op']),
                                                                                                               self.mining(s['mining']))
@@ -77,10 +80,10 @@ class tech(loadable.loadable):
             self.cursor.execute(query,(rand_id,))
         
             if self.cursor.rowcount < 1:
-                reply+="No surface scans matching ID %s" % (rand_id,)
+                reply+="No tech scans matching ID %s" % (rand_id,)
             else:
                 s=self.cursor.dictfetchone()
-                reply+="Surface scan on %s:%s:%s (id: %s, pt: %s)" % (s['x'],s['y'],s['z'],s['rand_id'],s['tick'])
+                reply+="Tech scan on %s:%s:%s (id: %s, pt: %s)" % (s['x'],s['y'],s['z'],s['rand_id'],s['tick'])
                 reply+=" Travel: %s, Infrajerome: %s, Hulls: %s, Waves: %s, Core: %s, Covop: %s, Mining: %s"%(s['travel'],self.infra(s['infrastructure']),self.hulls(s['hulls']),
                                                                                                               self.waves(s['waves']),s['core'],self.covop(s['covert_op']),
                                                                                                               self.mining(s['mining']))
@@ -127,7 +130,7 @@ class tech(loadable.loadable):
 
     def covop(self,level):
         if level==0:
-            return "Research Fuck"
+            return "Research Hack"
         if level==1:
             return "Raise Stealth"
         if level==2:
@@ -144,7 +147,7 @@ class tech(loadable.loadable):
 
     def mining(self,level):
         if level==0:
-            return "Fucking newbie"
+            return "50 roids"
         if level==1:
             return "100 roids (scanner!)"
         if level==2:
@@ -156,15 +159,15 @@ class tech(loadable.loadable):
         if level==5:
             return "750 roids"
         if level==6:
-            return "Millenium (cue ominous music)"
+            return "1k roids"
         if level==7:
-            return "1250 rocks"
+            return "1250 roids"
         if level==8:
-            return "1500 rotz"
+            return "1500 roids"
         if level==9:
             return "Jan 1. 1900"
         if level==10:
-            return "2500 stones"
+            return "2500 roids"
         if level==11:
             return "3000 roids"
         if level==12:

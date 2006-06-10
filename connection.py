@@ -32,11 +32,9 @@ class connection:
     else:
       if DEBUG:
         print ">>>", line;
-      while self.lastcommand + 1.5 >= time.time():
+      while self.lastcommand + 2 >= time.time():
         time.sleep(0.1)
-      while len(line) > 0:
-        self.sock.send(line[:512] + CRLF)
-        line=line[512:]
+      self.sock.send(line+CRLF)
       self.lastcommand=time.time()
 
   def rline(self):
@@ -58,24 +56,30 @@ class connection:
     return line
 
   def privmsg(self,target,text):
-    self.wline("PRIVMSG %s :%s" % (target, text))
+    while len(text) > 0:
+      self.wline("PRIVMSG %s :%s" % (target,text[:450]))
+      text=text[450:]
     pass
 
   def notice(self,target,text):
-    self.wline("NOTICE %s :%s" % (target, text))
+    while len(text) > 0:
+      self.wline("NOTICE %s :%s" % (target, text[:450]))
+      text=text[450:]
     pass
   
   def reply(self,prefix,nick,target,text):
     if prefix == self.NOTICE_PREFIX:
-      self.wline("NOTICE %s :%s" % (nick, text))
+      self.notice(nick,text)
     if prefix == self.PUBLIC_PREFIX:
       m=re.match(r"(#\S+)",target,re.I)
       if m:
-        self.wline("PRIVMSG %s :%s" % (target, text))
+        self.privmsg(target,text)
+        #self.wline("PRIVMSG %s :%s" % (target, text))
       else:
         prefix = self.PRIVATE_PREFIX
     if prefix == self.PRIVATE_PREFIX:
-      self.wline("PRIVMSG %s :%s" % (nick, text))
+      self.privmsg(nick,text)
+      #self.wline("PRIVMSG %s :%s" % (nick, text))
       
       
   

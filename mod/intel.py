@@ -119,6 +119,9 @@ class intel(loadable.loadable):
     def exec_gal(self,nick,username,host,target,prefix,command,user,access,x,y):
         query="SELECT t2.id AS id, t1.id AS pid, t1.x AS x, t1.y AS y, t1.z AS z, t2.nick AS nick, t2.fakenick AS fakenick, t2.alliance AS alliance, t2.reportchan AS reportchan, t2.hostile_count AS hostile_count, t2.scanner AS scanner, t2.distwhore AS distwhore, t2.comment AS comment FROM planet_dump as t1, intel as t2 WHERE tick=(SELECT MAX(tick) FROM updates) AND t1.id=t2.pid AND x=%s AND y=%s ORDER BY y,z,x"
         self.cursor.execute(query,(x,y))
+        if self.cursor.rowcount < 1:
+            self.client.reply(prefix,nick,target,"No information stored for galaxy %s:%s" % (x,y))
+            return 1
         for d in self.cursor.dictfetchall():
             x=d['x']
             y=d['y']
@@ -131,7 +134,5 @@ class intel(loadable.loadable):
                 reply="Information stored for %s:%s:%s - "% (x,y,z)
                 reply+=i.__str__()
                 self.client.reply(prefix,nick,target,reply)            
-        if self.cursor.rowcount < 1:
-            self.client.reply(prefix,nick,target,"No information stored for galaxy %s:%s" % (x,y))
         return 1
 

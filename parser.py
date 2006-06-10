@@ -8,7 +8,7 @@ import loadable
 
 sys.path.insert(0, "custom")
 
-import scan
+import scan,galstatus
 
 DEBUG = 1
 
@@ -22,6 +22,7 @@ class parser:
         self.irc=irc
         self.ctrl_list={}
 
+
         #database variables (also private)
         self.mod_dir="mod"
         self.user="andreaja"
@@ -32,6 +33,8 @@ class parser:
         self.conn.serialize()
         self.conn.autocommit()
         self.cursor=self.conn.cursor()
+
+        self.galstatus=galstatus.galstatus(self.client,self.conn,self.cursor)
         
         # Necessary regexps (still private)
         self.welcomre=re.compile(r"\S+\s+001.*",re.I)
@@ -63,7 +66,7 @@ class parser:
         #self.coordre=re.compile(r"^(\d{1,3}):(\d{1,2}):(\d{1,2})$")
         
 	#http://game.planetarion.com/showscan.pl?scan_id=750337894
-	self.scanre=re.compile("http://[^.]+.planetarion.com/showscan.pl\?scan_id=(\d+)")
+	self.scanre=re.compile("http://[^/]+/showscan.pl\?scan_id=(\d+)")
 
     def parse(self,line):
         m=self.welcomre.search(line)
@@ -88,6 +91,7 @@ class parser:
             #print "running scan parse"
             for m in self.scanre.finditer(message):
                 self.scan(m.group(1),nick,user)
+            self.galstatus.parse(message,nick,user)
             
             m=self.commandre.search(message)
             if not m:
@@ -172,7 +176,11 @@ class parser:
                 self.reg_controllers()
                 return None
             if mod_name == 'scan':
-                loadable = reload(sys.modules['scan'])
+                scan = reload(sys.modules['scan'])
+                return None
+            if mod_name == 'galstatus':
+                galstatus = reload(sys.modules['galstatus'])
+                self.galstatus=galstatus.galstatus(self.client,self.conn,self.cursor)
                 return None
             filename=os.path.join(self.mod_dir,mod_name+'.py')
             execfile(filename)

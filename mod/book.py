@@ -32,7 +32,14 @@ class book(loadable.loadable):
         if not p.load_most_recent(self.conn,self.client,self.cursor):
             self.client.reply(prefix,nick,target,"No planet matching '%s:%s:%s' found"%(x,y,z))
             return 1
-
+        else:
+            i=loadable.intel(pid=p.id)
+            if not i.load_from_db(self.conn,self.client,self.cursor):
+                pass
+            else:
+                if i and i.alliance and i.alliance.lower()=='ascendancy':
+                    self.client.reply(prefix,nick,target,"%s:%s:%s is %s in Ascendancy. Quick, launch before they notice the hilight."%(x,y,z,i.nick or 'someone'))
+                    return 0 
         curtick=self.current_tick()
         tick=-1
         eta=-1

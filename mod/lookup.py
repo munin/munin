@@ -24,7 +24,7 @@ class lookup(loadable.loadable):
                 self.client.reply(prefix,nick,target,"Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
                 return 1
             if u.planet:
-                self.client.reply(prefix,nick,target,u.planet)
+                self.client.reply(prefix,nick,target,str(u.planet))
             else:
                 self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
             return 1
@@ -41,14 +41,14 @@ class lookup(loadable.loadable):
                 if not p.load_most_recent(self.conn,self.client,self.cursor):
                     self.client.reply(prefix,nick,target,"No planet matching '%s' found"%(param,))
                     return 1
-                self.client.reply(prefix,nick,target,p)
+                self.client.reply(prefix,nick,target,str(p))
                 return 1
             else:
                 g=loadable.galaxy(x=x,y=y)
                 if not g.load_most_recent(self.conn,self.client,self.cursor):
                     self.client.reply(prefix,nick,target,"No galaxy matching '%s' found"%(param,))
                     return 1
-                self.client.reply(prefix,nick,target,g)  
+                self.client.reply(prefix,nick,target,str(g))  
                 return 1
 
         #check if this is an alliance
@@ -56,7 +56,7 @@ class lookup(loadable.loadable):
         if not a.load_most_recent(self.conn,self.client,self.cursor):
             self.client.reply(prefix,nick,target,"No alliance matching '%s' found" % (param,))
             return 1
-        self.client.reply(prefix,nick,target,a)
+        self.client.reply(prefix,nick,target,str(a))
         
         # do stuff here
 

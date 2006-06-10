@@ -79,14 +79,21 @@ r RECORD;
 rank INT := 0;
 BEGIN 
 EXECUTE 'ALTER TABLE '||quote_ident(tmptab)||' ADD COLUMN '||quote_ident(colname)||'_rank smallint DEFAULT -1';
---CREATE TEMP SEQUENCE rank;
---PERFORM setval('rank',1,false);
+/*PERFORM setval('rank_seq',1,false);
+EXECUTE 'UPDATE '||quote_ident(tmptab)||' SET '||quote_ident(colname)||'_rank=nextval(\'rank_seq\') 
+FROM (SELECT id FROM '||quote_ident(tmptab)||' ORDER BY '||quote_ident(colname)||' DESC) AS t1
+WHERE '||quote_ident(tmptab)||'.id=t1.id';*/
 FOR r IN EXECUTE 'SELECT id FROM '||quote_ident(tmptab)||' ORDER BY '||quote_ident(colname)||' DESC' LOOP
  rank := rank + 1;
  EXECUTE 'UPDATE '||quote_ident(tmptab)||' SET '||quote_ident(colname)||'_rank='||rank||' WHERE id='||r.id;
 END LOOP;
+
 END
 $PROC$ LANGUAGE plpgsql;
+
+--CREATE TEMP SEQUENCE rank;
+--PERFORM setval('rank',1,false);
+
 
 
 DROP FUNCTION add_average(text,text,text,text);
@@ -160,22 +167,31 @@ $PROC$ LANGUAGE plpgsql;
 
 DROP FUNCTION store_planets(smallint);
 CREATE FUNCTION store_planets(curtick smallint) RETURNS void AS $PROC$
+DECLARE 
+ r RECORD;
 BEGIN 
 	--remove quotes from names added by the dumpfile generator
+
 	PERFORM trim_quotes('ptmp','rulername');
 	PERFORM trim_quotes('ptmp','planetname');
 	--generate IDs, insert missing into canonical, deactive missing planets
+
 	PERFORM gen_planet_id();
+	
+/*	CREATE TEMP SEQUENCE rank_seq ;
+	PERFORM add_rank('ptmp','size');
+	PERFORM add_rank('ptmp','score');
+	PERFORM add_rank('ptmp','value');
+	PERFORM add_rank('ptmp','xp');*/
+
 	--generate ranks, this will add the appropriate columns to the temp table
+
 	PERFORM add_rank_planet_size();
 	PERFORM add_rank_planet_score();
 	PERFORM add_rank_planet_value();
 	PERFORM add_rank_planet_xp();
 
-/*	PERFORM add_rank('ptmp','size');
-	PERFORM add_rank('ptmp','score');
-	PERFORM add_rank('ptmp','value');
-	PERFORM add_rank('ptmp','xp');*/
+
 
 	--transfer temporary data into permanent dump 
 	INSERT INTO planet_dump (tick,x,y,z,planetname,rulername,race,size,score,value,xp,size_rank,score_rank,value_rank,xp_rank,id)
@@ -192,10 +208,12 @@ BEGIN
         --generate IDs, insert missing into canonical, deactive missing galaxies
         PERFORM gen_galaxy_id();
 	--generate ranks, this will add the appropriate columns to the temp table (Should we generate averages here? Probably not, hassle (requires grabbing planet info for count) and not worth much)
+
         PERFORM add_rank('gtmp','size');
         PERFORM add_rank('gtmp','score');
         PERFORM add_rank('gtmp','value');
         PERFORM add_rank('gtmp','xp');
+
 
         --transfer tmp to dump
         INSERT INTO galaxy_dump (tick,x,y,name,size,score,value,xp,size_rank,score_rank,value_rank,xp_rank,id)
@@ -224,6 +242,7 @@ BEGIN
         PERFORM add_rank('atmp','members');
         PERFORM add_rank('atmp','size_avg');
         PERFORM add_rank('atmp','score_avg');
+
 
         --transfer tmp to dump
 	INSERT INTO alliance_dump (tick,name,size,members,score,size_avg,score_avg,size_rank,members_rank,score_rank,size_avg_rank,score_avg_rank,id)
@@ -344,6 +363,24 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
+DROP FUNCTION race_in_gal(smallint,smallint,text);
+CREATE FUNCTION race_in_gal(gal_x smallint, gal_y smallint, gal_race text) RETURNS int AS $PROC$
+BEGIN
+RETURN count(*) FROM planet_dump 
+WHERE tick=(SELECT max_tick()) AND race=gal_race AND x=gal_x AND y=gal_y
+GROUP BY x,y;
+END
+$PROC$ LANGUAGE plpgsql;
+
+
+DROP FUNCTION gal_value(smallint,smallint);
+CREATE FUNCTION gal_value(gal_x smallint, gal_y smallint) RETURNS int AS $PROC$
+BEGIN
+RETURN sum(value) FROM planet_dump
+WHERE tick=(SELECT max_tick()) AND x=gal_x AND y=gal_y
+GROUP BY x,y;
+END
+$PROC$ LANGUAGE plpgsql;
 
 
 -- END MUNIN RELATED FUNCTIONS

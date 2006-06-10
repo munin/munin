@@ -13,181 +13,172 @@ ofile=file("pid.hugin", "w")
 ofile.write("%s" % (os.getpid(),))
 ofile.close()
 
-try:
-    
-    conn=psycopg.connect("dbname=patools17 user=andreaja")
-    cursor=conn.cursor()
-    
-    cursor.execute("SELECT MAX(tick) FROM updates")
-    last_tick=int(cursor.fetchone()[0])
-    if not last_tick:
-        last_tick = -1
+while True:
+    try:
+        conn=psycopg.connect("dbname=patools17 user=andreaja")
+        cursor=conn.cursor()
 
-    while True:
+        cursor.execute("SELECT MAX(tick) FROM updates")
+        last_tick=int(cursor.fetchone()[0])
+        if not last_tick:
+            last_tick = -1
+
         try:
-            try:
-                planets = urllib2.urlopen("http://game.planetarion.com/botfiles/planet_listing.txt")
-            except Exception, e:
-                print "Failed gathering planet listing."
-                print e.__str__()
-                time.sleep(300)
-                continue
-            try:
-                galaxies = urllib2.urlopen("http://game.planetarion.com/botfiles/galaxy_listing.txt")
-            except Exception, e:
-                print "Failed gathering galaxy listing."
-                print e.__str__()
-                time.sleep(300)
-                continue    
-            try:
-                alliances = urllib2.urlopen("http://game.planetarion.com/botfiles/alliance_listing.txt")
-            except Exception, e:
-                print "Failed gathering alliance listing."
-                print e.__str__()
-                time.sleep(300)
-                continue
-
-            planets.readline();planets.readline();planets.readline();
-            tick=planets.readline()
-            m=re.search(r"tick:\s+(\d+)",tick,re.I)
-            if not m:
-                print "Invalid tick: '%s'" % (tick,)
-                time.sleep(120)
-                continue
-            planet_tick=int(m.group(1))
-            print "Planet dump for tick %s" % (planet_tick,)
-            planets.readline();planets.readline();planets.readline();
-
-            galaxies.readline();galaxies.readline();galaxies.readline();
-            tick=galaxies.readline()
-            m=re.search(r"tick:\s+(\d+)",tick,re.I)
-            if not m:
-                print "Invalid tick: '%s'" % (tick,)
-                time.sleep(120)
-                continue
-            galaxy_tick=int(m.group(1))
-            print "Galaxy dump for tick %s" % (galaxy_tick,)
-            galaxies.readline();galaxies.readline();galaxies.readline();
-
-            alliances.readline();alliances.readline();alliances.readline();
-            ptick=alliances.readline()
-            m=re.search(r"tick:\s+(\d+)",tick,re.I)
-            if not m:
-                print "Invalid tick: '%s'" % (tick,)
-                time.sleep(120)
-                continue
-            alliance_tick=int(m.group(1))
-            print "Alliance dump for tick %s" % (alliance_tick,)
-            alliances.readline();alliances.readline();alliances.readline();
-            
-            if not (planet_tick == galaxy_tick  == alliance_tick):
-                print "Varying ticks found, sleeping"
-                print "Planet: %s, Galaxy: %s, Alliance: %s" % (planet_tick,galaxy_tick,alliance_tick)
-                time.sleep(30)
-                continue
-            if not planet_tick > last_tick:
-                print "Stale ticks found, sleeping"            
-                time.sleep(30)
-                continue
-            break
+            planets = urllib2.urlopen("http://game.planetarion.com/botfiles/planet_listing.txt")
         except Exception, e:
-            print "Something random went wrong, sleeping for 15 seconds to hope it improves"
-
+            print "Failed gathering planet listing."
             print e.__str__()
-            traceback.print_exc()
-                                            
-            time.sleep(15)
-            
+            time.sleep(300)
             continue
-    
-    t2=time.time()-t1
-    print "Loaded dumps from webserver in %.3f seconds" % (t2,)
-    t1=time.time()
+        try:
+            galaxies = urllib2.urlopen("http://game.planetarion.com/botfiles/galaxy_listing.txt")
+        except Exception, e:
+            print "Failed gathering galaxy listing."
+            print e.__str__()
+            time.sleep(300)
+            continue    
+        try:
+            alliances = urllib2.urlopen("http://game.planetarion.com/botfiles/alliance_listing.txt")
+        except Exception, e:
+            print "Failed gathering alliance listing."
+            print e.__str__()
+            time.sleep(300)
+            continue
 
-    ptmp='ptmp'
-    gtmp='gtmp'
-    atmp='atmp'
+        planets.readline();planets.readline();planets.readline();
+        tick=planets.readline()
+        m=re.search(r"tick:\s+(\d+)",tick,re.I)
+        if not m:
+            print "Invalid tick: '%s'" % (tick,)
+            time.sleep(120)
+            continue
+        planet_tick=int(m.group(1))
+        print "Planet dump for tick %s" % (planet_tick,)
+        planets.readline();planets.readline();planets.readline();
 
-    query="""
-    CREATE  TEMP TABLE %s (
-     x smallint,
-     y smallint,
-     z smallint,
-     planetname varchar(22) NOT NULL,
-     rulername varchar(22) NOT NULL,
-     race char(3) NOT NULL CHECK (race in ('Ter','Cat','Xan','Zik')),
-     size smallint NOT NULL,
-     score integer NOT NULL,
-     value integer NOT NULL,
-     xp integer NOT NULL
-     )
-    """ % (ptmp,)
-    cursor.execute(query)
-    cursor.copy_from(planets,ptmp,"\t")
+        galaxies.readline();galaxies.readline();galaxies.readline();
+        tick=galaxies.readline()
+        m=re.search(r"tick:\s+(\d+)",tick,re.I)
+        if not m:
+            print "Invalid tick: '%s'" % (tick,)
+            time.sleep(120)
+            continue
+        galaxy_tick=int(m.group(1))
+        print "Galaxy dump for tick %s" % (galaxy_tick,)
+        galaxies.readline();galaxies.readline();galaxies.readline();
 
-    query="""
-    CREATE TEMP TABLE %s (
-     x smallint,
-     y smallint,
-     name varchar(66) NOT NULL,
-     size int NOT NULL,
-     score bigint NOT NULL,
-     value bigint NOT NULL,
-     xp integer NOT NULL
-    )
-    """ % (gtmp,)
-    cursor.execute(query)
-    cursor.copy_from(galaxies,gtmp,"\t")
+        alliances.readline();alliances.readline();alliances.readline();
+        ptick=alliances.readline()
+        m=re.search(r"tick:\s+(\d+)",tick,re.I)
+        if not m:
+            print "Invalid tick: '%s'" % (tick,)
+            time.sleep(120)
+            continue
+        alliance_tick=int(m.group(1))
+        print "Alliance dump for tick %s" % (alliance_tick,)
+        alliances.readline();alliances.readline();alliances.readline();
 
-    query="""
-    CREATE TEMP TABLE %s (
-     score_rank smallint NOT NULL,
-     name varchar(18) NOT NULL,
-     size int NOT NULL,
-     members smallint NOT NULL,
-     score bigint NOT NULL
-    )
-    """ % (atmp,)
-    cursor.execute(query)
-    cursor.copy_from(alliances,atmp,"\t")    
+        if not (planet_tick == galaxy_tick  == alliance_tick):
+            print "Varying ticks found, sleeping"
+            print "Planet: %s, Galaxy: %s, Alliance: %s" % (planet_tick,galaxy_tick,alliance_tick)
+            time.sleep(30)
+            continue
+        if not planet_tick > last_tick:
+            print "Stale ticks found, sleeping"            
+            time.sleep(30)
+            continue
 
-    t2=time.time()-t1
-    print "Copied dumps in %.3f seconds" % (t2,)
-    t1=time.time()
+        t2=time.time()-t1
+        print "Loaded dumps from webserver in %.3f seconds" % (t2,)
+        t1=time.time()
 
-    query="SELECT store_update(%d::smallint,%s,%s,%s)"
-    cursor.execute(query,(planet_tick,ptmp,gtmp,atmp))
+        ptmp='ptmp'
+        gtmp='gtmp'
+        atmp='atmp'
 
-    query="SELECT store_planets(%d::smallint)"
-    cursor.execute(query,(planet_tick,))
-    t2=time.time()-t1
-    print "Processed and inserted planet dumps in %.3f seconds" % (t2,)
-    t1=time.time()    
+        query="""
+        CREATE TEMP TABLE %s (
+         x smallint,
+         y smallint,
+         z smallint,
+         planetname varchar(22) NOT NULL,
+         rulername varchar(22) NOT NULL,
+         race char(3) NOT NULL CHECK (race in ('Ter','Cat','Xan','Zik')),
+         size smallint NOT NULL,
+         score integer NOT NULL,
+         value integer NOT NULL,
+         xp integer NOT NULL
+         )
+        """ % (ptmp,)
+        cursor.execute(query)
+        cursor.copy_from(planets,ptmp,"\t")
+
+        query="""
+        CREATE TEMP TABLE %s (
+         x smallint,
+         y smallint,
+         name varchar(66) NOT NULL,
+         size int NOT NULL,
+         score bigint NOT NULL,
+         value bigint NOT NULL,
+         xp integer NOT NULL
+        )
+        """ % (gtmp,)
+        cursor.execute(query)
+        cursor.copy_from(galaxies,gtmp,"\t")
+
+        query="""
+        CREATE TEMP TABLE %s (
+         score_rank smallint NOT NULL,
+         name varchar(18) NOT NULL,
+         size int NOT NULL,
+         members smallint NOT NULL,
+         score bigint NOT NULL
+        )
+        """ % (atmp,)
+        cursor.execute(query)
+        cursor.copy_from(alliances,atmp,"\t")    
+
+        t2=time.time()-t1
+        print "Copied dumps in %.3f seconds" % (t2,)
+        t1=time.time()
+
+        query="SELECT store_update(%d::smallint,%s,%s,%s)"
+        cursor.execute(query,(planet_tick,ptmp,gtmp,atmp))
+
+        query="SELECT store_planets(%d::smallint)"
+        cursor.execute(query,(planet_tick,))
+        t2=time.time()-t1
+        print "Processed and inserted planet dumps in %.3f seconds" % (t2,)
+        t1=time.time()    
 
 
-    #query="SELECT * FROM %s" % (ptmp,)
-    #cursor.execute(query)
-    #for result in cursor.dictfetchall():
-    #    print result
-    
-    query="SELECT store_galaxies(%d::smallint)"
-    cursor.execute(query,(galaxy_tick,))
-    t2=time.time()-t1
-    print "Processed and inserted galaxy dumps in %.3f seconds" % (t2,)
-    t1=time.time()
-    
-    query="SELECT store_alliances(%d::smallint)"
-    cursor.execute(query,(alliance_tick,))    
-    t2=time.time()-t1
-    print "Processed and inserted alliance dumps in %.3f seconds" % (t2,)
-    t1=time.time()    
+        #query="SELECT * FROM %s" % (ptmp,)
+        #cursor.execute(query)
+        #for result in cursor.dictfetchall():
+        #    print result
 
+        query="SELECT store_galaxies(%d::smallint)"
+        cursor.execute(query,(galaxy_tick,))
+        t2=time.time()-t1
+        print "Processed and inserted galaxy dumps in %.3f seconds" % (t2,)
+        t1=time.time()
 
-    conn.commit()
+        query="SELECT store_alliances(%d::smallint)"
+        cursor.execute(query,(alliance_tick,))    
+        t2=time.time()-t1
+        print "Processed and inserted alliance dumps in %.3f seconds" % (t2,)
+        t1=time.time()    
 
-except:
-    conn.rollback()
-    raise
+        conn.commit()
+        break
+    except Exception, e:
+        print "Something random went wrong, sleeping for 15 seconds to hope it improves"
+        print e.__str__()
+        traceback.print_exc()
+        time.sleep(15)
+        continue
+
 
 t2=time.time()-t1
 t1=time.time()-t_start

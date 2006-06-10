@@ -2,7 +2,7 @@
 Loadable.Loadable subclass
 """
 
-class unit(loadable.loadable):
+class jgp(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
@@ -24,7 +24,7 @@ class unit(loadable.loadable):
         if not m:
             self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
             return 0
-        
+
         # assign param variables
         params=m.group(1)
         m=self.planet_coordre.search(params)
@@ -40,22 +40,25 @@ class unit(loadable.loadable):
                 self.client.reply(prefix,nick,target,"No planet matching '%s:%s:%s' found"%(x,y,z))
                 return 1
 
-            query="SELECT t1.tick,t1.nick,t1.scantype,t1.rand_id,t3.name,t2.amount"
+            #query="SELECT t1.tick AS tick,t1.nick,t1.scantype,t1.rand_id,t3.name,t2.amount"
+            query="SELECT t3.x,t3.y,t3.z,t1.tick AS tick,t1.nick,t1.scantype,t1.rand_id,t2.mission,t2.fleet_size,t2.fleet_name,t2.landing_tick-t1.tick AS eta"
             query+=" FROM scan AS t1"
-            query+=" INNER JOIN unit AS t2 ON t1.id=t2.scan_id"
-            query+=" INNER JOIN ship AS t3 ON t2.ship_id=t3.id"
-            query+=" WHERE t1.pid=%s AND t1.id=(SELECT id FROM scan WHERE pid=t1.pid AND scantype='unit' ORDER BY tick DESC LIMIT 1)"
+            query+=" INNER JOIN fleet AS t2 ON t1.id=t2.scan_id"
+            query+=" INNER JOIN planet_dump AS t3 ON t2.owner=t3.id"
+            query+=" WHERE t1.pid=%s AND t3.tick=(SELECT max_tick())"
+            query+=" AND t1.id=(SELECT id FROM scan WHERE pid=t1.pid AND scantype='jgp'"
+            query+=" ORDER BY tick DESC LIMIT 1) ORDER BY eta ASC"
             self.cursor.execute(query,(p.id,))
 
             if self.cursor.rowcount < 1:
-                reply+="No unit scans available on %s:%s:%s" % (p.x,p.y,p.z)
+                reply+="No JGP scans available on %s:%s:%s" % (p.x,p.y,p.z)
+
             else:
-                
-                reply+="Newest unit scan on %s:%s:%s" % (p.x,p.y,p.z)
+                reply+="Newest JGP scan on %s:%s:%s" % (p.x,p.y,p.z)
                 
                 prev=[]
                 for s in self.cursor.dictfetchall():
-                    prev.append("%s %s" % (s['name'],s['amount']))
+                    prev.append("(%s:%s:%s %s | %s %s %s)" % (s['x'],s['y'],s['z'],s['fleet_name'],s['fleet_size'],s['mission'],s['eta']))
                     tick=s['tick']
                     rand_id=s['rand_id']
                     
@@ -69,11 +72,12 @@ class unit(loadable.loadable):
             
             rand_id=m.group(1)
 
-            query="SELECT x,y,z,t1.tick,t1.nick,t1.scantype,t1.rand_id,t3.name,t2.amount"
+            query="SELECT t4.x AS targ_x,t4.y AS targ_y,t4.z AS targ_z,t1.tick,t1.nick,t1.scantype,t1.rand_id,t2.fleet_size,t2.fleet_name,t2.landing_tick-t1.tick AS eta"
+            query+= ",t5.x AS x,t5.y AS y,t5.z AS z"
             query+=" FROM scan AS t1"
-            query+=" INNER JOIN unit AS t2 ON t1.id=t2.scan_id"
-            query+=" INNER JOIN ship AS t3 ON t2.ship_id=t3.id"
+            query+=" INNER JOIN fleet AS t2 ON t1.id=t2.scan_id"
             query+=" INNER JOIN planet_dump AS t4 ON t1.pid=t4.id"
+            query+=" INNER JOIN planet_dump AS t5 ON t4.tick=t5.tick AND t2.owner=t5.id"
             query+=" WHERE t4.tick=(SELECT max_tick()) AND t1.rand_id=%s"
             self.cursor.execute(query,(rand_id,))
 
@@ -84,11 +88,11 @@ class unit(loadable.loadable):
 
                 prev=[]
                 for s in self.cursor.dictfetchall():
-                    prev.append("%s %s" % (s['name'],s['amount']))
+                    prev.append("(%s:%s:%s %s size: %s eta: %s)" % (s['x'],s['y'],s['z'],s['fleet_name'],s['fleet_size'],s['eta']))
                     tick=s['tick']
-                    x=s['x']
-                    y=s['y']
-                    z=s['z']
+                    x=s['targ_x']
+                    y=s['targ_y']
+                    z=s['targ_z']
 
                 reply+="%s:%s:%s (id: %s, pt: %s) " % (x,y,z,rand_id,tick)
                 reply+=string.join(prev,' | ')

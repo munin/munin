@@ -33,8 +33,8 @@ class xp(loadable.loadable):
         
         #m=self.countre.search(params)
         #if m and not ':.-'.rfind(m.group(2))>-1:
-            #roid_count=int(m.group(1))
-            #params=m.group(3)
+        #    roid_count=int(m.group(1))
+        #    params=m.group(3)
 
         m=self.planet_coordre.search(params)
         if m:

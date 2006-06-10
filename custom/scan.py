@@ -357,6 +357,12 @@ class scan(threading.Thread):
 
             try:
                 self.cursor.execute(query,(scan_id,attacker.id,p.id,fleetsize,fleet,int(tick)+int(eta),mission.lower()))
+            except psycopg.IntegrityError, e:
+                query="UPDATE fleet SET scan_id=%s WHERE owner=%s AND target=%s AND fleet_size=%s AND fleet_name=%s AND landing_tick=%s AND mission=%s"
+                try:
+                    self.cursor.execute(query,(scan_id,attacker.id,p.id,fleetsize,fleet,int(tick)+int(eta),mission.lower()))
+                except:
+                    continue
             except Exception, e:
                 print "Exception in news: "+e.__str__()
                 traceback.print_exc()

@@ -54,14 +54,14 @@ class range(loadable.loadable):
             if self.cursor.rowcount < 1:
                 reply+="No unit scans available on %s:%s:%s from the last 48 ticks" % (p.x,p.y,p.z)
 
-            
-            reply+="Unit ranges for %s:%s:%s from data the last 48 ticks: " % (p.x,p.y,p.z)
+            else:
+                reply+="Unit ranges for %s:%s:%s from data the last 48 ticks: " % (p.x,p.y,p.z)
+                
+                prev=[]
+                for s in self.cursor.dictfetchall():
+                    prev.append("%s %d-%d" % (s['name'],s['min'],s['max']))
 
-            prev=[]
-            for s in self.cursor.dictfetchall():
-                prev.append("%s %d-%d" % (s['name'],s['min'],s['max']))
-
-            reply+=string.join(prev,' | ')
+                reply+=string.join(prev,' | ')
 
         self.client.reply(prefix,nick,target,reply)
         return 1

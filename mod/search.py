@@ -6,7 +6,7 @@ class search(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,100)
         self.paramre=re.compile(r"^\s+(\S+)")
-        self.usage=self.__class__.__name__ + ""
+        self.usage=self.__class__.__name__ + " <alliance|nick>" 
         
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)

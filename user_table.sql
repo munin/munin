@@ -242,7 +242,12 @@ CREATE TABLE tag (
 
 CREATE TABLE slogan (
 	id serial PRIMARY KEY,
-	slogan text NOT NULL
+	slogan VARCHAR(512) NOT NULL
+);
+
+CREATE TABLE quote (
+	id serial PRIMARY KEY,
+	quote VARCHAR(512) NOT NULL
 );
 
 CREATE TABLE scan (
@@ -254,8 +259,12 @@ CREATE TABLE scan (
 	rand_id integer NOT NULL,
 	scantype VARCHAR(10) NOT NULL CHECK(scantype in ('unknown','planet','structure','technology','unit','news','jgp','fleet')),
 	UNIQUE(rand_id,tick)
-
 );
+
+--CREATE INDEX scan_pid_index ON scan(pid);
+
+--CREATE INDEX  ON alliance_dump(id);
+
 
 CREATE TABLE planet (
 	id serial PRIMARY KEY,
@@ -324,7 +333,8 @@ CREATE TABLE fleet (
 	fleet_name VARCHAR(24) NOT NULL,
 	launch_tick smallint, 
 	landing_tick smallint NOT NULL,
-	mission varchar(7) NOT NULL CHECK(mission in ('defense','attack','unknown','return'))
+	mission varchar(7) NOT NULL CHECK(mission in ('defense','attack','unknown','return')),
+	UNIQUE(owner,target,fleet_size,fleet_name,landing_tick,mission)
 );
 
 CREATE TABLE fleet_content (

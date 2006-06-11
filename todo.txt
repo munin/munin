@@ -8,3 +8,6 @@
 incoming?)
 
 !newbiebash (show idle planets)
+
+JGPs should have a fleet table of their own in addition to the generic
+fleet table.

@@ -1,0 +1,51 @@
+Requirements:
+
+python 2.3 (it may run with earlier versions, but this is untested)
+postgresql 8.1 (it may run with 8.0, but I'm pretty sure it won't run
+on 7.x)
+plpgsql 
+a database (I haven't done any namespace stuff, but if you play around
+with table names you could probably run it on a common DB.)
+crontab
+1GB drivespace for a full round. Usable with less if you remove old
+tick information, but this might cause some breakage (for example with
+old scans)
+
+Install instructions:
+
+0) Install pgsql, python, etc.
+a) CREATE DATABASE yourdbnamehere WITH ENCODING = 'LATIN1';
+b) find every reference to the old user and dbname in the code (there
+shouldn't be many) and change them to yourdbname. (Hint: hugin.py, parser.py)
+c) Add the plpgsql language to your database. This usually requires
+superuser access. It can either be done from the commandline with:
+
+createlang plpgsql yourdbnamehere
+
+Or in SQL with:
+
+CREATE LANGUAGE plpgqsl
+
+d) Fix user_table.sql to insert the correct superuser pnick (it's
+currently set to jester).
+e) \i user_table.sql and \i functions.sql
+f) optional: insert stats (see below)
+g) make sure the mods in the mod dir are the only ones you're
+interested in using. 
+h) change all the ascendancy specific code to be less ascendancy
+specific (check for channel specific stuff mod dir). 
+i) Change the nick variable in munin.py. 
+j) you should be set (though I've probably forgotten a bunch of
+stuff).
+
+
+Instructions for inserting stats (also found in howto_makestats.txt):
+
+a) copy stats from html to excel
+b) remove efficiency columns, add total cost column
+c) make temp table = ship table without id column
+d) \copy temptablename from stdin
+e) copy ships from excel to stdin
+f) insert into ship (name,class,target,type,init,armor,damage,metal,crystal,eonium,race,total_cost) select * from foo ;
+
+The temp table is used because I want IDs for the ships. 

@@ -314,7 +314,7 @@ BEGIN
 SELECT INTO r (EXTRACT(DAYS FROM now()-t1.timestamp)*24+EXTRACT(HOUR FROM now() - t1.timestamp)) AS age,t1.pnick AS gimp,t2.pnick AS sponsor 
 	FROM sponsor AS t1 INNER JOIN user_list AS t2 ON t1.sponsor_id=t2.id 
 	WHERE t1.pnick ILIKE recruit AND t2.pnick ILIKE inviter LIMIT 1;
-IF r.age >= 36 THEN
+IF r.age >= 0 THEN
 	INSERT INTO user_list (userlevel,pnick,sponsor) VALUES (100,recruit,inviter);
 	DELETE FROM sponsor WHERE pnick ILIKE r.gimp;
 	ret=ROW(TRUE,recruit||' successfully invited');

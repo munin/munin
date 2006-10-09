@@ -86,7 +86,10 @@ class stop(loadable.loadable):
         reply+="%s %s (%s) requires " % (ship_number,ship['name'],self.format_value(ship_number*ship['total_cost']))
 
         for a in attackers:
-            needed=total_armor/a['damage']
+            if a['type'] == "Emp" :
+                needed=int(ship_number/(float(100-ship['empres'])/100)/a['gun'])
+            else:
+                needed=total_armor/a['damage']
             reply+="%s: %s (%s) " % (a['name'],needed,self.format_value(a['total_cost']*needed))
         self.client.reply(prefix,nick,target,reply.strip())
             

@@ -57,7 +57,7 @@ class epenis(loadable.loadable):
         self.cursor.execute(query)
 
             
-        query="CREATE TABLE epenis AS"
+        query="CREATE TEMP TABLE epenis AS"
         query+=" (SELECT *,nextval('activity_rank') AS activity_rank"
         query+=" FROM (SELECT  *,nextval('value_diff_rank') AS value_diff_rank"
         query+=" FROM (SELECT *,nextval('xp_gain_rank') AS xp_gain_rank"

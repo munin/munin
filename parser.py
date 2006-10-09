@@ -47,7 +47,7 @@ class parser:
         #database variables (also private)
         self.mod_dir="mod"
         self.user="andreaja"
-        self.dbname="patools17"
+        self.dbname="patools19"
 
         # database connection and cursor
         self.conn=psycopg.connect("user=%s dbname=%s" % (self.user,self.dbname))
@@ -92,7 +92,7 @@ class parser:
     def parse(self,line):
         m=self.welcomre.search(line)
         if m:
-            self.client.wline("PRIVMSG P@cservice.netgamers.org :auth Munin 34xHtk8fOh")
+            self.client.wline("PRIVMSG P@cservice.netgamers.org :auth Munin Reaper667")
             self.client.wline("MODE %s +ix" % (self.irc.nick,))
             return None
         m=self.pinvitere.search(line)

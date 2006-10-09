@@ -36,7 +36,7 @@ ofile.close()
 
 while True:
     try:
-        conn=psycopg.connect("dbname=patools17 user=andreaja")
+        conn=psycopg.connect("dbname=patools19 user=andreaja")
         cursor=conn.cursor()
 
         cursor.execute("SELECT MAX(tick) FROM updates")

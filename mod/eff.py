@@ -84,7 +84,10 @@ class eff(loadable.loadable):
                 raise Exception("Erroneous type %s" % (ship['type'],))
 
             for t in targets:
-                killed=total_damage/t['armor']
+                if ship['type'] == "Emp" :
+                    killed=int(ship['gun']*ship_number*float(100-t['empres'])/100)
+                else:
+                    killed=total_damage/t['armor']
                 reply+="%s: %s (%s) " % (t['name'],killed,self.format_value(t['total_cost']*killed))
             self.client.reply(prefix,nick,target,reply.strip())
                                 

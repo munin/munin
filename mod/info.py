@@ -43,22 +43,25 @@ class info(loadable.loadable):
         if access < self.level:
             self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
             return 0
-        alliance=m.group(1)
         
-        query="SELECT count(*) AS members,sum(t1.value) AS tot_value, sum(t1.score) AS tot_score, sum(t1.size) AS tot_size, sum(t1.xp) AS tot_xp, t2.alliance AS alliance"
+        alliance=m.group(1)
+
+        
+        
+        query="SELECT count(*) AS members,sum(t1.value) AS tot_value, sum(t1.score) AS tot_score, sum(t1.size) AS tot_size, sum(t1.xp) AS tot_xp"
         query+=" FROM planet_dump AS t1"
         query+=" INNER JOIN intel AS t2 ON t1.id=t2.pid"
         query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates) AND t2.alliance ILIKE %s"
-        query+=" GROUP BY t2.alliance"
+        query+=" GROUP BY t2.alliance ILIKE %s"
 
-        self.cursor.execute(query,('%'+alliance+'%',))
+        self.cursor.execute(query,('%'+alliance+'%','%'+alliance+'%'))
         reply=""
-        if self.cursor.rowcount < 1:
-            reply="No information for alliances matching search '%s' in intel" % (alliance,)
+        if self.cursor.rowcount<1:
+            reply="Nothing intel matches your search '%s'" % (alliance,)
         else:
             res=self.cursor.dictfetchone()
-            
-            reply="%s Members: %s, Value: %s, Avg: %s," % (res['alliance'],res['members'],res['tot_value'],res['tot_value']/res['members'])
+        
+            reply="%s Members: %s, Value: %s, Avg: %s," % (alliance,res['members'],res['tot_value'],res['tot_value']/res['members'])
             reply+=" Score: %s, Avg: %s," % (res['tot_score'],res['tot_score']/res['members']) 
             reply+=" Size: %s, Avg: %s, XP: %s, Avg: %s" % (res['tot_size'],res['tot_size']/res['members'],res['tot_xp'],res['tot_xp']/res['members'])
         self.client.reply(prefix,nick,target,reply)

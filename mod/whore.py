@@ -136,7 +136,7 @@ class whore(loadable.loadable):
     def victim(self,alliance=None,race=None,size_mod='>',size=None,value_mod='<',value=None,att_score=1,att_value=1):
         args=(att_score,att_value)
         query="SELECT t1.x AS x,t1.y AS y,t1.z AS z,t1.size AS size,t1.size_rank AS size_rank,t1.value AS value,t1.value_rank AS value_rank,t1.race AS race,t2.alliance AS alliance,t2.nick AS nick"
-        query+=", (t1.size/4) * 5 * float8smaller(2,(t1.score::float/%s::float))*float8smaller(2,(t1.value::float/%s::float)) AS xp_gain" 
+        query+=", (t1.size/4) * 10 * float8larger(0,(float8smaller(2,(t1.score::float/%s::float)) + float8smaller(2,(t1.value::float/%s::float)) - 1)) AS xp_gain" 
         query+=" FROM planet_dump AS t1 INNER JOIN planet_canon AS t3 ON t1.id=t3.id"
         query+=" LEFT JOIN intel AS t2 ON t3.id=t2.pid"
         query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates)"

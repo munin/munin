@@ -27,6 +27,8 @@ class addchan(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,500)
         self.paramre=re.compile(r"^\s+(#\S+)\s+(\d+)")
+        self.usage=self.__class__.__name__ + " <chan> <level>"
+
     
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
@@ -34,7 +36,7 @@ class addchan(loadable.loadable):
             return 0
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: addchan <chan> <level>")
+            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
             return 0
         
         chan=m.group(1).lower()

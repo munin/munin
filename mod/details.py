@@ -67,14 +67,15 @@ class details(loadable.loadable):
             self.client.reply(prefix,nick,target,"No planet matching '%s:%s:%s' found"%(p.x,p.y,p.z,))
             return 1
 
-        self.client.reply(prefix,nick,target,p)
+        self.client.reply(prefix,nick,target,p.__str__())
 
         # next we do XP
 
+        
 
         if u.planet_id:
-            attacker = u.planet
             # this is a straight copy from xp. Dirty dirty.
+            attacker = u.planet
             reply="Target "
             victim_val = p.value
             attacker_val = attacker.value
@@ -88,7 +89,10 @@ class details(loadable.loadable):
             total_roids = p.size
             
             #bravery = min(20,10*(float(victim_val)/attacker_val))
-            bravery = min(20,5*(float(victim_val)/attacker_val)*(float(victim_score)/attacker_score))
+            #bravery = min(20,5*(float(victim_val)/attacker_val)*(float(victim_score)/attacker_score))
+            #bravery = max(0,min(20,10*(min(2,float(victim_val)/attacker_val) ) + (min(2,float(victim_score)/attacker_score))) - 1)
+            bravery = max(0,min(30,10*(min(2,float(victim_val)/attacker_val)  + min(2,float(victim_score)/attacker_score) - 1)))
+            
             
             reply+="| Bravery: %.2f " % (bravery,)
             

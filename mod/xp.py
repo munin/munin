@@ -100,7 +100,8 @@ class xp(loadable.loadable):
             reply+="will earn %s:%s:%s (%s|%s) "%(attacker.x,attacker.y,attacker.z,
                                                self.format_value(attacker_val*100),self.format_value(attacker_score*100))
 
-            bravery = min(20,10*(min(2,float(victim_val/attacker_val)) ) * (min(2,float(victim_score)/attacker_score) - 1))
+            bravery = max(0,min(30,10*(min(2,float(victim_val)/attacker_val)  + min(2,float(victim_score)/attacker_score) - 1)))
+            #bravery = max(0,min(30,10*(min(2,float(victim_val)/attacker_val) + min(2,float(victim_score)/attacker_score) - 1)))
             xp=int(bravery*roid_count)
 
             #xp=int(roid_count*10
@@ -122,9 +123,10 @@ class xp(loadable.loadable):
             total_roids = victim.size
 
             #bravery = min(20,10*(float(victim_val)/attacker_val))
-            bravery = min(20,10**(min(2,float(victim_val/attacker_val)) ) * (min(2,float(victim_score)/attacker_score) - 1))
+            #bravery = max(0,min(30,10*(min(2,float(victim_val)/attacker_val) ) + (min(2,float(victim_score)/attacker_score))) - 1)
             #*(float(victim_val)/attacker_val)*(float(victim_score)/attacker_score))
-                        
+            bravery = max(0,min(30,10*(min(2,float(victim_val)/attacker_val)  + min(2,float(victim_score)/attacker_score) - 1)))
+             
             reply+="| Bravery: %.2f " % (bravery,)
             
             cap=total_roids/4

@@ -25,7 +25,7 @@ Loadable subclass
 
 class galmate(loadable.loadable):
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,500)
+        loadable.loadable.__init__(self,client,conn,cursor,100)
         self.paramre=re.compile(r"^\s+(\S+)")
         self.usage=self.__class__.__name__ + " <pnick>"
         self.helptext=None        

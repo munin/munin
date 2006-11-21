@@ -80,7 +80,8 @@ class xp(loadable.loadable):
         if victim and not attacker:
             u=loadable.user(pnick=user)
             if not u.load_from_db(self.conn,self.client,self.cursor):
-                self.client.reply(prefix,nick,target,"Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
+		self.client.reply(prefix,nick,target,"You must be registered to use the automatic "+self.__class__.__name__+" command (log in with P and set mode +x, then make sure your planet is set with the pref command)")
+                #self.client.reply(prefix,nick,target,"Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
                 return 1
             if u.planet_id:
                 attacker = u.planet

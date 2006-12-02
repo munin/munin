@@ -4,9 +4,9 @@ Loadable.Loadable subclass
 
 class longshot(loadable.loadable):
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,100)
+        loadable.loadable.__init__(self,client,conn,cursor,1000)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
-        self.paramre=re.compile(r"^\s+(.*)+")
+        self.paramre=re.compile(r"^\s+(.*)")
         self.usage=self.__class__.__name__ + ""
 	self.helptext=None
 
@@ -52,9 +52,10 @@ class longshot(loadable.loadable):
 		    break
 		max_planets=r['planets']
 	else:
-	    throw Exception("Gutted")
+	    raise Exception("Gutted")
 	
-	if 
+        if True:
+            pass
 
         # do stuff here
 

@@ -164,6 +164,22 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
+DROP FUNCTION add_planet_idle_ticks(smallint);
+CREATE FUNCTION add_planet_idle_ticks(curtick smallint) RETURNS void AS $PROC$
+BEGIN
+ALTER TABLE ptmp ADD COLUMN idle smallint DEFAULT 0;
+ALTER TABLE ptmp ADD COLUMN vdiff integer DEFAULT 0;
+
+UPDATE ptmp SET vdiff = ptmp.value - t2.value
+	FROM planet_dump AS t2 
+        WHERE ptmp.id=t2.id AND t2.tick=curtick-1;
+
+UPDATE ptmp SET idle = t2.idle + 1
+	FROM planet_dump AS t2  
+        WHERE ptmp.id=t2.id AND t2.tick=curtick-1 AND ptmp.vdiff >= t2.vdiff - 1 AND ptmp.vdiff <= t2.vdiff + 1 AND ptmp.xp - t2.xp = 0 AND ptmp.size - t2.size = 0;
+END 
+$PROC$ LANGUAGE plpgsql;
+
 
 DROP FUNCTION store_planets(smallint);
 CREATE FUNCTION store_planets(curtick smallint) RETURNS void AS $PROC$
@@ -190,12 +206,13 @@ BEGIN
 	PERFORM add_rank_planet_score();
 	PERFORM add_rank_planet_value();
 	PERFORM add_rank_planet_xp();
-
-
-
+	PERFORM add_planet_idle_ticks(curtick);
+	--ALTER TABLE ptmp ADD COLUMN idle smallint DEFAULT 0;
+	--ALTER TABLE ptmp ADD COLUMN vdiff integer DEFAULT 0; 
+	
 	--transfer temporary data into permanent dump 
-	INSERT INTO planet_dump (tick,x,y,z,planetname,rulername,race,size,score,value,xp,size_rank,score_rank,value_rank,xp_rank,id)
-		SELECT curtick,x,y,z,planetname,rulername,race,size,score,value,xp,size_rank,score_rank,value_rank,xp_rank,id FROM ptmp;
+	INSERT INTO planet_dump (tick,x,y,z,planetname,rulername,race,size,score,value,xp,idle,vdiff,size_rank,score_rank,value_rank,xp_rank,id)
+		SELECT curtick,x,y,z,planetname,rulername,race,size,score,value,xp,idle,vdiff,size_rank,score_rank,value_rank,xp_rank,id FROM ptmp;
 	   
 END
 $PROC$ LANGUAGE plpgsql;

@@ -39,6 +39,8 @@ CREATE TABLE planet_dump (
  size_rank smallint NOT NULL,
  xp integer NOT NULL,
  xp_rank smallint NOT NULL,
+ idle smallint NOT NULL DEFAULT 0,
+ vdiff integer NOT NULL DEFAULT 0,
  id integer NOT NULL REFERENCES planet_canon(id),
  PRIMARY KEY(tick, x, y, z),
  FOREIGN KEY(rulername,planetname) REFERENCES planet_canon (rulername,planetname)

@@ -67,7 +67,7 @@ class exile(loadable.loadable):
 	    max_planets=0
 	    
 	    for r in res:
-		gals+=res['count']
+		gals+=r['count']
 	    bracket=int(gals*.2)
 	    for r in res:
 		bracket-=r['count']

@@ -31,7 +31,7 @@ class victim(loadable.loadable):
         self.alliancere=re.compile(r"(\S+)")
         self.racere=re.compile(r"^(ter|cat|xan|zik)$",re.I)
         self.rangere=re.compile(r"(<|>)?(\d+)\b")
-        self.usage=self.__class__.__name__ + " [alliance] [race] [<|>][size] [<|>][value]" + " (must include at least one search criteria, order doesn't matter except that size *must* precede value)"
+        self.usage=self.__class__.__name__ + " [alliance] [race] [<|>][size] [<|>][value]" + " (must include at least one search criteria, order doesn't matter)"
         
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)

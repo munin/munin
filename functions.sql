@@ -352,6 +352,7 @@ EXCEPTION
 END
 $PROC$ LANGUAGE plpgsql;
 
+
 DROP FUNCTION access_level(text,text);
 CREATE FUNCTION access_level(username text,target text) RETURNS int AS $PROC$
 DECLARE
@@ -371,11 +372,8 @@ $PROC$ LANGUAGE plpgsql;
 
 DROP FUNCTION max_tick();
 CREATE FUNCTION max_tick() RETURNS int AS $PROC$
-DECLARE
-	mt INT;
 BEGIN
 RETURN MAX(tick) FROM updates;
---RETURN mt;
 END
 $PROC$ LANGUAGE plpgsql;
 
@@ -398,6 +396,8 @@ WHERE tick=(SELECT max_tick()) AND x=gal_x AND y=gal_y
 GROUP BY x,y;
 END
 $PROC$ LANGUAGE plpgsql;
+
+
 
 -- END MUNIN RELATED FUNCTIONS
 /*END;

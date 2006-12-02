@@ -121,7 +121,8 @@ CREATE TABLE user_list (
 	negflags VARCHAR(30),
 	planet_id integer REFERENCES planet_canon(id) ON DELETE CASCADE,
 	stay BOOLEAN DEFAULT FALSE,
-	invites smallint NOT NULL DEFAULT 0 CHECK (invites >= 0)
+	invites smallint NOT NULL DEFAULT 0 CHECK (invites >= 0),
+	quit smallint NOT NULL DEFAULT 0
 );
 
 INSERT INTO user_list (pnick,sponsor,userlevel) VALUES ('jester','Munin',1000);
@@ -253,6 +254,7 @@ CREATE TABLE quote (
 	id serial PRIMARY KEY,
 	quote VARCHAR(512) NOT NULL
 );
+
 
 CREATE TABLE scan (
 	id serial PRIMARY KEY,

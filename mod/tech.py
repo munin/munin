@@ -126,11 +126,11 @@ class tech(loadable.loadable):
             return "150 constructions"                
 
     def hulls(self,level):
-        if level==0:
-            return "FI/CO"
         if level==1:
-            return "FR/DE"
+            return "FI/CO"
         if level==2:
+            return "FR/DE"
+        if level==3:
             return "CR/BS"
 
     def waves(self,level):
@@ -145,9 +145,11 @@ class tech(loadable.loadable):
         if level==4:
             return "News"
         if level==5:
-            return "JGP"
-        if level==6:
             return "Fleet"
+        if level==6:
+            return "JGP"
+        if level==7:
+            return "Military"
 
     def covop(self,level):
         if level==0:

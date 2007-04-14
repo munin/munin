@@ -28,10 +28,12 @@ class whore(loadable.loadable):
         loadable.loadable.__init__(self,client,conn,cursor,100)
         self.paramre=re.compile("\s+(.*)")
 #        re.compile(r"(\s+(\S+))?(\s+(ter|cat|xan|zik))(\s+(<|>)?(\d+))?(\s+(<|>)?(\d+))?",re.I)
-        self.alliancere=re.compile(r"(\S+)")
-        self.racere=re.compile(r"^(ter|cat|xan|zik)$",re.I)
-        self.rangere=re.compile(r"(<|>)?(\d+)\b")
-        self.usage=self.__class__.__name__ + " [alliance] [race] [<|>][size] [<|>][value]" + " (must include at least one search criteria, order doesn't matter)"
+        self.alliancere=re.compile(r"^(\S+)$")
+        self.racere=re.compile(r"^(ter|cat|xan|zik|eit|etd)$",re.I)
+        self.rangere=re.compile(r"^(<|>)?(\d+)$")
+        #self.bashre=re.compile(r"^(bash)$",re.I)
+        self.clusterre=re.compile(r"^c(\d+)$",re.I)
+        self.usage=self.__class__.__name__ + " [alliance] [race] [<|>][size] [<|>][value] [bash]" + " (must include at least one search criteria, order doesn't matter)"
         
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
@@ -72,11 +74,20 @@ class whore(loadable.loadable):
         size=None
         value_mod=None
         value=None
-
+        bash=False
+        cluster=None
         param=m.group(1)
         params=param.split()
 
         for p in params:
+            #m=self.bashre.search(p)
+            #if m and not bash:
+            #    bash=True
+            #    continue
+            m=self.clusterre.search(p)
+            if m and not cluster:
+                cluster=int(m.group(1))
+                continue
             m=self.racere.search(p)
             if m and not race:
                 race=m.group(1)
@@ -92,15 +103,30 @@ class whore(loadable.loadable):
                 value=m.group(2)
                 continue
             m=self.alliancere.search(p)
-            if m and not alliance:
+            if m and not alliance and not self.clusterre.search(p):
                 alliance=m.group(1) 
                 continue
 
 
 
+        #if bash:
+        #    if not user:
+        #        self.client.reply(prefix,nick,target,"You must be registered to use the "+self.__class__.__name__+" command's bash option (log in with P and set mode +x)")
+        #        return 1
+        #    u=loadable.user(pnick=user)
+        #    if not u.load_from_db(self.conn,self.client,self.cursor):
+        #        self.client.reply(prefix,nick,target,"Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))" % (self.usage,))
+        #        return 1
+        #    if u.planet_id:
+        #        attacker = u.planet
+        #    else:
+        #        self.client.reply(prefix,nick,target,"Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))" % (self.usage,))
+        #        return 1
+                                                                                                                                                                      
+
 
         
-        victims=self.victim(alliance,race,size_mod,size,value_mod,value,attacker.score,attacker.value)
+        victims=self.victim(alliance,race,size_mod,size,value_mod,value,attacker,True,cluster)
         i=0
         if not len(victims):
             reply="No"
@@ -118,7 +144,7 @@ class whore(loadable.loadable):
             self.client.reply(prefix,nick,target,reply)
         for v in victims:
             reply="%s:%s:%s (%s)" % (v['x'],v['y'],v['z'],v['race'])
-            reply+=" Value: %s Size: %s Scoregain: %d" % (v['value'],v['size'],v['xp_gain']*50)
+            reply+=" Value: %s Size: %s Scoregain: %d" % (v['value'],v['size'],v['xp_gain']*60)
             if v['nick']:
                 reply+=" Nick: %s" % (v['nick'],)
             if not alliance and v['alliance']:
@@ -133,12 +159,18 @@ class whore(loadable.loadable):
         
         return 1
     
-    def victim(self,alliance=None,race=None,size_mod='>',size=None,value_mod='<',value=None,att_score=1,att_value=1):
-        args=(att_score,att_value)
+#    def victim(self,alliance=None,race=None,size_mod='>',size=None,value_mod='<',value=None,att_score=1,att_value=1,bash=None,cluster=None):
+    def victim(self,alliance=None,race=None,size_mod='>',size=None,value_mod='<',value=None,attacker=None,bash=True,cluster=None):
+        #args=(att_score,att_value)
+        args=(attacker.score,attacker.value)
+        
         query="SELECT t1.x AS x,t1.y AS y,t1.z AS z,t1.size AS size,t1.size_rank AS size_rank,t1.value AS value,t1.value_rank AS value_rank,t1.race AS race,t2.alliance AS alliance,t2.nick AS nick"
-        query+=", (t1.size/4) * 10 * float8larger(0,(float8smaller(2,(t1.score::float/%s::float)) + float8smaller(2,(t1.value::float/%s::float)) - 1)) AS xp_gain" 
-        query+=" FROM planet_dump AS t1 INNER JOIN planet_canon AS t3 ON t1.id=t3.id"
-        query+=" LEFT JOIN intel AS t2 ON t3.id=t2.pid"
+
+        #bravery = max(0,min(30,10*(min(2,float(victim_val)/attacker_val)  + min(2,float(victim_score)/attacker_score) - 1)))
+
+        query+=", (t1.size/4) * 10 *float8larger(0,(float8smaller(3,(float8smaller(2,(t1.score::float8/%s)) + float8smaller(2,(t1.value::float8/%s)) - 1)))) AS xp_gain"
+        query+=" FROM planet_dump AS t1" # INNER JOIN planet_canon AS t3 ON t1.id=t3.id"
+        query+=" LEFT JOIN intel AS t2 ON t1.id=t2.pid"
         query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates)"
 
         if alliance:
@@ -149,11 +181,19 @@ class whore(loadable.loadable):
             args+=(race,)
         if size:
             query+=" AND size %s " % (size_mod) + "%s"
-            args+=(size,)
+            args+=(int(size),)
         if value:
             query+=" AND value %s " % (value_mod) + "%s"
-            args+=(value,)
+            args+=(int(value),)
+        if bash:
+            query+=" AND value > %s AND score > %s"
+            args+=(attacker.value*.4,attacker.score*.6)
+        if cluster:
+            query+=" AND x = %s::smallint"
+            args+=(cluster,)
         query+=" ORDER BY xp_gain DESC, t1.size DESC, t1.value DESC"
+        
+        #self.client.privmsg('jesterina',query % args)
         self.cursor.execute(query,args)
         return self.cursor.dictfetchall()
 

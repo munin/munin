@@ -30,7 +30,7 @@ CREATE TABLE planet_dump (
  z smallint,
  planetname varchar(20) NOT NULL,
  rulername varchar(20) NOT NULL,
- race char(3) NOT NULL CHECK (race in ('Ter','Cat','Xan','Zik')),
+ race char(3) NOT NULL CHECK (race in ('Ter','Cat','Xan','Zik','Etd')),
  size smallint NOT NULL,
  score integer NOT NULL,
  value integer NOT NULL,
@@ -126,6 +126,13 @@ CREATE TABLE user_list (
 );
 
 INSERT INTO user_list (pnick,sponsor,userlevel) VALUES ('jester','Munin',1000);
+
+CREATE TABLE kickvote (
+	id SERIAL PRIMARY KEY,
+	voter integer REFERENCES user_list(id) ON DELETE CASCADE,
+	moron integer REFERENCES user_list(id) ON DELETE CASCADE,
+	UNIQUE(voter,moron)
+);
 
 CREATE TABLE channel_list (
 	id SERIAL PRIMARY KEY,
@@ -232,7 +239,7 @@ CREATE TABLE ship (
 	metal integer NOT NULL,
 	crystal integer NOT NULL,
 	eonium integer NOT NULL,
-	race VARCHAR(10) NOT NULL CHECK(race in ('Terran','Cathaar','Xandathrii','Zikonian')),
+	race VARCHAR(10) NOT NULL CHECK(race in ('Terran','Cathaar','Xandathrii','Zikonian','Eitraides')),
 	total_cost integer NOT NULL CHECK(total_cost = metal+crystal+eonium)
 );
 

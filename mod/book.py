@@ -25,7 +25,7 @@ Loadable.Loadable subclass
 
 class book(loadable.loadable):
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,50)
+        loadable.loadable.__init__(self,client,conn,cursor,100)
         self.paramre=re.compile(r"^\s+(\d+)[. :-](\d+)[. :-](\d+)\s+(\d+)(\s+(yes))?")
         self.usage=self.__class__.__name__ + " <x:y:z> (<eta>|<landing tick>)"
 
@@ -59,7 +59,7 @@ class book(loadable.loadable):
                 pass
             else:
                 if i and i.alliance and i.alliance.lower()=='ascendancy':
-                    self.client.reply(prefix,nick,target,"%s:%s:%s is %s in Ascendancy. Quick, launch before they notice the hilight."%(x,y,z,i.nick or 'someone'))
+                    self.client.reply(prefix,nick,target,"%s:%s:%s is %s in Ascendancy. Quick, launch before they notice the highlight."%(x,y,z,i.nick or 'someone'))
                     return 0 
         curtick=self.current_tick()
         tick=-1

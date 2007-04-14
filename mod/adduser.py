@@ -25,7 +25,7 @@ Loadable subclass
 
 class adduser(loadable.loadable):
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,500)
+        loadable.loadable.__init__(self,client,conn,cursor,1000)
         self.paramre=re.compile(r"^\s+(\S+)\s+(\d+)")
     
     def execute(self,nick,username,host,target,prefix,command,user,access):

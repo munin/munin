@@ -40,9 +40,20 @@ old_curs=old_conn.cursor()
 
 new_curs=new_conn.cursor()
 
-old_curs.execute("SELECT t1.pnick AS pnick,t1.userlevel AS userlevel FROM user_list AS t1 WHERE t1.stay")
+old_curs.execute("SELECT t1.pnick AS pnick,t1.userlevel AS userlevel,t1.sponsor AS sponsor, t1.invites AS invites FROM user_list AS t1 WHERE t1.stay")
 
 for u in old_curs.dictfetchall():
-    new_curs.execute("INSERT INTO user_list (pnick,userlevel) VALUES (%s,%s)",(u['pnick'],u['userlevel']))
+    new_curs.execute("INSERT INTO user_list (pnick,userlevel,sponsor,invites) VALUES (%s,%s,%s,%s)",(u['pnick'],u['userlevel'],u['sponsor'],u['invites']))
+
+old_curs.execute("SELECT t1.quote AS quote FROM quote AS t1")
+
+for u in old_curs.dictfetchall():
+    new_curs.execute("INSERT INTO quote (quote) VALUES (%s)",(u['quote'],))
+
+old_curs.execute("SELECT t1.slogan AS slogan FROM slogan AS t1")
+
+for u in old_curs.dictfetchall():
+    new_curs.execute("INSERT INTO slogan (slogan) VALUES (%s)",(u['slogan'],))
+    
 
 new_conn.commit()

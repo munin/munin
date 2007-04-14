@@ -132,7 +132,7 @@ class xp(loadable.loadable):
             
             cap=total_roids/4
             xp=int(cap*bravery)
-            reply+="| Roids: %s | XP: %s | Score: %s" % (cap,xp,xp*50)
+            reply+="| Roids: %s | XP: %s | Score: %s" % (cap,xp,xp*60)
             self.client.reply(prefix,nick,target,reply)
         
                 

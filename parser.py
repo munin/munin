@@ -36,8 +36,8 @@ DEBUG = 1
 class parser:
     def __init__(self,client,irc):
         # Private variables
-        self.notprefix='~|-'
-        self.pubprefix=r"!|\."
+        self.notprefix=r"~|-|\."
+        self.pubprefix=r"!"
         self.privprefix='@'
         self.client=client
         self.irc=irc
@@ -47,7 +47,7 @@ class parser:
         #database variables (also private)
         self.mod_dir="mod"
         self.user="andreaja"
-        self.dbname="patools19"
+        self.dbname="patools21"
 
         # database connection and cursor
         self.conn=psycopg.connect("user=%s dbname=%s" % (self.user,self.dbname))
@@ -165,7 +165,7 @@ class parser:
         for k in self.ctrl_list.keys():
             ctrl=self.ctrl_list[k]
             #print "Trying key %s with obj of class '%s'" % (k,ctrl.__class__.__name__)
-                    
+            
             try:
                 if ctrl.execute(nick,username,host,target,self.prefix_to_numeric(prefix),command,user,access):
                     return "Successfully executed command '%s' with key '%s'" % (ctrl.__class__.__name__,k)

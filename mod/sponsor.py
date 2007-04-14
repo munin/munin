@@ -64,7 +64,5 @@ class sponsor(loadable.loadable):
             reply="You have sponsored '%s' (MAKE SURE THIS IS THE RECRUIT'S PNICK.) In 36 hours you may use the !invite command to make them a member. It is your responsibility to get feedback about their suitability as a member in this period" % (recruit,)
         else:
             reply="You may not sponsor '%s'. Reason: %s"%(recruit,res['retmessage'])
-        self.client.reply(prefix,nick,target,reply)
-        
+        self.client.reply(prefix,nick,target,reply)        
         return 1
-                                                                                                                                            

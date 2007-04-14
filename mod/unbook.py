@@ -25,7 +25,7 @@ Loadable.Loadable subclass
 
 class unbook(loadable.loadable):
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,100)
+        loadable.loadable.__init__(self,client,conn,cursor,50)
         self.paramre=re.compile(r"^\s+(\d+)[. :-](\d+)[. :-](\d+)(\s+(\d+))?(\s+(yes))?")
         self.usage=self.__class__.__name__ + " <x:y:z> [<eta>|<landing tick>] [yes]"
         

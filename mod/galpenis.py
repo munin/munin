@@ -1,3 +1,4 @@
+
 """
 Loadable.Loadable subclass
 """
@@ -25,7 +26,7 @@ Loadable.Loadable subclass
 
 class galpenis(loadable.loadable):
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,100)
+        loadable.loadable.__init__(self,client,conn,cursor,1)
         self.paramre=re.compile(r"^\s+(.*)")
         self.usage=self.__class__.__name__ + " <x:y>"
         
@@ -42,6 +43,7 @@ class galpenis(loadable.loadable):
         if not m:
             self.client.reply(prefix,nick,target,self.usage)
             return 0
+        x=m.group(1)
         x=m.group(1)
         y=m.group(2)
                                       

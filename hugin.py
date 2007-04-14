@@ -36,7 +36,7 @@ ofile.close()
 
 while True:
     try:
-        conn=psycopg.connect("dbname=patools19 user=andreaja")
+        conn=psycopg.connect("dbname=patools21 user=andreaja")
         cursor=conn.cursor()
 
         cursor.execute("SELECT MAX(tick) FROM updates")
@@ -124,7 +124,7 @@ while True:
          z smallint,
          planetname varchar(22) NOT NULL,
          rulername varchar(22) NOT NULL,
-         race char(3) NOT NULL CHECK (race in ('Ter','Cat','Xan','Zik')),
+         race char(3) NOT NULL CHECK (race in ('Ter','Cat','Xan','Zik','Etd')),
          size smallint NOT NULL,
          score integer NOT NULL,
          value integer NOT NULL,

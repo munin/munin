@@ -45,7 +45,7 @@ class remuser(loadable.loadable):
             return 0
         
         
-        query="SELECT id,pnick,userlevel FROM user_list WHERE pnick=%s LIMIT 1"
+        query="SELECT id,pnick,userlevel FROM user_list WHERE pnick ILIKE %s LIMIT 1"
         self.cursor.execute(query,(pnick,))
         res=self.cursor.dictfetchone()
         if not res:

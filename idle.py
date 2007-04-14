@@ -11,8 +11,8 @@ cursor=conn.cursor()
 
 cursor.execute("SELECT tick FROM updates")
 
-for t in cursor.dictfetchall():
-    tick=t['tick']
+for t in range(1297,1317):
+    tick=t
 
     t2=time.time()-t_start
     print "Tick: %d (%.3fs so far)" % (tick,t2)

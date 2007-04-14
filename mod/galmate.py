@@ -25,7 +25,7 @@ Loadable subclass
 
 class galmate(loadable.loadable):
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,100)
+        loadable.loadable.__init__(self,client,conn,cursor,50)
         self.paramre=re.compile(r"^\s+(\S+)")
         self.usage=self.__class__.__name__ + " <pnick>"
         self.helptext=None        
@@ -46,7 +46,7 @@ class galmate(loadable.loadable):
         
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: adduser")
+            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
             return 0
         
         pnick=m.group(1).lower()

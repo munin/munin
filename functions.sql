@@ -176,7 +176,7 @@ UPDATE ptmp SET vdiff = ptmp.value - t2.value
 
 UPDATE ptmp SET idle = t2.idle + 1
 	FROM planet_dump AS t2  
-        WHERE ptmp.id=t2.id AND t2.tick=curtick-1 AND ptmp.vdiff >= t2.vdiff - 1 AND ptmp.vdiff <= t2.vdiff + 1 AND ptmp.xp - t2.xp = 0 AND ptmp.size - t2.size = 0;
+        WHERE ptmp.id=t2.id AND t2.tick=curtick-1 AND ptmp.vdiff >= t2.vdiff - 1 AND ptmp.vdiff <= t2.vdiff + 1 AND ptmp.xp - t2.xp = 0;
 END 
 $PROC$ LANGUAGE plpgsql;
 
@@ -289,7 +289,7 @@ DECLARE
 	ret munin_return%ROWTYPE;
 BEGIN
 UPDATE user_list SET invites=invites-1 WHERE pnick=inviter;
-INSERT INTO sponsor (pnick,sponsor_id,comment) VALUES (recruit,(SELECT id FROM user_list WHERE pnick=inviter),comment_text);
+INSERT INTO sponsor (pnick,sponsor_id,comment) VALUES (recruit,(SELECT id FROM user_list WHERE pnick ilike inviter),comment_text);
 ret := ROW(TRUE,recruit ||' sponsored');
 RETURN ret;
 EXCEPTION
@@ -301,7 +301,6 @@ EXCEPTION
 		RETURN ret;
 END
 $PROC$ LANGUAGE plpgsql;
-
 
 CREATE FUNCTION unsponsor(inviter text,recruit text) RETURNS munin_return AS $PROC$
 DECLARE
@@ -352,6 +351,67 @@ EXCEPTION
 END
 $PROC$ LANGUAGE plpgsql;
 
+CREATE FUNCTION kickvote(vtr INT,idjit INT) RETURNS munin_return AS $PROC$
+DECLARE
+	ret munin_return%ROWTYPE;
+	votes INT;
+BEGIN
+--UPDATE user_list SET invites=invites-1 WHERE pnick=inviter;
+INSERT INTO kickvote (voter,moron) VALUES (vtr,idjit);
+--INSERT INTO sponsor (pnick,sponsor_id,comment) VALUES (recruit,(SELECT id FROM user_list WHERE pnick=inviter),comment_text);
+SELECT INTO votes count(*) FROM kickvote WHERE moron ilike idjit;
+ret := ROW(TRUE,votes);
+RETURN ret;
+EXCEPTION
+--	WHEN check_violation THEN
+--		ret := ROW(FALSE,'Not enough invites');
+--		RETURN ret;
+	WHEN integrity_constraint_violation THEN
+		ret := ROW(FALSE,'already kickvoted this idiot');
+		RETURN ret;
+END
+$PROC$ LANGUAGE plpgsql;
+
+CREATE FUNCTION unkickvote(vtr INT,idjit INT) RETURNS munin_return AS $PROC$
+DECLARE
+	ret munin_return%ROWTYPE;
+	votes INT;
+	valid INT;
+BEGIN
+SELECT INTO valid count(*) FROM kickvote WHERE voter = vtr AND moron = idjit;
+IF valid >= 1 THEN
+	DELETE FROM  kickvote WHERE voter = vtr AND moron = idjit;
+	SELECT INTO votes count(*) FROM kickvote WHERE moron ilike idjit;
+	ret := ROW(TRUE,votes);
+ELSE
+	ret := ROW(FALSE,'no matching kickvote');
+END IF;
+RETURN ret;
+END
+$PROC$ LANGUAGE plpgsql;
+
+
+CREATE FUNCTION kickloser(idjit INT) RETURNS munin_return AS $PROC$
+DECLARE
+	ret munin_return%ROWTYPE;
+	voters INT;
+	kickers text;
+	r RECORD;
+BEGIN
+SELECT INTO voters count(*) FROM kickvote WHERE moron = idjit;
+ret := ROW(FALSE,voters);
+IF voters >= 7 THEN
+	FOR r IN SELECT pnick FROM kickvote INNER JOIN user_list ON user_list.id=kickvote.voter WHERE moron=idjit LOOP
+		kickers = kickers || ' ' ;
+	END LOOP; 
+	ret := ROW(TRUE,kickers);
+	DELETE FROM kickvote WHERE moron = idjit;
+	DELETE FROM kickvote WHERE voter = idjit;
+	UPDATE user_list SET userlevel = 1 WHERE id = idjit;
+END IF;
+RETURN ret;
+END
+$PROC$ LANGUAGE plpgsql;
 
 DROP FUNCTION access_level(text,text);
 CREATE FUNCTION access_level(username text,target text) RETURNS int AS $PROC$

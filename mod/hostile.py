@@ -25,9 +25,9 @@ Loadable.Loadable subclass
 
 class hostile(loadable.loadable):
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,100)
+        loadable.loadable.__init__(self,client,conn,cursor,1000)
         self.paramre=re.compile(r"^\s+(.*)")
-        self.usage=self.__class__.__name__ + ""
+        self.usage=self.__class__.__name__ + " <x:y:z>"
         
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)

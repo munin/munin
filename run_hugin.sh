@@ -1,9 +1,9 @@
 #!/bin/sh
 
 
-botexe="/home/andreaja/usr/src/wd/odin/hugin.py"
-botname="/home/andreaja/usr/src/wd/odin/pid.hugin"
-botdir="/home/andreaja/usr/src/wd/odin"
+botexe="/home/munin/odin/hugin.py"
+botname="/home/munin/odin/pid.hugin"
+botdir="/home/munin/odin"
 
 
 cd $botdir

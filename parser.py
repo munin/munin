@@ -46,7 +46,7 @@ class parser:
 
         #database variables (also private)
         self.mod_dir="mod"
-        self.user="andreaja"
+        self.user="munin"
         self.dbname="patools21"
 
         # database connection and cursor

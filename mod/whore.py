@@ -168,7 +168,10 @@ class whore(loadable.loadable):
 
         #bravery = max(0,min(30,10*(min(2,float(victim_val)/attacker_val)  + min(2,float(victim_score)/attacker_score) - 1)))
 
-        query+=", (t1.size/4) * 10 *float8larger(0,(float8smaller(3,(float8smaller(2,(t1.score::float8/%s)) + float8smaller(2,(t1.value::float8/%s)) - 1)))) AS xp_gain"
+        #query+=", (t1.size/4) * 10 *float8larger(0,(float8smaller(3,(float8smaller(2,(t1.score::float8/%s)) + float8smaller(2,(t1.value::float8/%s)) - 1)))) AS xp_gain"
+        
+        query+=", (t1.size/4) * 5 * (float8smaller(2,(t1.score::float/%s::float))-0.6)*(float8smaller(2,(t1.value::float/%s::float))-0.4)) AS xp_gain"
+                
         query+=" FROM planet_dump AS t1" # INNER JOIN planet_canon AS t3 ON t1.id=t3.id"
         query+=" LEFT JOIN intel AS t2 ON t1.id=t2.pid"
         query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates)"

@@ -26,17 +26,33 @@ class galstatus:
         self.client=client
         self.conn=conn
         self.cursor=cursor
-        self.statusre=re.compile(r"(\d+):(\d+):(\d+)\*?\s+(\d+):(\d+):(\d+)\s+(.*?)\s+((Xan|Ter|Cat|Zik)\s+)?(\d+)\s+(Return|Attack|Defend)\s+(\d+)")
+        self.statusre=re.compile(r"(\d+):(\d+):(\d+)\*?\s+(\d+):(\d+):(\d+)\s+(.*?)\s+((Xan|Ter|Cat|Zik|Etda)\s+)?(\d+)\s+(Return|Attack|Defend)\s+(\d+)")
 
     def parse(self,message,nick,pnick):
         try:
             self.unsafe_method(message,nick,pnick)
         except Exception, e:
             print "Exception in galstatus: "+e.__str__()
-            self.client.privmsg('jesterina',"Exception in scan: "+e.__str__())
+            self.client.privmsg('jesterina',"Exception in galstatus: "+e.__str__())
             traceback.print_exc()
 
+    def report_incoming(self,target,message):
+        i=loadable.intel(pid=target.id)
+        if not i.load_from_db(self.conn,self.client,self.cursor):
+            print "planet %s:%s:%s not in intel"%(target.x,target.y,target.z)
+            return
+        
+        if i.relay and i.reportchan:
+            reply=""
+            if i.nick:
+                reply+=i.nick + " -> "
+            reply+=message
+            self.client.privmsg(i.reportchan,reply)
+        else:
+            print "planet not set to relay (%s) or report (%s)"%(i.relay,i.reportchan)
+
     def unsafe_method(self,message,nick,pnick):
+        message=message.replace("\x02","")
         m=self.statusre.search(message)
         if not m:
 
@@ -61,18 +77,21 @@ class galstatus:
 
         print "%s:%s:%s %s:%s:%s '%s' %s m:%s e:%s"%(owner_x,owner_y,owner_z,target_x,target_y,target_z,fleetname,fleetsize,mission,eta)
 
-        owner=loadable.planet(owner_x,owner_y,owner_z)
-        if not owner.load_most_recent(self.conn, 0 ,self.cursor):
-            return
         target=loadable.planet(target_x,target_y,target_z)
         if not target.load_most_recent(self.conn, 0 ,self.cursor):
             return
 
+        self.report_incoming(target,message)
+
+        owner=loadable.planet(owner_x,owner_y,owner_z)
+        if not owner.load_most_recent(self.conn, 0 ,self.cursor):
+            return
         self.cursor.execute("SELECT max_tick() AS max_tick")
         curtick=self.cursor.dictfetchone()['max_tick']
 
         query="INSERT INTO fleet(owner,target,fleet_size,fleet_name,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s)"
 
+        
         try:
             self.cursor.execute(query,(owner.id,target.id,fleetsize,fleetname,int(eta)+int(curtick),mission.lower()))
         except Exception,e:

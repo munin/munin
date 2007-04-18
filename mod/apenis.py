@@ -25,7 +25,7 @@ Loadable.Loadable subclass
 
 class apenis(loadable.loadable):
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,1)
+        loadable.loadable.__init__(self,client,conn,cursor,100)
         self.paramre=re.compile(r"^\s+(\S+)")
         self.usage=self.__class__.__name__ + " <alliance>"
         
@@ -77,7 +77,7 @@ class apenis(loadable.loadable):
         if self.cursor.rowcount < 1:
             query="SELECT name,activity,activity_rank"
             query+=" FROM apenis"
-            query+=" WHERE nick ILIKE %s"
+            query+=" WHERE name ILIKE %s"
             
             self.cursor.execute(query,('%'+search+'%',))
 

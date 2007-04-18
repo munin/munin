@@ -36,7 +36,8 @@ class intel(loadable.loadable):
         self.optionsre['nick']=re.compile("^(\S+)")
         self.optionsre['fakenick']=re.compile("^(\S+)")
         self.optionsre['alliance']=re.compile("^(\S+.*?)(\s+\S+)?$")
-        self.optionsre['reportchan']=re.compile("^(#\S+)")        
+        self.optionsre['reportchan']=re.compile("^(\S+)")
+        self.optionsre['relay']=re.compile("^(t|f)",re.I)
         self.optionsre['hostile_count']=re.compile("^(\d+)")
         self.optionsre['scanner']=re.compile("^(t|f)",re.I)        
         self.optionsre['distwhore']=re.compile("^(t|f)",re.I)
@@ -93,22 +94,22 @@ class intel(loadable.loadable):
                 
         if i.id > 0:
             query="UPDATE intel SET "
-            query+="pid=%s,nick=%s,fakenick=%s,alliance=%s,reportchan=%s,hostile_count=%s,"
+            query+="pid=%s,nick=%s,fakenick=%s,alliance=%s,relay=%s,reportchan=%s,hostile_count=%s,"
             query+="scanner=%s,distwhore=%s,comment=%s"
             query+=" WHERE id=%s"
             self.cursor.execute(query,(opts['pid'],opts['nick'],
-                                       opts['fakenick'],opts['alliance'],
+                                       opts['fakenick'],opts['alliance'],opts['relay'],
                                        opts['reportchan'],opts['hostile_count'],
                                        opts['scanner'],opts['distwhore'],opts['comment'],i.id))
             
         elif params:
-            query="INSERT INTO intel (pid,nick,fakenick,alliance,reportchan,hostile_count,scanner,distwhore,comment) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            query="INSERT INTO intel (pid,nick,fakenick,alliance,relay,reportchan,hostile_count,scanner,distwhore,comment) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
             self.cursor.execute(query,(opts['pid'],opts['nick'],
-                                       opts['fakenick'],opts['alliance'],
+                                       opts['fakenick'],opts['alliance'],opts['relay'],
                                        opts['reportchan'],opts['hostile_count'],
                                        opts['scanner'],opts['distwhore'],opts['comment']))
         i=loadable.intel(pid=opts['pid'],nick=opts['nick'],fakenick=opts['fakenick'],
-                         alliance=opts['alliance'],reportchan=opts['reportchan'],
+                         alliance=opts['alliance'],relay=opts['relay'],reportchan=opts['reportchan'],
                          hostile_count=opts['hostile_count'],scanner=opts['scanner'],
                          distwhore=opts['distwhore'],comment=opts['comment'])
 
@@ -139,7 +140,7 @@ class intel(loadable.loadable):
 
 
     def exec_gal(self,nick,username,host,target,prefix,command,user,access,x,y):
-        query="SELECT t2.id AS id, t1.id AS pid, t1.x AS x, t1.y AS y, t1.z AS z, t2.nick AS nick, t2.fakenick AS fakenick, t2.alliance AS alliance, t2.reportchan AS reportchan, t2.hostile_count AS hostile_count, t2.scanner AS scanner, t2.distwhore AS distwhore, t2.comment AS comment FROM planet_dump as t1, intel as t2 WHERE tick=(SELECT MAX(tick) FROM updates) AND t1.id=t2.pid AND x=%s AND y=%s ORDER BY y,z,x"
+        query="SELECT t2.id AS id, t1.id AS pid, t1.x AS x, t1.y AS y, t1.z AS z, t2.nick AS nick, t2.fakenick AS fakenick, t2.alliance AS alliance, t2.relay AS relay, t2.reportchan AS reportchan, t2.hostile_count AS hostile_count, t2.scanner AS scanner, t2.distwhore AS distwhore, t2.comment AS comment FROM planet_dump as t1, intel as t2 WHERE tick=(SELECT MAX(tick) FROM updates) AND t1.id=t2.pid AND x=%s AND y=%s ORDER BY y,z,x"
         self.cursor.execute(query,(x,y))
         if self.cursor.rowcount < 1:
             self.client.reply(prefix,nick,target,"No information stored for galaxy %s:%s" % (x,y))
@@ -149,7 +150,7 @@ class intel(loadable.loadable):
             y=d['y']
             z=d['z']            
             i=loadable.intel(pid=d['pid'],nick=d['nick'],fakenick=d['fakenick'],
-                             alliance=d['alliance'],reportchan=d['reportchan'],
+                             alliance=d['alliance'],relay=d['relay'],reportchan=d['reportchan'],
                              hostile_count=d['hostile_count'],scanner=d['scanner'],
                              distwhore=d['distwhore'],comment=d['comment'])
             if not i.is_empty():

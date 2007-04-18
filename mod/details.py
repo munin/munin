@@ -90,9 +90,10 @@ class details(loadable.loadable):
             
             #bravery = min(20,10*(float(victim_val)/attacker_val))
             #bravery = min(20,5*(float(victim_val)/attacker_val)*(float(victim_score)/attacker_score))
-            bravery = max(0,min(20,5*(min(2,float(victim_val)/attacker_val)-0.4 ) * (min(2,float(victim_score)/attacker_score)-0.6)))
-            #bravery = max(0,min(30,10*(min(2,float(victim_val)/attacker_val)  + min(2,float(victim_score)/attacker_score) - 1)))
             
+            bravery = max(0,(min(2,float(victim_val)/attacker_val)-0.4 ) * (min(2,float(victim_score)/attacker_score)-0.6))
+            #bravery = max(0,min(30,10*(min(2,float(victim_val)/attacker_val)  + min(2,float(victim_score)/attacker_score) - 1)))
+            bravery *= 10
             
             reply+="| Bravery: %.2f " % (bravery,)
             

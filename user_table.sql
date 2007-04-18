@@ -339,7 +339,7 @@ CREATE TABLE unit (
 
 CREATE TABLE fleet (
 	id serial PRIMARY KEY,
-	scan_id integer NOT NULL REFERENCES scan(id),
+	scan_id integer REFERENCES scan(id),
 	owner integer NOT NULL REFERENCES planet_canon(id),
 	target integer NOT NULL REFERENCES planet_canon(id),
 	fleet_size integer, 

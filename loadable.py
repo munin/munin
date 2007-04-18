@@ -288,20 +288,21 @@ class user:
             
 
 class intel:
-    def __init__(self,id=-1,pid=-1,nick=None,fakenick=None,alliance=None,reportchan=None,hostile_count=-1,scanner=False,distwhore=False,comment=None):
+    def __init__(self,id=-1,pid=-1,nick=None,fakenick=None,alliance=None,reportchan=None,hostile_count=-1,scanner=False,distwhore=False,relay=False,comment=None):
         self.id=id
         self.pid=pid        
         self.nick=nick
         self.fakenick=fakenick
         self.alliance=alliance
         self.reportchan=reportchan
+        self.relay=relay
         self.hostile_count=hostile_count
         self.scanner=scanner
         self.distwhore=distwhore
         self.comment=comment
 
     def load_from_db(self,conn,client,cursor):
-        query="SELECT id,pid,nick,fakenick,alliance,reportchan,hostile_count,scanner,distwhore,comment FROM intel WHERE "
+        query="SELECT id,pid,nick,fakenick,alliance,relay,reportchan,hostile_count,scanner,distwhore,comment FROM intel WHERE "
         if self.id > 0:
             query+="id=%s"
             cursor.execute(query,(self.id,))
@@ -327,6 +328,7 @@ class intel:
         self.fakenick=i['fakenick']
         self.alliance=i['alliance']
         self.reportchan=i['reportchan']
+        self.relay=i['relay'] and True or False
         self.hostile_count=i['hostile_count']
         self.scanner=bool(i['scanner']) and True or False
         self.distwhore=bool(i['distwhore']) and True or False
@@ -342,6 +344,8 @@ class intel:
             retlist.append("fakenick=%s"%(self.fakenick,))            
         if self.alliance:
             retlist.append("alliance=%s"%(self.alliance,))
+        if self.relay:
+            retlist.append("relay=%s"%(self.relay,))
         if self.reportchan:
             retlist.append("reportchan=%s"%(self.reportchan,))                        
         if self.hostile_count > 0:
@@ -364,6 +368,8 @@ class intel:
             retlist.append("fakenick=%s")            
         if self.alliance:
             retlist.append("alliance=%s")
+        if self.relay:
+            retlist.append("relay=%s")
         if self.reportchan:
             retlist.append("reportchan=%s")                        
         if self.hostile_count > 0:
@@ -385,6 +391,8 @@ class intel:
             rettup+=(self.fakenick,)
         if self.alliance:
             rettup+=(self.alliance,)
+        if self.relay:
+            rettup+=(self.relay,)
         if self.reportchan:
             rettup+=(self.reportchan,)
         if self.hostile_count > 0:
@@ -405,6 +413,8 @@ class intel:
         if self.fakenick:
             return 0
         if self.alliance:
+            return 0
+        if self.relay:
             return 0
         if self.reportchan:
             return 0

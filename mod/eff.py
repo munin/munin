@@ -53,7 +53,7 @@ class eff(loadable.loadable):
             self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
             return 0
 
-        query="SELECT * FROM ship WHERE name ILIKE %s"
+        query="SELECT * FROM ship WHERE name ILIKE %s ORDER BY id"
         
         self.cursor.execute(query,("%"+ship_name+"%",))
         ship=self.cursor.dictfetchone()
@@ -70,11 +70,11 @@ class eff(loadable.loadable):
             self.client.reply(prefix,nick,target,"%s %s (%s) will destroy Structure: %s (%s)" % (ship_number,ship['name'],self.format_value(ship_number*ship['total_cost']),killed,self.format_value(killed*150000)))
             pass
         else:
-            query="SELECT * FROM ship WHERE class=%s"
+            query="SELECT * FROM ship WHERE class=%s ORDER BY id"
             self.cursor.execute(query,(ship['target'],))
             targets=self.cursor.dictfetchall()
             reply="%s %s (%s) will " % (ship_number,ship['name'],self.format_value(ship_number*ship['total_cost']))
-            if ship['type'].lower() == "norm":
+            if ship['type'].lower() == "norm" or ship['type'].lower() == 'cloak':
                 reply+="destroy "
             elif ship['type'].lower() == "emp":
                 reply+="freeze "

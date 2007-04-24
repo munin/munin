@@ -28,30 +28,30 @@ class galstatus:
         self.cursor=cursor
         self.statusre=re.compile(r"(\d+):(\d+):(\d+)\*?\s+(\d+):(\d+):(\d+)\s+(.*?)\s+((Xan|Ter|Cat|Zik|Etda)\s+)?(\d+)\s+(Return|Attack|Defend)\s+(\d+)")
 
-    def parse(self,message,nick,pnick):
+    def parse(self,message,nick,pnick,target):
         try:
-            self.unsafe_method(message,nick,pnick)
+            self.unsafe_method(message,nick,pnick,target)
         except Exception, e:
             print "Exception in galstatus: "+e.__str__()
             self.client.privmsg('jesterina',"Exception in galstatus: "+e.__str__())
             traceback.print_exc()
 
-    def report_incoming(self,target,message):
+    def report_incoming(self,target,message,reporter,source):
         i=loadable.intel(pid=target.id)
         if not i.load_from_db(self.conn,self.client,self.cursor):
             print "planet %s:%s:%s not in intel"%(target.x,target.y,target.z)
             return
         
-        if i.relay and i.reportchan:
-            reply=""
+        if i.relay and i.reportchan and source != i.reportchan:
+            reply="%s reports: " % (reporter,)
             if i.nick:
                 reply+=i.nick + " -> "
             reply+=message
             self.client.privmsg(i.reportchan,reply)
         else:
-            print "planet not set to relay (%s) or report (%s)"%(i.relay,i.reportchan)
+            print "planet not set to relay (%s) or report (%s) or report is source (%s)"%(i.relay,i.reportchan,source)
 
-    def unsafe_method(self,message,nick,pnick):
+    def unsafe_method(self,message,nick,pnick,source):
         message=message.replace("\x02","")
         m=self.statusre.search(message)
         if not m:
@@ -81,7 +81,7 @@ class galstatus:
         if not target.load_most_recent(self.conn, 0 ,self.cursor):
             return
 
-        self.report_incoming(target,message)
+        self.report_incoming(target,message,nick,source)
 
         owner=loadable.planet(owner_x,owner_y,owner_z)
         if not owner.load_most_recent(self.conn, 0 ,self.cursor):

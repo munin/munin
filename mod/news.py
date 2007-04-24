@@ -23,67 +23,56 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
-class afford(loadable.loadable):
+class news(loadable.loadable):
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,1)
+        loadable.loadable.__init__(self,client,conn,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
-        self.paramre=re.compile(r"^\s+(\d+)[. :-](\d+)[. :-](\d+)\s+(\S+)")
+        self.paramre=re.compile(r"^\s+(.*)")
         self.idre=re.compile(r"(\d{1,9})")
-        self.usage=self.__class__.__name__ + " <x:y:z> <shipname>"
-        self.helptext=None
+        self.usage=self.__class__.__name__ + " <x:y:z>" 
+        self.helptext=["Looks up recent news scan IDs on a planet"]
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
         if not m:
             return 0
-
+            
         if access < self.level:
             self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
             return 0
-
+        
         m=self.paramre.search(m.group(1))
         if not m:
             self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
             return 0
-
-        # assign param variables
+        # assign param variables    
+        params=m.group(1)
+        m=self.planet_coordre.search(params)
         reply=""
+        if not m:
+            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            return 0
+
         x=m.group(1)
         y=m.group(2)
         z=m.group(3)
-        ship_name=m.group(4)
-        
         p=loadable.planet(x=x,y=y,z=z)
-        if not p.load_most_recent(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"No planet matching '%s' found"%(param,))
-            return 1
-        
-        query="SELECT tick,nick,scantype,rand_id,timestamp,roid_metal,roid_crystal,roid_eonium,res_metal,res_crystal,res_eonium"
-        query+=" FROM scan AS t1 INNER JOIN planet AS t2 ON t1.id=t2.scan_id"
-        query+=" WHERE t1.pid=%s ORDER BY timestamp DESC"
-        self.cursor.execute(query,(p.id,))
-        
-        if self.cursor.rowcount < 1:
-            reply+="No planet scans available on %s:%s:%s" % (p.x,p.y,p.z)
-        else:
-            s=self.cursor.dictfetchone()
-            tick=s['tick']
-            res_m=int(s['res_metal'])
-            res_c=int(s['res_crystal'])
-            res_e=int(s['res_eonium'])
-            rand_id=s['rand_id']
-            
-            query="SELECT name,int4smaller(int4smaller(floor(%d/metal)::int4,floor(%d/crystal)::int4),floor(%d/eonium)::int4) AS buildable FROM ship WHERE name ILIKE %s LIMIT 1"
-            self.cursor.execute(query,(res_m,res_c,res_e,'%'+ship_name+'%'))
-                        
-            if self.cursor.rowcount<1:
-                reply="%s is not a ship" % (ship_name,)
-            else:
-                s=self.cursor.dictfetchone()
-                reply+="Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,p.y,p.z,rand_id,tick)
-                reply+=" can purchase %s: %s | Feudalism: %s | Democracy: %s"%(s['name'],s['buildable'],int(s['buildable']*1.33),
-                                                                                int(s['buildable']*.83))
-                
 
+        if not p.load_most_recent(self.conn,self.client,self.cursor):
+            self.client.reply(prefix,nick,target,"No planet matching '%s:%s:%s' found"%(x,y,z))
+            return 1
+
+        query="SELECT tick,nick,scantype,rand_id,tick"
+        query+=" FROM scan AS t1"
+        query+=" WHERE t1.pid=%s AND scantype='news' ORDER BY tick DESC"
+        self.cursor.execute(query,(p.id,))
+
+        s=self.cursor.dictfetchone()
+        if s:        
+            reply="Latest news scan on %s:%s:%s - http://game.planetarion.com/showscan.pl?scan_id=%s"%(x,y,z,s['rand_id'])
+        else:
+            reply="No news available on %s:%s:%s"%(x,y,z)
         self.client.reply(prefix,nick,target,reply)
+
         return 1
+

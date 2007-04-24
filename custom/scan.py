@@ -73,7 +73,7 @@ class scan(threading.Thread):
                 next_id=self.cursor.dictfetchone()['nextval']
                 self.cursor.execute(query, (next_id, tick, p.id, self.nick, self.pnick, scantype, self.rand_id))
             except psycopg.IntegrityError, e:
-                print "Scan %s already exists" %(self.rand_id,)
+                print "Scan %s may already exist" %(self.rand_id,)
                 print e.__str__()
                 #FIXME: enable the following line once done testing:
                 return
@@ -90,17 +90,16 @@ class scan(threading.Thread):
                 self.parse_technology(next_id,page)
                 
             elif scantype=='unit':
-                self.parse_unit(next_id,page)
+                self.parse_unit(next_id,page,'unit')
 
             elif scantype=='news':
                 self.parse_news(next_id,page)
 #                query="DELETE FROM scan WHERE id=%s"
 #                self.cursor.execute(query,(next_id,))
-                
-                
             elif scantype=='jgp':
                 self.parse_jumpgate(next_id,page)
-                
+            elif scantype=='au':
+                self.parse_unit(next_id,page,'au')
         
     def name_to_type(self,name):
         if name=='Planet Scan':
@@ -115,6 +114,9 @@ class scan(threading.Thread):
             return "news"
         elif name=='Jumpgate Probe':
             return "jgp"
+        elif name=="Advanced Unit Scan":
+            return "au"
+
         print "Name: "+name
         
     def parse_news(self, scan_id,page):
@@ -328,7 +330,7 @@ class scan(threading.Thread):
 
         print 'Technology: '+x+':'+y+':'+z
 
-    def parse_unit(self, scan_id, page):
+    def parse_unit(self, scan_id, page, table):
         m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)', page)
         x = m.group(1)
         y = m.group(2)
@@ -339,7 +341,8 @@ class scan(threading.Thread):
             print m.groups()
             shipname=m.group(1)
             amount=m.group(2)
-            query="INSERT INTO unit (scan_id,ship_id,amount) VALUES (%s,(SELECT id FROM ship WHERE name=%s),%s)"
+            query="INSERT INTO %s"%(table,)
+            query+=" (scan_id,ship_id,amount) VALUES (%s,(SELECT id FROM ship WHERE name=%s),%s)"
             try:
                 self.cursor.execute(query,(scan_id,shipname,amount))
             except Exception, e:

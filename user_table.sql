@@ -1,122 +1,122 @@
--- CREATE DATABASE patools17 WITH ENCODING = 'LATIN1';
--- createlang plpgsql patest | CREATE LANGUAGE plpgqsl
+    -- CREATE DATABASE patools17 WITH ENCODING = 'LATIN1';
+    -- createlang plpgsql patest | CREATE LANGUAGE plpgqsl
 
 
-CREATE TABLE updates (
- id serial ,
- tick smallint UNIQUE,
- planets smallint,
- galaxies smallint,
- alliances smallint,
- timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT now(), 
- PRIMARY KEY (id)
-);
+    CREATE TABLE updates (
+     id serial ,
+     tick smallint UNIQUE,
+     planets smallint,
+     galaxies smallint,
+     alliances smallint,
+     timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT now(), 
+     PRIMARY KEY (id)
+    );
 
-INSERT INTO updates VALUES (-1,-1,-1,-1,-1);
+    INSERT INTO updates VALUES (-1,-1,-1,-1,-1);
 
-CREATE TABLE planet_canon (
- id serial,
- planetname varchar(20) NOT NULL,
- rulername varchar(20) NOT NULL,
- active boolean NOT NULL DEFAULT TRUE,
- PRIMARY KEY(id),
- UNIQUE (rulername,planetname)
-);
+    CREATE TABLE planet_canon (
+     id serial,
+     planetname varchar(20) NOT NULL,
+     rulername varchar(20) NOT NULL,
+     active boolean NOT NULL DEFAULT TRUE,
+     PRIMARY KEY(id),
+     UNIQUE (rulername,planetname)
+    );
 
-CREATE TABLE planet_dump (
- tick smallint REFERENCES updates (tick),
- x smallint,
- y smallint,
- z smallint,
- planetname varchar(20) NOT NULL,
- rulername varchar(20) NOT NULL,
- race char(3) NOT NULL CHECK (race in ('Ter','Cat','Xan','Zik','Etd')),
- size smallint NOT NULL,
- score integer NOT NULL,
- value integer NOT NULL,
- score_rank smallint NOT NULL,
- value_rank smallint NOT NULL,
- size_rank smallint NOT NULL,
- xp integer NOT NULL,
- xp_rank smallint NOT NULL,
- idle smallint NOT NULL DEFAULT 0,
- vdiff integer NOT NULL DEFAULT 0,
- id integer NOT NULL REFERENCES planet_canon(id),
- PRIMARY KEY(tick, x, y, z),
- FOREIGN KEY(rulername,planetname) REFERENCES planet_canon (rulername,planetname)
-);
+    CREATE TABLE planet_dump (
+     tick smallint REFERENCES updates (tick),
+     x smallint,
+     y smallint,
+     z smallint,
+     planetname varchar(20) NOT NULL,
+     rulername varchar(20) NOT NULL,
+     race char(3) NOT NULL CHECK (race in ('Ter','Cat','Xan','Zik','Etd')),
+     size smallint NOT NULL,
+     score integer NOT NULL,
+     value integer NOT NULL,
+     score_rank smallint NOT NULL,
+     value_rank smallint NOT NULL,
+     size_rank smallint NOT NULL,
+     xp integer NOT NULL,
+     xp_rank smallint NOT NULL,
+     idle smallint NOT NULL DEFAULT 0,
+     vdiff integer NOT NULL DEFAULT 0,
+     id integer NOT NULL REFERENCES planet_canon(id),
+     PRIMARY KEY(tick, x, y, z),
+     FOREIGN KEY(rulername,planetname) REFERENCES planet_canon (rulername,planetname)
+    );
 
-CREATE TABLE galaxy_canon (
- id serial,
- x smallint,
- y smallint,
- active boolean NOT NULL DEFAULT TRUE,
- PRIMARY KEY(id),
- UNIQUE(x,y)
-);
+    CREATE TABLE galaxy_canon (
+     id serial,
+     x smallint,
+     y smallint,
+     active boolean NOT NULL DEFAULT TRUE,
+     PRIMARY KEY(id),
+     UNIQUE(x,y)
+    );
 
-CREATE TABLE galaxy_dump (
- tick smallint REFERENCES updates (tick),
- x smallint,
- y smallint,
- name varchar(64) NOT NULL,
- size int NOT NULL,
- score bigint NOT NULL,
- value bigint NOT NULL,
- score_rank smallint NOT NULL,
- value_rank smallint NOT NULL,
- size_rank smallint NOT NULL,
- xp integer NOT NULL,
- xp_rank smallint NOT NULL,
- id integer NOT NULL REFERENCES galaxy_canon(id),
- PRIMARY KEY(tick, x, y),
- FOREIGN KEY(x,y) REFERENCES galaxy_canon (x,y)
-);
+    CREATE TABLE galaxy_dump (
+     tick smallint REFERENCES updates (tick),
+     x smallint,
+     y smallint,
+     name varchar(64) NOT NULL,
+     size int NOT NULL,
+     score bigint NOT NULL,
+     value bigint NOT NULL,
+     score_rank smallint NOT NULL,
+     value_rank smallint NOT NULL,
+     size_rank smallint NOT NULL,
+     xp integer NOT NULL,
+     xp_rank smallint NOT NULL,
+     id integer NOT NULL REFERENCES galaxy_canon(id),
+     PRIMARY KEY(tick, x, y),
+     FOREIGN KEY(x,y) REFERENCES galaxy_canon (x,y)
+    );
 
-CREATE TABLE alliance_canon (
- id serial,
- name varchar(16) UNIQUE,
- active boolean NOT NULL DEFAULT TRUE,
- PRIMARY KEY(id)
-);
+    CREATE TABLE alliance_canon (
+     id serial,
+     name varchar(16) UNIQUE,
+     active boolean NOT NULL DEFAULT TRUE,
+     PRIMARY KEY(id)
+    );
 
-CREATE TABLE alliance_dump (
- tick smallint REFERENCES updates (tick),
- name varchar(16) NOT NULL REFERENCES alliance_canon (name),
- size int NOT NULL,
- members smallint NOT NULL,
- score bigint NOT NULL,
- score_rank smallint NOT NULL,
- size_rank smallint NOT NULL,
- members_rank smallint NOT NULL,
- score_avg int NOT NULL,
- size_avg smallint NOT NULL,
- score_avg_rank smallint NOT NULL,
- size_avg_rank smallint NOT NULL,
- id integer NOT NULL REFERENCES alliance_canon(id),
- PRIMARY KEY(tick, name)
-);
+    CREATE TABLE alliance_dump (
+     tick smallint REFERENCES updates (tick),
+     name varchar(16) NOT NULL REFERENCES alliance_canon (name),
+     size int NOT NULL,
+     members smallint NOT NULL,
+     score bigint NOT NULL,
+     score_rank smallint NOT NULL,
+     size_rank smallint NOT NULL,
+     members_rank smallint NOT NULL,
+     score_avg int NOT NULL,
+     size_avg smallint NOT NULL,
+     score_avg_rank smallint NOT NULL,
+     size_avg_rank smallint NOT NULL,
+     id integer NOT NULL REFERENCES alliance_canon(id),
+     PRIMARY KEY(tick, name)
+    );
 
-CREATE INDEX planet_dump_tick_index ON planet_dump(tick);
+    CREATE INDEX planet_dump_tick_index ON planet_dump(tick);
 
-CREATE INDEX planet_dump_id_index ON planet_dump(id);
+    CREATE INDEX planet_dump_id_index ON planet_dump(id);
 
-CREATE INDEX galaxy_dump_tick_index ON galaxy_dump(tick);
+    CREATE INDEX galaxy_dump_tick_index ON galaxy_dump(tick);
 
-CREATE INDEX galaxy_dump_id_index ON galaxy_dump(id);
+    CREATE INDEX galaxy_dump_id_index ON galaxy_dump(id);
 
-CREATE INDEX alliance_dump_tick_index ON alliance_dump(tick);
+    CREATE INDEX alliance_dump_tick_index ON alliance_dump(tick);
 
-CREATE INDEX alliance_dump_id_index ON alliance_dump(id);
+    CREATE INDEX alliance_dump_id_index ON alliance_dump(id);
 
 
 
-CREATE TABLE user_list (
-	id SERIAL PRIMARY KEY,
-	pnick VARCHAR(15) NOT NULL UNIQUE,
-	sponsor VARCHAR(15),
-	passwd CHAR(30),
-	userlevel INTEGER NOT NULL,
+    CREATE TABLE user_list (
+        id SERIAL PRIMARY KEY,
+        pnick VARCHAR(15) NOT NULL UNIQUE,
+        sponsor VARCHAR(15),
+        passwd CHAR(30),
+        userlevel INTEGER NOT NULL,
 	posflags VARCHAR(30),
 	negflags VARCHAR(30),
 	planet_id integer REFERENCES planet_canon(id) ON DELETE CASCADE,
@@ -230,7 +230,7 @@ CREATE TABLE ship (
 	name VARCHAR(30) UNIQUE NOT NULL,
 	class VARCHAR(10) NOT NULL CHECK(class in ('Fighter','Corvette','Frigate','Destroyer','Cruiser','Battleship')),
 	target VARCHAR(10) NOT NULL CHECK(target in ('Fighter','Corvette','Frigate','Destroyer','Cruiser','Battleship','Roids','Struct')),
-	type VARCHAR(5) NOT NULL CHECK(type in ('Norm','Pod','Struc','Emp','Steal')),
+	type VARCHAR(5) NOT NULL CHECK(type in ('Cloak','Norm','Pod','Struc','Emp','Steal')),
 	init smallint NOT NULL,
 	gun smallint NOT NULL,
 	armor smallint NOT NULL,
@@ -270,7 +270,7 @@ CREATE TABLE scan (
 	nick VARCHAR(15) NOT NULL,
 	pnick VARCHAR(15) ,
 	rand_id integer NOT NULL,
-	scantype VARCHAR(10) NOT NULL CHECK(scantype in ('unknown','planet','structure','technology','unit','news','jgp','fleet')),
+	scantype VARCHAR(10) NOT NULL CHECK(scantype in ('unknown','planet','structure','technology','unit','news','jgp','fleet','au')),
 	UNIQUE(rand_id,tick)
 );
 
@@ -325,6 +325,14 @@ CREATE TABLE unit (
 	ship_id integer NOT NULL REFERENCES ship(id),
 	amount integer NOT NULL
 );
+
+CREATE TABLE au (
+    id serial PRIMARY KEY,
+    scan_id integer NOT NULL REFERENCES scan(id),
+    ship_id integer NOT NULL REFERENCES ship(id),
+    amount integer NOT NULL
+);
+
 
 /*CREATE VIEW unit_ranges AS --broken
 	SELECT t2.pid AS pid,t3.name,max(amount::float)/1.2 AS min_amount,min(t1.amount::float)*.8 AS max_amount

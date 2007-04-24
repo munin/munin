@@ -57,7 +57,7 @@ class stop(loadable.loadable):
             self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
             return 0
 
-        query="SELECT * FROM ship WHERE name ILIKE %s"
+        query="SELECT * FROM ship WHERE name ILIKE %s ORDER BY id"
                 
         self.cursor.execute(query,("%"+bogey+"%",))
         ship=self.cursor.dictfetchone()
@@ -72,7 +72,7 @@ class stop(loadable.loadable):
         total_armor=ship['armor']*ship_number
 
         # do stuff here
-        query="SELECT * FROM ship WHERE target=%s"
+        query="SELECT * FROM ship WHERE target=%s ORDER BY id"
         self.cursor.execute(query,(ship['class'],))
         attackers=self.cursor.dictfetchall()
         

@@ -48,7 +48,7 @@ class con(loadable.loadable):
             return 0
 
 
-        reply="Optimal construction worker settings: 1% (-1), 9% (-2), 17% (-3), 26% (-4), 34% (-5). Add your racial bonus to get your total construction time bonus. If your construction worker settings are not one of these percentages, you should apply to join Angels or Wolfpack."
+        reply="Optimal construction worker/shipwrights settings: 1% (-1), 9% (-2), 17% (-3), 26% (-4), 34% (-5). Add your racial bonus to get your total construction/production time bonus. If your construction worker settings are not one of these percentages, you should apply to join Angels or Wolfpack."
 
         self.client.reply(prefix,nick,target,reply)
 

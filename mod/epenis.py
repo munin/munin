@@ -45,7 +45,13 @@ class epenis(loadable.loadable):
             search=m.group(2) or search
 
 
-        query="DROP TABLE epenis;DROP SEQUENCE xp_gain_rank;DROP SEQUENCE value_diff_rank;DROP SEQUENCE activity_rank;"
+        query="DROP TABLE epenis;"
+        try:
+            self.cursor.execute(query)
+        except:
+            pass
+
+        query="DROP SEQUENCE xp_gain_rank;DROP SEQUENCE value_diff_rank;DROP SEQUENCE activity_rank;"
         try:
             self.cursor.execute(query)
         except:
@@ -57,7 +63,7 @@ class epenis(loadable.loadable):
         self.cursor.execute(query)
 
             
-        query="CREATE TEMP TABLE epenis AS"
+        query="CREATE TABLE epenis AS"
         query+=" (SELECT *,nextval('activity_rank') AS activity_rank"
         query+=" FROM (SELECT  *,nextval('value_diff_rank') AS value_diff_rank"
         query+=" FROM (SELECT *,nextval('xp_gain_rank') AS xp_gain_rank"
@@ -65,7 +71,7 @@ class epenis(loadable.loadable):
         query+=" FROM planet_dump AS t1"
         query+=" INNER JOIN intel AS t2 ON t1.id=t2.pid"
 #        query+=" LEFT JOIN user_pref AS t3 ON t2.pid=t3.planet_id"
-        query+=" LEFT JOIN user_list AS t4 ON t2.pid=t4.planet_id"
+        query+=" LEFT JOIN user_list AS t4 ON t1.id=t4.planet_id"
         query+=" INNER JOIN planet_dump AS t5"
         query+=" ON t1.id=t5.id AND t1.tick - 72 = t5.tick"
         query+=" WHERE t1.tick = (select max(tick) from updates)"
@@ -80,7 +86,7 @@ class epenis(loadable.loadable):
         query+=" FROM epenis"
         query+=" WHERE pnick ILIKE %s"
 
-        self.cursor.execute(query,('%'+search+'%',))
+        self.cursor.execute(query,(search,))
         if self.cursor.rowcount < 1:
             query="SELECT nick,pnick,xp_gain,activity,value_diff,xp_gain_rank,value_diff_rank,activity_rank"
             query+=" FROM epenis"

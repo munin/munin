@@ -62,11 +62,19 @@ class cost(loadable.loadable):
             self.client.reply(prefix,nick,target,"%s is not a ship" % (ship_name))
             return 0
 
-        self.client.reply(prefix,nick,target,"Buying %s %s will cost %s metal, %s crystal and %s eonium. It will add %s value" %(ship_number,ship['name'],
-                                                                                                                                 ship['metal'] * ship_number,
-                                                                                                                                 ship['crystal'] * ship_number,
-                                                                                                                                 ship['eonium'] * ship_number,
-                                                                                                                                 (ship['total_cost'] * ship_number)/100))
+        reply="Buying %s %s will cost %s metal, %s crystal and %s eonium."%(ship_number,ship['name'],ship['metal'] * ship_number,
+                                                                            ship['crystal'] * ship_number,ship['eonium'] * ship_number)
+
+        reply+=" Feudalism: %s metal, %s crystal and %s eonium."%(int(ship['metal'] *.75) * ship_number,int(ship['crystal'] * .75)* ship_number,
+                                                                  int(ship['eonium'] *.75) *ship_number)
+        
+        reply+=" Democracy: %s metal, %s crystal and %s eonium."%(int(ship['metal'] * 1.2)*ship_number,int(ship['crystal'] *1.2) *ship_number,
+                                                                  int(ship['eonium'] * 1.2)*ship_number)
+
+        reply+=" It will add %s value"%((ship['total_cost'] * ship_number)/100,)
+        
+
+        self.client.reply(prefix,nick,target,reply)
         
         return 1
         

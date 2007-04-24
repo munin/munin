@@ -169,6 +169,8 @@ class tech(loadable.loadable):
         
 
     def mining(self,level):
+        level+=1
+        
         if level==0:
             return "50 roids"
         if level==1:
@@ -202,5 +204,6 @@ class tech(loadable.loadable):
         if level==15:
             return "6500 roids"
         if level==16:
+            return "8000 roids"
+        if level==17:
             return "top10 or dumb"
-

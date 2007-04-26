@@ -23,7 +23,7 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
-class victim(loadable.loadable):
+class cunts(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,100)
         self.paramre=re.compile("\s+(.*)")
@@ -34,7 +34,7 @@ class victim(loadable.loadable):
         self.bashre=re.compile(r"^(bash)$",re.I)
         self.clusterre=re.compile(r"^c(\d+)$",re.I)
         self.usage=self.__class__.__name__ + " [alliance] [race] [<|>][size] [<|>][value] [bash]" + " (must include at least one search criteria, order doesn't matter)"
-        self.help=["Lists planets currently attacking Ascendancy planets (as per intel). Sorts by size. This command is a bit spammy and will probably highlight people, so please do it in private or with a private command prefix."]
+        self.helptext=["Lists planets currently attacking Ascendancy planets (as per intel). Sorts by size. This command is a bit spammy and will probably highlight people, so please do it in private or with a private command prefix."]
         
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
@@ -124,6 +124,8 @@ class victim(loadable.loadable):
                 reply+=" Size %s %s" % (size_mod,size)
             if value:
                 reply+=" Value %s %s" % (value_mod,value)
+            if cluster:
+                reply+=" Cluster %s" %(cluster,)
             self.client.reply(prefix,nick,target,reply)
         for v in victims:
             reply="%s:%s:%s (%s)" % (v['x'],v['y'],v['z'],v['race'])
@@ -134,11 +136,13 @@ class victim(loadable.loadable):
                 reply+=" Alliance: %s" % (v['alliance'],)
             targs=self.attacking(v['pid'])
             if targs:
-                reply+="Hitting: "
-            a=[]
-            for t in targs:
-                a.append(t['nick'])
-            reply+=', '.join(a)
+                reply+=" Hitting: "
+                print targs
+                a=[]
+                for t in targs:
+                    if t:
+                        a.append(t['nick'])
+                reply+=', '.join(a)
             i+=1
             if i>4 and len(victims)>4:
                 reply+=" (Too many victims to list, please refine your search)"
@@ -163,12 +167,12 @@ class victim(loadable.loadable):
         query+=" INNER JOIN fleet AS t3 ON t1.id=t3.owner"
         #query+=" INNER JOIN intel AS t6 ON t3.target=t6.pid"
         query+=" WHERE t1.tick=(SELECT max_tick())"
-        query+=" AND t4.tick=(SELECT max_tick())"
+        #query+=" AND t4.tick=(SELECT max_tick())"
         query+=" AND t3.landing_tick>(SELECT max_tick())"
         query+=" AND t3.mission ilike 'attack'"
         query+=" AND t3.target IN ("
         query+=" SELECT t5.pid FROM intel AS t5 "
-        query+=" WHERE t5.alliance ilike '%asc%') "
+        query+=" WHERE t5.alliance ilike '%%asc%%') "
 
         if alliance:
             query+=" AND t2.alliance ILIKE %s"
@@ -194,8 +198,9 @@ class victim(loadable.loadable):
         return self.cursor.dictfetchall()
 
     def attacking(self,pid):
-        query="SELECT t2.nick AS nick FROM fleet AS t1"
+        query="SELECT DISTINCT t2.nick AS nick FROM fleet AS t1"
         query+=" INNER JOIN intel AS t2 ON t1.target=t2.pid"
         query+=" WHERE t1.owner = %s"
+        query+=" AND t1.landing_tick > (select max_tick())"
         self.cursor.execute(query,(pid,))
         return self.cursor.dictfetchall()

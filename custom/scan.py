@@ -366,7 +366,8 @@ class scan(threading.Thread):
             return
 
         #                     <td class="left">15:7:11            </td><td class="left">Defend </td><td>Ad infinitum</td><td>9</td><td>0</td>
-        for m in re.finditer('<td class="left">(\d+)\:(\d+)\:(\d+)</td><td class="left">([^<]+)</td><td>([^<]+)     </td><td>(\d+)</td><td>(\d+)</td>', page):
+        #<tr><td class="left">10:4:9</td><td class="left">Return</td><td>They look thirsty</td><td>5</td><td>3000</td></tr>
+        for m in re.finditer('<td class="left">(\d+)\:(\d+)\:(\d+)</td><td class="left">([^<]+)</td><td>([^<]+)</td><td>(\d+)</td><td>(\d+)</td>', page):
             originx = m.group(1)
             originy = m.group(2)
             originz = m.group(3)
@@ -377,19 +378,26 @@ class scan(threading.Thread):
             
             attacker=loadable.planet(originx,originy,originz)
             if not attacker.load_most_recent(self.conn, 0 ,self.cursor):
+                print "Can't find attacker in db: %s:%s:%s"%(originx,originy,originz) 
                 continue
             query="INSERT INTO fleet (scan_id,owner,target,fleet_size,fleet_name,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,%s)"
 
             try:
                 self.cursor.execute(query,(scan_id,attacker.id,p.id,fleetsize,fleet,int(tick)+int(eta),mission.lower()))
             except psycopg.IntegrityError, e:
+                print "Exception in jgp: "+e.__str__()
+                traceback.print_exc()
+                print "Trying to update instead"
                 query="UPDATE fleet SET scan_id=%s WHERE owner=%s AND target=%s AND fleet_size=%s AND fleet_name=%s AND landing_tick=%s AND mission=%s"
                 try:
                     self.cursor.execute(query,(scan_id,attacker.id,p.id,fleetsize,fleet,int(tick)+int(eta),mission.lower()))
                 except:
+                    
+                    print "Exception in jgp: "+e.__str__()
+                    traceback.print_exc()
                     continue
             except Exception, e:
-                print "Exception in news: "+e.__str__()
+                print "Exception in jgp: "+e.__str__()
                 traceback.print_exc()
                 continue
                                                                                                             

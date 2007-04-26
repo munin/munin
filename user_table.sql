@@ -354,7 +354,7 @@ CREATE TABLE fleet (
 	fleet_name VARCHAR(24) NOT NULL,
 	launch_tick smallint, 
 	landing_tick smallint NOT NULL,
-	mission varchar(7) NOT NULL CHECK(mission in ('defense','attack','unknown','return')),
+	mission varchar(7) NOT NULL CHECK(mission in ('defend','attack','unknown','return')),
 	UNIQUE(owner,target,fleet_size,fleet_name,landing_tick,mission)
 );
 

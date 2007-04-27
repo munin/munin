@@ -372,3 +372,7 @@ CREATE TABLE covop (
 	covopper integer NOT NULL REFERENCES planet_canon(id),
 	target integer NOT NULL REFERENCES planet_canon(id)
 );
+
+CREATE TABLE scanparser_queue(
+    rand_id integer PRIMARY KEY
+);

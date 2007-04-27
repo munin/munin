@@ -42,7 +42,7 @@ class scan(threading.Thread):
             self.unsafe_method()
         except Exception, e:
             print "Exception in scan: "+e.__str__()
-            self.client.privmsg('jesterina',"Exception in scan: "+e.__str__())
+            #self.client.privmsg('jesterina',"Exception in scan: "+e.__str__())
             traceback.print_exc()
             
 

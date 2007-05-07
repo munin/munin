@@ -32,7 +32,7 @@ class surprisesex(loadable.loadable):
     foo 
     """ 
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,1000)
+        loadable.loadable.__init__(self,client,conn,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(.*)")
         self.usage=self.__class__.__name__ + " [<[x:y[:z]]|[alliancename]>]"
@@ -46,28 +46,61 @@ class surprisesex(loadable.loadable):
         if access < self.level:
             self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
             return 0
+    
 
         m=self.paramre.search(m.group(1))
-        if not m or m.group(1):
+        if not m or not m.group(1):
             u=loadable.user(pnick=user)
             if not u.load_from_db(self.conn,self.client,self.cursor):
                 self.client.reply(prefix,nick,target,"Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
                 return 1
             if u.planet:
-                self.client.reply(prefix,nick,target,self.surprise(x=u.planet.x,y=u.planet.y,z=u.planet.z))
+                reply=self.surprise(x=u.planet.x,y=u.planet.y,z=u.planet.z)
+                self.client.reply(prefix,nick,target,reply)
             else:
                 self.client.reply(prefix,nick,target,"Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
-
-
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables 
+        param=m.group(1)
+        m=self.coordre.search(param)
+        if m:
+            x=m.group(1)
+            y=m.group(2)
+            z=m.group(4)
 
+            if z:
+                p=loadable.planet(x=x,y=y,z=z)
+                if not p.load_most_recent(self.conn,self.client,self.cursor):
+                    self.client.reply(prefix,nick,target,"No planet matching '%s' found"%(param,))
+                    return 1
+                reply=self.surprise(x=p.x,y=p.y,z=p.z)
 
-        # do stuff here
+                self.client.reply(prefix,nick,target,reply)
+                return 1
+            else:
+                g=loadable.galaxy(x=x,y=y)
+                if not g.load_most_recent(self.conn,self.client,self.cursor):
+                    self.client.reply(prefix,nick,target,"No galaxy matching '%s' found"%(param,))
+                    return 1
+                reply=self.surprise(x=g.x,y=g.y)
+                self.client.reply(prefix,nick,target,reply)
+                return 1
+        
+        a=loadable.alliance(name=param.strip())
+        if not a.load_most_recent(self.conn,self.client,self.cursor):
+            self.client.reply(prefix,nick,target,"No alliance matching '%s' found" % (param,))
+            return 1
+        reply=self.surprise(alliance=a.name)
+        self.client.reply(prefix,nick,target,reply)
 
         return 1
+
+    def cap(self,text):
+        if len(text)>3:
+           return text.title()
+        else:
+            return text.upper()
 
     def surprise(self,x=None,y=None,z=None,alliance=None):
         args=()
@@ -75,19 +108,20 @@ class surprisesex(loadable.loadable):
         query+=" FROM planet_canon AS t1"
         query+=" INNER JOIN fleet AS t3 ON t1.id=t3.owner"
         query+=" LEFT JOIN intel AS t2 ON t3.owner=t2.pid"
-        query+=" INNER JOIN planet_canon AS t4 ON t4.id=t3.target"
+        query+=" INNER JOIN planet_dump AS t4 ON t4.id=t3.target"
         query+=" INNER JOIN intel AS t5 ON t3.target=t5.pid"
         query+=" WHERE mission = 'attack'"
+        query+=" AND t4.tick=(SELECT max_tick())"
 
         if x and y:
             query+=" AND t4.x=%s AND t4.y=%s"
             args+=(x,y)
-        if y:
+        if z:
             query+=" AND t4.z=%s"
             args+=(z,)
         
         if alliance:
-            query+=" AND alliance ilike %s"
+            query+=" AND t5.alliance ilike %s"
             args+=('%'+alliance+'%',)
         
         query+=" GROUP BY lower(t2.alliance)"
@@ -104,14 +138,14 @@ class surprisesex(loadable.loadable):
             if alliance:
                 reply+=" alliance %s"%(alliance,)
         else:
-            reply="Top attackers on "
+            reply="Top attackers on"
             if x and y:
                 reply+=" coords %s:%s"%(x,y)
             if z:
                 reply+=":%s"%(z,)
             if alliance:
                 reply+=" alliance %s"%(alliance,)
-            reply+=" - "
+            reply+=" are "
             i=0
             prev=[]
             for a in attackers:
@@ -119,7 +153,7 @@ class surprisesex(loadable.loadable):
                    break
                else:
                    i+=1
-               prev.append("%s - %s"%(a['alliance'],a['attacks']))
+               prev.append("%s - %s"%(self.cap(a['alliance']),a['attacks']))
             reply+=string.join(prev," | ")
 
         return reply

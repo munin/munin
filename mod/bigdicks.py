@@ -45,11 +45,11 @@ class bigdicks(loadable.loadable):
             search=m.group(2) or search
 
 
-        for q in ["DROP TABLE epenis;","DROP SEQUENCE xp_gain_rank",
+        for q in ["DROP TABLE epenis","DROP SEQUENCE xp_gain_rank",
                   "DROP SEQUENCE value_diff_rank","DROP SEQUENCE activity_rank"]:
             try:
-                self.cursor.execute(query)
-            except:
+                self.cursor.execute(q)
+            except Exception, e:
                 pass
 
         query="CREATE TEMP SEQUENCE xp_gain_rank;CREATE TEMP SEQUENCE value_diff_rank;CREATE TEMP SEQUENCE activity_rank"
@@ -77,7 +77,7 @@ class bigdicks(loadable.loadable):
 
         self.cursor.execute(query)
 
-        query="SELECT pnick,xp_gain,activity,value_diff,xp_gain_rank,value_diff_rank,activity_rank"
+        query="SELECT pnick,nick,xp_gain,activity,value_diff,xp_gain_rank,value_diff_rank,activity_rank"
         query+=" FROM epenis"
         query+=" WHERE activity_rank < 6"
 

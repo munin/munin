@@ -45,11 +45,12 @@ class bigdicks(loadable.loadable):
             search=m.group(2) or search
 
 
-        query="DROP TABLE epenis;DROP SEQUENCE xp_gain_rank;DROP SEQUENCE value_diff_rank;DROP SEQUENCE activity_rank;"
-        try:
-            self.cursor.execute(query)
-        except:
-            pass
+        for q in ["DROP TABLE epenis;","DROP SEQUENCE xp_gain_rank",
+                  "DROP SEQUENCE value_diff_rank","DROP SEQUENCE activity_rank"]:
+            try:
+                self.cursor.execute(query)
+            except:
+                pass
 
         query="CREATE TEMP SEQUENCE xp_gain_rank;CREATE TEMP SEQUENCE value_diff_rank;CREATE TEMP SEQUENCE activity_rank"
         self.cursor.execute(query)
@@ -92,7 +93,7 @@ class bigdicks(loadable.loadable):
         reply="Big dicks:"
         prev=[]
         for b in self.cursor.dictfetchall():
-            prev.append("%d:%s (%s)"%(b['activity_rank'],b['pnick'],self.format_value(b['activity']*100)))
+            prev.append("%d:%s (%s)"%(b['activity_rank'],b['pnick'] or b['nick'],self.format_value(b['activity']*100)))
         reply+=" "+string.join(prev,', ')
             
         self.client.reply(prefix,nick,target,reply)

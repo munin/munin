@@ -59,6 +59,12 @@ class roidcost(loadable.loadable):
         repay_eng=(cost*100)/(roids*mining*1.15)
 
         reply="Capping %s roids at %s value will repay in %s ticks (%s days)" % (roids,self.format_value(cost*100),repay,repay/24)
+
+        repay=(cost*100)/(roids*mining*1.33)
+        reply+=" | Feudalism: %s ticks (%s days)" (repay,repay/24)
+        repay=(cost*100)/(roids*mining*.83)
+        reply+=" | Democracy: %s ticks (%s days)" (repay,repay/24)
+        
         self.client.reply(prefix,nick,target,reply)
 
         return 1

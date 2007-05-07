@@ -54,7 +54,7 @@ class surprisesex(loadable.loadable):
                 self.client.reply(prefix,nick,target,"Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
                 return 1
             if u.planet:
-                self.client.reply(prefix,nick,target,)
+                self.client.reply(prefix,nick,target,self.surprise(x=u.planet.x,y=u.planet.y,z=u.planet.z))
             else:
                 self.client.reply(prefix,nick,target,"Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
 
@@ -68,6 +68,62 @@ class surprisesex(loadable.loadable):
         # do stuff here
 
         return 1
+
+    def surprise(self,x=None,y=None,z=None,alliance=None):
+        args=()
+        query="SELECT lower(t2.alliance) AS alliance,count(lower(t2.alliance)) AS attacks "
+        query+=" FROM planet_canon AS t1"
+        query+=" INNER JOIN fleet AS t3 ON t1.id=t3.owner"
+        query+=" LEFT JOIN intel AS t2 ON t3.owner=t2.pid"
+        query+=" INNER JOIN planet_canon AS t4 ON t4.id=t3.target"
+        query+=" INNER JOIN intel AS t5 ON t3.target=t5.pid"
+        query+=" WHERE mission = 'attack'"
+
+        if x and y:
+            query+=" AND t4.x=%s AND t4.y=%s"
+            args+=(x,y)
+        if y:
+            query+=" AND t4.z=%s"
+            args+=(z,)
+        
+        if alliance:
+            query+=" AND alliance ilike %s"
+            args+=('%'+alliance+'%',)
+        
+        query+=" GROUP BY lower(t2.alliance)"
+        query+=" ORDER BY count(lower(t2.alliance)) DESC"
+
+        self.cursor.execute(query,args)
+        attackers=self.cursor.dictfetchall()
+        if not len(attackers):
+            reply="No fleets found targeting"
+            if x and y:
+                reply+=" coords %s:%s"%(x,y)
+            if z:
+                reply+=":%s"%(z,)
+            if alliance:
+                reply+=" alliance %s"%(alliance,)
+        else:
+            reply="Top attackers on "
+            if x and y:
+                reply+=" coords %s:%s"%(x,y)
+            if z:
+                reply+=":%s"%(z,)
+            if alliance:
+                reply+=" alliance %s"%(alliance,)
+            reply+=" - "
+            i=0
+            prev=[]
+            for a in attackers:
+               if i>4:
+                   break
+               else:
+                   i+=1
+               prev.append("%s - %s"%(a['alliance'],a['attacks']))
+            reply+=string.join(prev," | ")
+
+        return reply
+    
         """
 select lower(t2.alliance),count(lower(t2.alliance)) 
 from planet_canon AS t1 

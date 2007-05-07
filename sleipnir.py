@@ -55,4 +55,6 @@ for r in result:
 
     query="DELETE FROM scanparser_queue WHERE rand_id = %s"
     cursor.execute(query,(rid,))
+    
+    time.sleep(0.4)
 conn.commit()

@@ -27,15 +27,15 @@ Loadable.Loadable subclass
 
 
 
-class bcalc(loadable.loadable):
+class surprisesex(loadable.loadable):
     """ 
     foo 
     """ 
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,1)
+        loadable.loadable.__init__(self,client,conn,cursor,1000)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
-        self.paramre=re.compile(r"^\s+(\S+)")
-        self.usage=self.__class__.__name__ + ""
+        self.paramre=re.compile(r"^\s+(.*)")
+        self.usage=self.__class__.__name__ + " [<[x:y[:z]]|[alliancename]>]"
 	self.helptext=None
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
@@ -47,10 +47,36 @@ class bcalc(loadable.loadable):
             self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
             return 0
 
-        bcalc = ["http://bcalc.thrud.co.uk/","http://beta.5th-element.org/","http://bcalc.lch-hq.org/index.php",
-                 "http://pa.xqwzts.com/res.aspx","http://parser.visionhq.org/","http://munin.clawofdarkness.com/"]
+        m=self.paramre.search(m.group(1))
+        if not m or m.group(1):
+            u=loadable.user(pnick=user)
+            if not u.load_from_db(self.conn,self.client,self.cursor):
+                self.client.reply(prefix,nick,target,"Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
+                return 1
+            if u.planet:
+                self.client.reply(prefix,nick,target,)
+            else:
+                self.client.reply(prefix,nick,target,"Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
 
-        reply="Bcalcs: "+string.join(bcalc," | ")
-        self.client.reply(prefix,nick,target,reply)
+
+            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            return 0
+
+        # assign param variables 
+
+
+        # do stuff here
 
         return 1
+        """
+select lower(t2.alliance),count(lower(t2.alliance)) 
+from planet_canon AS t1 
+inner join fleet AS t3 on t1.id=t3.owner 
+left join intel AS t2 on t3.owner=t2.pid 
+inner join planet_canon as t4 on t4.id=t3.target
+inner join intel AS t5 on t3.target=t5.pid
+WHERE 
+t5.alliance ilike '%asc%'
+and mission = 'attack' 
+group by lower(t2.alliance);
+"""

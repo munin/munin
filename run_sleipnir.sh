@@ -21,7 +21,7 @@ if test -r $botname; then
   rm -f $botname
 fi
 echo ""
-echo "No Hugin running. Reloading it..."
+echo "No Sleipnir running. Reloading it..."
 echo ""
 #mv -f $botdir/log $botdir/oldlog
 $botexe #> $botdir/log 2>&1 &

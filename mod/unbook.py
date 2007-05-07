@@ -86,7 +86,8 @@ class unbook(loadable.loadable):
                 query+=" AND tick > %s "
                 args+=(curtick,)
             if u:
-                query+=" AND (uid ILIKE %s OR uid IS NULL)"
+                #query+=" AND (uid ILIKE %s OR uid IS NULL)"
+                query+=" AND uid ILIKE %s"
                 args+=(u.id,)
             else:
                 query+=" AND nick ILIKE %s"

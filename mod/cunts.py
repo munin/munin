@@ -156,7 +156,7 @@ class cunts(loadable.loadable):
     def cunts(self,alliance=None,race=None,size_mod='>',size=None,value_mod='<',value=None,attacker=None,bash=None,cluster=None):
         args=()
 
-        query="SELECT t1.id AS pid,t1.x AS x,t1.y AS y,t1.z AS z,"
+        query="SELECT DISTINCT t1.id AS pid,t1.x AS x,t1.y AS y,t1.z AS z,"
         query+="t1.size AS size,t1.size_rank AS size_rank,t1.value AS value,"
         query+="t1.value_rank AS value_rank,t1.race AS race,"
         query+="t2.alliance AS alliance,t2.nick AS nick"

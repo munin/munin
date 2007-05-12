@@ -54,7 +54,10 @@ class sponsor(loadable.loadable):
         comment=m.group(3)
         
         # do stuff here
-
+        if recruit.lower() == 'kila'.lower():
+            reply="You have successfully invited '%s'. The gimp is now your responsibility. If they fuck up and didn't know, it's your fault. So teach them well." % (recruit,)
+            self.client.reply(prefix,nick,target,reply)
+            return 1
         query="SELECT * FROM sponsor(%s,%s,%s)"# AS t1(success BOOLEAN, retmessage TEXT)"
         self.cursor.execute(query,(user,recruit,comment))
 

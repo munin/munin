@@ -104,7 +104,7 @@ class surprisesex(loadable.loadable):
 
     def surprise(self,x=None,y=None,z=None,alliance=None):
         args=()
-        query="SELECT lower(t2.alliance) AS alliance,count(lower(t2.alliance)) AS attacks "
+        query="SELECT COALESCE(lower(t2.alliance),'unknown') AS alliance,count(COALESCE(lower(t2.alliance),'unknown')) AS attacks "
         query+=" FROM planet_canon AS t1"
         query+=" INNER JOIN fleet AS t3 ON t1.id=t3.owner"
         query+=" LEFT JOIN intel AS t2 ON t3.owner=t2.pid"
@@ -153,7 +153,8 @@ class surprisesex(loadable.loadable):
                    break
                else:
                    i+=1
-               prev.append("%s - %s"%(self.cap(a['alliance']),a['attacks']))
+               prev.append("%s - %s"%(self.cap(a['alliance'] or 'unknown'),a['attacks']))
+               
             reply+=string.join(prev," | ")
 
         return reply

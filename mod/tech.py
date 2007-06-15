@@ -149,7 +149,7 @@ class tech(loadable.loadable):
         if level==6:
             return "JGP"
         if level==7:
-            return "Military"
+            return "Advanced Unit"
 
     def covop(self,level):
         if level==0:

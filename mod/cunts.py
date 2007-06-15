@@ -141,7 +141,7 @@ class cunts(loadable.loadable):
                 a=[]
                 for t in targs:
                     if t:
-                        a.append(t['nick'])
+                        a.append(t['nick'] or 'Unknown')
                 reply+=', '.join(a)
             i+=1
             if i>4 and len(victims)>4:
@@ -187,7 +187,7 @@ class cunts(loadable.loadable):
             query+=" AND value %s " % (value_mod) + "%s"
             args+=(value,)
         if bash:
-            query+=" AND value > %s AND score > %s"
+            query+=" AND (value > %s OR score > %s)"
             args+=(attacker.value*.4,attacker.score*.6)
         if cluster:
             query+=" AND x = %s::smallint"

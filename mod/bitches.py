@@ -76,7 +76,7 @@ class bitches(loadable.loadable):
         #begin finding of all alliance targets
 
         args=()
-        query="SELECT alliance,count(*) AS number"
+        query="SELECT lower(alliance) AS alliance,count(*) AS number"
         query+=" FROM target AS t1"
         query+=" INNER JOIN planet_dump AS t3 on t1.pid=t3.id"
         query+=" LEFT JOIN intel AS t2 ON t3.id=t2.pid"
@@ -86,7 +86,7 @@ class bitches(loadable.loadable):
         else:
             query+=" WHERE t1.tick > (SELECT MAX(tick) FROM updates)"
         query+="  AND t3.tick = (SELECT MAX(tick) FROM updates)"
-        query+=" GROUP BY alliance ORDER BY alliance"
+        query+=" GROUP BY lower(alliance) ORDER BY lower(alliance)"
         self.cursor.execute(query,args)
 
         if self.cursor.rowcount < 1:
@@ -94,7 +94,7 @@ class bitches(loadable.loadable):
         reply="Active bitches:"
         prev=[]
         for b in self.cursor.dictfetchall():
-            prev.append("%s (%s)"%(b['alliance'] or "Unknown",b['number']))
+            prev.append("%s (%s)"%(self.cap(b['alliance'] or "Unknown"),b['number']))
         reply+=" "+string.join(prev,', ')
         self.client.reply(prefix,nick,target,reply)
         

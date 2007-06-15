@@ -28,7 +28,7 @@ from parser import parser
 
 class munin:
     def __init__(self):
-        self.server = 'irc.netgamers.org'
+        self.server = 'omega.fl.us.netgamers.org'
         self.port = 6667
         self.nick = 'Munin'
         self.user = 'raven'

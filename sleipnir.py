@@ -45,13 +45,19 @@ for r in result:
         continue
 
     print "Fetching scan %s"%(rid,)
-    s=scan.scan(rid,None,conn,cursor,'webinterface','webinterface')
+    while True:
+        try:
+            s=scan.scan(rid,None,conn,cursor,'webinterface','webinterface')
+            break
+        except Exception, e:
+            continue
     #s.run()
     try:
         s.unsafe_method()
     except Exception, e:
         print "Exception in scan: "+e.__str__()
         traceback.print_exc()
+        continue
 
     query="DELETE FROM scanparser_queue WHERE rand_id = %s"
     cursor.execute(query,(rid,))

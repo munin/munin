@@ -113,7 +113,7 @@
 
     CREATE TABLE user_list (
         id SERIAL PRIMARY KEY,
-        pnick VARCHAR(15) NOT NULL UNIQUE,
+        pnick VARCHAR(15) NOT NULL,
         sponsor VARCHAR(15),
         passwd CHAR(30),
         userlevel INTEGER NOT NULL,
@@ -125,6 +125,7 @@
 	quit smallint NOT NULL DEFAULT 0
 );
 
+CREATE UNIQUE INDEX user_list_pnick_case_insensitive_index ON user_list(LOWER(pnick));
 INSERT INTO user_list (pnick,sponsor,userlevel) VALUES ('jester','Munin',1000);
 
 CREATE TABLE kickvote (

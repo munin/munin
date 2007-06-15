@@ -189,7 +189,7 @@ class whore(loadable.loadable):
             query+=" AND value %s " % (value_mod) + "%s"
             args+=(int(value),)
         if bash:
-            query+=" AND value > %s AND score > %s"
+            query+=" AND (value > %s OR score > %s)"
             args+=(attacker.value*.4,attacker.score*.6)
         if cluster:
             query+=" AND x = %s::smallint"

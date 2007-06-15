@@ -60,8 +60,11 @@ class roidcost(loadable.loadable):
 
         reply="Capping %s roids at %s value will repay in %s ticks (%s days)" % (roids,self.format_value(cost*100),repay,repay/24)
 
+        repay=int((cost*100)/(roids*mining*2.0666666666666666))
+        reply+=" | Max: %s ticks (%s days)" %(repay,repay/24)
         repay=int((cost*100)/(roids*mining*1.33))
         reply+=" | Feudalism: %s ticks (%s days)" %(repay,repay/24)
+
         repay=int((cost*100)/(roids*mining*.83))
         reply+=" | Democracy: %s ticks (%s days)" %(repay,repay/24)
         

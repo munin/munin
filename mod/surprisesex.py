@@ -145,7 +145,7 @@ class surprisesex(loadable.loadable):
                 reply+=":%s"%(z,)
             if alliance:
                 reply+=" alliance %s"%(alliance,)
-            reply+=" are "
+            reply+=" are (total: %s) "%(sum([d['attacks'] for d in attackers]),)
             i=0
             prev=[]
             for a in attackers:

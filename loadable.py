@@ -47,6 +47,12 @@ class loadable:
             for h in self.helptext:
                 self.client.reply(prefix,nick,target,h)
 
+    def cap(self,text):
+        if len(text)>3:
+            return text.title()
+        else:
+            return text.upper()
+
     def format_value(self,cost):
         value=cost/100
         if value/1000000 > 9:
@@ -71,7 +77,7 @@ class loadable:
         
 
 class planet:
-    def __init__(self,x=-1,y=-1,z=-1,planetname=None,rulername=None,race=None,size=-1,score=-1,value=-1,id=-1):
+    def __init__(self,x=-1,y=-1,z=-1,planetname=None,rulername=None,race=None,size=-1,score=-1,value=-1,id=-1,idle=-1):
         self.x=int(x)
         self.y=int(y)
         self.z=int(z)
@@ -87,6 +93,7 @@ class planet:
         self.xp=-1
         self.xp_rank=-1
         self.id=id
+        self.idle=idle
 
     def __str__(self):
         retstr="%s:%s:%s (%s) '%s' of '%s' " % (self.x,self.y,self.z,self.race,self.rulername,self.planetname)
@@ -94,6 +101,7 @@ class planet:
         retstr+="Value: %s (%s) " % (self.value,self.value_rank)
         retstr+="Size: %s (%s) " % (self.size,self.size_rank)
         retstr+="XP: %s (%s) " % (self.xp,self.xp_rank)
+        retstr+="Idle: %s " % (self.idle,)
         return retstr
         pass
     
@@ -101,15 +109,15 @@ class planet:
         p={}
         if self.x > -1 and self.y > -1 and self.z > -1:
             #load from coords
-            query="SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,id FROM planet_dump WHERE x=%s AND y=%s AND z=%s AND tick=(SELECT MAX(tick) FROM updates)"
+            query="SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id FROM planet_dump WHERE x=%s AND y=%s AND z=%s AND tick=(SELECT MAX(tick) FROM updates)"
             cursor.execute(query,(self.x,self.y,self.z))
             pass
         elif self.planetname and self.rulername:
-            query="SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,id FROM planet_dump WHERE planetname=%s AND rulername=%s AND tick=(SELECT MAX(tick) FROM updates)"
+            query="SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id FROM planet_dump WHERE planetname=%s AND rulername=%s AND tick=(SELECT MAX(tick) FROM updates)"
             cursor.execute(query,(self.planetname,self.rulername))
             pass
         elif self.id > 0:
-            query="SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,id FROM planet_dump WHERE id=%s AND tick=(SELECT MAX(tick) FROM updates)"
+            query="SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id FROM planet_dump WHERE id=%s AND tick=(SELECT MAX(tick) FROM updates)"
             cursor.execute(query,(self.id,))
         else:
             raise Exception("Tried to load planet with no unique identifiers")
@@ -130,6 +138,7 @@ class planet:
         self.size_rank=p['size_rank']
         self.xp=p['xp']
         self.xp_rank=p['xp_rank']
+        self.idle=p['idle']
         self.id=p['id']
         return 1
     
@@ -240,14 +249,16 @@ class alliance:
         return 1    
 
 class user:
-    def __init__(self,id=-1,pnick=None,userlevel=-1,planet_id=-1,stay=False):
+    def __init__(self,id=-1,pnick=None,sponsor=None,userlevel=-1,planet_id=-1,stay=False):
         self.id=id
         self.pnick=pnick
+        self.sponsor=sponsor
         self.userlevel=userlevel
         self.planet_id=planet_id
         self.planet=None
         self.stay=False
         self.pref=False
+
 #        if planet_id > 0:
 #            self.planet=planet(id=planet_id)
 #        else:
@@ -256,15 +267,16 @@ class user:
 
     def load_from_db(self,conn,client,cursor):
         if self.pnick:
-            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.stay AS stay FROM user_list AS t1 WHERE t1.pnick ILIKE %s"
+            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.stay AS stay FROM user_list AS t1 WHERE t1.pnick ILIKE %s"
             cursor.execute(query,(self.pnick,))
         elif self.id > 0:
-            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.stay AS stay FROM user_list AS t1 WHERE  t1.id=%s"
+            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor,t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.stay AS stay FROM user_list AS t1 WHERE  t1.id=%s"
             cursor.execute(query,(self.pnick,))            
         u=cursor.dictfetchone()
         if u:
             self.id=u['id']
             self.pnick=u['pnick']
+            self.sponsor=u['sponsor']
             self.userlevel=u['userlevel']
             self.planet_id=u['planet_id']
             if u['planet_id']:
@@ -276,12 +288,13 @@ class user:
             self.pref=True
             return 1
         else:
-            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.userlevel AS userlevel FROM user_list AS t1 WHERE t1.pnick ILIKE %s"
+            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel FROM user_list AS t1 WHERE t1.pnick ILIKE %s"
             cursor.execute(query,(self.pnick,))
             u=cursor.dictfetchone()
             if u:
                 self.id=u['id']
                 self.pnick=u['pnick']
+                self.sponsor=u['sponsor']
                 self.userlevel=u['userlevel']
                 return 1
         return None

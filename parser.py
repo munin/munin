@@ -23,7 +23,7 @@ Parser class
 # are included in this collective work with permission of the copyright 
 # owners.
 
-import re, psycopg, sys, os, traceback,string
+import re, psycopg, sys, os, traceback,string,math
 
 import loadable 
 
@@ -111,9 +111,9 @@ class parser:
 
             #print "running scan parse"
             for m in self.scanre.finditer(message):
-                self.scan(m.group(1),nick,user)
+                #self.scan(m.group(1),nick,user)
                 pass
-            self.galstatus.parse(message,nick,user,target)
+            #self.galstatus.parse(message,nick,user,target)
             
             m=self.commandre.search(message)
             if not m:

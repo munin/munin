@@ -124,7 +124,7 @@ while True:
          z smallint,
          planetname varchar(22) NOT NULL,
          rulername varchar(22) NOT NULL,
-         race char(3) NOT NULL CHECK (race in ('Ter','Cat','Xan','Zik','Etd')),
+         race char(3) CHECK (race in (NULL,'Ter','Cat','Xan','Zik','Etd')),
          size smallint NOT NULL,
          score integer NOT NULL,
          value integer NOT NULL,

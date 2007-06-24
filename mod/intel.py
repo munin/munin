@@ -39,8 +39,9 @@ class intel(loadable.loadable):
         self.optionsre['reportchan']=re.compile("^(\S+)")
         self.optionsre['relay']=re.compile("^(t|f)",re.I)
         self.optionsre['hostile_count']=re.compile("^(\d+)")
-        self.optionsre['scanner']=re.compile("^(t|f)",re.I)        
+        self.optionsre['scanner']=re.compile("^(t|f)",re.I)
         self.optionsre['distwhore']=re.compile("^(t|f)",re.I)
+	self.optionsre['nap']=re.compile("^(t|f)",re.I)
         self.optionsre['comment']=re.compile("^(.*)")                
         options=self.optionsre.keys()
         options.sort()
@@ -91,23 +92,31 @@ class intel(loadable.loadable):
         for k in self.optionsre.keys():
             if not opts.has_key(k):
                 opts[k]=getattr(i,k)
-                
+        if opts['alliance']:
+	    a=loadable.alliance(name=opts['alliance'])
+	    if not a.load_from_db:
+		del opts['alliance']
+		a=loadable.alliance(id=None)
+	else:
+	    a=loadable.alliance(id=None)
+
         if i.id > 0:
             query="UPDATE intel SET "
-            query+="pid=%s,nick=%s,fakenick=%s,alliance=%s,relay=%s,reportchan=%s,hostile_count=%s,"
+            query+="pid=%s,nick=%s,fakenick=%s,alliance_id=%s,relay=%s,reportchan=%s,hostile_count=%s,"
             query+="scanner=%s,distwhore=%s,comment=%s"
             query+=" WHERE id=%s"
             self.cursor.execute(query,(opts['pid'],opts['nick'],
-                                       opts['fakenick'],opts['alliance'],opts['relay'],
+                                       opts['fakenick'],a.id,opts['relay'],
                                        opts['reportchan'],opts['hostile_count'],
                                        opts['scanner'],opts['distwhore'],opts['comment'],i.id))
             
         elif params:
-            query="INSERT INTO intel (pid,nick,fakenick,alliance,relay,reportchan,hostile_count,scanner,distwhore,comment) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            query="INSERT INTO intel (pid,nick,fakenick,relay,reportchan,hostile_count,scanner,distwhore,comment,alliance_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
             self.cursor.execute(query,(opts['pid'],opts['nick'],
-                                       opts['fakenick'],opts['alliance'],opts['relay'],
+                                       opts['fakenick'],opts['relay'],
                                        opts['reportchan'],opts['hostile_count'],
-                                       opts['scanner'],opts['distwhore'],opts['comment']))
+                                       opts['scanner'],opts['distwhore'],
+				       opts['comment'],a.id))
         i=loadable.intel(pid=opts['pid'],nick=opts['nick'],fakenick=opts['fakenick'],
                          alliance=opts['alliance'],relay=opts['relay'],reportchan=opts['reportchan'],
                          hostile_count=opts['hostile_count'],scanner=opts['scanner'],

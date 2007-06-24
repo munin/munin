@@ -315,7 +315,10 @@ class intel:
         self.comment=comment
 
     def load_from_db(self,conn,client,cursor):
-        query="SELECT id,pid,nick,fakenick,alliance,relay,reportchan,hostile_count,scanner,distwhore,comment FROM intel WHERE "
+        query="SELECT id,pid,nick,fakenick,relay,reportchan,hostile_count,scanner,distwhore,comment,t1.name AS alliance"
+	query+=" FROM intel"
+	query+=" RIGHT JOIN alliance AS t1 ON intel.alliance_id=t1.id "
+	query+=" WHERE "
         if self.id > 0:
             query+="id=%s"
             cursor.execute(query,(self.id,))

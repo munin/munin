@@ -47,7 +47,7 @@ class parser:
         #database variables (also private)
         self.mod_dir="mod"
         self.user="munin"
-        self.dbname="patools21"
+        self.dbname="patools22"
 
         # database connection and cursor
         self.conn=psycopg.connect("user=%s dbname=%s" % (self.user,self.dbname))

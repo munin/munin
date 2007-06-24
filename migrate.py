@@ -23,7 +23,7 @@
 
 import psycopg, sys
 
-user="andreaja"
+user="munin"
 
 try:
     old_db=sys.argv[1]
@@ -40,10 +40,10 @@ old_curs=old_conn.cursor()
 
 new_curs=new_conn.cursor()
 
-old_curs.execute("SELECT t1.pnick AS pnick,t1.userlevel AS userlevel,t1.sponsor AS sponsor, t1.invites AS invites FROM user_list AS t1 WHERE t1.stay")
+old_curs.execute("SELECT t1.id AS id, t1.pnick AS pnick,t1.userlevel AS userlevel,t1.sponsor AS sponsor, t1.invites AS invites FROM user_list AS t1")
 
 for u in old_curs.dictfetchall():
-    new_curs.execute("INSERT INTO user_list (pnick,userlevel,sponsor,invites) VALUES (%s,%s,%s,%s)",(u['pnick'],u['userlevel'],u['sponsor'],u['invites']))
+    new_curs.execute("INSERT INTO user_list (id,pnick,userlevel,sponsor,invites) VALUES (%s,%s,%s,%s,%s)",(u['id'],u['pnick'],u['userlevel'],u['sponsor'],u['invites']))
 
 old_curs.execute("SELECT t1.quote AS quote FROM quote AS t1")
 
@@ -54,6 +54,11 @@ old_curs.execute("SELECT t1.slogan AS slogan FROM slogan AS t1")
 
 for u in old_curs.dictfetchall():
     new_curs.execute("INSERT INTO slogan (slogan) VALUES (%s)",(u['slogan'],))
-    
+
+old_curs.execute("SELECT t1.sponsor_id AS sponsor_id, t1.pnick AS pnick, t1.comment AS comment, t1.timestamp AS timestamp FROM sponsor AS t1");
+
+for u in old_curs.dictfetchall():
+    new_curs.execute("INSERT INTO sponsor (sponsor_id,pnick,comment,timestamp) VALUES (%s,%s,%s,%s)",(u['sponsor_id'],u['pnick'],u['comment'],"'%s'"%(u['timestamp'],)))
+
 
 new_conn.commit()

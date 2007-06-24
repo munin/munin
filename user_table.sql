@@ -188,17 +188,27 @@ CREATE TABLE target (
 	UNIQUE(pid,tick)
 );
 
+
+CREATE TABLE alliance_tags
+(
+ id SERIAL,
+ alliance_id integer REFERENCES alliance_canon(id) NOT NULL,
+ tag varchar(16) NOT NULL
+);
+
 CREATE TABLE intel (
 	id serial PRIMARY KEY,
 	pid integer NOT NULL UNIQUE REFERENCES planet_canon(id),
 	nick VARCHAR(20),
 	fakenick VARCHAR(20),
-	alliance VARCHAR(20),
 	reportchan VARCHAR(30),
 	hostile_count smallint,
 	scanner BOOLEAN DEFAULT FALSE,
 	distwhore BOOLEAN DEFAULT FALSE,
-	comment VARCHAR(512)	
+	comment VARCHAR(512),
+	relay bool NOT NULL DEFAULT FALSE,
+	nap bool NOT NULL DEFAULT FALSE,
+	alliance_id integer REFERENCES alliance_canon(id)
 );
 
 CREATE FUNCTION intel_update_nulls() RETURNS trigger AS $PROC$

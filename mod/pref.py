@@ -25,7 +25,7 @@ Loadable.Loadable subclass
 
 class pref(loadable.loadable):
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,1)
+        loadable.loadable.__init__(self,client,conn,cursor,100)
         self.paramre=re.compile(r"^\s+(.*)")
         self.usage=self.__class__.__name__ + " [option=value]+"
 

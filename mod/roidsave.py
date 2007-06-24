@@ -50,9 +50,9 @@ class roidsave(loadable.loadable):
               
         cost=self.format_value(ticks*roids*mining)
 
-        cost_m=self.format_value(int(ticks*roids*mining*2.0615))
-        cost_f=self.format_value(int(ticks*roids*mining*1.33))
-        cost_d=self.format_value(int(ticks*roids*mining*.83))
+        cost_m=self.format_value(int(ticks*roids*mining*1.9529))
+        cost_f=self.format_value(int(ticks*roids*mining*1.1765))
+        cost_d=self.format_value(int(ticks*roids*mining*.9524))
         
         reply="%s roids will mine %s value (M: %s/F: %s/D: %s) in %s ticks (%s days)" % (roids,cost,cost_m,cost_f,cost_d,ticks,ticks/24)
 

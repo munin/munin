@@ -200,7 +200,7 @@ class galaxy:
 
 
 class alliance:
-    def __init__(self,score_rank=-1,name=None,size=-1,members=-1,score=-1,id=-1):
+    def __init__(self,score_rank=-1,name=None,size=-1,members=-1,score=-1,id=None):
         self.score_rank=int(score_rank)
         self.name=name
         self.size=int(size)
@@ -301,7 +301,7 @@ class user:
             
 
 class intel:
-    def __init__(self,id=-1,pid=-1,nick=None,fakenick=None,alliance=None,reportchan=None,hostile_count=-1,scanner=False,distwhore=False,relay=False,comment=None):
+    def __init__(self,id=None,pid=-1,nick=None,fakenick=None,alliance=None,reportchan=None,hostile_count=-1,scanner=False,distwhore=False,relay=False,comment=None):
         self.id=id
         self.pid=pid        
         self.nick=nick
@@ -315,10 +315,10 @@ class intel:
         self.comment=comment
 
     def load_from_db(self,conn,client,cursor):
-        query="SELECT id,pid,nick,fakenick,relay,reportchan,hostile_count,scanner,distwhore,comment,t1.name AS alliance"
-	query+=" FROM intel"
-	query+=" RIGHT JOIN alliance AS t1 ON intel.alliance_id=t1.id "
-	query+=" WHERE "
+        query="SELECT t2.id AS id,pid,nick,fakenick,relay,reportchan,hostile_count,scanner,distwhore,comment,t1.name AS alliance"
+        query+=" FROM intel AS t2"
+        query+=" LEFT JOIN alliance_canon AS t1 ON t2.alliance_id=t1.id "
+        query+=" WHERE "
         if self.id > 0:
             query+="id=%s"
             cursor.execute(query,(self.id,))

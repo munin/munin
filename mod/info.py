@@ -51,8 +51,9 @@ class info(loadable.loadable):
         query="SELECT count(*) AS members,sum(t1.value) AS tot_value, sum(t1.score) AS tot_score, sum(t1.size) AS tot_size, sum(t1.xp) AS tot_xp"
         query+=" FROM planet_dump AS t1"
         query+=" INNER JOIN intel AS t2 ON t1.id=t2.pid"
-        query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates) AND t2.alliance ILIKE %s"
-        query+=" GROUP BY t2.alliance ILIKE %s"
+        query+=" LEFT JOIN alliance_canon t3 ON t2.alliance_id=t3.id"
+        query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates) AND t3.name ILIKE %s"
+        query+=" GROUP BY t3.name ILIKE %s"
 
         self.cursor.execute(query,('%'+alliance+'%','%'+alliance+'%'))
         reply=""

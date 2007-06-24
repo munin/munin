@@ -36,6 +36,9 @@ class ascinfo(loadable.loadable):
         
         # assign param variables
         
+        self.client.reply(prefix,nick,target,"Use !info ascendancy")
+        return 1
+        
         if access < self.level:
             self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
             return 0

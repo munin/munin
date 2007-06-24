@@ -65,8 +65,9 @@ class bumchums(loadable.loadable):
 
         query="SELECT x,y,count(*) AS bums FROM planet_dump AS t1"
         query+=" INNER JOIN intel AS t2 ON t1.id=t2.pid"
+        query+=" LEFT JOIN alliance_canon AS t3 ON t2.alliance_id=t3.id"
         query+=" WHERE t1.tick=(SELECT max_tick())"
-        query+=" AND t2.alliance ilike %s"
+        query+=" AND t3.name ilike %s"
         query+=" GROUP BY x,y"
         query+=" HAVING count(*) >= %s"
 

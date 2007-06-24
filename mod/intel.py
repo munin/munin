@@ -41,7 +41,6 @@ class intel(loadable.loadable):
         self.optionsre['hostile_count']=re.compile("^(\d+)")
         self.optionsre['scanner']=re.compile("^(t|f)",re.I)
         self.optionsre['distwhore']=re.compile("^(t|f)",re.I)
-	self.optionsre['nap']=re.compile("^(t|f)",re.I)
         self.optionsre['comment']=re.compile("^(.*)")                
         options=self.optionsre.keys()
         options.sort()
@@ -93,14 +92,17 @@ class intel(loadable.loadable):
             if not opts.has_key(k):
                 opts[k]=getattr(i,k)
         if opts['alliance']:
-	    a=loadable.alliance(name=opts['alliance'])
-	    if not a.load_from_db:
-		del opts['alliance']
-		a=loadable.alliance(id=None)
-	else:
-	    a=loadable.alliance(id=None)
+            a=loadable.alliance(name=opts['alliance'])
+            if not a.load_most_recent(self.conn,self.client,self.cursor):
+                if opts['alliance'] == '?':
+                    a.id=None
+                else:
+                    self.client.reply(prefix,nick,target,"'%s' is not a valid alliance, your information was not added."%(opts['alliance'],))
+                    return 1
+        else:
+	        a=loadable.alliance(id=None)
 
-        if i.id > 0:
+        if i.id:
             query="UPDATE intel SET "
             query+="pid=%s,nick=%s,fakenick=%s,alliance_id=%s,relay=%s,reportchan=%s,hostile_count=%s,"
             query+="scanner=%s,distwhore=%s,comment=%s"
@@ -109,7 +111,6 @@ class intel(loadable.loadable):
                                        opts['fakenick'],a.id,opts['relay'],
                                        opts['reportchan'],opts['hostile_count'],
                                        opts['scanner'],opts['distwhore'],opts['comment'],i.id))
-            
         elif params:
             query="INSERT INTO intel (pid,nick,fakenick,relay,reportchan,hostile_count,scanner,distwhore,comment,alliance_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
             self.cursor.execute(query,(opts['pid'],opts['nick'],
@@ -149,7 +150,7 @@ class intel(loadable.loadable):
 
 
     def exec_gal(self,nick,username,host,target,prefix,command,user,access,x,y):
-        query="SELECT t2.id AS id, t1.id AS pid, t1.x AS x, t1.y AS y, t1.z AS z, t2.nick AS nick, t2.fakenick AS fakenick, t2.alliance AS alliance, t2.relay AS relay, t2.reportchan AS reportchan, t2.hostile_count AS hostile_count, t2.scanner AS scanner, t2.distwhore AS distwhore, t2.comment AS comment FROM planet_dump as t1, intel as t2 WHERE tick=(SELECT MAX(tick) FROM updates) AND t1.id=t2.pid AND x=%s AND y=%s ORDER BY y,z,x"
+        query="SELECT t2.id AS id, t1.id AS pid, t1.x AS x, t1.y AS y, t1.z AS z, t2.nick AS nick, t2.fakenick AS fakenick, t2.alliance_id AS alliance_id, t2.relay AS relay, t2.reportchan AS reportchan, t2.hostile_count AS hostile_count, t2.scanner AS scanner, t2.distwhore AS distwhore, t2.comment AS comment, t3.name AS alliance FROM planet_dump as t1, intel as t2 LEFT JOIN alliance_canon AS t3 ON t2.alliance_id=t3.id WHERE tick=(SELECT MAX(tick) FROM updates) AND t1.id=t2.pid AND x=%s AND y=%s ORDER BY y,z,x"
         self.cursor.execute(query,(x,y))
         if self.cursor.rowcount < 1:
             self.client.reply(prefix,nick,target,"No information stored for galaxy %s:%s" % (x,y))

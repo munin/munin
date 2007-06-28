@@ -115,14 +115,15 @@
         id SERIAL PRIMARY KEY,
         pnick VARCHAR(15) NOT NULL,
         sponsor VARCHAR(15),
-        passwd CHAR(30),
+        passwd CHAR(32),
         userlevel INTEGER NOT NULL,
 	posflags VARCHAR(30),
 	negflags VARCHAR(30),
 	planet_id integer REFERENCES planet_canon(id) ON DELETE CASCADE,
 	stay BOOLEAN DEFAULT FALSE,
 	invites smallint NOT NULL DEFAULT 0 CHECK (invites >= 0),
-	quit smallint NOT NULL DEFAULT 0
+	quit smallint NOT NULL DEFAULT 0,
+    salt varchar(4) NOT NULL DEFAULT SUBSTRING(CAST(RANDOM() AS VARCHAR) FROM 3 FOR 4
 );
 
 CREATE UNIQUE INDEX user_list_pnick_case_insensitive_index ON user_list(LOWER(pnick));

@@ -76,17 +76,18 @@ class bitches(loadable.loadable):
         #begin finding of all alliance targets
 
         args=()
-        query="SELECT lower(alliance) AS alliance,count(*) AS number"
+        query="SELECT lower(t6.name) AS alliance,count(*) AS number"
         query+=" FROM target AS t1"
         query+=" INNER JOIN planet_dump AS t3 on t1.pid=t3.id"
         query+=" LEFT JOIN intel AS t2 ON t3.id=t2.pid"
+        query+=" LEFT JOIN alliance_canon AS t6 ON t2.alliance_id=t6.id"
         if tick:
             query+=" WHERE t1.tick >= ((SELECT MAX(tick) FROM updates)+%s)"
             args+=(tick,)
         else:
             query+=" WHERE t1.tick > (SELECT MAX(tick) FROM updates)"
         query+="  AND t3.tick = (SELECT MAX(tick) FROM updates)"
-        query+=" GROUP BY lower(alliance) ORDER BY lower(alliance)"
+        query+=" GROUP BY lower(t6.name) ORDER BY lower(t6.name)"
         self.cursor.execute(query,args)
 
         if self.cursor.rowcount < 1:

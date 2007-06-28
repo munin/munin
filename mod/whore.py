@@ -164,20 +164,20 @@ class whore(loadable.loadable):
         #args=(att_score,att_value)
         args=(attacker.score,attacker.value)
         
-        query="SELECT t1.x AS x,t1.y AS y,t1.z AS z,t1.size AS size,t1.size_rank AS size_rank,t1.value AS value,t1.value_rank AS value_rank,t1.race AS race,t2.alliance AS alliance,t2.nick AS nick"
+        query="SELECT t1.x AS x,t1.y AS y,t1.z AS z,t1.size AS size,t1.size_rank AS size_rank,t1.value AS value,t1.value_rank AS value_rank,t1.race AS race,t6.name AS alliance,t2.nick AS nick"
 
         #bravery = max(0,min(30,10*(min(2,float(victim_val)/attacker_val)  + min(2,float(victim_score)/attacker_score) - 1)))
 
         #query+=", (t1.size/4) * 10 *float8larger(0,(float8smaller(3,(float8smaller(2,(t1.score::float8/%s)) + float8smaller(2,(t1.value::float8/%s)) - 1)))) AS xp_gain"
         
         query+=", (t1.size/4) * 10 * (float8smaller(2,(t1.score::float/%s::float))-0.6)*(float8smaller(2,(t1.value::float/%s::float))-0.4) AS xp_gain"
-                
         query+=" FROM planet_dump AS t1" # INNER JOIN planet_canon AS t3 ON t1.id=t3.id"
         query+=" LEFT JOIN intel AS t2 ON t1.id=t2.pid"
+        query+=" LEFT JOIN alliance_canon AS t6 ON t2.alliance_id=t6.id"
         query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates)"
 
         if alliance:
-            query+=" AND t2.alliance ILIKE %s"
+            query+=" AND t6.name ILIKE %s"
             args+=('%'+alliance+'%',)
         if race:
             query+=" AND race ILIKE %s"

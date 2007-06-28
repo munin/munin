@@ -60,7 +60,7 @@ class bumchums(loadable.loadable):
         a=loadable.alliance(name=alliance)
            
         if not a.load_most_recent(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"No alliance matching '%s' found" % (param,))
+            self.client.reply(prefix,nick,target,"No alliance matching '%s' found" % (alliance,))
             return 1
 
         query="SELECT x,y,count(*) AS bums FROM planet_dump AS t1"

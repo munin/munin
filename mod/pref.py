@@ -69,7 +69,9 @@ class pref(loadable.loadable):
                 self.save_planet(prefix,nick,target,u,x,y,z)
             if opt == "stay":
                 self.save_stay(prefix,nick,target,u,val,access)
-                
+            if opt == "password":
+                self.save_password(prefix,nick,target,u,val)
+                pass
 
         return 1
 
@@ -109,4 +111,18 @@ class pref(loadable.loadable):
             reply="Your stay status '%s' is not a valid value. If you are staying for next round, it should be 'yes'. Otherwise it should be 'no'." %(status,)
         self.client.reply(prefix,nick,target,reply)
 
-            
+    def save_password(self,prefix,nick,target,u,passwd):
+        print "trying to set password for %s"
+        query="UPDATE user_list SET passwd = MD5(MD5(salt) || MD5(%s))"
+        query+=" WHERE id = %s"
+
+        m=re.match(r"(#\S+)",target,re.I)
+        if m:
+            self.client.reply(prefix,nick,target,"Don't set your password in public you shit")
+        else:
+            self.cursor.execute(query,(passwd,u.id))
+            if self.cursor.rowcount > 0:
+                self.client.reply(prefix,nick,target, "Updated your password")
+            else:
+                self.client.reply(prefix,nick,target, "Something went wrong. Go whine to your sponsor.")
+

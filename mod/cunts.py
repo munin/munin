@@ -159,23 +159,25 @@ class cunts(loadable.loadable):
         query="SELECT DISTINCT t1.id AS pid,t1.x AS x,t1.y AS y,t1.z AS z,"
         query+="t1.size AS size,t1.size_rank AS size_rank,t1.value AS value,"
         query+="t1.value_rank AS value_rank,t1.race AS race,"
-        query+="t2.alliance AS alliance,t2.nick AS nick"
+        query+="t6.name AS alliance,t2.nick AS nick"
         #query+="t3.landing_tick AS landing_tick, t4.size*.25 AS potential_gain,"
         #query+="t6.nick AS target_nick"
         query+=" FROM planet_dump AS t1"
         query+=" LEFT JOIN intel AS t2 ON t1.id=t2.pid"
         query+=" INNER JOIN fleet AS t3 ON t1.id=t3.owner"
         #query+=" INNER JOIN intel AS t6 ON t3.target=t6.pid"
+        query+=" LEFT JOIN alliance_canon AS t6 ON t2.alliance_id=t6.id"
         query+=" WHERE t1.tick=(SELECT max_tick())"
         #query+=" AND t4.tick=(SELECT max_tick())"
         query+=" AND t3.landing_tick>(SELECT max_tick())"
         query+=" AND t3.mission ilike 'attack'"
         query+=" AND t3.target IN ("
         query+=" SELECT t5.pid FROM intel AS t5 "
-        query+=" WHERE t5.alliance ilike '%%asc%%') "
+        query+=" LEFT JOIN alliance_canon AS t7 ON t5.alliance_id=t7.id"
+        query+=" WHERE t7.name ilike '%%asc%%') "
 
         if alliance:
-            query+=" AND t2.alliance ILIKE %s"
+            query+=" AND t6.name ILIKE %s"
             args+=('%'+alliance+'%',)
         if race:
             query+=" AND race ILIKE %s"

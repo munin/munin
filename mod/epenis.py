@@ -74,8 +74,9 @@ class epenis(loadable.loadable):
         query+=" LEFT JOIN user_list AS t4 ON t1.id=t4.planet_id"
         query+=" INNER JOIN planet_dump AS t5"
         query+=" ON t1.id=t5.id AND t1.tick - 72 = t5.tick"
+        query+=" LEFT JOIN alliance_canon AS t6 ON t2.alliance_id=t6.id"
         query+=" WHERE t1.tick = (select max(tick) from updates)"
-        query+=" AND t2.alliance ILIKE '%asc%'"
+        query+=" AND t6.name ILIKE '%asc%'"
         query+=" ORDER BY xp_gain DESC) AS t6"
         query+=" ORDER BY value_diff DESC) AS t7"
         query+=" ORDER BY activity DESC) AS t8)"
@@ -104,5 +105,3 @@ class epenis(loadable.loadable):
         self.client.reply(prefix,nick,target,reply)
         
         return 1
-
-                                                                                                                                            

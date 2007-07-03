@@ -269,15 +269,30 @@ class scan(threading.Thread):
         z = m.group(3)
         tick = m.group(4)
         
-        m = re.search('<tr><td class="left">Asteroids</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><td class="left">Resources</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><th>Score</th><td>(\d+)</td><th>Value</th><td>(\d+)</td></tr>', page)
+        #m = re.search('<tr><td class="left">Asteroids</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><td class="left">Resources</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><th>Score</th><td>(\d+)</td><th>Value</th><td>(\d+)</td></tr>', page)
+        #m = re.search(r"""<tr><td class="left">Asteroids</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><td class="left">Resources</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><th>Score</th><td>(\d+)</td><th>Value</th><td>(\d+)</td></tr>""", page)
+       
+        page=re.sub(',','',page)
+
+        m=re.search(r"""
+            <tr><th[^>]*>Metal</th><td>(\d+)</td><td>(\d+)</td></tr>\s*
+            <tr><th[^>]*>Crystal</th><td>(\d+)</td><td>(\d+)</td></tr>\s*
+            <tr><th[^>]*>Eonium</th><td>(\d+)</td><td>(\d+)</td></tr>\s*
+        """,page,re.VERBOSE)
         roid_m = m.group(1)
-        roid_c = m.group(2)
-        roid_e = m.group(3)
-        res_m = m.group(4)
-        res_c = m.group(5)
+        res_m = m.group(2)
+        roid_c = m.group(3)
+        res_c = m.group(4)
+        roid_e = m.group(5)
         res_e = m.group(6)
-        score = m.group(7)
-        value = m.group(8)
+    
+        m=re.search(r"""
+            <tr><th[^>]*>Value</th><td>(\d+)</td><td></td></tr>\s*
+            <tr><th[^>]*>Score</th><td>(\d+)</td><td></td></tr>\s*
+        """,page,re.VERBOSE)
+
+        score = m.group(1)
+        value = m.group(2)
 
         query="INSERT INTO planet (scan_id,roid_metal,roid_crystal,roid_eonium,res_metal,res_crystal,res_eonium)"
         query+=" VALUES (%s,%s,%s,%s,%s,%s,%s)"
@@ -287,22 +302,39 @@ class scan(threading.Thread):
         print 'Planet: '+x+':'+y+':'+z
 
     def parse_surface(self, scan_id, page):
-        m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)</th></tr><tr><td class="left">Light Factory</td><td>(\d*)</td></tr><tr><td class="left">Medium Factory</td><td>(\d*)</td></tr><tr><td class="left">Heavy Factory</td><td>(\d*)</td></tr><tr><td class="left">Wave Amplifier</td><td>(\d*)</td></tr><tr><td class="left">Wave Distorter</td><td>(\d*)</td></tr><tr><td class="left">Metal Refinery</td><td>(\d*)</td></tr><tr><td class="left">Crystal Refinery</td><td>(\d*)</td></tr><tr><td class="left">Eonium Refinery</td><td>(\d*)</td></tr><tr><td class="left">Research Laboratory</td><td>(\d*)</td></tr><tr><td class="left">Finance Centre</td><td>(\d*)</td></tr><tr><td class="left">Security Centre</td><td>(\d*)</td></tr>', page)
+        #m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)</th></tr><tr><td class="left">Light Factory</td><td>(\d*)</td></tr><tr><td class="left">Medium Factory</td><td>(\d*)</td></tr><tr><td class="left">Heavy Factory</td><td>(\d*)</td></tr><tr><td class="left">Wave Amplifier</td><td>(\d*)</td></tr><tr><td class="left">Wave Distorter</td><td>(\d*)</td></tr><tr><td class="left">Metal Refinery</td><td>(\d*)</td></tr><tr><td class="left">Crystal Refinery</td><td>(\d*)</td></tr><tr><td class="left">Eonium Refinery</td><td>(\d*)</td></tr><tr><td class="left">Research Laboratory</td><td>(\d*)</td></tr><tr><td class="left">Finance Centre</td><td>(\d*)</td></tr><tr><td class="left">Security Centre</td><td>(\d*)</td></tr>', page)
+        m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)</td></tr>',page)
+        
         x = m.group(1)
         y = m.group(2)
         z = m.group(3)
         tick = m.group(4)
-        lightfactory = m.group(5)
-        medfactory = m.group(6)
-        heavyfactory = m.group(7)
-        waveamp = m.group(8)
-        wavedist = m.group(9)
-        metalref = m.group(10)
-        crystalref = m.group(11)
-        eref = m.group(12)
-        reslab = m.group(13)
-        finance = m.group(14)
-        security = m.group(15)
+        
+        m=re.search("""
+            <tr><td[^>]*>Light\s+Factory</td><td[^>]*>(\d*)</td></tr>\s*
+            <tr><td[^>]*>Medium\s+Factory</td><td[^>]*>(\d*)</td></tr>\s*
+            <tr><td[^>]*>Heavy\s+Factory</td><td[^>]*>(\d*)</td></tr>\s*
+            <tr><td[^>]*>Wave\s+Amplifier</td><td[^>]*>(\d*)</td></tr>\s*
+            <tr><td[^>]*>Wave\s+Distorter</td><td[^>]*>(\d*)</td></tr>\s*
+            <tr><td[^>]*>Metal\s+Refinery</td><td[^>]*>(\d*)</td></tr>\s*
+            <tr><td[^>]*>Crystal\s+Refinery</td><td[^>]*>(\d*)</td></tr>\s*
+            <tr><td[^>]*>Eonium\s+Refinery</td><td[^>]*>(\d*)</td></tr>\s*
+            <tr><td[^>]*>Research\s+Laboratory</td><td[^>]*>(\d*)</td></tr>\s*
+            <tr><td[^>]*>Finance\s+Centre</td><td[^>]*>(\d*)</td></tr>\s*
+            <tr><td[^>]*>Security\s+Centre</td><td[^>]*>(\d*)</td></tr>
+            """, page,re.VERBOSE)
+        
+        lightfactory = m.group(1)
+        medfactory = m.group(2)
+        heavyfactory = m.group(3)
+        waveamp = m.group(4)
+        wavedist = m.group(5)
+        metalref = m.group(6)
+        crystalref = m.group(7)
+        eref = m.group(8)
+        reslab = m.group(9)
+        finance = m.group(10)
+        security = m.group(11)
 
         query="INSERT INTO structure (scan_id,light_factory,medium_factory,heavy_factory,wave_amplifier,wave_distorter,metal_refinery,crystal_refinery,eonium_refinery,research_lab,finance_centre,security_centre)"
         query+=" VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
@@ -311,18 +343,31 @@ class scan(threading.Thread):
         print 'Surface: '+x+':'+y+':'+z
 
     def parse_technology(self,scan_id, page):
-        m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)</th></tr><tr><th class="left">Space Travel</th><td>(\d*)</td></tr>\\n<tr><th class="left">Infrastructure</th><td>(\d*)</td></tr>\\n<tr><th class="left">Hulls</th><td>(\d*)</td></tr>\\n<tr><th class="left">Waves</th><td>(\d*)</td></tr>\\n<tr><th class="left">Core Extraction</th><td>(\d*)</td></tr>\\n<tr><th class="left">Covert Ops</th><td>(\d*)</td></tr>\\n<tr><th class="left">Asteroid Mining</th><td>(\d*)</td></tr>', page)
+        m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)</th></tr>',page)
+        
         x = m.group(1)
         y = m.group(2)
         z = m.group(3)
         tick = m.group(4)
-        travel = m.group(5)
-        inf = m.group(6)
-        hulls = m.group(7)
-        waves = m.group(8)
-        core = m.group(9)
-        covop = m.group(10)
-        mining = m.group(11)
+        
+        
+        m = re.search("""
+        <tr><th[^>]*>Space\s+Travel</th><td[^>]*>(\d+)</td></tr>\s*
+        <tr><th[^>]*>Infrastructure</th><td[^>]*>(\d+)</td></tr>\s*
+        <tr><th[^>]*>Hulls</th><td[^>]*>(\d+)</td></tr>\s*
+        <tr><th[^>]*>Waves</th><td[^>]*>(\d+)</td></tr>\s*
+        <tr><th[^>]*>Core\s+Extraction</th><td[^>]*>(\d+)</td></tr>\s*
+        <tr><th[^>]*>Covert\s+Ops</th><td[^>]*>(\d+)</td></tr>\s*
+        <tr><th[^>]*>Asteroid\s+Mining</th><td[^>]*>(\d+)</td></tr>
+        """, page,re.VERBOSE)
+        
+        travel = m.group(1)
+        inf = m.group(2)
+        hulls = m.group(3)
+        waves = m.group(4)
+        core = m.group(5)
+        covop = m.group(6)
+        mining = m.group(7)
 
         query="INSERT INTO technology (scan_id,travel,infrastructure,hulls,waves,core,covert_op,mining)"
         query+=" VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"

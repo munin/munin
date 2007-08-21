@@ -18,7 +18,7 @@ ofile=file("pid.sleipnir", "w")
 ofile.write("%s" % (os.getpid(),))
 ofile.close()
 
-conn=psycopg.connect("dbname=patools21 user=munin")
+conn=psycopg.connect("dbname=patools22 user=munin")
 conn.serialize()
 conn.autocommit()
 

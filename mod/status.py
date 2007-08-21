@@ -45,6 +45,9 @@ class status(loadable.loadable):
         if not param: param=""
 
         if access < self.level:
+            if access >= 50:
+                self.hacky_stupid_half_member_status(nick,username,host,target,prefix,command,user,access)
+                return 1
             self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
             return 0
         curtick=self.current_tick()
@@ -222,5 +225,34 @@ class status(loadable.loadable):
             
         return 1
 
-
-
+    def hacky_stupid_half_member_status(self,nick,username,host,target,prefix,command,user,access):
+        if not user:
+            self.client.reply(prefix,nick,target,"You must set mode +x to check your own status.")
+            return
+        curtick=self.current_tick()
+        args=()
+        reply="Your bookings:"
+        query="SELECT t1.id AS id, t1.nick AS nick, t1.pid AS pid, t1.tick AS tick, t1.uid AS uid, t2.pnick AS pnick, t2.userlevel AS userlevel, t3.x AS x, t3.y AS y, t3.z AS z"
+        query+=" FROM target AS t1"
+        query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
+        query+=" LEFT JOIN user_list AS t2 ON t1.uid=t2.id"
+        query+=" WHERE"
+        query+=" t1.tick > (SELECT MAX(tick) FROM updates)"
+        query+=" AND t3.tick = (SELECT MAX(tick) FROM updates) AND t2.pnick ILIKE %s"
+        self.cursor.execute(query,args+(user,))
+        if self.cursor.rowcount < 1:
+            reply="No active bookings matching user %s" %(user,)
+            self.client.reply(prefix,nick,target,reply)
+            return 1
+        prev=[]
+        for b in self.cursor.dictfetchall():
+            tmp="(%s:%s:%s landing pt%s/eta %s"%(b['x'],b['y'],b['z'],b['tick'],b['tick']-curtick)
+            if b['pnick']:
+                tmp+=" user:%s" %(b['pnick'])
+            else:
+                tmp+=" nick:%s" %(b['nick'])
+            tmp+=")"
+            prev.append(tmp)
+        reply+=" "+string.join(prev,', ')
+        self.client.reply(prefix,nick,target,reply)
+        return 0

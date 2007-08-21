@@ -32,7 +32,7 @@ class surprisesex(loadable.loadable):
     foo 
     """ 
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,100)
+        loadable.loadable.__init__(self,client,conn,cursor,50)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(.*)")
         self.usage=self.__class__.__name__ + " [<[x:y[:z]]|[alliancename]>]"
@@ -104,13 +104,14 @@ class surprisesex(loadable.loadable):
 
     def surprise(self,x=None,y=None,z=None,alliance=None):
         args=()
-        query="SELECT COALESCE(lower(t6.name),'unknown') AS alliance,count(COALESCE(lower(t6.name),'unknown')) AS attacks "
+        query="SELECT COALESCE(lower(t7.name),'unknown') AS alliance,count(COALESCE(lower(t7.name),'unknown')) AS attacks "
         query+=" FROM planet_canon AS t1"
         query+=" INNER JOIN fleet AS t3 ON t1.id=t3.owner"
         query+=" LEFT JOIN intel AS t2 ON t3.owner=t2.pid"
+        query+=" LEFT JOIN alliance_canon AS t7 ON t2.alliance_id=t7.id"
         query+=" INNER JOIN planet_dump AS t4 ON t4.id=t3.target"
         query+=" INNER JOIN intel AS t5 ON t3.target=t5.pid"
-        query+=" LEFT JOIN alliance_canon AS t6 ON t2.alliance_id=t6.id"
+        query+=" LEFT JOIN alliance_canon AS t6 ON t5.alliance_id=t6.id"
         query+=" WHERE mission = 'attack'"
         query+=" AND t4.tick=(SELECT max_tick())"
 
@@ -125,8 +126,8 @@ class surprisesex(loadable.loadable):
             query+=" AND t6.name ilike %s"
             args+=('%'+alliance+'%',)
         
-        query+=" GROUP BY lower(t6.name)"
-        query+=" ORDER BY count(lower(t6.name)) DESC"
+        query+=" GROUP BY lower(t7.name)"
+        query+=" ORDER BY count(lower(t7.name)) DESC"
 
         self.cursor.execute(query,args)
         attackers=self.cursor.dictfetchall()

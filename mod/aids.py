@@ -27,16 +27,16 @@ Loadable.Loadable subclass
 
 
 
-class bumchums(loadable.loadable):
+class aids(loadable.loadable):
     """ 
     foo 
     """ 
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,50)
+        loadable.loadable.__init__(self,client,conn,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
-        self.paramre=re.compile(r"^\s+(\S+)\s+(\d+)")
-        self.usage=self.__class__.__name__ + " <alliance> <number>"
-        self.helptext=['Pies']
+        self.paramre=re.compile(r"^\s+(\S+)")
+        self.usage=self.__class__.__name__ + ""
+	self.helptext=None
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
@@ -51,40 +51,52 @@ class bumchums(loadable.loadable):
         if not m:
             self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
             return 0
-
+        
         # assign param variables 
-
-        alliance=m.group(1)
-        bums=m.group(2)
-
-        a=loadable.alliance(name=alliance)
-           
-        if not a.load_most_recent(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"No alliance matching '%s' found" % (alliance,))
-            return 1
-
-        query="SELECT x,y,count(*) AS bums FROM planet_dump AS t1"
-        query+=" INNER JOIN intel AS t2 ON t1.id=t2.pid"
-        query+=" LEFT JOIN alliance_canon AS t3 ON t2.alliance_id=t3.id"
-        query+=" WHERE t1.tick=(SELECT max_tick())"
-        query+=" AND t3.name ilike %s"
-        query+=" GROUP BY x,y"
-        query+=" HAVING count(*) >= %s"
+        search=m.group(1)
 
         # do stuff here
         
-        self.cursor.execute(query,(a.name,bums or 1))
+        if search.lower() == 'munin':
+            self.client.reply(prefix,nick,target,"I am Munin. I gave aids to jester and Rob.")
+            return 1
         
+        u=loadable.user(pnick=search)
+        if not u.load_from_db(self.conn,self.client,self.cursor):
+            self.client.reply(prefix,nick,target,"No users matching '%s'"%(search,))
+            return 1
+
+        query="SELECT pnick,sponsor,invites"
+        query+=" FROM user_list"
+        query+=" WHERE sponsor ilike %s"
+        query+=" AND userlevel >= 100"
+
+        self.cursor.execute(query,(u.pnick,))
+
         reply=""
-        if self.cursor.rowcount < 1:
-            reply+="No galaxies with at least %s bumchums from %s"%(bums or 1, a.name)
-        
-        prev=[]
-        for b in self.cursor.dictfetchall():
-            prev.append("%s:%s (%s)"%(b['x'],b['y'],b['bums']))
-        reply+="Galaxies with at least %s bums from %s: "%(bums or 1,a.name)+ ' | '.join(prev)
-        
+
+
+        if u.pnick == user:
+            reply+="You are %s." % (u.pnick,)
+            if self.cursor.rowcount < 1:
+                reply+=" You have greedily kept your aids all to yourself."
+            else:
+                reply+=" You have given aids to: "
+                prev=[]
+                for r in self.cursor.dictfetchall():
+                    prev.append(r['pnick'])
+                reply+=", ".join(prev)
+        else:
+            if self.cursor.rowcount < 1:
+                reply+="%s hasn't given anyone aids, what a selfish prick" %(u.pnick,)
+            else:
+                reply+="%s has given aids to: " % (u.pnick,)
+                prev=[]
+                for r in self.cursor.dictfetchall():
+                    prev.append(r['pnick'])
+                reply+=", ".join(prev)
+
+
         self.client.reply(prefix,nick,target,reply)
-
-
+        
         return 1

@@ -25,7 +25,7 @@ Loadable.Loadable subclass
 
 class book(loadable.loadable):
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,100)
+        loadable.loadable.__init__(self,client,conn,cursor,50)
         self.paramre=re.compile(r"^\s+(\d+)[. :-](\d+)[. :-](\d+)\s+(\d+)(\s+(yes))?")
         self.usage=self.__class__.__name__ + " <x:y:z> (<eta>|<landing tick>)"
 
@@ -48,6 +48,11 @@ class book(loadable.loadable):
         if access < self.level:
             self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
             return 0
+
+        if access < 100 and not user:
+            self.client.reply(prefix,nick,target,"I don't trust you. You have to set mode +x to book a target.")
+            return 0
+
 
         p=loadable.planet(x=x,y=y,z=z)
         if not p.load_most_recent(self.conn,self.client,self.cursor):

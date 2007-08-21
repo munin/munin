@@ -28,7 +28,7 @@ class tech(loadable.loadable):
     foo
     """
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,100)
+        loadable.loadable.__init__(self,client,conn,cursor,50)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(.*)")
         self.idre=re.compile(r"(\d{1,9})")

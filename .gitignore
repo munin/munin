@@ -1,0 +1,4 @@
+*.pyc
+mod/*.pyc
+custom/*.pyc
+

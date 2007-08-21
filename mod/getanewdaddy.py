@@ -68,7 +68,7 @@ class getanewdaddy(loadable.loadable):
             return 1
 
         # do stuff here
-        if idiot.sponsor != voter.pnick:
+        if idiot.sponsor != voter.pnick or access < 1000:
             reply="You are not %s's sponsor"%(idiot.pnick,)
             self.client.reply(prefix,nick,target,reply)
             return 1
@@ -78,6 +78,9 @@ class getanewdaddy(loadable.loadable):
         self.client.privmsg('p','remuser #ascendancy %s'%(idiot.pnick,))
         self.client.privmsg('p',"ban #ascendancy *!*@%s.users.netgamers.org Your sponsor doesn't like you anymore"%(idiot.pnick,))
         self.client.privmsg('p',"note send %s Your sponsor (%s) no longer wishes to be your sponsor for Ascendancy. If you still wish to be a member, go ahead and find someone else to sponsor you back."%(idiot.pnick,voter.pnick))
-        reply="%s has been reduced to level 1 and removed from the channel. You are no longer %s's sponsor. If anyone else would like to sponsor that person back, they may."%(idiot.pnick,idiot.pnick)
+        if voter.sponsor != idiot.pnick:
+            reply="%s has been reduced to level 1 and removed from the channel. %s is no longer %s's sponsor. If anyone else would like to sponsor that person back, they may."%(idiot.pnick,idiot.sponsor,idiot.pnick)
+        else:
+            reply="%s has been reduced to level 1 and removed from the channel. You are no longer %s's sponsor. If anyone else would like to sponsor that person back, they may."%(idiot.pnick,idiot.pnick)
         self.client.reply(prefix,nick,target,reply)
         return 1

@@ -25,7 +25,7 @@ Loadable.Loadable subclass
 
 class info(loadable.loadable):
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,100)
+        loadable.loadable.__init__(self,client,conn,cursor,50)
         self.paramre=re.compile(r"^\s+(\S+)")
         self.usage=self.__class__.__name__ + " [alliance] (All information taken from intel, for tag information use the lookup command)"
         

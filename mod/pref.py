@@ -112,7 +112,7 @@ class pref(loadable.loadable):
         self.client.reply(prefix,nick,target,reply)
 
     def save_password(self,prefix,nick,target,u,passwd):
-        print "trying to set password for %s"
+        print "trying to set password for %s"%(u.pnick,)
         query="UPDATE user_list SET passwd = MD5(MD5(salt) || MD5(%s))"
         query+=" WHERE id = %s"
 

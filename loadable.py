@@ -68,7 +68,7 @@ class loadable:
             a=s.split('=')
             if len(a) != 2:
                 return None
-            param_dict[a[0].lower()]=a[1].lower()
+            param_dict[a[0].lower()]=a[1]
         return param_dict
 
     def current_tick(self):
@@ -225,9 +225,14 @@ class alliance:
     def load_most_recent(self,conn,client,cursor):
         a={}
         if self.name:
-            #load from fuzzy name
+            #load from exact name
             query="SELECT name,size,members,score,size_rank,members_rank,score_rank,score_avg,size_avg,score_avg_rank,size_avg_rank,id FROM alliance_dump WHERE name ILIKE %s AND tick=(SELECT MAX(tick) FROM updates)"
-            cursor.execute(query,("%"+self.name+"%",))
+            cursor.execute(query,(self.name,))
+
+            #if that doesn't work, load from fuzzy name
+            if cursor.rowcount < 1: 
+                query="SELECT name,size,members,score,size_rank,members_rank,score_rank,score_avg,size_avg,score_avg_rank,size_avg_rank,id FROM alliance_dump WHERE name ILIKE %s AND tick=(SELECT MAX(tick) FROM updates)"
+                cursor.execute(query,("%"+self.name+"%",))
             pass
         else:
             raise Exception("Tried to load planet with no unique identifiers")
@@ -273,6 +278,10 @@ class user:
             query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor,t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.stay AS stay FROM user_list AS t1 WHERE  t1.id=%s"
             cursor.execute(query,(self.pnick,))            
         u=cursor.dictfetchone()
+        if not u and self.pnick:
+            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.stay AS stay FROM user_list AS t1 WHERE t1.pnick ILIKE %s"
+            cursor.execute(query,('%'+self.pnick+'%',))
+            u=cursor.dictfetchone()
         if u:
             self.id=u['id']
             self.pnick=u['pnick']

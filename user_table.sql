@@ -127,7 +127,7 @@
 );
 
 CREATE UNIQUE INDEX user_list_pnick_case_insensitive_index ON user_list(LOWER(pnick));
-INSERT INTO user_list (pnick,sponsor,userlevel) VALUES ('jester','Munin',1000);
+--INSERT INTO user_list (pnick,sponsor,userlevel) VALUES ('jester','Munin',1000);
 
 CREATE TABLE kickvote (
 	id SERIAL PRIMARY KEY,
@@ -238,9 +238,9 @@ CREATE TABLE ship (
 	id SERIAL PRIMARY KEY,
 	name VARCHAR(30) UNIQUE NOT NULL,
 	class VARCHAR(10) NOT NULL CHECK(class in ('Fighter','Corvette','Frigate','Destroyer','Cruiser','Battleship')),
-	target_1 VARCHAR(10) NOT NULL CHECK(target in ('Fighter','Corvette','Frigate','Destroyer','Cruiser','Battleship','Roids','Struct')),
-	target_2 VARCHAR(10) CHECK(target in ('Fighter','Corvette','Frigate','Destroyer','Cruiser','Battleship','Roids','Struct')),
-	target_3 VARCHAR(10) CHECK(target in ('Fighter','Corvette','Frigate','Destroyer','Cruiser','Battleship','Roids','Struct')),
+	target_1 VARCHAR(10) NOT NULL CHECK(target_1 in ('Fighter','Corvette','Frigate','Destroyer','Cruiser','Battleship','Roids','Struct')),
+	target_2 VARCHAR(10) CHECK(target_2 in ('Fighter','Corvette','Frigate','Destroyer','Cruiser','Battleship','Roids','Struct',NULL)),
+	target_3 VARCHAR(10) CHECK(target_3 in ('Fighter','Corvette','Frigate','Destroyer','Cruiser','Battleship','Roids','Struct',NULL)),
 	type VARCHAR(5) NOT NULL CHECK(type in ('Cloak','Norm','Pod','Struc','Emp','Steal')),
 	init smallint NOT NULL,
 	gun smallint NOT NULL,

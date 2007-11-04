@@ -62,10 +62,10 @@ class eff(loadable.loadable):
             return 0
         total_damage=ship['damage']*ship_number
         
-        if ship['target'] == 'Roids':
+        if ship['target_1'] == 'Roids':
             killed=total_damage/50
             self.client.reply(prefix,nick,target,"%s %s (%s) will capture Asteroid: %s (%s)" % (ship_number,ship['name'],self.format_value(ship_number*ship['total_cost']),killed,self.format_value(killed*20000)))
-        elif ship['target'] == 'Struct':
+        elif ship['target_1'] == 'Struct':
             killed=total_damage/500
             self.client.reply(prefix,nick,target,"%s %s (%s) will destroy Structure: %s (%s)" % (ship_number,ship['name'],self.format_value(ship_number*ship['total_cost']),killed,self.format_value(killed*150000)))
             pass

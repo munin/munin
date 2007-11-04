@@ -47,7 +47,7 @@ class parser:
         #database variables (also private)
         self.mod_dir="mod"
         self.user="munin"
-        self.dbname="patools22"
+        self.dbname="patools23"
 
         # database connection and cursor
         self.conn=psycopg.connect("user=%s dbname=%s" % (self.user,self.dbname))
@@ -111,9 +111,9 @@ class parser:
 
             #print "running scan parse"
             for m in self.scanre.finditer(message):
-                #self.scan(m.group(1),nick,user)
+                self.scan(m.group(1),nick,user)
                 pass
-            #self.galstatus.parse(message,nick,user,target)
+            self.galstatus.parse(message,nick,user,target)
             
             m=self.commandre.search(message)
             if not m:

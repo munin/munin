@@ -123,7 +123,7 @@
 	stay BOOLEAN DEFAULT FALSE,
 	invites smallint NOT NULL DEFAULT 0 CHECK (invites >= 0),
 	quit smallint NOT NULL DEFAULT 0,
-    salt varchar(4) NOT NULL DEFAULT SUBSTRING(CAST(RANDOM() AS VARCHAR) FROM 3 FOR 4
+    salt varchar(4) NOT NULL DEFAULT SUBSTRING(CAST(RANDOM() AS VARCHAR) FROM 3 FOR 4)
 );
 
 CREATE UNIQUE INDEX user_list_pnick_case_insensitive_index ON user_list(LOWER(pnick));
@@ -219,9 +219,6 @@ IF NEW.nick = '?' THEN
 END IF;
 IF NEW.fakenick = '?' THEN
 	NEW.fakenick=NULL;
-END IF;
-IF NEW.alliance = '?' THEN
-        NEW.alliance=NULL;
 END IF;
 IF NEW.reportchan = '?' THEN
         NEW.reportchan=NULL;

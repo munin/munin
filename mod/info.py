@@ -58,7 +58,7 @@ class info(loadable.loadable):
         self.cursor.execute(query,('%'+alliance+'%','%'+alliance+'%'))
         reply=""
         if self.cursor.rowcount<1:
-            reply="Nothing intel matches your search '%s'" % (alliance,)
+            reply="Nothing in intel matches your search '%s'" % (alliance,)
         else:
             res=self.cursor.dictfetchone()
         

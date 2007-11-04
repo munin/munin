@@ -26,7 +26,7 @@ Loadable.Loadable subclass
 class stop(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,1)
-        self.paramre=re.compile(r"^\s+(\d+[mk]?)\s+(\S+)")
+        self.paramre=re.compile(r"^\s+(\d+[mk]?)\s+(\S+)(\s+(t1|t2|t3))?")
         self.usage=self.__class__.__name__ + " <number> <ship to stop>"
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
@@ -72,7 +72,7 @@ class stop(loadable.loadable):
         total_armor=ship['armor']*ship_number
 
         # do stuff here
-        query="SELECT * FROM ship WHERE target=%s ORDER BY id"
+        query="SELECT * FROM ship WHERE target_1=%s ORDER BY id"
         self.cursor.execute(query,(ship['class'],))
         attackers=self.cursor.dictfetchall()
         

@@ -26,7 +26,7 @@ Loadable subclass
 class eff(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,1)
-        self.paramre=re.compile(r"^\s+(\d+[mk]?)\s+(\S+)")
+        self.paramre=re.compile(r"^\s+(\d+[mk]?)\s+(\S+)(\s+(t1|t2|t3))?")
         self.usage=self.__class__.__name__ + " <number> <shipname>"
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
@@ -71,7 +71,7 @@ class eff(loadable.loadable):
             pass
         else:
             query="SELECT * FROM ship WHERE class=%s ORDER BY id"
-            self.cursor.execute(query,(ship['target'],))
+            self.cursor.execute(query,(ship['target_1'],))
             targets=self.cursor.dictfetchall()
             reply="%s %s (%s) will " % (ship_number,ship['name'],self.format_value(ship_number*ship['total_cost']))
             if ship['type'].lower() == "norm" or ship['type'].lower() == 'cloak':

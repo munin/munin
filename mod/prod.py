@@ -19,9 +19,9 @@ class prod(loadable.loadable):
         self.usage = (self.__class__.__name__ +
                       " <number> <shipname> <factories>")
         
-        self.helptext = " ".join(["Calculate the amount of time",
-                                  "it will take to prod <n>",
-                                  "<ship> with <factories>."])
+        self.helptext = ["Calculate the amount of time",
+                         "it will take to prod <n>",
+                         "<ship> with <factories>."]
     
     def execute(self, nick, username, host, target, prefix,
                 command, user, access):

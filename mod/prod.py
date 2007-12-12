@@ -69,19 +69,19 @@ class prod(loadable.loadable):
             return math.log(n, math.e)
 
         cost = number * ship['total_cost']
-        required = math.sqrt(cost) * ln(cost ** 2)
+        required = 2 * math.sqrt(cost) * ln(cost)
         
         # For the gay cost bonus of feudalism
-        feud_required = math.sqrt(cost * 0.85) * ln((cost * 0.85) ** 2)
+        feud_required = 2 * math.sqrt(cost * 0.85) * ln(cost * 0.85)
         
-        output = int(((4000 * factories) ** 0.98) / 100)
+        output = int((4000 * factories) ** 0.98)
 
         norm_time = int(math.ceil((required +
                                    (10000 * factories)) / output))
         feud_time = int(math.ceil((feud_required +
                                    (10000 * factories)) / output))
         
-        reply = "The base time for this prod is %s ticks." % norm_time
+        reply = "The base time for this prod is %s ticks. " % norm_time
         reply += "With feudalism it is %s ticks." % feud_time
 
         self.client.reply(prefix, nick, target, reply)

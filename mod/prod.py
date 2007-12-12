@@ -60,7 +60,7 @@ class prod(loadable.loadable):
         
         query = "SELECT * FROM ship WHERE name ILIKE %s ORDER BY id"
 
-        self.cursor.execute(query, "%" + shipname + "%")
+        self.cursor.execute(query, ("%" + shipname + "%",))
         ship = self.cursor.dictfetchone()
 
         if not ship:

@@ -4,11 +4,6 @@ loadable.loadable subclass.
 
 import math, re
 
-def ln(n):
-    """Natural logarithm."""
-
-    return math.log(n, math.e)
-
 class prod(loadable.loadable):
     """Mod for calculating the production time of a spend."""
 
@@ -22,7 +17,7 @@ class prod(loadable.loadable):
         self.helptext = ["Calculate the amount of time"
                          " it will take to prod <n>"
                          " <ship> with <factories>."]
-    
+
     def execute(self, nick, username, host, target, prefix,
                 command, user, access):
 
@@ -67,6 +62,11 @@ class prod(loadable.loadable):
             self.client.reply(prefix, nick, target,
             "%s is not a ship." % shipname)
             return 0
+
+        def ln(n):
+            """Natural logarithm."""
+
+            return math.log(n, math.e)
 
         cost = number * ship['total_cost']
         required = math.sqrt(cost) * ln(cost ** 2)

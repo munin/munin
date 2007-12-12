@@ -15,7 +15,7 @@ class prod(loadable.loadable):
     def __init__(self, client, conn, cursor):
 
         loadable.loadable.__init__(self, client, conn, cursor, 1)
-        self.paramre = re.compile(r"^(\d+[mk]?)\s+(\S+)\s+(\d+)")
+        self.paramre = re.compile(r"^\s+(\d+[mk]?)\s+(\S+)\s+(\d+)")
         self.usage = (self.__class__.__name__ +
                       " <number> <shipname> <factories>")
         

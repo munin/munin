@@ -56,7 +56,7 @@ class adduser(loadable.loadable):
                 self.client.reply(prefix,nick,target,"Added user %s at level %s" % (pnick,access_lvl))
         except psycopg.IntegrityError:
             self.client.reply(prefix,nick,target,"User %s already exists" % (pnick,))
-            return 0
+            raise
         except:
             raise
 

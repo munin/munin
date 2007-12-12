@@ -81,8 +81,9 @@ class afford(loadable.loadable):
             else:
                 s=self.cursor.dictfetchone()
                 reply+="Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,p.y,p.z,rand_id,tick)
-                reply+=" can purchase %s: %s | Feudalism: %s | Dictatorship: %s"%(s['name'],s['buildable'],int(s['buildable']*1.1765),
-                                                                                int(s['buildable']*.9524))
+                reply+=" can purchase %s: %s | Feudalism: %s"%(s['name'],s['buildable'],int(s['buildable']*1.1765))
+                #Dictatorship: %s"%(s['name'],s['buildable'],int(s['buildable']*1.1765),
+                #                                                                int(s['buildable']*.9524))
                 
 
         self.client.reply(prefix,nick,target,reply)

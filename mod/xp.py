@@ -131,9 +131,12 @@ class xp(loadable.loadable):
             #*(float(victim_val)/attacker_val)*(float(victim_score)/attacker_score))
             #bravery = max(0,min(30,10*(min(2,float(victim_val)/attacker_val)  + min(2,float(victim_score)/attacker_score) - 1)))
             
-            bravery = max(0,(min(2,float(victim_val)/attacker_val)-0.4 ) * (min(2,float(victim_score)/attacker_score)-0.6))
+          
+            bravery = max(0,(min(2,float(victim_val)/attacker_val)-0.1 ) * (min(2,float(victim_score)/attacker_score)-0.2))
             bravery *= 10
-           
+
+
+
             reply+="| Bravery: %.2f " % (bravery,)
             
             cap=total_roids/4

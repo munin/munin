@@ -68,8 +68,8 @@ class cost(loadable.loadable):
         reply+=" Feudalism: %s metal, %s crystal and %s eonium."%(int(ship['metal'] *.85) * ship_number,int(ship['crystal'] * .85)* ship_number,
                                                                   int(ship['eonium'] *.85) *ship_number)
         
-        reply+=" Dictatorship: %s metal, %s crystal and %s eonium."%(int(ship['metal'] * 1.05)*ship_number,int(ship['crystal'] *1.05) *ship_number,
-                                                                  int(ship['eonium'] * 1.05)*ship_number)
+#        reply+=" Dictatorship: %s metal, %s crystal and %s eonium."%(int(ship['metal'] * 1.05)*ship_number,int(ship['crystal'] *1.05) *ship_number,
+#                                                                  int(ship['eonium'] * 1.05)*ship_number)
 
         reply+=" It will add %s value"%((ship['total_cost'] * ship_number)/100,)
         

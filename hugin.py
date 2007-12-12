@@ -106,7 +106,7 @@ while True:
             continue
         if not planet_tick > last_tick:
             print "Stale ticks found, sleeping"            
-            time.sleep(30)
+            time.sleep(60)
             continue
 
         t2=time.time()-t1

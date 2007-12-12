@@ -19,9 +19,9 @@ class prod(loadable.loadable):
         self.usage = (self.__class__.__name__ +
                       " <number> <shipname> <factories>")
         
-        self.helptext = ["Calculate the amount of time",
-                         "it will take to prod <n>",
-                         "<ship> with <factories>."]
+        self.helptext = ["Calculate the amount of time"
+                         " it will take to prod <n>"
+                         " <ship> with <factories>."]
     
     def execute(self, nick, username, host, target, prefix,
                 command, user, access):
@@ -31,7 +31,8 @@ class prod(loadable.loadable):
         if not match:
             return 0
 
-        match = self.paramre.search(m.group(1))
+        match = self.paramre.search(match.group(1))
+        
         if not match:
             self.client.reply(prefix, nick, target,
             "Usage: %s, production time of n ships with n factories."
@@ -73,7 +74,7 @@ class prod(loadable.loadable):
         # For the gay cost bonus of feudalism
         feud_required = math.sqrt(cost * 0.85) * ln((cost * 0.85) ** 2)
         
-        output = int(((4000 * factories) ** 0.98))
+        output = int(((4000 * factories) ** 0.98) / 100)
 
         norm_time = int(math.ceil((required +
                                    (10000 * factories)) / output))

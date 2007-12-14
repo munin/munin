@@ -18,42 +18,49 @@ class rprod(loadable.loadable):
         self.dx = self.tolerance = 0.00001
         
     def derive(self, f):
-
+        """Numerical derivation of the function f."""
+        
         return lambda x: (f(x + self.dx) - f(x)) / self.dx
 
     def close(self, a, b):
-
+        """Is the result acceptable?"""
+        
         return abs(a - b) < self.tolerance
 
     def newton_transform(self, f):
-
+        """Do a newton transform of the function f."""
         return lambda x: x - (f(x) / self.derive(f)(x))
 
     def fixed_point(self, f, guess):
-
+        """Fixed point search."""
+        
         while not close(guess, f(guess)):
             guess = f(guess)
         return guess
 
     def newton(self, f, guess):
-
+        """Generic equation solver using newtons method."""
+        
         return self.fixed_point(self.newton_transform(f),
                                 guess)
 
     def pu(self, x):
-
+        """Production units."""
+        
         return 2 * math.sqrt * math.log(x, math.e)
 
     def rpu(self, y):
-
+        """Curry it."""
+        
         return lambda x: self.pu(x) - y
 
     def revprod(self, ticks, facs):
-
+        """Reversed production formula."""
+        
         output = (4000 * facs) ** 0.98
         return self.newton(self.rpu(ticks * output - 10000 * facs), 10)
 
-    def execute(self, nic, username, host, target,
+    def execute(self, nick, username, host, target,
                 prefix, command, user, access):
 
         match = self.commandre.search(command)
@@ -81,7 +88,7 @@ class rprod(loadable.loadable):
         res = int(self.revprod(ticks, factories))
 
         self.client.reply(prefix, nick, target,
-        "In %d ticks you can produce %s resources with %d factories" % (
+        "In %d ticks you can produce %s resources with %d factories." % (
             ticks, self.format_value(res), factories))
 
         return 1

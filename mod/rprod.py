@@ -7,13 +7,13 @@ class rprod(loadable.loadable):
     def __init__(self, client, conn, cursor):
         
         loadable.loadable.__init__(self, client, conn, cursor, 1)
-        self.paramre = re.compile(r"^\s+(\d+)\s+(\d+)")
+        self.paramre = re.compile(r"^\s+(\S+)\s+(\d+)\s+(\d+)")
         self.usage = (self.__class__.__name__ +
-                      " <ticks> <factories>.")
+                      " <ship> <ticks> <factories>.")
 
-        self.helptext = ["Calculate how much resource"
-                         " you can spend in n ticks "
-                         "with m factories."]
+        self.helptext = ["Calculate how many ship"
+                         " you can build in <ticks> "
+                         "with <factories>."]
 
         self.dx = self.tolerance = 0.00001
         
@@ -81,14 +81,29 @@ class rprod(loadable.loadable):
             "You do not have the access necessary to use this command.")
             return 0
 
-        ticks = int(match.group(1))
-        factories = int(match.group(2))
+        shipname = match.group(1)
+        ticks = int(match.group(2))
+        factories = int(match.group(3))
 
-    
+        query = "SELECT * FROM ship WHERE name ILIKE %s ORDER BY id"
+
+        self.cursor.execute(query, ("%s" + shipname + "%",))
+        ship = self.cursor.dictfetchone()
+
+        if not ship:
+            self.client.reply(prefix, nick, target,
+            "%s is not a ship." % shipname)
+            return 0
+        
         res = int(self.revprod(ticks, factories))
-
+        ships = int(res / ship['total_cost'])
+        feud_ships = int(res / (ship['total_cost'] * 0.85))
+        
         self.client.reply(prefix, nick, target,
-        "In %d ticks you can produce %s resources with %d factories." % (
-            ticks, self.format_value(res), factories))
-
+        "You can build %s %s in %d ticks, or \
+%s %s in %d ticks with feudalism." % (self.format_value(ships),
+                                      ship['name'], ticks,
+                                      self.format_value(feud_ships),
+                                      ship['name'], ticks))
+    
         return 1

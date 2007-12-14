@@ -11,7 +11,7 @@ class rprod(loadable.loadable):
         self.usage = (self.__class__.__name__ +
                       " <ship> <ticks> <factories>.")
 
-        self.helptext = ["Calculate how many ship"
+        self.helptext = ["Calculate how many <ship>"
                          " you can build in <ticks> "
                          "with <factories>."]
 

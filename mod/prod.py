@@ -37,7 +37,6 @@ class prod(loadable.loadable):
         if access < self.level:
             self.client.reply(prefix, nick, target,
             "You do not have the access necessary to use this command.")
-            return 0
             
         number = match.group(1)
         shipname = match.group(2)

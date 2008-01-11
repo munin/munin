@@ -28,7 +28,7 @@ class pref(loadable.loadable):
         loadable.loadable.__init__(self,client,conn,cursor,1)
         self.paramre=re.compile(r"^\s+(.*)")
         self.usage=self.__class__.__name__ + " [option=value]+"
-        self.helptext=['Options: planet=x.y.z']
+        self.helptext=['Options: planet=x.y.z | password=OnlyWorksInPM']
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
         if not m:

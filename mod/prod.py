@@ -42,7 +42,7 @@ class prod(loadable.loadable):
         number = match.group(1)
         shipname = match.group(2)
         factories = match.group(3)
-
+        
         if number[-1].lower() == 'k':
             number = int(number[:-1]) * 1000
         elif number[-1].lower() == 'm':
@@ -82,7 +82,10 @@ class prod(loadable.loadable):
         feud_time = int(math.ceil((feud_required +
                                    (10000 * factories)) / output))
         
-        reply = "The base time for this prod is %s ticks. " % norm_time
+        reply = "The base time for producing %s %s (%s) is %s ticks. " % (self.format_value(number),
+                                                                          ship['name'],
+                                                                          self.format_value(ship['total_cost'] * number * 0.01),
+                                                                          norm_time)
         reply += "With feudalism it is %s ticks." % feud_time
 
         self.client.reply(prefix, nick, target, reply)

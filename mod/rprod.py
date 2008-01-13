@@ -100,10 +100,11 @@ class rprod(loadable.loadable):
         feud_ships = int(res / (ship['total_cost'] * 0.85))
         
         self.client.reply(prefix, nick, target,
-        "You can build %s %s in %d ticks, or \
+        "You can build %s %s (%s) in %d ticks, or \
 %s %s in %d ticks with feudalism." % (self.format_value(ships),
-                                      ship['name'], ticks,
-                                      self.format_value(feud_ships),
-                                      ship['name'], ticks))
+                                      ship['name'], self.format_value(ships * ship['total_cost'] * 0.01),
+                                      ticks, self.format_value(feud_ships),
+                                      ship['name'], self.format_value(ships * ship['total_cost'] * 0.01),
+                                      ticks))
     
         return 1

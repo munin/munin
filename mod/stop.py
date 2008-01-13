@@ -54,20 +54,19 @@ class stop(loadable.loadable):
         bogey=m.group(2)        
         
         user_target=m.group(4)
+        efficiency = 1.0
         
-        print user_target
         target_number=None
         if not user_target or user_target == "t1":
             target_number="target_1"
             user_target="t1"
-            print target_number
         elif user_target == "t2":
             target_number="target_2"
-            print target_number
+            efficiency = .66
         elif user_target == "t3":
             target_number="target_3"
-            print target_number
-
+            efficiency = .33
+            
         if access < self.level:
             self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
             return 0

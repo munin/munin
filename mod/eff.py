@@ -42,15 +42,17 @@ class eff(loadable.loadable):
         ship_number=m.group(1)
         ship_name=m.group(2)
         user_target=m.group(4)
-        
+        efficiency = 1.0
         target_number=None
         if not user_target or user_target == "t1":
             target_number = "target_1"
             user_target = "t1"
         elif user_target == "t2":
             target_number = "target_2"
+            efficiency = .66
         elif user_target == "t3":
             target_number = "target_3"
+            efficiency = .33
         # assign param variables
         if ship_number[-1].lower()=='k':
             ship_number=1000*int(ship_number[:-1])
@@ -99,9 +101,9 @@ class eff(loadable.loadable):
                     raise Exception("Erroneous type %s" % (ship['type'],))
                 for t in targets:
                     if ship['type'] == "Emp" :
-                        killed=int(ship['gun']*ship_number*float(100-t['empres'])/100)
+                        killed=int(efficiency * ship['gun']*ship_number*float(100-t['empres'])/100)
                     else:
-                        killed=total_damage/t['armor']
+                        killed=efficiency * total_damage/t['armor']
                     reply+="%s: %s (%s) " % (t['name'],killed,self.format_value(t['total_cost']*killed))
             self.client.reply(prefix,nick,target,reply.strip())
                                 

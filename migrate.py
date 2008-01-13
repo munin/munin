@@ -60,5 +60,8 @@ old_curs.execute("SELECT t1.sponsor_id AS sponsor_id, t1.pnick AS pnick, t1.comm
 for u in old_curs.dictfetchall():
     new_curs.execute("INSERT INTO sponsor (sponsor_id,pnick,comment,timestamp) VALUES (%s,%s,%s,%s)",(u['sponsor_id'],u['pnick'],u['comment'],"'%s'"%(u['timestamp'],)))
 
+new_curs.execute("INSERT INTO channel_list (chan,userlevel,maxlevel) VALUES (%s,%s,%s)", ("#ascendancy",100,1000))
+
+new_curs.execute("SELECT setval('user_list_id_seq',(select max(id) from user_list))")
 
 new_conn.commit()

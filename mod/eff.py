@@ -27,7 +27,7 @@ class eff(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,1)
         self.paramre=re.compile(r"^\s+(\d+[mk]?)\s+(\S+)(\s+(t1|t2|t3))?")
-        self.usage=self.__class__.__name__ + " <number> <shipname>"
+        self.usage=self.__class__.__name__ + " <number> <shipname> [t1|t2|t3]"
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
@@ -41,6 +41,18 @@ class eff(loadable.loadable):
 
         ship_number=m.group(1)
         ship_name=m.group(2)
+        user_target=m.group(4)
+        efficiency = 1.0
+        target_number=None
+        if not user_target or user_target == "t1":
+            target_number = "target_1"
+            user_target = "t1"
+        elif user_target == "t2":
+            target_number = "target_2"
+            efficiency = .66
+        elif user_target == "t3":
+            target_number = "target_3"
+            efficiency = .33
         # assign param variables
         if ship_number[-1].lower()=='k':
             ship_number=1000*int(ship_number[:-1])
@@ -71,24 +83,28 @@ class eff(loadable.loadable):
             pass
         else:
             query="SELECT * FROM ship WHERE class=%s ORDER BY id"
-            self.cursor.execute(query,(ship['target_1'],))
+            
+            print target
+            self.cursor.execute(query,(ship[target_number],))
             targets=self.cursor.dictfetchall()
-            reply="%s %s (%s) will " % (ship_number,ship['name'],self.format_value(ship_number*ship['total_cost']))
-            if ship['type'].lower() == "norm" or ship['type'].lower() == 'cloak':
-                reply+="destroy "
-            elif ship['type'].lower() == "emp":
-                reply+="freeze "
-            elif ship['type'].lower() == "steal":
-                reply+="steal "
+            if len(targets) == 0:
+                reply="%s does not have any targets in that category (%s)" % (ship['name'],user_target)
             else:
-                raise Exception("Erroneous type %s" % (ship['type'],))
-
-            for t in targets:
-                if ship['type'] == "Emp" :
-                    killed=int(ship['gun']*ship_number*float(100-t['empres'])/100)
+                reply="%s %s (%s) hitting %s will " % (ship_number,ship['name'],self.format_value(ship_number*ship['total_cost']),user_target)
+                if ship['type'].lower() == "norm" or ship['type'].lower() == 'cloak':
+                    reply+="destroy "
+                elif ship['type'].lower() == "emp":
+                    reply+="freeze "
+                elif ship['type'].lower() == "steal":
+                    reply+="steal "
                 else:
-                    killed=total_damage/t['armor']
-                reply+="%s: %s (%s) " % (t['name'],killed,self.format_value(t['total_cost']*killed))
+                    raise Exception("Erroneous type %s" % (ship['type'],))
+                for t in targets:
+                    if ship['type'] == "Emp" :
+                        killed=int(efficiency * ship['gun']*ship_number*float(100-t['empres'])/100)
+                    else:
+                        killed=efficiency * total_damage/t['armor']
+                    reply+="%s: %s (%s) " % (t['name'],killed,self.format_value(t['total_cost']*killed))
             self.client.reply(prefix,nick,target,reply.strip())
                                 
                 

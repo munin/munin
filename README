@@ -43,9 +43,12 @@ Instructions for inserting stats (also found in howto_makestats.txt):
 
 a) copy stats from html to excel
 b) remove efficiency columns, add total cost column
-c) make temp table = ship table without id column
-d) \copy temptablename from stdin
+c) add ID column with numbers
+d) \copy ship from stdin
 e) copy ships from excel to stdin
-f) insert into ship (name,class,target,type,init,armor,damage,metal,crystal,eonium,race,total_cost) select * from foo ;
+f) insert into ship (id, name,class,target,type,init,armor,damage,metal,crystal,eonium,race,total_cost) select * from foo ;
 
-The temp table is used because I want IDs for the ships. 
+optional) Set up the drupal instance to use the right db
+
+
+

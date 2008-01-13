@@ -43,7 +43,7 @@ class stop(loadable.loadable):
             return 0
 
         ship_number=m.group(1)
-
+        
         if ship_number[-1].lower()=='k':
             ship_number=1000*int(ship_number[:-1])
         elif ship_number[-1].lower()=='m':
@@ -53,6 +53,20 @@ class stop(loadable.loadable):
 
         bogey=m.group(2)        
         
+        user_target=m.group(4)
+        efficiency = 1.0
+        
+        target_number=None
+        if not user_target or user_target == "t1":
+            target_number="target_1"
+            user_target="t1"
+        elif user_target == "t2":
+            target_number="target_2"
+            efficiency = .66
+        elif user_target == "t3":
+            target_number="target_3"
+            efficiency = .33
+            
         if access < self.level:
             self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
             return 0
@@ -72,25 +86,31 @@ class stop(loadable.loadable):
         total_armor=ship['armor']*ship_number
 
         # do stuff here
-        query="SELECT * FROM ship WHERE target_1=%s ORDER BY id"
+        query="SELECT * FROM ship WHERE "+target_number+"=%s ORDER BY id"
         self.cursor.execute(query,(ship['class'],))
         attackers=self.cursor.dictfetchall()
         
         reply=""
-        if ship['class'].lower() == "roids":
-            reply+="Capturing "
-        elif ship['class'].lower() == "struct":
-            reply+="Destroying "
+        
+        if len(attackers)==0:
+            reply="%s is not hit by anything as category %s" % (ship['name'],user_target)
         else:
-            reply+="Stopping "
-        reply+="%s %s (%s) requires " % (ship_number,ship['name'],self.format_value(ship_number*ship['total_cost']))
-
-        for a in attackers:
-            if a['type'] == "Emp" :
-                needed=int(math.ceil(ship_number/(float(100-ship['empres'])/100)/a['gun']))
+            if ship['class'].lower() == "roids":
+                reply+="Capturing "
+            elif ship['class'].lower() == "struct":
+                reply+="Destroying "
             else:
-                needed=int(math.ceil(float(total_armor)/a['damage']))
-            reply+="%s: %s (%s) " % (a['name'],needed,self.format_value(a['total_cost']*needed))
+                reply+="Stopping "
+            reply+="%s %s (%s) as %s requires " % (ship_number,ship['name'],self.format_value(ship_number*ship['total_cost']),user_target)
+    
+            for a in attackers:
+                if a['type'] == "Emp" :
+                    needed=int(math.ceil(ship_number/(float(100-ship['empres'])/100)/a['gun']))
+                else:
+                    needed=int(math.ceil(float(total_armor)/a['damage']))
+                reply+="%s: %s (%s) " % (a['name'],needed,self.format_value(a['total_cost']*needed))
+        
+            
         self.client.reply(prefix,nick,target,reply.strip())
             
         return 1

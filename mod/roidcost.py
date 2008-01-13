@@ -26,7 +26,7 @@ Loadable.Loadable subclass
 class roidcost(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,1)
-        self.paramre=re.compile(r"^\s+(\d+)\s+(\d+[km]?)",re.I)
+        self.paramre=re.compile(r"^\s+(\d+)\s+(\d+[km]?)(\s+(\d+)\s+(\d+))",re.I)
         self.usage=self.__class__.__name__ + "<roids> <_value_ cost>"
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
@@ -42,6 +42,9 @@ class roidcost(loadable.loadable):
         # assign param variables
         roids=int(m.group(1))
         cost=m.group(2)
+        finance=m.group(4) or 0
+        population=m.group(5) or 0
+        
         mining=250
 
         if access < self.level:
@@ -54,19 +57,34 @@ class roidcost(loadable.loadable):
             cost=1000000*int(cost[:-1])
         else:
             cost=int(cost)
-                            
+        
+        if finance > 60:
+            finance = 60
+        finance = finance * 0.5
+        if population > 25:
+            population = 25
+        
+        mining=mining * ((finance+population+100)/100)
+        
         repay=(cost*100)/(roids*mining)
-        repay_eng=(cost*100)/(roids*mining*1.15)
-
-        reply="Capping %s roids at %s value will repay in %s ticks (%s days)" % (roids,self.format_value(cost*100),repay,repay/24)
-
-        repay=int((cost*100)/(roids*mining*1.9529))
-        reply+=" | Max: %s ticks (%s days)" %(repay,repay/24)
-        repay=int((cost*100)/(roids*mining*1.1765))
-        reply+=" | Feudalism: %s ticks (%s days)" %(repay,repay/24)
-
-        repay=int((cost*100)/(roids*mining*.9524))
-        reply+=" | Dictatorship: %s ticks (%s days)" %(repay,repay/24)
+        
+        reply="Capping %s roids at %s value with %s FCs and %s%% population bonus will repay in %s ticks (%s days)" % (roids,self.format_value(cost*100),finance,population,repay,repay/24)
+         
+        repay = None # FIXME
+        reply+=" Feudalism: %s ticks (%s days)" % (repay,repay/24)
+        
+        #repay=(cost*100)/(roids*mining)
+        #repay_eng=(cost*100)/(roids*mining*1.15)
+        #
+        #reply="Capping %s roids at %s value will repay in %s ticks (%s days)" % (roids,self.format_value(cost*100),repay,repay/24)
+        #
+        #repay=int((cost*100)/(roids*mining*1.9529))
+        #reply+=" | Max: %s ticks (%s days)" %(repay,repay/24)
+        #repay=int((cost*100)/(roids*mining*1.1765))
+        #reply+=" | Feudalism: %s ticks (%s days)" %(repay,repay/24)
+        #
+        #repay=int((cost*100)/(roids*mining*.9524))
+        #reply+=" | Dictatorship: %s ticks (%s days)" %(repay,repay/24)
         
         self.client.reply(prefix,nick,target,reply)
 

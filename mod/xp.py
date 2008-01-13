@@ -29,7 +29,7 @@ class xp(loadable.loadable):
         self.paramre=re.compile(r"^\s+(.*)")
         #self.firstcountre=re.compile(r"^(\d+)\s+(.*)")
         self.countre=re.compile(r"^(\d+)(\.|-|:|\s*)(.*)")        
-        self.usage=self.__class__.__name__ + " [roids] <x:y:z> <a:b:c>"
+        self.usage=self.__class__.__name__ + " <x:y:z> <a:b:c>"
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)

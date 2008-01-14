@@ -49,7 +49,7 @@ class bcalc(loadable.loadable):
 
         bcalc = ["http://bcalc.thrud.co.uk/","http://beta.5th-element.org/","http://bcalc.lch-hq.org/index.php",
                  "http://parser.visionhq.org/","http://munin.ascendancy.tv/",
-                 "http://pa.xqwzts.com/prod.aspx","http://www.everyday-hero.net/reshack.html","http://www.webspire.co.uk/munin-commands.html",
+                 "http://pa.xqwzts.com/prod.aspx","http://www.everyday-hero.net/reshack.html",
                  "http://patools.thrud.co.uk/"]
                     
         reply="Bcalcs: "+string.join(bcalc," | ")

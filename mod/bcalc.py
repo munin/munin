@@ -48,8 +48,9 @@ class bcalc(loadable.loadable):
             return 0
 
         bcalc = ["http://bcalc.thrud.co.uk/","http://beta.5th-element.org/","http://bcalc.lch-hq.org/index.php",
-                 "http://parser.visionhq.org/","http://munin.clawofdarkness.com/",
-                 "http://pa.xqwzts.com/prod.aspx","http://www.everyday-hero.net/reshack.html","http://www.webspire.co.uk/munin-commands.html"]
+                 "http://parser.visionhq.org/","http://munin.ascendancy.tv/",
+                 "http://pa.xqwzts.com/prod.aspx","http://www.everyday-hero.net/reshack.html","http://www.webspire.co.uk/munin-commands.html",
+                 "http://patools.thrud.co.uk/"]
                     
         reply="Bcalcs: "+string.join(bcalc," | ")
         self.client.reply(prefix,nick,target,reply)

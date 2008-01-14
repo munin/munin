@@ -81,10 +81,10 @@ class prod(loadable.loadable):
         feud_time = int(math.ceil((feud_required +
                                    (10000 * factories)) / output))
         
-        reply = "The base time for producing %s %s (%s) is %s ticks. " % (self.format_value(number),
+        reply = "The base time for producing %s %s (%s) is %s ticks with %d factories. " % (self.format_value(number * 100),
                                                                           ship['name'],
-                                                                          self.format_value(ship['total_cost'] * number * 0.01),
-                                                                          norm_time)
+                                                                          self.format_value(ship['total_cost'] * number),
+                                                                          norm_time, factories)
         reply += "With feudalism it is %s ticks." % feud_time
 
         self.client.reply(prefix, nick, target, reply)

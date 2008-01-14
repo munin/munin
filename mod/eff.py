@@ -103,7 +103,7 @@ class eff(loadable.loadable):
                     if ship['type'] == "Emp" :
                         killed=int(efficiency * ship['gun']*ship_number*float(100-t['empres'])/100)
                     else:
-                        killed=efficiency * total_damage/t['armor']
+                        killed=int(efficiency * total_damage/t['armor'])
                     reply+="%s: %s (%s) " % (t['name'],killed,self.format_value(t['total_cost']*killed))
             self.client.reply(prefix,nick,target,reply.strip())
                                 

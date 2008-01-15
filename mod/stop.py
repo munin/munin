@@ -62,10 +62,10 @@ class stop(loadable.loadable):
             user_target="t1"
         elif user_target == "t2":
             target_number="target_2"
-            efficiency = .66
+            efficiency = .6
         elif user_target == "t3":
             target_number="target_3"
-            efficiency = .33
+            efficiency = .3
             
         if access < self.level:
             self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
@@ -105,9 +105,9 @@ class stop(loadable.loadable):
     
             for a in attackers:
                 if a['type'] == "Emp" :
-                    needed=int(math.ceil(ship_number/(float(100-ship['empres'])/100)/a['gun']))
+                    needed=int((math.ceil(ship_number/(float(100-ship['empres'])/100)/a['gun']))/efficiency)
                 else:
-                    needed=int(math.ceil(float(total_armor)/a['damage']))
+                    needed=int((math.ceil(float(total_armor)/a['damage']))/efficiency)
                 reply+="%s: %s (%s) " % (a['name'],needed,self.format_value(a['total_cost']*needed))
         
             

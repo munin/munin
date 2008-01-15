@@ -377,6 +377,20 @@ CREATE TABLE fleet_content (
 );
 
 
+CREATE TABLE defcalls
+(
+  id serial NOT NULL,
+  bcalc character varying(255),
+  claimed_by integer, -- foreign key to user table
+  status integer,
+  "comment" text,
+  fleet_id integer,
+  CONSTRAINT defcall_pkey PRIMARY KEY (id),
+  CONSTRAINT claimed_by_fkey FOREIGN KEY (claimed_by)
+      REFERENCES user_list (id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+
 CREATE TABLE covop (
 	id serial PRIMARY KEY,
 	scan_id integer NOT NULL REFERENCES scan(id),

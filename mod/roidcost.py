@@ -26,7 +26,7 @@ Loadable.Loadable subclass
 class roidcost(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,1)
-        self.paramre=re.compile(r"^\s+(\d+)\s+(\d+[km]?)(\s+(\d+)\s+(\d+))?",re.I)
+        self.paramre=re.compile(r"^\s+(\d+)\s+(\d+[km]?)(\s+(\d+))?",re.I)
         self.usage=self.__class__.__name__ + " <roids> <_value_ cost> [<FCs> <pop_bonus>]" 
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
@@ -42,8 +42,8 @@ class roidcost(loadable.loadable):
         # assign param variables
         roids=int(m.group(1))
         cost=m.group(2)
-        finance=m.group(4) or 0
-        population=m.group(5) or 0
+        bonus=m.group(4) or 0
+        bonus=int(bonus)
         
         mining=250
 
@@ -58,17 +58,11 @@ class roidcost(loadable.loadable):
         else:
             cost=int(cost)
         
-        if finance > 60:
-            finance = 60
-        finance = finance * 0.5
-        if population > 25:
-            population = 25
-        
-        mining=mining * ((finance+population+100)/100)
+        mining=mining * ((float(bonus)+100)/100)
         
         repay=int((cost*100)/(roids*mining))
         
-        reply="Capping %s roids at %s value with %s FCs and %s%% population bonus will repay in %s ticks (%s days)" % (roids,self.format_value(cost*100),int(finance * 2),population,repay,repay/24)
+        reply="Capping %s roids at %s value with %s%% bonus will repay in %s ticks (%s days)" % (roids,self.format_value(cost*100),bonus,repay,repay/24)
          
         repay = int((cost*100)/(roids*mining*1.1765))
         reply+=" Feudalism: %s ticks (%s days)" % (repay,repay/24)

@@ -49,10 +49,10 @@ class eff(loadable.loadable):
             user_target = "t1"
         elif user_target == "t2":
             target_number = "target_2"
-            efficiency = .66
+            efficiency = .6
         elif user_target == "t3":
             target_number = "target_3"
-            efficiency = .33
+            efficiency = .3
         # assign param variables
         if ship_number[-1].lower()=='k':
             ship_number=1000*int(ship_number[:-1])

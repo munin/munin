@@ -34,7 +34,7 @@ class rprod(loadable.loadable):
     def fixed_point(self, f, guess):
         """Fixed point search."""
         
-        while not close(guess, f(guess)):
+        while not self.close(guess, f(guess)):
             guess = f(guess)
         return guess
 

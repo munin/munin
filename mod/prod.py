@@ -78,7 +78,7 @@ class prod(loadable.loadable):
 
         norm_time = int(math.ceil((required +
                                    (10000 * factories)) / output))
-        feud_time = int(math.ceil((feud_required +
+        feud_time = int(1.2 * math.ceil((feud_required +
                                    (10000 * factories)) / output))
         
         reply = "The base time for producing %s %s (%s) is %s ticks with %d factories. " % (self.format_value(number * 100),

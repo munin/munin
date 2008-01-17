@@ -27,7 +27,7 @@ class roidcost(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,1)
         self.paramre=re.compile(r"^\s+(\d+)\s+(\d+[km]?)(\s+(\d+))?",re.I)
-        self.usage=self.__class__.__name__ + " <roids> <_value_ cost> [<FCs> <pop_bonus>]" 
+        self.usage=self.__class__.__name__ + " <roids> <_value_ cost> [mining_bonus]" 
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)

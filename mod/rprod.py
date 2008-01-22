@@ -29,6 +29,7 @@ class rprod(loadable.loadable):
 
     def newton_transform(self, f):
         """Do a newton transform of the function f."""
+
         return lambda x: x - (f(x) / self.derive(f)(x))
 
     def fixed_point(self, f, guess):
@@ -44,21 +45,17 @@ class rprod(loadable.loadable):
         return self.fixed_point(self.newton_transform(f),
                                 guess)
 
-    def pu(self, x):
-        """Production units."""
-        
-        return 2 * math.sqrt * math.log(x, math.e)
-
-    def rpu(self, y):
+    def rpu(self, y, math):
         """Curry it."""
         
-        return lambda x: self.pu(x) - y
+        return lambda x: 2 * math.sqrt * math.log(x, math.e) - y
 
     def revprod(self, ticks, facs):
         """Reversed production formula."""
-        
+
+        import math
         output = (4000 * facs) ** 0.98
-        return self.newton(self.rpu(ticks * output - 10000 * facs), 10)
+        return self.newton(self.rpu(ticks * output - 10000 * facs, math), 10)
 
     def execute(self, nick, username, host, target,
                 prefix, command, user, access):
@@ -97,14 +94,14 @@ class rprod(loadable.loadable):
         
         res = int(self.revprod(ticks, factories))
         ships = int(res / ship['total_cost'])
-        feud_ships = int(res / (ship['total_cost'] * 0.85))
+        feud_ships = int(res / ((ship['total_cost'] * 0.85) / 1.2))
         
         self.client.reply(prefix, nick, target,
         "You can build %s %s (%s) in %d ticks, or \
-%s %s in %d ticks with feudalism." % (self.format_value(ships),
-                                      ship['name'], self.format_value(ships * ship['total_cost'] * 0.01),
-                                      ticks, self.format_value(feud_ships),
-                                      ship['name'], self.format_value(ships * ship['total_cost'] * 0.01),
+%s %s in %d ticks with feudalism." % (self.format_value(ships * 100),
+                                      ship['name'], self.format_value(ships * ship['total_cost']),
+                                      ticks, self.format_value(feud_ships * 100),
+                                      ship['name'], self.format_value(ships * ship['total_cost']),
                                       ticks))
     
         return 1

@@ -103,9 +103,9 @@ class jgp(loadable.loadable):
             self.cursor.execute(query,(rand_id,))
 
             if self.cursor.rowcount < 1:
-                reply+="No planet scans matching ID %s" % (rand_id,)
+                reply+="No JGP scans matching ID %s" % (rand_id,)
             else:
-                reply+="Newest unit scan on "
+                reply+="Newest JGP scan on "
 
                 prev=[]
                 for s in self.cursor.dictfetchall():

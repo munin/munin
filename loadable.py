@@ -76,6 +76,59 @@ class loadable:
         return self.cursor.fetchone()[0]
         
 
+class defcall:
+    def __init__(self,id=-1,bcalc=None,status=-1,claimed_by=None,comment=None,target=None,landing_tick=-1):
+        self.id=id
+        self.bcalc=bcalc
+        self.status=status
+        self.claimed_by=claimed_by
+        self.comment=comment
+        self.target=target
+        self.landing_tick=landing_tick
+        self.actual_target=None
+        self.actual_owner=None
+        self.actual_status=None
+        pass
+    
+    def __str__(self):
+        ret_str="Defcall with id %s for %s:%s:%s"%(self.id,self.actual_target.x,self.actual_target.y,self.actual_target.z)
+        ret_str+=" has status '%s' and was last modified by %s"%(self.actual_status,self.actual_owner.pnick or "no one")
+        return ret_str
+    
+    def load_most_recent(self,conn,client,cursor):
+        #for now, always load from ID
+        query="SELECT id,bcalc,status,claimed_by,comment,target,landing_tick"
+        query+=" FROM defcalls WHERE id=%s"
+        args=(self.id,)
+        cursor.execute(query,args)
+        d=cursor.dictfetchone()
+        if not d:
+            return 0
+        self.bcalc=d['bcalc']
+        self.status=d['status']
+        self.claimed_by=d['claimed_by']
+        self.comment=d['comment']
+        self.target=d['target']
+        self.landing_tick=d['landing_tick']
+        p=planet(id=self.target)
+        if not p.load_most_recent(conn,client,cursor):
+            raise Exception("Defcall with id %s has no valid planet information. Oops...")
+        self.actual_target=p
+        
+        u=user(id=self.claimed_by)
+        if not u.load_from_db(conn,client,cursor):
+            self.actual_owner=None
+        self.actual_owner=u
+        
+        query="SELECT status FROM defcall_status WHERE id = %s"
+        cursor.execute(query,(self.status,))
+        s=cursor.dictfetchone()
+        if not s:
+            self.client.reply(prefix,nick,target,"foo!")
+        self.actual_status=s['status']
+        
+        return 1
+
 class planet:
     def __init__(self,x=-1,y=-1,z=-1,planetname=None,rulername=None,race=None,size=-1,score=-1,value=-1,id=-1,idle=-1):
         self.x=int(x)

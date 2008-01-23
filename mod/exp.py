@@ -108,7 +108,6 @@ class exp(loadable.loadable):
                                                          self.format_value(abs(x['vdiff']*100)))+
                          [" roids:"+["+","-"][x['sdiff']<0]+str(abs(x['sdiff'])),""][x['sdiff']==0],results)
                 
-                print info
                 reply+=str.join(' | ',info)
             self.client.reply(prefix,nick,target,reply)
 

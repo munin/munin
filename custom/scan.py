@@ -22,13 +22,14 @@
 import urllib2, re, os, sys, string, psycopg, loadable, threading, traceback
 
 class scan(threading.Thread):
-    def __init__(self, rand_id,client,conn,cursor,nick,pnick): # random scan ID, and client for debug ONLY
+    def __init__(self, rand_id,client,conn,cursor,nick,pnick,group_id): # random scan ID, and client for debug ONLY
         self.rand_id=rand_id
         self.client=client
         self.conn=conn
         self.cursor=cursor
         self.nick=nick
         self.pnick=pnick
+        self.group_id=group_id
         
     def run(self):
         # database connection and cursor
@@ -46,8 +47,20 @@ class scan(threading.Thread):
             traceback.print_exc()
             
 
-
     def unsafe_method(self):
+        if self.group_id:
+            page = urllib2.urlopen('http://game.planetarion.com/showscan.pl?scan_grp='+ self.group_id).read()
+            for m in re.finditer('scan_id=(\d+)',page):
+                self.rand_id = m.group(1)
+                try:
+                    self.unsafe_method2()
+                except Exception, e:
+                    print "Exception in scan: "+e.__str__()
+                    traceback.print_exc()
+        else:
+            self.unsafe_method2()
+            
+    def unsafe_method2(self):
         page = urllib2.urlopen('http://game.planetarion.com/showscan.pl?scan_id=' + self.rand_id).read()
 
         m = re.search('>([^>]+) on (\d+)\:(\d+)\:(\d+) in tick (\d+)', page)
@@ -406,12 +419,14 @@ class scan(threading.Thread):
         # <td class=left>Origin</td><td class=left>Mission</td><td>Fleet</td><td>ETA</td><td>Fleetsize</td>
         # <td class=left>13:10:5</td><td class=left>Attack</td><td>Gamma</td><td>5</td><td>265</td>
 
+        
         p=loadable.planet(x, y, z)
         if not p.load_most_recent(self.conn, 0 ,self.cursor): #really, this should never, ever fail, but exiles might bork it
             return
 
         #                     <td class="left">15:7:11            </td><td class="left">Defend </td><td>Ad infinitum</td><td>9</td><td>0</td>
         #<tr><td class="left">10:4:9</td><td class="left">Return</td><td>They look thirsty</td><td>5</td><td>3000</td></tr>
+        #	<tr><td class="left">4:1:10</td><td class="left">Return</td><td>Or Is It?</td><td>9</td><td>3000</td></tr>
         for m in re.finditer('<td class="left">(\d+)\:(\d+)\:(\d+)</td><td class="left">([^<]+)</td><td>([^<]+)</td><td>(\d+)</td><td>(\d+)</td>', page):
             originx = m.group(1)
             originy = m.group(2)
@@ -420,6 +435,8 @@ class scan(threading.Thread):
             fleet = m.group(5)
             eta = m.group(6)
             fleetsize = m.group(7)
+            
+            print "JGP fleet "
             
             attacker=loadable.planet(originx,originy,originz)
             if not attacker.load_most_recent(self.conn, 0 ,self.cursor):

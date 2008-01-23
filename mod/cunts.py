@@ -141,7 +141,8 @@ class cunts(loadable.loadable):
                 a=[]
                 for t in targs:
                     if t:
-                        a.append(t['nick'] or 'Unknown')
+                        a.append((t['nick'] or 'Unknown') + " ("+str(t['fleet_size']) +")")
+                        
                 reply+=', '.join(a)
             i+=1
             if i>4 and len(victims)>4:
@@ -200,7 +201,7 @@ class cunts(loadable.loadable):
         return self.cursor.dictfetchall()
 
     def attacking(self,pid):
-        query="SELECT DISTINCT t2.nick AS nick FROM fleet AS t1"
+        query="SELECT DISTINCT t2.nick AS nick, t1.fleet_size FROM fleet AS t1"
         query+=" INNER JOIN intel AS t2 ON t1.target=t2.pid"
         query+=" WHERE t1.owner = %s"
         query+=" AND t1.landing_tick > (select max_tick())"

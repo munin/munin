@@ -67,7 +67,7 @@ class eff(loadable.loadable):
 
         query="SELECT * FROM ship WHERE name ILIKE %s ORDER BY id"
         
-        self.cursor.execute(query,("%"+ship_name+"%",))
+        self.cursor.execute(query,(ship_name+"%",))
         ship=self.cursor.dictfetchone()
         if not ship:
             self.client.reply(prefix,nick,target,"%s is not a ship" % (ship_name))
@@ -83,8 +83,6 @@ class eff(loadable.loadable):
             pass
         else:
             query="SELECT * FROM ship WHERE class=%s ORDER BY id"
-            
-            print target
             self.cursor.execute(query,(ship[target_number],))
             targets=self.cursor.dictfetchall()
             if len(targets) == 0:

@@ -88,7 +88,7 @@ class parser:
         
         
         self.scanre=re.compile("http://[^/]+/showscan.pl\?scan_id=(\d+)")
-
+        self.scangrpre=re.compile("http://[^/]+/showscan.pl\?scan_grp=(\d+)")
     def parse(self,line):
         m=self.welcomre.search(line)
         if m:
@@ -111,8 +111,10 @@ class parser:
 
             #print "running scan parse"
             for m in self.scanre.finditer(message):
-                self.scan(m.group(1),nick,user)
+                self.scan(m.group(1),nick,user,None)
                 pass
+            for m in self.scangrpre.finditer(message):
+                self.scan(None, nick, user, m.group(1))
             self.galstatus.parse(message,nick,user,target)
             
             m=self.commandre.search(message)
@@ -152,8 +154,8 @@ class parser:
                 #do stuff!
         return None
 
-    def scan(self, rand_id,nick,pnick):
-        s = scan.scan(rand_id,self.client,self.conn,self.cursor,nick,pnick)
+    def scan(self, rand_id,nick,pnick, group_id):
+        s = scan.scan(rand_id,self.client,self.conn,self.cursor,nick,pnick, group_id)
         s.run()
 
     # split off parse into a func?

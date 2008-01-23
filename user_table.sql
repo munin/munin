@@ -275,7 +275,7 @@ CREATE TABLE quote (
 
 
 CREATE TABLE scan (
-	id serial PRIMARY KEY,
+	id bigserial PRIMARY KEY,
 	tick smallint NOT NULL,
 	pid integer NOT NULL REFERENCES planet_canon(id),
 	nick VARCHAR(15) NOT NULL,
@@ -292,7 +292,7 @@ CREATE TABLE scan (
 
 CREATE TABLE planet (
 	id serial PRIMARY KEY,
-	scan_id integer NOT NULL REFERENCES scan(id),
+	scan_id bigint NOT NULL REFERENCES scan(id),
 	timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
 	roid_metal smallint NOT NULL,
 	roid_crystal smallint NOT NULL,
@@ -304,7 +304,7 @@ CREATE TABLE planet (
 
 CREATE TABLE structure (
 	id serial PRIMARY KEY,
-	scan_id integer NOT NULL REFERENCES scan(id),
+	scan_id biginteger NOT NULL REFERENCES scan(id),
 	light_factory smallint NOT NULL,
 	medium_factory smallint NOT NULL,
 	heavy_factory smallint NOT NULL,
@@ -320,7 +320,7 @@ CREATE TABLE structure (
 
 CREATE TABLE technology (
 	id serial PRIMARY KEY,
-	scan_id integer NOT NULL REFERENCES scan(id),
+	scan_id bigint NOT NULL REFERENCES scan(id),
 	travel smallint NOT NULL,
 	infrastructure smallint NOT NULL,
 	hulls smallint NOT NULL,
@@ -332,14 +332,14 @@ CREATE TABLE technology (
 
 CREATE TABLE unit (
 	id serial PRIMARY KEY,
-	scan_id integer NOT NULL REFERENCES scan(id),
+	scan_id bigint NOT NULL REFERENCES scan(id),
 	ship_id integer NOT NULL REFERENCES ship(id),
 	amount integer NOT NULL
 );
 
 CREATE TABLE au (
     id serial PRIMARY KEY,
-    scan_id integer NOT NULL REFERENCES scan(id),
+    scan_id bigint NOT NULL REFERENCES scan(id),
     ship_id integer NOT NULL REFERENCES ship(id),
     amount integer NOT NULL
 );
@@ -358,7 +358,7 @@ CREATE TABLE au (
 
 CREATE TABLE fleet (
 	id serial PRIMARY KEY,
-	scan_id integer REFERENCES scan(id),
+	scan_id bigint REFERENCES scan(id),
 	owner integer NOT NULL REFERENCES planet_canon(id),
 	target integer NOT NULL REFERENCES planet_canon(id),
 	fleet_size integer, 
@@ -376,19 +376,30 @@ CREATE TABLE fleet_content (
 	amount integer NOT NULL
 );
 
+CREATE TABLE defcall_status
+(
+  id serial PRIMARY KEY,
+  status VARCHAR(15)
+);
+
+INSERT INTO defcall_status (id,status) VALUES (1, 'covered');
+INSERT INTO defcall_status (id,status) VALUES (2, 'uncovered');
+INSERT INTO defcall_status (id,status) VALUES (3, 'recheck');
+INSERT INTO defcall_status (id,status) VALUES (4, 'impossible');
+INSERT INTO defcall_status (id,status) VALUES (5, 'semicovered');
+INSERT INTO defcall_status (id,status) VALUES (6, 'fake');
+INSERT INTO defcall_status (id,status) VALUES (7, 'recall');
+INSERT INTO defcall_status (id,status) VALUES (8, 'invalid');
 
 CREATE TABLE defcalls
 (
-  id serial NOT NULL,
+  id serial PRIMARY KEY,
   bcalc character varying(255),
-  claimed_by integer, -- foreign key to user table
-  status integer,
+  claimed_by integer NOT NULL REFERENCES user_list(id), -- foreign key to user table
+  status integer NOT NULL REFERENCES defcall_status(id),
   "comment" text,
-  fleet_id integer,
-  CONSTRAINT defcall_pkey PRIMARY KEY (id),
-  CONSTRAINT claimed_by_fkey FOREIGN KEY (claimed_by)
-      REFERENCES user_list (id) MATCH SIMPLE
-      ON UPDATE NO ACTION ON DELETE NO ACTION
+  target integer NOT NULL REFERENCES planet_canon(id),
+  landing_tick smallint NOT NULL
 );
 
 CREATE TABLE covop (

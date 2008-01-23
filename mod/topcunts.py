@@ -36,7 +36,7 @@ class topcunts(loadable.loadable):
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(.*)")
         self.usage=self.__class__.__name__ + " [<[x:y[:z]]|[alliancename]>]"
-	self.helptext=None
+        self.helptext=None
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
@@ -110,6 +110,7 @@ class topcunts(loadable.loadable):
         #query+=" LEFT JOIN intel AS t2 ON t3.owner=t2.pid"
         query+=" INNER JOIN planet_dump AS t4 ON t4.id=t3.target"
         query+=" INNER JOIN intel AS t5 ON t3.target=t5.pid"
+        query+=" INNER JOIN alliance_canon AS t6 ON t5.alliance_id=t6.id"
         query+=" WHERE mission = 'attack'"
         query+=" AND t4.tick=(SELECT max_tick())"
 
@@ -121,7 +122,7 @@ class topcunts(loadable.loadable):
             args+=(z,)
         
         if alliance:
-            query+=" AND t5.alliance ilike %s"
+            query+=" AND t6.name ilike %s"
             args+=('%'+alliance+'%',)
         
         query+=" GROUP BY t1.id"

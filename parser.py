@@ -285,9 +285,10 @@ class parser:
             m=re.search("(.*)\.py$",f,re.I)
             if m:
                 source=m.group(1)
-                filename=os.path.join(self.mod_dir, source+'.py')
-                execfile(filename)
-                self.ctrl_list[source] = locals().get(source)(self.client,self.conn,self.cursor)
+                if source != "__init__":
+                    filename=os.path.join(self.mod_dir, source+'.py')
+                    execfile(filename)
+                    self.ctrl_list[source] = locals().get(source)(self.client,self.conn,self.cursor)
 
 
                 

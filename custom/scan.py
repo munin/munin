@@ -462,7 +462,6 @@ class scan(threading.Thread):
                 print "Exception in jgp: "+e.__str__()
                 traceback.print_exc()
                 continue
-                                                                                                            
             
         
         print 'Jumpgate: '+x+':'+y+':'+z

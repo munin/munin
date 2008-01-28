@@ -53,7 +53,7 @@ class connection:
     else:
       if DEBUG:
         print ">>>", line;
-      while self.lastcommand + 0.4 >= time.time():
+      while self.lastcommand + 0.7 >= time.time():
         time.sleep(0.1)
       self.sock.send(line+CRLF)
       self.lastcommand=time.time()

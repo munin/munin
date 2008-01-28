@@ -91,7 +91,7 @@ class defcall:
         pass
     
     def __str__(self):
-        ret_str="Defcall with id %s for %s:%s:%s"%(self.id,self.actual_target.x,self.actual_target.y,self.actual_target.z)
+        ret_str="Defcall with id %s for %s:%s:%s landing %s"%(self.id,self.actual_target.x,self.actual_target.y,self.actual_target.z,self.landing_tick)
         ret_str+=" has status '%s' and was last modified by %s"%(self.actual_status,self.actual_owner.pnick or "no one")
         return ret_str
     

@@ -65,14 +65,18 @@ class jgp(loadable.loadable):
             query="SELECT t3.x,t3.y,t3.z,t1.tick AS tick,t1.nick,t1.scantype,t1.rand_id,t2.mission,t2.fleet_size,t2.fleet_name,t2.landing_tick-t1.tick AS eta"
             query+=" FROM scan AS t1"
             query+=" INNER JOIN fleet AS t2 ON t1.id=t2.scan_id"
-            query+=" INNER JOIN planet_dump AS t3 ON t2.owner=t3.id"
+            query+=" INNER JOIN planet_dump AS t3 ON t2.owner_id=t3.id"
             query+=" WHERE t1.pid=%s AND t3.tick=(SELECT max_tick())"
             query+=" AND t1.id=(SELECT id FROM scan WHERE pid=t1.pid AND scantype='jgp'"
-            query+=" ORDER BY tick DESC LIMIT 1) ORDER BY eta ASC"
+            query+=" ORDER BY tick DESC, id DESC LIMIT 1) ORDER BY eta ASC"
+            #query+=" ORDER BY tick DESC LIMIT 1) ORDER BY eta ASC"
             self.cursor.execute(query,(p.id,))
 
             if self.cursor.rowcount < 1:
-                reply+="No JGP scans available on %s:%s:%s" % (p.x,p.y,p.z)
+                if self.fallback(nick,username,host,target,prefix,p,None):
+                    return 1
+                else:
+                    reply+="No JGP scans available on %s:%s:%s" % (p.x,p.y,p.z)
 
             else:
                 reply+="Newest JGP scan on %s:%s:%s" % (p.x,p.y,p.z)
@@ -98,12 +102,15 @@ class jgp(loadable.loadable):
             query+=" FROM scan AS t1"
             query+=" INNER JOIN fleet AS t2 ON t1.id=t2.scan_id"
             query+=" INNER JOIN planet_dump AS t4 ON t1.pid=t4.id"
-            query+=" INNER JOIN planet_dump AS t5 ON t4.tick=t5.tick AND t2.owner=t5.id"
+            query+=" INNER JOIN planet_dump AS t5 ON t4.tick=t5.tick AND t2.owner_id=t5.id"
             query+=" WHERE t4.tick=(SELECT max_tick()) AND t1.rand_id=%s"
             self.cursor.execute(query,(rand_id,))
 
             if self.cursor.rowcount < 1:
-                reply+="No JGP scans matching ID %s" % (rand_id,)
+                if self.fallback(nick,username,host,target,prefix,None,rand_id):
+                    return 1
+                else:
+                    reply+="No JGP scans matching ID %s" % (rand_id,)
             else:
                 reply+="Newest JGP scan on "
 
@@ -120,6 +127,29 @@ class jgp(loadable.loadable):
         self.client.reply(prefix,nick,target,reply)
         return 1
                     
-                    
-                    
-                
+               
+    def fallback(self,nick,username,host,target,prefix,planet,rand_id):
+        query="SELECT rand_id FROM scan AS t1 "
+        query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
+        query+=" WHERE t3.tick = (SELECT max_tick())"
+        
+        args=()
+        if planet:
+            query+=" AND t3.id=%s"
+            args+=(planet.id,)
+        elif rand_id:
+            query+=" AND t1.rand_id=%s"
+            args+=(rand_id,)
+        else:
+            return 0
+        query+=" ORDER BY t1.tick DESC LIMIT 1"
+        
+        self.cursor.execute(query,args)
+        
+        if self.cursor.rowcount < 1:
+            return 0 # failure
+        s=self.cursor.dictfetchone()
+        self.client.reply(prefix,nick,target,"I can't see any fleets found matching this scan, but here's a URL you can try anyway: http://game.planetarion.com/showscan.pl?scan_id=%s"%(s['rand_id'],))
+        
+         
+        return 1

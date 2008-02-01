@@ -359,14 +359,14 @@ CREATE TABLE au (
 CREATE TABLE fleet (
 	id serial PRIMARY KEY,
 	scan_id bigint REFERENCES scan(id),
-	owner integer NOT NULL REFERENCES planet_canon(id),
+	owner_id integer NOT NULL REFERENCES planet_canon(id),
 	target integer NOT NULL REFERENCES planet_canon(id),
 	fleet_size integer, 
 	fleet_name VARCHAR(24) NOT NULL,
 	launch_tick smallint, 
 	landing_tick smallint NOT NULL,
 	mission varchar(7) NOT NULL CHECK(mission in ('defend','attack','unknown','return')),
-	UNIQUE(owner,target,fleet_size,fleet_name,landing_tick,mission)
+	UNIQUE(owner_id,target,fleet_size,fleet_name,landing_tick,mission)
 );
 
 CREATE TABLE fleet_content (

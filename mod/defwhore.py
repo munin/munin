@@ -36,7 +36,7 @@ class defwhore(loadable.loadable):
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(.*)")
         self.usage=self.__class__.__name__ + " [<[x:y[:z]]|[alliancename]>]"
-	self.helptext=None
+        self.helptext=None
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
@@ -104,12 +104,14 @@ class defwhore(loadable.loadable):
 
     def surprise(self,x=None,y=None,z=None,alliance=None):
         args=()
-        query="SELECT COALESCE(lower(t2.alliance),'unknown') AS alliance,count(COALESCE(lower(t2.alliance),'unknown')) AS attacks "
+        query="SELECT COALESCE((t2.alliance_id),-1) AS alliance,count(COALESCE(t2.alliance_id,-1)) AS attacks "
         query+=" FROM planet_canon AS t1"
-        query+=" INNER JOIN fleet AS t3 ON t1.id=t3.owner"
-        query+=" LEFT JOIN intel AS t2 ON t3.owner=t2.pid"
+        query+=" INNER JOIN fleet AS t3 ON t1.id=t3.owner_id"
+        query+=" LEFT JOIN intel AS t2 ON t3.owner_id=t2.pid"
         query+=" INNER JOIN planet_dump AS t4 ON t4.id=t3.target"
         query+=" INNER JOIN intel AS t5 ON t3.target=t5.pid"
+        query+=" INNER JOIN alliance_canon t6 ON t5.alliance_id=t6.id"
+        query+=" INNER JOIN alliance_canon t7 ON t2.alliance_id=t7.id"
         query+=" WHERE mission = 'defense'"
         query+=" AND t4.tick=(SELECT max_tick())"
 
@@ -121,11 +123,11 @@ class defwhore(loadable.loadable):
             args+=(z,)
         
         if alliance:
-            query+=" AND t5.alliance ilike %s"
+            query+=" AND t6.alliance ilike %s"
             args+=('%'+alliance+'%',)
         
-        query+=" GROUP BY lower(t2.alliance)"
-        query+=" ORDER BY count(lower(t2.alliance)) DESC"
+        query+=" GROUP BY t2.alliance_id"
+        query+=" ORDER BY count(t2.alliance_id) DESC"
 
         self.cursor.execute(query,args)
         attackers=self.cursor.dictfetchall()

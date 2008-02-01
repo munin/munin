@@ -106,8 +106,7 @@ class topcunts(loadable.loadable):
         args=()
         query="SELECT t1.id AS attacker,count(t1.id) AS attacks "
         query+=" FROM planet_canon AS t1"
-        query+=" INNER JOIN fleet AS t3 ON t1.id=t3.owner"
-        #query+=" LEFT JOIN intel AS t2 ON t3.owner=t2.pid"
+        query+=" INNER JOIN fleet AS t3 ON t1.id=t3.owner_id"
         query+=" INNER JOIN planet_dump AS t4 ON t4.id=t3.target"
         query+=" INNER JOIN intel AS t5 ON t3.target=t5.pid"
         query+=" INNER JOIN alliance_canon AS t6 ON t5.alliance_id=t6.id"
@@ -164,16 +163,3 @@ class topcunts(loadable.loadable):
             reply+=string.join(prev," | ")
 
         return reply
-    
-        """
-select lower(t2.alliance),count(lower(t2.alliance)) 
-from planet_canon AS t1 
-inner join fleet AS t3 on t1.id=t3.owner 
-left join intel AS t2 on t3.owner=t2.pid 
-inner join planet_canon as t4 on t4.id=t3.target
-inner join intel AS t5 on t3.target=t5.pid
-WHERE 
-t5.alliance ilike '%asc%'
-and mission = 'attack' 
-group by lower(t2.alliance);
-"""

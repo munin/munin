@@ -54,7 +54,58 @@ class defcalls(loadable.loadable):
             return 0
         
         # assign param variables
+        defcall_type=m.group(2)
         
+        if defcall_type==None:
+            return self.reply_all_defcalls(nick,username,host,target,prefix,command,user,access)
+        else:
+            return self.reply_typed_defcalls(nick,username,host,target,prefix,defcall_type,user,access)
+    
+    def reply_typed_defcalls(self,nick,username,host,target,prefix,defcall_type,user,access):
+        query="SELECT t2.status,count(*) AS count FROM defcalls AS t1"
+        query+=" INNER JOIN defcall_status AS t2"
+        query+=" ON t1.status=t2.id"
+        query+=" WHERE t1.landing_tick >  (SELECT max_tick())"
+        query+=" AND t2.status ilike %s"
+        query+=" GROUP BY t2.status"
+        
+        
+        args=(defcall_type+'%',)
+        
+        self.cursor.execute(query,args)
+        
+        reply=""
+        if self.cursor.rowcount < 1:
+            self.client.reply(prefix,nick,target,"No active defcalls matching '%s' at the moment. Seriously."%(defcall_type,))
+            return 1
+        c=self.cursor.dictfetchone()
+        reply+="Status '%s' shows %s calls:"%(c['status'],c['count'])
+        
+        current_tick=self.current_tick()
+        
+        query="SELECT t1.id AS id,t1.landing_tick AS landing_tick,t2.x AS x,t2.y AS y,t2.z AS z"
+        query+=" FROM defcalls AS t1"
+        query+=" INNER JOIN planet_dump AS t2 ON t1.target=t2.id"
+        query+=" INNER JOIN defcall_status AS t3 ON t1.status=t3.id"
+        query+=" WHERE t2.tick=(SELECT max_tick())"
+        query+=" AND t1.landing_tick > (SELECT max_tick())"
+        query+=" AND t3.status ilike %s"
+        
+        
+        self.cursor.execute(query,args)
+        
+        calls=self.cursor.dictfetchall()
+        a=[]
+        for d in calls:
+            a.append("%s:%s:%s (id: %s, eta: %s)"%(d['x'],d['y'],d['z'],d['id'],d['landing_tick']-current_tick))
+        reply+=" "+string.join(a, " | ")
+
+        self.client.reply(prefix,nick,target,reply)
+    
+        return 1
+        
+
+    def reply_all_defcalls(self,nick,username,host,target,prefix,command,user,access):
         query="SELECT t2.status,count(*) AS count FROM defcalls AS t1"
         query+=" INNER JOIN defcall_status AS t2"
         query+=" ON t1.status=t2.id"
@@ -81,35 +132,3 @@ class defcalls(loadable.loadable):
         
         return 1
     
-        call_id=m.group(1)
-        s_command=m.group(3)
-        
-        # do stuff here
-        d=loadable.defcall(call_id)
-        if not d.load_most_recent(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"No defcall matching id %s found" %(call_id,))
-            return 0
-        
-        p=d.actual_target
-        
-        if not s_command:
-            self.client.reply(prefix,nick,target,str(d))
-            return 1
-        
-        query="SELECT id, status FROM defcall_status WHERE status ilike %s"
-        self.cursor.execute(query,(s_command+'%',))
-        s=self.cursor.dictfetchone()
-        if not s:
-            self.client.reply(prefix,nick,target,"%s is not a valid defcall status, defcall was not modified"%(s_command,))
-            return 0
-        
-        query="UPDATE defcalls SET status = %s,claimed_by=%s WHERE id = %s"
-        
-        self.cursor.execute(query,(s['id'],u.id,d.id))
-        if self.cursor.rowcount < 1:
-            self.client.reply(prefix,nick,target,"Something went wrong. Old status was %s, new status was %s, defcall id was %s"%(old_status,s['status'],d.id))
-        else:
-            self.client.reply(prefix,nick,target,
-                              "Updated defcall %s on %s:%s:%s from status '%s' to '%s'"%(d.id,p.x,p.y,p.z,d.actual_status,s['status']))
-        
-        return 1

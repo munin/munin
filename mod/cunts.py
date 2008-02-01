@@ -165,7 +165,7 @@ class cunts(loadable.loadable):
         #query+="t6.nick AS target_nick"
         query+=" FROM planet_dump AS t1"
         query+=" LEFT JOIN intel AS t2 ON t1.id=t2.pid"
-        query+=" INNER JOIN fleet AS t3 ON t1.id=t3.owner"
+        query+=" INNER JOIN fleet AS t3 ON t1.id=t3.owner_id"
         #query+=" INNER JOIN intel AS t6 ON t3.target=t6.pid"
         query+=" LEFT JOIN alliance_canon AS t6 ON t2.alliance_id=t6.id"
         query+=" WHERE t1.tick=(SELECT max_tick())"
@@ -203,7 +203,7 @@ class cunts(loadable.loadable):
     def attacking(self,pid):
         query="SELECT DISTINCT t2.nick AS nick, t1.fleet_size, t1.landing_tick FROM fleet AS t1"
         query+=" INNER JOIN intel AS t2 ON t1.target=t2.pid"
-        query+=" WHERE t1.owner = %s"
+        query+=" WHERE t1.owner_id = %s"
         query+=" AND t1.landing_tick > (select max_tick())"
         self.cursor.execute(query,(pid,))
         return self.cursor.dictfetchall()

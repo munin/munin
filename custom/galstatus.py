@@ -42,6 +42,13 @@ class galstatus:
             print "planet %s:%s:%s not in intel"%(target.x,target.y,target.z)
             return
         
+        if i.alliance and i.alliance.lower() == 'ascendancy' and source != i.reportchan and not (i.relay and i.reportchan != "#ascendancy"):
+            reply="%s reports: " % (reporter,)
+            if i.nick:
+                reply+=i.nick + " -> "
+            reply+=message
+            self.client.privmsg("#ascendancy",reply)
+        
         if i.relay and i.reportchan and source != i.reportchan:
             reply="%s reports: " % (reporter,)
             if i.nick:
@@ -89,8 +96,7 @@ class galstatus:
         self.cursor.execute("SELECT max_tick() AS max_tick")
         curtick=self.cursor.dictfetchone()['max_tick']
 
-        query="INSERT INTO fleet(owner,target,fleet_size,fleet_name,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s)"
-
+        query="INSERT INTO fleet(owner_id,target,fleet_size,fleet_name,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s)"
         
         try:
             self.cursor.execute(query,(owner.id,target.id,fleetsize,fleetname,int(eta)+int(curtick),mission.lower()))

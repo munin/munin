@@ -156,7 +156,7 @@ class scan(threading.Thread):
             owner=loadable.planet(originx,originy,originz)
             if not owner.load_most_recent(self.conn, 0 ,self.cursor):
                 continue
-            query="INSERT INTO fleet (scan_id,owner,target,fleet_size,fleet_name,launch_tick,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,%s,'unknown')"
+            query="INSERT INTO fleet (scan_id,owner_id,target,fleet_size,fleet_name,launch_tick,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,%s,'unknown')"
             try:
                 self.cursor.execute(query,(scan_id,owner.id,p.id,numships,fleetname,newstick,arrivaltick))
             except Exception, e:
@@ -179,7 +179,7 @@ class scan(threading.Thread):
             target=loadable.planet(originx,originy,originz)
             if not target.load_most_recent(self.conn, 0 ,self.cursor):
                 continue
-            query="INSERT INTO fleet (scan_id,owner,target,fleet_name,launch_tick,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,'attack')"
+            query="INSERT INTO fleet (scan_id,owner_id,target,fleet_name,launch_tick,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,'attack')"
             
             try:
                 self.cursor.execute(query,(scan_id,p.id,target.id,fleetname,newstick,arrivaltick))
@@ -203,7 +203,7 @@ class scan(threading.Thread):
             target=loadable.planet(originx,originy,originz)
             if not target.load_most_recent(self.conn, 0 ,self.cursor):
                 continue
-            query="INSERT INTO fleet (scan_id,owner,target,fleet_name,launch_tick,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,'defend')"
+            query="INSERT INTO fleet (scan_id,owner_id,target,fleet_name,launch_tick,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,'defend')"
             
             try:
                 self.cursor.execute(query,(scan_id,p.id,target.id,fleetname,newstick,arrivaltick))
@@ -442,20 +442,19 @@ class scan(threading.Thread):
             if not attacker.load_most_recent(self.conn, 0 ,self.cursor):
                 print "Can't find attacker in db: %s:%s:%s"%(originx,originy,originz) 
                 continue
-            query="INSERT INTO fleet (scan_id,owner,target,fleet_size,fleet_name,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,%s)"
-
+            query="INSERT INTO fleet (scan_id,owner_id,target,fleet_size,fleet_name,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,%s)"
+            
             try:
                 self.cursor.execute(query,(scan_id,attacker.id,p.id,fleetsize,fleet,int(tick)+int(eta),mission.lower()))
             except psycopg.IntegrityError, e:
-                print "Exception in jgp: "+e.__str__()
+                print "Caught exception in jgp: "+e.__str__()
                 traceback.print_exc()
                 print "Trying to update instead"
-                query="UPDATE fleet SET scan_id=%s WHERE owner=%s AND target=%s AND fleet_size=%s AND fleet_name=%s AND landing_tick=%s AND mission=%s"
+                query="UPDATE fleet SET scan_id=%s WHERE owner_id=%s AND target=%s AND fleet_size=%s AND fleet_name=%s AND landing_tick=%s AND mission=%s"
                 try:
                     self.cursor.execute(query,(scan_id,attacker.id,p.id,fleetsize,fleet,int(tick)+int(eta),mission.lower()))
                 except:
-                    
-                    print "Exception in jgp: "+e.__str__()
+                    print "Exception trying to update jgp: "+e.__str__()
                     traceback.print_exc()
                     continue
             except Exception, e:

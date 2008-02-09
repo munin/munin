@@ -34,11 +34,14 @@ class intel(loadable.loadable):
         self.gal_coordre=re.compile(r"(\d+)[. :-](\d+)")
         self.optionsre={}
         self.optionsre['nick']=re.compile("^(\S+)")
+        self.optionsre['gov']=re.compile("^(\S+)")
+        self.optionsre['bg']=re.compile("^(\S+)")
+        self.optionsre['covop']=re.compile("^(t|f)",re.I)
+        self.optionsre['defwhore']=re.compile("^(t|f)",re.I)
         self.optionsre['fakenick']=re.compile("^(\S+)")
         self.optionsre['alliance']=re.compile("^(\S+.*?)(\s+\S+)?$")
         self.optionsre['reportchan']=re.compile("^(\S+)")
         self.optionsre['relay']=re.compile("^(t|f)",re.I)
-        self.optionsre['hostile_count']=re.compile("^(\d+)")
         self.optionsre['scanner']=re.compile("^(t|f)",re.I)
         self.optionsre['distwhore']=re.compile("^(t|f)",re.I)
         self.optionsre['comment']=re.compile("^(.*)")                
@@ -100,28 +103,27 @@ class intel(loadable.loadable):
                     self.client.reply(prefix,nick,target,"'%s' is not a valid alliance, your information was not added."%(opts['alliance'],))
                     return 1
         else:
-	        a=loadable.alliance(id=None)
+            a=loadable.alliance(id=None)
 
         if i.id:
             query="UPDATE intel SET "
-            query+="pid=%s,nick=%s,fakenick=%s,alliance_id=%s,relay=%s,reportchan=%s,hostile_count=%s,"
+            query+="pid=%s,nick=%s,fakenick=%s,defwhore=%s,gov=%s,bg=%s,covop=%s,alliance_id=%s,relay=%s,reportchan=%s,"
             query+="scanner=%s,distwhore=%s,comment=%s"
             query+=" WHERE id=%s"
             self.cursor.execute(query,(opts['pid'],opts['nick'],
-                                       opts['fakenick'],a.id,opts['relay'],
-                                       opts['reportchan'],opts['hostile_count'],
+                                       opts['fakenick'],opts['defwhore'],opts['gov'],opts['bg'],
+                                       opts['covop'],a.id,opts['relay'],opts['reportchan'],
                                        opts['scanner'],opts['distwhore'],opts['comment'],i.id))
         elif params:
-            query="INSERT INTO intel (pid,nick,fakenick,relay,reportchan,hostile_count,scanner,distwhore,comment,alliance_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            query="INSERT INTO intel (pid,nick,fakenick,defwhore,gov,bg,covop,relay,reportchan,scanner,distwhore,comment,alliance_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
             self.cursor.execute(query,(opts['pid'],opts['nick'],
-                                       opts['fakenick'],opts['relay'],
-                                       opts['reportchan'],opts['hostile_count'],
+                                       opts['fakenick'],opts['defwhore'],opts['gov'],opts['bg'],
+                                       opts['covop'],opts['relay'],opts['reportchan'],
                                        opts['scanner'],opts['distwhore'],
-				       opts['comment'],a.id))
-        i=loadable.intel(pid=opts['pid'],nick=opts['nick'],fakenick=opts['fakenick'],
-                         alliance=opts['alliance'],relay=opts['relay'],reportchan=opts['reportchan'],
-                         hostile_count=opts['hostile_count'],scanner=opts['scanner'],
-                         distwhore=opts['distwhore'],comment=opts['comment'])
+                                       opts['comment'],a.id))
+        i=loadable.intel(pid=opts['pid'],nick=opts['nick'],fakenick=opts['fakenick'],defwhore=opts['defwhore'],gov=opts['gov'],bg=opts['bg'],
+                         covop=opts['covop'],alliance=opts['alliance'],relay=opts['relay'],reportchan=opts['reportchan'],
+                         scanner=opts['scanner'],distwhore=opts['distwhore'],comment=opts['comment'])
 
         reply="Information stored for %s:%s:%s - "% (p.x,p.y,p.z)
         reply+=i.__str__()
@@ -150,7 +152,7 @@ class intel(loadable.loadable):
 
 
     def exec_gal(self,nick,username,host,target,prefix,command,user,access,x,y):
-        query="SELECT t2.id AS id, t1.id AS pid, t1.x AS x, t1.y AS y, t1.z AS z, t2.nick AS nick, t2.fakenick AS fakenick, t2.alliance_id AS alliance_id, t2.relay AS relay, t2.reportchan AS reportchan, t2.hostile_count AS hostile_count, t2.scanner AS scanner, t2.distwhore AS distwhore, t2.comment AS comment, t3.name AS alliance FROM planet_dump as t1, intel as t2 LEFT JOIN alliance_canon AS t3 ON t2.alliance_id=t3.id WHERE tick=(SELECT MAX(tick) FROM updates) AND t1.id=t2.pid AND x=%s AND y=%s ORDER BY y,z,x"
+        query="SELECT t2.id AS id, t1.id AS pid, t1.x AS x, t1.y AS y, t1.z AS z, t2.nick AS nick, t2.fakenick AS fakenick, t2.defwhore AS defwhore, t2.gov AS gov, t2.bg AS bg, t2.covop AS covop, t2.alliance_id AS alliance_id, t2.relay AS relay, t2.reportchan AS reportchan, t2.scanner AS scanner, t2.distwhore AS distwhore, t2.comment AS comment, t3.name AS alliance FROM planet_dump as t1, intel as t2 LEFT JOIN alliance_canon AS t3 ON t2.alliance_id=t3.id WHERE tick=(SELECT MAX(tick) FROM updates) AND t1.id=t2.pid AND x=%s AND y=%s ORDER BY y,z,x"
         self.cursor.execute(query,(x,y))
         if self.cursor.rowcount < 1:
             self.client.reply(prefix,nick,target,"No information stored for galaxy %s:%s" % (x,y))
@@ -159,13 +161,11 @@ class intel(loadable.loadable):
             x=d['x']
             y=d['y']
             z=d['z']            
-            i=loadable.intel(pid=d['pid'],nick=d['nick'],fakenick=d['fakenick'],
-                             alliance=d['alliance'],relay=d['relay'],reportchan=d['reportchan'],
-                             hostile_count=d['hostile_count'],scanner=d['scanner'],
-                             distwhore=d['distwhore'],comment=d['comment'])
+            i=loadable.intel(pid=d['pid'],nick=d['nick'],fakenick=d['fakenick'],defwhore=d['defwhore'],gov=d['gov'],bg=d['bg'],
+                             covop=d['covop'],alliance=d['alliance'],relay=d['relay'],reportchan=d['reportchan'],
+                             scanner=d['scanner'],distwhore=d['distwhore'],comment=d['comment'])
             if not i.is_empty():
                 reply="Information stored for %s:%s:%s - "% (x,y,z)
                 reply+=i.__str__()
                 self.client.reply(prefix,nick,target,reply)            
         return 1
-

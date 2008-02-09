@@ -18,7 +18,7 @@ ofile=file("pid.sleipnir", "w")
 ofile.write("%s" % (os.getpid(),))
 ofile.close()
 
-conn=psycopg.connect("dbname=patools22 user=munin")
+conn=psycopg.connect("dbname=patools25 user=munin")
 conn.serialize()
 conn.autocommit()
 
@@ -47,9 +47,11 @@ for r in result:
     print "Fetching scan %s"%(rid,)
     while True:
         try:
-            s=scan.scan(rid,None,conn,cursor,'webinterface','webinterface')
+            s=scan.scan(rid,None,conn,cursor,'webinterface','webinterface',None)
             break
         except Exception, e:
+            print "failed"
+            time.sleep(0.5)
             continue
     #s.run()
     try:

@@ -50,6 +50,10 @@ class roidcost(loadable.loadable):
         if access < self.level:
             self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
             return 0
+        
+        if roids == 0:
+            self.client.reply(prefix,nick,target,"Another NewDawn landing, eh?")
+            return 1
 
         if cost[-1].lower()=='k':
             cost=1000*int(cost[:-1])

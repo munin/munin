@@ -80,11 +80,11 @@ class scan(threading.Thread):
             #quickly insert the scan incase someone else pastes it :o
             next_id=-1
             nxt_query= "SELECT nextval('scan_id_seq')"
-            query = "INSERT INTO scan (id, tick, pid, nick, pnick, scantype, rand_id) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            query = "INSERT INTO scan (id, tick, pid, nick, pnick, scantype, rand_id, group_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
             try:
                 self.cursor.execute(nxt_query)
                 next_id=self.cursor.dictfetchone()['nextval']
-                self.cursor.execute(query, (next_id, tick, p.id, self.nick, self.pnick, scantype, self.rand_id))
+                self.cursor.execute(query, (next_id, tick, p.id, self.nick, self.pnick, scantype, self.rand_id, self.group_id))
             except psycopg.IntegrityError, e:
                 print "Scan %s may already exist" %(self.rand_id,)
                 print e.__str__()

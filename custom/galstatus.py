@@ -26,7 +26,7 @@ class galstatus:
         self.client=client
         self.conn=conn
         self.cursor=cursor
-        self.statusre=re.compile(r"(\d+):(\d+):(\d+)\*?\s+(\d+):(\d+):(\d+)\s+(.*?)\s+((Xan|Ter|Cat|Zik|Etda)\s+)?(\d+)\s+(Return|Attack|Defend)\s+(\d+)")
+        self.statusre=re.compile(r"(\d+):(\d+):(\d+)\*?\s+(\d+):(\d+):(\d+)\s+(.*?)\s+((Xan|Ter|Cat|Zik|Etd)\s+)?(\d+)\s+(Return|Attack|Defend)\s+(\d+)")
 
     def parse(self,message,nick,pnick,target):
         try:
@@ -48,6 +48,7 @@ class galstatus:
                 reply+=i.nick + " -> "
             reply+=message
             self.client.privmsg("#ascendancy",reply)
+            return
         
         if i.relay and i.reportchan and source != i.reportchan:
             reply="%s reports: " % (reporter,)

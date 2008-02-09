@@ -210,6 +210,7 @@ class parser:
             execfile(filename)
             self.ctrl_list[mod_name] = locals().get(mod_name)(self.client,self.conn,self.cursor)
         except Exception, e:
+            traceback.print_exc()
             return e.__str__()
 
         return None
@@ -281,8 +282,8 @@ class parser:
             return 0
 
     def reg_controllers(self):
-        for f in os.listdir(self.mod_dir):
-            m=re.search("(.*)\.py$",f,re.I)
+        for command_name in os.listdir(self.mod_dir):
+            m=re.search("(.*)\.py$",command_name,re.I)
             if m:
                 source=m.group(1)
                 if source != "__init__":

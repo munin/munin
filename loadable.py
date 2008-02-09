@@ -92,7 +92,18 @@ class defcall:
     
     def __str__(self):
         ret_str="Defcall with id %s for %s:%s:%s landing %s"%(self.id,self.actual_target.x,self.actual_target.y,self.actual_target.z,self.landing_tick)
-        ret_str+=" has status '%s' and was last modified by %s"%(self.actual_status,self.actual_owner.pnick or "no one")
+        ret_str+=" has status '%s' and was last modified by %s."%(self.actual_status,self.claimed_by or "no one")
+        ret_str+=" It has"
+        if self.bcalc:
+            ret_str+=" a"
+        else:
+            ret_str+=" no"
+        ret_str+=" bcalc and has"
+        if self.comment:
+            ret_str+=" a"
+        else:
+            ret_str+=" no"
+        ret_str+=" comment."
         return ret_str
     
     def load_most_recent(self,conn,client,cursor):
@@ -128,6 +139,87 @@ class defcall:
         self.actual_status=s['status']
         
         return 1
+
+class fleet:
+    def __init__(self,id=-1,scan_id=-1,owner_id=-1,target_id=None,fleet_size=-1,fleet_name=None,launch_tick=-1,landing_tick=-1,mission=None,defcall=None):
+        self.id=id
+        self.scan_id=scan_id
+        self.owner_id=owner_id
+        self.target_id=target_id
+        self.fleet_size=fleet_size
+        self.fleet_name=fleet_name
+        self.launch_tick=launch_tick
+        self.landing_tick=landing_tick
+        self.mission=mission
+        self.defcall=defcall
+        self.actual_target=None
+        self.actual_owner=None
+        self.actual_rand_id=None
+        self.eta=-1
+        pass
+    
+    def __str__(self):
+        reply="Fleet with id: %s from %s:%s:%s (%s)"%(self.id,self.actual_owner.x,
+                                                      self.actual_owner.y,self.actual_owner.z,
+                                                      self.actual_owner.race)
+        reply+=" named '%s' with %s ships" %(self.fleet_name,self.fleet_size)
+        reply+=" headed for %s:%s:%s"%(self.actual_target.x,self.actual_target.y,self.actual_target.z)
+        
+        reply+=" with eta %s"%(self.eta,)
+        if self.launch_tick:
+            reply+=" (%s)"%(self.landing_tick-self.launch_tick,)
+        reply+=" and mission %s"%(self.mission,)
+        if self.defcall:
+            reply+=" as part of defcall id: %s"%(self.defcall.id,)
+        return reply
+    
+    
+    def load_most_recent(self,conn,client,cursor):
+        #for now, always load from ID
+        query="SELECT id,scan_id,owner_id,target,fleet_size,fleet_name"
+        query+=",launch_tick,landing_tick, (landing_tick-(SELECT max_tick())) AS eta,mission"
+        query+=" FROM fleet WHERE id=%s"
+        args=(self.id,)
+        cursor.execute(query,args)
+        d=cursor.dictfetchone()
+        if not d:
+            return 0
+        self.id=d['id']
+        self.scan_id=d['scan_id']
+        self.owner_id=d['owner_id']
+        self.target_id=d['target']
+        self.fleet_size=d['fleet_size']
+        self.fleet_name=d['fleet_name']
+        self.launch_tick=d['launch_tick']
+        self.landing_tick=d['landing_tick']
+        self.mission=d['mission']
+        self.eta=d['eta']
+        
+        p=planet(id=self.target_id)
+        if not p.load_most_recent(conn,client,cursor):
+            raise Exception("Defcall with id %s has no valid target information. Oops..."%(self.id,))
+        self.actual_target=p
+        
+        p=planet(id=self.owner_id)
+        if not p.load_most_recent(conn,client,cursor):
+            raise Exception("Defcall with id %s has no valid owner information. Oops..."%(self.id,))
+        self.actual_owner=p
+        
+        query="SELECT rand_id FROM scan WHERE id = %s"
+        cursor.execute(query,(self.scan_id,))
+        s=cursor.dictfetchone()
+        if s:
+            self.actual_rand_id=s['rand_id']
+        
+        query="SELECT id FROM defcalls WHERE target=%s AND landing_tick=%s"
+        cursor.execute(query,(self.target_id,self.landing_tick))
+        s=cursor.dictfetchone()
+        if s:
+            defc=defcall(id=s['id'])
+            if defc.load_most_recent(conn,client,cursor):
+                self.defcall=defc
+        return 1
+
 
 class planet:
     def __init__(self,x=-1,y=-1,z=-1,planetname=None,rulername=None,race=None,size=-1,score=-1,value=-1,id=-1,idle=-1):
@@ -363,21 +455,24 @@ class user:
             
 
 class intel:
-    def __init__(self,id=None,pid=-1,nick=None,fakenick=None,alliance=None,reportchan=None,hostile_count=-1,scanner=False,distwhore=False,relay=False,comment=None):
+    def __init__(self,id=None,pid=-1,nick=None,gov=None,bg=None,covop=False,defwhore=False,fakenick=None,alliance=None,reportchan=None,scanner=False,distwhore=False,relay=False,comment=None):
         self.id=id
         self.pid=pid        
         self.nick=nick
+        self.gov=gov
+        self.covop=covop
+        self.bg=bg
+        self.defwhore=defwhore
         self.fakenick=fakenick
         self.alliance=alliance
         self.reportchan=reportchan
         self.relay=relay
-        self.hostile_count=hostile_count
         self.scanner=scanner
         self.distwhore=distwhore
         self.comment=comment
 
     def load_from_db(self,conn,client,cursor):
-        query="SELECT t2.id AS id,pid,nick,fakenick,relay,reportchan,hostile_count,scanner,distwhore,comment,t1.name AS alliance"
+        query="SELECT t2.id AS id,pid,nick,defwhore,gov,covop,bg,fakenick,relay,reportchan,scanner,distwhore,comment,t1.name AS alliance"
         query+=" FROM intel AS t2"
         query+=" LEFT JOIN alliance_canon AS t1 ON t2.alliance_id=t1.id "
         query+=" WHERE "
@@ -403,11 +498,14 @@ class intel:
         self.id=i['id']
         self.pid=i['pid']
         self.nick=i['nick']
+        self.gov=i['gov'] 
+        self.defwhore=i['defwhore'] and True or False
+        self.bg=i['bg']
+        self.covop=i['covop'] and True or False
         self.fakenick=i['fakenick']
         self.alliance=i['alliance']
         self.reportchan=i['reportchan']
         self.relay=i['relay'] and True or False
-        self.hostile_count=i['hostile_count']
         self.scanner=bool(i['scanner']) and True or False
         self.distwhore=bool(i['distwhore']) and True or False
         self.comment=i['comment']
@@ -419,15 +517,21 @@ class intel:
         if self.nick:
             retlist.append("nick=%s"%(self.nick,))
         if self.fakenick:
-            retlist.append("fakenick=%s"%(self.fakenick,))            
+            retlist.append("fakenick=%s"%(self.fakenick,))
+        if self.gov:
+            retlist.append("gov=%s"%(self.gov,))
+        if self.defwhore:
+            retlist.append("defwhore=%s"%(self.defwhore,))
+        if self.bg:
+            retlist.append("bg=%s"%(self.bg,))
+        if self.covop:
+            retlist.append("covop=%s"%(self.covop,))   
         if self.alliance:
             retlist.append("alliance=%s"%(self.alliance,))
         if self.relay:
             retlist.append("relay=%s"%(self.relay,))
         if self.reportchan:
-            retlist.append("reportchan=%s"%(self.reportchan,))                        
-        if self.hostile_count > 0:
-            retlist.append("hostile_count=%s"%(self.hostile_count,))                        
+            retlist.append("reportchan=%s"%(self.reportchan,))               
         if self.scanner:
             retlist.append("scanner=%s"%(self.scanner,))                        
         if self.distwhore:
@@ -443,15 +547,21 @@ class intel:
         if self.nick:
             retlist.append("nick=%s")
         if self.fakenick:
-            retlist.append("fakenick=%s")            
+            retlist.append("fakenick=%s")
+        if self.gov:
+            retlist.append("gov=%s")
+        if self.defwhore:
+            retlist.append("defwhore=%s")
+        if self.bg:
+            retlist.append("bg=%s")
+        if self.covop:
+            retlist.append("covop=%s") 
         if self.alliance:
             retlist.append("alliance=%s")
         if self.relay:
             retlist.append("relay=%s")
         if self.reportchan:
-            retlist.append("reportchan=%s")                        
-        if self.hostile_count > 0:
-            retlist.append("hostile_count=%s")                        
+            retlist.append("reportchan=%s")                             
         if self.scanner:
             retlist.append("scanner=%s")                        
         if self.distwhore:
@@ -467,14 +577,20 @@ class intel:
             rettup+=(self.nick,)
         if self.fakenick:
             rettup+=(self.fakenick,)
+        if self.gov:
+            rettup+=(self.gov,)
+        if self.defwhore:
+            rettup+=(self.defwhore,)
+        if self.bg:
+            rettup+=(self.bg,)
+        if self.covop:
+            rettup+=(self.covop,)
         if self.alliance:
             rettup+=(self.alliance,)
         if self.relay:
             rettup+=(self.relay,)
         if self.reportchan:
             rettup+=(self.reportchan,)
-        if self.hostile_count > 0:
-            rettup+=(self.hostile_count,)
         if self.scanner:
             rettup+=(self.scanner,)
         if self.distwhore:
@@ -490,14 +606,20 @@ class intel:
             return 0
         if self.fakenick:
             return 0
+        if self.bg:
+            return 0
+        if self.defwhore:
+            return 0
+        if self.gov:
+            return 0
+        if self.covop:
+            return 0
         if self.alliance:
             return 0
         if self.relay:
             return 0
         if self.reportchan:
             return 0
-        if self.hostile_count > 0:
-            return 0 
         if self.scanner:
             return 0 
         if self.distwhore:

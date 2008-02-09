@@ -27,17 +27,17 @@ Loadable.Loadable subclass
 
 
 
-class s(loadable.loadable):
+class i(loadable.loadable):
     """ 
     foo 
     """ 
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"\s+(.*)")
-        self.paramre=re.compile(r"^(\d+)(\s+(\S+))?")
+        self.paramre=re.compile(r"^(\d+)")
         
-        self.usage=self.__class__.__name__ + " <id> [status]"
-        self.helptext=["Show or set the status of a defence call. Valid statuses include covered, uncovered, recheck, impossible, invalid, semicovered, recall and fake."]
+        self.usage=self.__class__.__name__ + " <id> "
+        self.helptext=["Show the fleets on a defence call. Remember that this information might be dodgy, so remember to check scans or galstatus to confirm ETAs."]
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
@@ -59,7 +59,6 @@ class s(loadable.loadable):
         
         # assign param variables 
         call_id=m.group(1)
-        s_command=m.group(3)
         
         # do stuff here
         d=loadable.defcall(call_id)
@@ -69,24 +68,38 @@ class s(loadable.loadable):
         
         p=d.actual_target
         
-        if not s_command:
-            self.client.reply(prefix,nick,target,str(d))
+        query="SELECT t1.id AS fleet_id, t4.id AS defcall_id"
+        query+=", t2.race AS race, t2.x AS owner_x, t2.y AS owner_y, t2.z AS owner_z"
+        query+=", t3.x AS target_x, t3.y AS target_y, t3.z AS target_z"
+        query+=", t1.fleet_size AS fleet_size, t1.fleet_name AS fleet_name"
+        query+=", t1.landing_tick AS landing_tick, t1.mission AS mission"
+        query+=" FROM fleet AS t1"
+        query+=" INNER JOIN planet_dump AS t2 ON t1.owner_id=t2.id"
+        query+=" INNER JOIN planet_dump AS t3 ON t1.target=t3.id"
+        query+=" INNER JOIN defcalls AS t4"
+        query+=" ON t1.target=t4.target AND t1.landing_tick=t4.landing_tick"
+        query+=" WHERE t2.tick = (SELECT max_tick()) AND t3.tick = (SELECT max_tick())"
+        query+=" AND t4.id=%d"
+        
+        self.cursor.execute(query,(int(d.id),))
+        
+        if self.cursor.rowcount < 1:
+            self.client.reply(prefix,nick,target,"No fleets found for defcall with ID '%s'"%(call_id,))
             return 1
         
-        query="SELECT id, status FROM defcall_status WHERE status ilike %s"
-        self.cursor.execute(query,(s_command+'%',))
-        s=self.cursor.dictfetchone()
-        if not s:
-            self.client.reply(prefix,nick,target,"%s is not a valid defcall status, defcall was not modified"%(s_command,))
-            return 0
+        all=self.cursor.dictfetchall()
+        reply="Fleets hitting %s:%s:%s as part of defcall %s"%(d.actual_target.x,
+                                                               d.actual_target.y,
+                                                               d.actual_target.z,
+                                                               d.id)
+        reply+=" with eta %d"%(d.landing_tick-self.current_tick(),)
+        self.client.reply(prefix,nick,target,reply)
         
-        query="UPDATE defcalls SET status = %s,claimed_by=%s WHERE id = %s"
-        print str(u.id)
-        self.cursor.execute(query,(s['id'],user,d.id))
-        if self.cursor.rowcount < 1:
-            self.client.reply(prefix,nick,target,"Something went wrong. Old status was %s, new status was %s, defcall id was %s"%(old_status,s['status'],d.id))
-        else:
-            self.client.reply(prefix,nick,target,
-                              "Updated defcall %s on %s:%s:%s landing pt %s from status '%s' to '%s'"%(d.id,p.x,p.y,p.z,d.landing_tick,d.actual_status,s['status']))
+        for s in all:
+            reply="-> (id: %s) from %s:%s:%s (%s)"%(s['fleet_id'],s['owner_x'],s['owner_y'],s['owner_z'],s['race'])
+            reply+=" named '%s' with %s ships set to %s"%(s['fleet_name'],s['fleet_size'],s['mission'])
+            self.client.reply(prefix,nick,target,reply)
+            
+        
         
         return 1

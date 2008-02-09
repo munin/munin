@@ -202,8 +202,11 @@ CREATE TABLE intel (
 	pid integer NOT NULL UNIQUE REFERENCES planet_canon(id),
 	nick VARCHAR(20),
 	fakenick VARCHAR(20),
+        defwhore BOOLEAN DEFAULT FALSE,
+        gov VARCHAR (20),
+        bg VARCHAR (25),
+        covop BOOLEAN DEFAULT FALSE,
 	reportchan VARCHAR(30),
-	hostile_count smallint,
 	scanner BOOLEAN DEFAULT FALSE,
 	distwhore BOOLEAN DEFAULT FALSE,
 	comment VARCHAR(512),
@@ -281,6 +284,7 @@ CREATE TABLE scan (
 	nick VARCHAR(15) NOT NULL,
 	pnick VARCHAR(15) ,
 	rand_id bigint NOT NULL,
+        group_id bigint,
 	scantype VARCHAR(10) NOT NULL CHECK(scantype in ('unknown','planet','structure','technology','unit','news','jgp','fleet','au')),
 	UNIQUE(rand_id,tick)
 );
@@ -395,7 +399,7 @@ CREATE TABLE defcalls
 (
   id serial PRIMARY KEY,
   bcalc character varying(255),
-  claimed_by integer NOT NULL REFERENCES user_list(id), -- foreign key to user table
+  claimed_by varchar(15),
   status integer NOT NULL REFERENCES defcall_status(id),
   "comment" text,
   target integer NOT NULL REFERENCES planet_canon(id),
@@ -410,5 +414,6 @@ CREATE TABLE covop (
 );
 
 CREATE TABLE scanparser_queue(
-    rand_id integer PRIMARY KEY
+    id serial PRIMARY KEY,
+    rand_id bigint
 );

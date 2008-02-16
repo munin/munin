@@ -390,7 +390,7 @@ ELSE
 END IF;
 EXCEPTION
 	WHEN integrity_constraint_violation THEN 
-		UPDATE user_list SET userlevel=100, sponsor=inviter WHERE pnick=recruit;
+		UPDATE user_list SET userlevel=100, sponsor=inviter WHERE pnick ilike recruit;
 		DELETE FROM sponsor WHERE pnick=r.gimp;
 		ret=ROW(TRUE,recruit||' successfully invited');
 		RETURN ret;

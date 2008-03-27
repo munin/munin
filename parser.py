@@ -111,11 +111,12 @@ class parser:
 
             #print "running scan parse"
             for m in self.scanre.finditer(message):
-                self.scan(m.group(1),nick,user,None)
+                #self.scan(m.group(1),nick,user,None)
                 pass
             for m in self.scangrpre.finditer(message):
-                self.scan(None, nick, user, m.group(1))
-            self.galstatus.parse(message,nick,user,target)
+                #self.scan(None, nick, user, m.group(1))
+                pass
+            #self.galstatus.parse(message,nick,user,target)
             
             m=self.commandre.search(message)
             if not m:

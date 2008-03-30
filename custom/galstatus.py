@@ -42,7 +42,7 @@ class galstatus:
             print "planet %s:%s:%s not in intel"%(target.x,target.y,target.z)
             return
         
-        if i.alliance and i.alliance.lower() == 'ascendancy' and source != i.reportchan and not (i.relay and i.reportchan != "#ascendancy"):
+        if i.alliance and i.alliance.lower() == 'stoomtherevival' and source != i.reportchan and not (i.relay and i.reportchan != "#ascendancy"):
             reply="%s reports: " % (reporter,)
             if i.nick:
                 reply+=i.nick + " -> "

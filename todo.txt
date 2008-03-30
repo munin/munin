@@ -1,0 +1,13 @@
+!info tag (like !ascinfo)
+
+!fleets (show where a planet's fleets are headed)
+
+!incoming (shouw incoming on a planet)
+
+!interactions (show interactions a planet has made, split outgoing and
+incoming?)
+
+!newbiebash (show idle planets)
+
+JGPs should have a fleet table of their own in addition to the generic
+fleet table.

@@ -1,4 +1,4 @@
-import math, re
+import math, re, sys
 
 class rprod(loadable.loadable):
     """Find out how much you can spend with n factories
@@ -98,10 +98,10 @@ class rprod(loadable.loadable):
         
         self.client.reply(prefix, nick, target,
         "You can build %s %s (%s) in %d ticks, or \
-%s %s in %d ticks with feudalism." % (self.format_value(ships * 100),
+%s %s in (%s) %d ticks with feudalism." % (self.format_value(ships * 100),
                                       ship['name'], self.format_value(ships * ship['total_cost']),
                                       ticks, self.format_value(feud_ships * 100),
-                                      ship['name'], self.format_value(ships * ship['total_cost']),
+                                      ship['name'], self.format_value(feud_ships * ship['total_cost']),
                                       ticks))
     
         return 1

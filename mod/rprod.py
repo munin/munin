@@ -48,7 +48,7 @@ class rprod(loadable.loadable):
     def rpu(self, y, math):
         """Curry it."""
         
-        return lambda x: 2 * math.sqrt * math.log(x, math.e) - y
+        return lambda x: 2 * math.sqrt(x) * math.log(x, math.e) - y
 
     def revprod(self, ticks, facs):
         """Reversed production formula."""

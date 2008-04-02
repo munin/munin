@@ -244,4 +244,4 @@ while True:
         time.sleep(15)
         continue
 
-print "Generated epenis_cache" % (t2,)
+print "Generated epenis_cache"

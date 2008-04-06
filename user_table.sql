@@ -333,7 +333,7 @@ CREATE TABLE planet (
 
 CREATE TABLE structure (
 	id serial PRIMARY KEY,
-	scan_id biginteger NOT NULL REFERENCES scan(id),
+	scan_id bigint NOT NULL REFERENCES scan(id),
 	light_factory smallint NOT NULL,
 	medium_factory smallint NOT NULL,
 	heavy_factory smallint NOT NULL,

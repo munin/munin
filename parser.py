@@ -122,13 +122,31 @@ class parser:
             if not m:
                 return None
             prefix=m.group(1)
-            command=m.group(2)#;params=m.group(3)
+            command=m.group(2)
             
 
             query="SELECT * FROM access_level(%s,%s)"
             self.cursor.execute(query,(user,target))
             access=self.cursor.dictfetchone()['access_level'] or 0
             print "access: %d, user: %s, #channel: %s"%(access,user,target)
+            
+            com_list = command.split(' ',1)
+            
+            if command.lower() != 'pref' and len(com_list) > 0:
+                query="INSERT INTO command_log (command_prefix,command,command_parameters,nick,pnick,username,hostname,target)"
+                query+=" VALUES"
+                query+=" (%s,%s,%s,%s,%s,%s,%s,%s)"
+                
+                command_command = com_list[0]
+                command_parameters = None
+                if len(com_list) > 1:
+                    command_parameters = com_list[1]
+                try:
+                    self.cursor.execute(query,(prefix,command_command,command_parameters,nick,user,username,host,target))
+                except Exception, e:
+                    print "Exception during command logger: " + e.__str__()
+                    
+            
             if access > 0:
                 m=self.loadmodre.search(command)
                 if m:

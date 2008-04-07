@@ -424,3 +424,16 @@ CREATE TABLE scanparser_queue(
     id serial PRIMARY KEY,
     rand_id bigint
 );
+
+CREATE TABLE command_log (
+    id serial PRIMARY KEY,
+    command_prefix VARCHAR(1) NOT NULL,
+    command VARCHAR(20) NOT NULL,
+    command_parameters VARCHAR(512),
+    nick VARCHAR(15) NOT NULL,
+    pnick VARCHAR(15),
+    username VARCHAR(20) NOT NULL,
+    hostname VARCHAR(64) NOT NULL,
+    target VARCHAR(150) NOT NULL,
+    command_time TIMESTAMP DEFAULT NOW()
+);

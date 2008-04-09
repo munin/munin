@@ -421,7 +421,9 @@ class user:
             cursor.execute(query,(self.pnick,))
         elif self.id > 0:
             query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor,t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.stay AS stay FROM user_list AS t1 WHERE  t1.id=%s"
-            cursor.execute(query,(self.pnick,))            
+            cursor.execute(query,(self.pnick,))
+        else:
+            return None
         u=cursor.dictfetchone()
         if not u and self.pnick:
             query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.stay AS stay FROM user_list AS t1 WHERE t1.pnick ILIKE %s"

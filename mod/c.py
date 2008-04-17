@@ -77,7 +77,7 @@ class c(loadable.loadable):
             self.client.reply(prefix,nick,target,reply)
             return 1
         
-        query="UPDATE defcalls SET comment=%s WHERE id=%s"
+        query="UPDATE defcall SET comment=%s WHERE id=%s"
         args=(new_comment,d.id)
         
         self.cursor.execute(query,args)

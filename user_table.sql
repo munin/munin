@@ -402,7 +402,7 @@ INSERT INTO defcall_status (id,status) VALUES (6, 'fake');
 INSERT INTO defcall_status (id,status) VALUES (7, 'recall');
 INSERT INTO defcall_status (id,status) VALUES (8, 'invalid');
 
-CREATE TABLE defcalls
+CREATE TABLE defcall
 (
   id serial PRIMARY KEY,
   bcalc character varying(255),

@@ -77,7 +77,7 @@ class b(loadable.loadable):
             self.client.reply(prefix,nick,target,reply)
             return 1
         
-        query="UPDATE defcall SET bcalc=%s WHERE id=%s"
+        query="UPDATE defcalls SET bcalc=%s WHERE id=%s"
         args=(new_bcalc,d.id)
         
         self.cursor.execute(query,args)

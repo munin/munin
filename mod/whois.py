@@ -58,7 +58,7 @@ class whois(loadable.loadable):
         # do stuff here
         
         if search.lower() == 'munin':
-            self.client.reply(prefix,nick,target,"I am Munin. I am my sponsor.")
+            self.client.reply(prefix,nick,target,"I am Munin. Hear me roar.")
             return 1
         
         query="SELECT pnick,sponsor,invites"

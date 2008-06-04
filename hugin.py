@@ -45,21 +45,21 @@ while True:
             last_tick = -1
 
         try:
-            planets = urllib2.urlopen("http://game.planetarion.com/botfiles/planet_listing.txt")
+            planets = urllib2.urlopen("http://195.149.21.23/botfiles/planet_listing.txt")
         except Exception, e:
             print "Failed gathering planet listing."
             print e.__str__()
             time.sleep(300)
             continue
         try:
-            galaxies = urllib2.urlopen("http://game.planetarion.com/botfiles/galaxy_listing.txt")
+            galaxies = urllib2.urlopen("http://195.149.21.23/botfiles/galaxy_listing.txt")
         except Exception, e:
             print "Failed gathering galaxy listing."
             print e.__str__()
             time.sleep(300)
             continue    
         try:
-            alliances = urllib2.urlopen("http://game.planetarion.com/botfiles/alliance_listing.txt")
+            alliances = urllib2.urlopen("http://195.149.21.23/botfiles/alliance_listing.txt")
         except Exception, e:
             print "Failed gathering alliance listing."
             print e.__str__()

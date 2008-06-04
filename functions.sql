@@ -334,7 +334,7 @@ CREATE FUNCTION sponsor(inviter text,recruit text,comment_text text) RETURNS mun
 DECLARE
 	ret munin_return%ROWTYPE;
 BEGIN
-UPDATE user_list SET invites=invites-1 WHERE pnick=inviter;
+UPDATE user_list SET invites=invites-1 WHERE pnick ilike inviter;
 INSERT INTO sponsor (pnick,sponsor_id,comment) VALUES (recruit,(SELECT id FROM user_list WHERE pnick ilike inviter),comment_text);
 ret := ROW(TRUE,recruit ||' sponsored');
 RETURN ret;

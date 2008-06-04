@@ -62,7 +62,7 @@ class defcalls(loadable.loadable):
             return self.reply_typed_defcalls(nick,username,host,target,prefix,defcall_type,user,access)
     
     def reply_typed_defcalls(self,nick,username,host,target,prefix,defcall_type,user,access):
-        query="SELECT t2.status,count(*) AS count FROM defcall AS t1"
+        query="SELECT t2.status,count(*) AS count FROM defcalls AS t1"
         query+=" INNER JOIN defcall_status AS t2"
         query+=" ON t1.status=t2.id"
         query+=" WHERE t1.landing_tick >  (SELECT max_tick())"
@@ -84,7 +84,7 @@ class defcalls(loadable.loadable):
         current_tick=self.current_tick()
         
         query="SELECT t1.id AS id,t1.landing_tick AS landing_tick,t2.x AS x,t2.y AS y,t2.z AS z"
-        query+=" FROM defcall AS t1"
+        query+=" FROM defcalls AS t1"
         query+=" INNER JOIN planet_dump AS t2 ON t1.target=t2.id"
         query+=" INNER JOIN defcall_status AS t3 ON t1.status=t3.id"
         query+=" WHERE t2.tick=(SELECT max_tick())"
@@ -106,7 +106,7 @@ class defcalls(loadable.loadable):
         
 
     def reply_all_defcalls(self,nick,username,host,target,prefix,command,user,access):
-        query="SELECT t2.status,count(*) AS count FROM defcall AS t1"
+        query="SELECT t2.status,count(*) AS count FROM defcalls AS t1"
         query+=" INNER JOIN defcall_status AS t2"
         query+=" ON t1.status=t2.id"
         query+=" WHERE t1.landing_tick >  (SELECT max_tick())"

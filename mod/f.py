@@ -155,7 +155,7 @@ class f(loadable.loadable):
             self.client.reply(prefix,nick,target,"%s is not a valid defcall status, defcall was not modified"%(s_command,))
             return 0
         
-        query="UPDATE defcall SET status = %s,claimed_by=%s WHERE id = %s"
+        query="UPDATE defcalls SET status = %s,claimed_by=%s WHERE id = %s"
         
         self.cursor.execute(query,(s['id'],u.id,d.id))
         if self.cursor.rowcount < 1:

@@ -36,7 +36,7 @@ ofile.close()
 
 while True:
     try:
-        conn=psycopg.connect("dbname=patools26 user=munin")
+        conn=psycopg.connect("dbname=patools27 user=munin")
         cursor=conn.cursor()
 
         cursor.execute("SELECT MAX(tick) FROM updates")
@@ -208,7 +208,7 @@ print "Total time taken: %.3f seconds" % (t1,)
 
 while True:
     try:
-        conn=psycopg.connect("dbname=patools26 user=munin")
+        conn=psycopg.connect("dbname=patools27 user=munin")
         cursor=conn.cursor()
 
         cursor.execute("SELECT MIN(tick) FROM updates WHERE tick > 0")

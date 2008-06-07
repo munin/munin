@@ -310,7 +310,11 @@ CREATE TABLE planet (
 	roid_eonium smallint NOT NULL,
 	res_metal integer NOT NULL,
 	res_crystal integer NOT NULL,
-	res_eonium integer NOT NULL
+	res_eonium integer NOT NULL,
+	factory_usage_light VARCHAR(7) NOT NULL CHECK(factory_usage_light IN ('None','Low', 'Medium', 'High')),	
+	factory_usage_medium VARCHAR(7) NOT NULL CHECK(factory_usage_light IN ('None','Low', 'Medium', 'High')),
+	factory_usage_heavy VARCHAR(7) NOT NULL CHECK(factory_usage_light IN ('None','Low', 'Medium', 'High')),
+	prod_res integer NOT NULL
 );
 
 CREATE TABLE structure (

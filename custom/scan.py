@@ -307,8 +307,24 @@ class scan(threading.Thread):
         score = m.group(1)
         value = m.group(2)
 
-        query="INSERT INTO planet (scan_id,roid_metal,roid_crystal,roid_eonium,res_metal,res_crystal,res_eonium)"
-        query+=" VALUES (%s,%s,%s,%s,%s,%s,%s)"
+        m=re.search(r"""
+            <tr><th class="center">Light</th><th class="center">Medium</th><th class="center">Heavy</th></tr>\s*
+            <tr><td class="center">([^<]+)</td><td class="center">([^<]+)</td><td class="center">([^<]+)</td></tr>
+        """,page,re.VERBOSE)
+        
+        factory_usage_light=m.group(1)
+        factory_usage_medium=m.group(2)
+        factory_usage_heavy=m.group(3)
+
+        m=re.search(r"""
+            <p class="center">Total Amount of Resource in Production: <span class="superhighlight">(\d+)</span></p>
+        """,page,re.VERBOSE)
+        
+        prod_res=m.group(1)
+
+
+        query="INSERT INTO planet (scan_id,roid_metal,roid_crystal,roid_eonium,res_metal,res_crystal,res_eonium,factory_usage_light,factory_usage_medium,factory_usage_heavy,prod_res)"
+        query+=" VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
 
         self.cursor.execute(query,(scan_id,roid_m,roid_c,roid_e,res_m,res_c,res_e))
         

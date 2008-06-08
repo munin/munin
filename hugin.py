@@ -151,7 +151,7 @@ while True:
         query="""
         CREATE TEMP TABLE %s (
          score_rank smallint NOT NULL,
-         name varchar(18) NOT NULL,
+         name varchar(22) NOT NULL,
          size int NOT NULL,
          members smallint NOT NULL,
          score bigint NOT NULL

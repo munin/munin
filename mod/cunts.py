@@ -175,7 +175,7 @@ class cunts(loadable.loadable):
         query+=" AND t3.target IN ("
         query+=" SELECT t5.pid FROM intel AS t5 "
         query+=" LEFT JOIN alliance_canon AS t7 ON t5.alliance_id=t7.id"
-        query+=" WHERE t7.name ilike '%%stoomthe%%') "
+        query+=" WHERE t7.name ilike '%%asc%%') "
 
         if alliance:
             query+=" AND t6.name ILIKE %s"

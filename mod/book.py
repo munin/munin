@@ -63,8 +63,8 @@ class book(loadable.loadable):
             if not i.load_from_db(self.conn,self.client,self.cursor):
                 pass
             else:
-                if i and i.alliance and i.alliance.lower()=='stoomtherevival':
-                    self.client.reply(prefix,nick,target,"%s:%s:%s is %s in STOOMTHEREVIVAL. Quick, launch before they notice the highlight."%(x,y,z,i.nick or 'someone'))
+                if i and i.alliance and i.alliance.lower()=='ascendancy':
+                    self.client.reply(prefix,nick,target,"%s:%s:%s is %s in Ascendancy. Quick, launch before they notice the highlight."%(x,y,z,i.nick or 'someone'))
                     return 0 
         curtick=self.current_tick()
         tick=-1

@@ -75,14 +75,14 @@
 
     CREATE TABLE alliance_canon (
      id serial,
-     name varchar(16) UNIQUE,
+     name varchar(20) UNIQUE,
      active boolean NOT NULL DEFAULT TRUE,
      PRIMARY KEY(id)
     );
 
     CREATE TABLE alliance_dump (
      tick smallint REFERENCES updates (tick),
-     name varchar(16) NOT NULL REFERENCES alliance_canon (name),
+     name varchar(20) NOT NULL REFERENCES alliance_canon (name),
      size int NOT NULL,
      members smallint NOT NULL,
      score bigint NOT NULL,
@@ -194,7 +194,7 @@ CREATE TABLE alliance_tags
 (
  id SERIAL,
  alliance_id integer REFERENCES alliance_canon(id) NOT NULL,
- tag varchar(16) NOT NULL
+ tag varchar(20) NOT NULL
 );
 
 CREATE TABLE intel (

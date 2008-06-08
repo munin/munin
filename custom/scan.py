@@ -286,11 +286,10 @@ class scan(threading.Thread):
         #m = re.search(r"""<tr><td class="left">Asteroids</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><td class="left">Resources</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><th>Score</th><td>(\d+)</td><th>Value</th><td>(\d+)</td></tr>""", page)
        
         page=re.sub(',','',page)
-
         m=re.search(r"""
-            <tr><th[^>]*>Metal</th><td>(\d+)</td><td>(\d+)</td></tr>\s*
-            <tr><th[^>]*>Crystal</th><td>(\d+)</td><td>(\d+)</td></tr>\s*
-            <tr><th[^>]*>Eonium</th><td>(\d+)</td><td>(\d+)</td></tr>\s*
+            <tr><td[^>]*>Metal</td><td[^>]*>(\d+)</td><td[^>]*>(\d+)</td></tr>\s*
+            <tr><td[^>]*>Crystal</td><td[^>]*>(\d+)</td><td[^>]*>(\d+)</td></tr>\s*
+            <tr><td[^>]*>Eonium</td><td[^>]*>(\d+)</td><td[^>]*>(\d+)</td></tr>\s*
         """,page,re.VERBOSE)
         roid_m = m.group(1)
         res_m = m.group(2)
@@ -300,33 +299,32 @@ class scan(threading.Thread):
         res_e = m.group(6)
     
         m=re.search(r"""
-            <tr><th[^>]*>Value</th><td>(\d+)</td><td></td></tr>\s*
-            <tr><th[^>]*>Score</th><td>(\d+)</td><td></td></tr>\s*
+	<tr><th[^>]*>Value</th><th[^>]*>Score</th></tr>\s*
+	<tr><td[^>]*>(\d+)</td><td[^>]*>(\d+)</td></tr>\s*
         """,page,re.VERBOSE)
 
-        score = m.group(1)
-        value = m.group(2)
+        value = m.group(1)
+        score = m.group(2)
 
         m=re.search(r"""
-            <tr><th class="center">Light</th><th class="center">Medium</th><th class="center">Heavy</th></tr>\s*
-            <tr><td class="center">([^<]+)</td><td class="center">([^<]+)</td><td class="center">([^<]+)</td></tr>
+            <tr><th[^>]*>Light</th><th[^>]*>Medium</th><th[^>]*>Heavy</th></tr>\s*
+            <tr><td[^>]*>([^<]+)</td><td[^>]*>([^<]+)</td><td[^>]*>([^<]+)</td></tr>
         """,page,re.VERBOSE)
         
         factory_usage_light=m.group(1)
         factory_usage_medium=m.group(2)
         factory_usage_heavy=m.group(3)
 
-        m=re.search(r"""
-            <p class="center">Total Amount of Resource in Production: <span class="superhighlight">(\d+)</span></p>
-        """,page,re.VERBOSE)
+        #atm the only span tag is the one around the hidden res.
+        m=re.search(r"""<span[^>]*>(\d+)</span>""",page,re.VERBOSE)
         
         prod_res=m.group(1)
 
 
         query="INSERT INTO planet (scan_id,roid_metal,roid_crystal,roid_eonium,res_metal,res_crystal,res_eonium,factory_usage_light,factory_usage_medium,factory_usage_heavy,prod_res)"
-        query+=" VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        query+=" VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
 
-        self.cursor.execute(query,(scan_id,roid_m,roid_c,roid_e,res_m,res_c,res_e))
+        self.cursor.execute(query,(scan_id,roid_m,roid_c,roid_e,res_m,res_c,res_e,factory_usage_light,factory_usage_medium,factory_usage_heavy,prod_res))
         
         print 'Planet: '+x+':'+y+':'+z
 

@@ -330,7 +330,7 @@ class scan(threading.Thread):
 
     def parse_surface(self, scan_id, page):
         #m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)</th></tr><tr><td class="left">Light Factory</td><td>(\d*)</td></tr><tr><td class="left">Medium Factory</td><td>(\d*)</td></tr><tr><td class="left">Heavy Factory</td><td>(\d*)</td></tr><tr><td class="left">Wave Amplifier</td><td>(\d*)</td></tr><tr><td class="left">Wave Distorter</td><td>(\d*)</td></tr><tr><td class="left">Metal Refinery</td><td>(\d*)</td></tr><tr><td class="left">Crystal Refinery</td><td>(\d*)</td></tr><tr><td class="left">Eonium Refinery</td><td>(\d*)</td></tr><tr><td class="left">Research Laboratory</td><td>(\d*)</td></tr><tr><td class="left">Finance Centre</td><td>(\d*)</td></tr><tr><td class="left">Security Centre</td><td>(\d*)</td></tr>', page)
-        m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)</td></tr>',page)
+        m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)</h2>',page)
         
         x = m.group(1)
         y = m.group(2)
@@ -370,7 +370,7 @@ class scan(threading.Thread):
         print 'Surface: '+x+':'+y+':'+z
 
     def parse_technology(self,scan_id, page):
-        m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)</th></tr>',page)
+        m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)</h2>',page)
         
         x = m.group(1)
         y = m.group(2)
@@ -379,13 +379,13 @@ class scan(threading.Thread):
         
         
         m = re.search("""
-        <tr><th[^>]*>Space\s+Travel</th><td[^>]*>(\d+)</td></tr>\s*
-        <tr><th[^>]*>Infrastructure</th><td[^>]*>(\d+)</td></tr>\s*
-        <tr><th[^>]*>Hulls</th><td[^>]*>(\d+)</td></tr>\s*
-        <tr><th[^>]*>Waves</th><td[^>]*>(\d+)</td></tr>\s*
-        <tr><th[^>]*>Core\s+Extraction</th><td[^>]*>(\d+)</td></tr>\s*
-        <tr><th[^>]*>Covert\s+Ops</th><td[^>]*>(\d+)</td></tr>\s*
-        <tr><th[^>]*>Asteroid\s+Mining</th><td[^>]*>(\d+)</td></tr>
+        <tr><td[^>]*>Space\s+Travel</td><td[^>]*>(\d+)</td></tr>\s*
+        <tr><td[^>]*>Infrastructure</td><td[^>]*>(\d+)</td></tr>\s*
+        <tr><td[^>]*>Hulls</td><td[^>]*>(\d+)</td></tr>\s*
+        <tr><td[^>]*>Waves</td><td[^>]*>(\d+)</td></tr>\s*
+        <tr><td[^>]*>Core\s+Extraction</td><td[^>]*>(\d+)</td></tr>\s*
+        <tr><td[^>]*>Covert\s+Ops</td><td[^>]*>(\d+)</td></tr>\s*
+        <tr><td[^>]*>Asteroid\s+Mining</td><td[^>]*>(\d+)</td></tr>
         """, page,re.VERBOSE)
         
         travel = m.group(1)
@@ -409,7 +409,7 @@ class scan(threading.Thread):
         z = m.group(3)
         tick = m.group(4)
 
-        for m in re.finditer('(\w+\s?\w*\s?\w*)</td><td>(\d+)</td>', page):
+        for m in re.finditer('(\w+\s?\w*\s?\w*)</td><td[^>]*>(\d+)</td>', page):
             print m.groups()
             shipname=m.group(1)
             amount=m.group(2)
@@ -441,7 +441,10 @@ class scan(threading.Thread):
         #                     <td class="left">15:7:11            </td><td class="left">Defend </td><td>Ad infinitum</td><td>9</td><td>0</td>
         #<tr><td class="left">10:4:9</td><td class="left">Return</td><td>They look thirsty</td><td>5</td><td>3000</td></tr>
         #	<tr><td class="left">4:1:10</td><td class="left">Return</td><td>Or Is It?</td><td>9</td><td>3000</td></tr>
-        for m in re.finditer('<td class="left">(\d+)\:(\d+)\:(\d+)</td><td class="left">([^<]+)</td><td>([^<]+)</td><td>(\d+)</td><td>(\d+)</td>', page):
+
+	#<tr><td class="left">10:1:10</td><td class="left">Defend</td><td class="left">Pesticide IV</td><td class="right">1</td><td class="right">0</td></tr>
+        
+        for m in re.finditer('<td[^>]*>(\d+)\:(\d+)\:(\d+)</td><td[^>]*>([^<]+)</td><td[^>]*>([^<]+)</td><td[^>]*>(\d+)</td><td[^>]*>(\d+)</td>', page):
             originx = m.group(1)
             originy = m.group(2)
             originz = m.group(3)

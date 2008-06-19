@@ -68,7 +68,8 @@ class getanewdaddy(loadable.loadable):
             return 1
 
         # do stuff here
-        if idiot.sponsor != voter.pnick and access < 1000:
+
+        if idiot.sponsor.lower() != voter.pnick.lower() and access < 1000:
             reply="You are not %s's sponsor"%(idiot.pnick,)
             self.client.reply(prefix,nick,target,reply)
             return 1

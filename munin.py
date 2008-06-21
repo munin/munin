@@ -22,17 +22,23 @@
 # owners.
 
 import os
+import ConfigParser
 
 from connection import connection
 from parser import parser
 
 class munin:
     def __init__(self):
-        self.server = 'omega.fl.us.netgamers.org'
-        self.port = 6667
-        self.nick = 'Munin'
-        self.user = 'raven'
-        self.ircname = '<insert wit here>'
+        config = ConfigParser.ConfigParser()
+        if not config.read('muninrc'):
+            # No configfile. What to do?
+            raise ValueError("Expected configuration in muninrc, "
+                             "not found.")
+        self.server = config.get("IRC", "server")
+        self.port = int(config.get("IRC", "port"))
+        self.nick = config.get("IRC", "nick")
+        self.user = config.get("IRC", "user")
+        self.ircname = config.get("IRC", "name")
 
         self.client = connection(self.server, self.port)
         self.handler = parser(self.client,self)

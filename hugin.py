@@ -21,11 +21,28 @@
 # are included in this collective work with permission of the copyright 
 # owners.
 
-import psycopg,time,urllib2,sys,os,re,traceback
+import psycopg
+import time
+import urllib2
+import sys
+import os
+import re
+import traceback
+import ConfigParser
 
 from loadable import planet
 from loadable import galaxy
 from loadable import alliance
+
+config = ConfigParser.ConfigParser()
+if not config.read("muninrc"):
+    # No config found.
+    raise ValueError("Expected configuration file muninrc"
+                     ", not found.")
+
+DSN = "dbname=%s user=%s" % (config.get("Hugin", "dbname"),
+                             config.get("Hugin", "user"))
+
 
 t_start=time.time()
 t1=t_start
@@ -36,7 +53,7 @@ ofile.close()
 
 while True:
     try:
-        conn=psycopg.connect("dbname=patools27 user=munin")
+        conn=psycopg.connect(DSN)
         cursor=conn.cursor()
 
         cursor.execute("SELECT MAX(tick) FROM updates")
@@ -45,21 +62,21 @@ while True:
             last_tick = -1
 
         try:
-            planets = urllib2.urlopen("http://195.149.21.23/botfiles/planet_listing.txt")
+            planets = urllib2.urlopen(config.get("Url", "planetlist"))
         except Exception, e:
             print "Failed gathering planet listing."
             print e.__str__()
             time.sleep(300)
             continue
         try:
-            galaxies = urllib2.urlopen("http://195.149.21.23/botfiles/galaxy_listing.txt")
+            galaxies = urllib2.urlopen(config.get("Url", "galaxylist"))
         except Exception, e:
             print "Failed gathering galaxy listing."
             print e.__str__()
             time.sleep(300)
             continue    
         try:
-            alliances = urllib2.urlopen("http://195.149.21.23/botfiles/alliance_listing.txt")
+            alliances = urllib2.urlopen(config.get("Url", "alliancelist"))
         except Exception, e:
             print "Failed gathering alliance listing."
             print e.__str__()
@@ -208,7 +225,7 @@ print "Total time taken: %.3f seconds" % (t1,)
 
 while True:
     try:
-        conn=psycopg.connect("dbname=patools27 user=munin")
+        conn=psycopg.connect(DSN)
         cursor=conn.cursor()
 
         cursor.execute("SELECT MIN(tick) FROM updates WHERE tick > 0")

@@ -23,12 +23,10 @@ Parser class
 # are included in this collective work with permission of the copyright 
 # owners.
 
-
-sys.path.insert(0, "custom")
-
 import re
 import psycopg
 import sys
+sys.path.insert(0, "custom")
 import os
 import traceback
 import string

@@ -1,0 +1,7 @@
+[IRC]
+server: localhost
+port: 6667
+nick: Munin
+user: raven
+name: <insert wit here>
+pidfile: pid.munin

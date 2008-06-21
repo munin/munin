@@ -80,14 +80,12 @@ class connection:
     while len(text) > 0:
       self.wline("PRIVMSG %s :%s" % (target,text[:440]))
       text=text[440:]
-    pass
-
+    
   def notice(self,target,text):
     while len(text) > 0:
       self.wline("NOTICE %s :%s" % (target, text[:440]))
       text=text[440:]
-    pass
-  
+      
   def reply(self,prefix,nick,target,text):
     if prefix == self.NOTICE_PREFIX:
       self.notice(nick,text)

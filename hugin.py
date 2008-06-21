@@ -40,8 +40,8 @@ if not config.read("muninrc"):
     raise ValueError("Expected configuration file muninrc"
                      ", not found.")
 
-DSN = "dbname=%s user=%s" % (config.get("Hugin", "dbname"),
-                             config.get("Hugin", "user"))
+DSN = "dbname=%s user=%s" % (config.get("Database", "dbname"),
+                             config.get("Database", "user"))
 
 
 t_start=time.time()

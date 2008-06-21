@@ -24,8 +24,16 @@
 # owners.
 
 import psycopg
+import ConfigParser
 
-conn=psycopg.connect("dbname=patools16 user=andreaja")
+config = ConfigParser.ConfigParser
+if not config.read("muninrc"):
+    raise ValueError("Could not locate config file, "
+                     "expected muninrc.")
+
+DSN = "dbname=%s user=%s" % (config.get("Database", "dbname"),
+                             config.get("Database", "user"))
+conn=psycopg.connect(DSN)
 cursor=conn.cursor()
 
 updates = """

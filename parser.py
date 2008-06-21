@@ -23,18 +23,27 @@ Parser class
 # are included in this collective work with permission of the copyright 
 # owners.
 
-import re, psycopg, sys, os, traceback,string,math
-
-import loadable 
 
 sys.path.insert(0, "custom")
 
-import scan,galstatus
+import re
+import psycopg
+import sys
+import os
+import traceback
+import string
+import math
+import loadable 
+import scan
+import galstatus
+import ConfigParser
 
 DEBUG = 1
 
+# This is such a beast...
+
 class parser:
-    def __init__(self,client,irc):
+    def __init__(self, config, client, irc):
         # Private variables
         self.notprefix=r"~|-|\."
         self.pubprefix=r"!"
@@ -42,12 +51,12 @@ class parser:
         self.client=client
         self.irc=irc
         self.ctrl_list={}
-
+        self.config = config
 
         #database variables (also private)
         self.mod_dir="mod"
-        self.user="munin"
-        self.dbname="patools27"
+        self.user=config.get("Database", "user")
+        self.dbname=config.get("Database", "dbname")
 
         # database connection and cursor
         self.conn=psycopg.connect("user=%s dbname=%s" % (self.user,self.dbname))
@@ -92,8 +101,8 @@ class parser:
     def parse(self,line):
         m=self.welcomre.search(line)
         if m:
-            self.client.wline("PRIVMSG P@cservice.netgamers.org :auth Munin Reaper667")
-            self.client.wline("MODE %s +ix" % (self.irc.nick,))
+            self.client.wline("PRIVMSG P@cservice.netgamers.org :auth %s" % (self.config.get("IRC", "auth")))
+            self.client.wline("MODE %s +%s" % (self.irc.nick, self.config.get("IRC", "modes")))
             return None
         m=self.pinvitere.search(line)
         if m:
@@ -271,7 +280,7 @@ class parser:
             if access >= ctrl.level:
                 command_list.append(ctrl.__class__.__name__)
         command_list.sort()
-        self.client.reply(prefix,nick,target,"Loaded modules: "+string.join(command_list,', '))
+        self.client.reply(prefix,nick,target,"Loaded modules: "+ ", ".join(command_list))
         
                           
     def getpnick(self,host):

@@ -34,7 +34,7 @@ class cunts(loadable.loadable):
         self.bashre=re.compile(r"^(bash)$",re.I)
         self.clusterre=re.compile(r"^c(\d+)$",re.I)
         self.usage=self.__class__.__name__ + " [alliance] [race] [<|>][size] [<|>][value] [bash]" + " (must include at least one search criteria, order doesn't matter)"
-        self.helptext=["Lists planets currently attacking Ascendancy planets (as per intel). Sorts by size. This command is a bit spammy and will probably highlight people, so please do it in private or with a private command prefix."]
+        self.helptext=["Lists planets currently attacking %s planets (as per intel). Sorts by size. This command is a bit spammy and will probably highlight people, so please do it in private or with a private command prefix." % self.config.get("Auth", "alliance")]
         
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)

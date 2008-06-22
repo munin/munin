@@ -42,7 +42,8 @@ if not config.read("muninrc"):
 
 DSN = "dbname=%s user=%s" % (config.get("Database", "dbname"),
                              config.get("Database", "user"))
-
+if config.has_option('Database', 'password'):
+    DSN += ' password=%s' % config.get('Database', 'password')
 
 t_start=time.time()
 t1=t_start

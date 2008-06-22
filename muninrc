@@ -8,8 +8,9 @@ nick: Munin
 user: raven
 name: <insert wit here>
 [Database]
-dbname: patools27
+dbname: patools
 user: munin
+password: blabla
 [Url]
 planetlist: http://195.149.21.23/botfiles/planet_listing.txt
 galaxylist: http://195.149.21.23/botfiles/galaxy_listing.txt

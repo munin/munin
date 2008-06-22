@@ -40,7 +40,7 @@ class munin:
         self.ircname = config.get("Connection", "name")
 
         self.client = connection(self.server, self.port)
-        self.handler = parser(self.client,self)
+        self.handler = parser(config, self.client,self)
         self.client.connect()
         self.run(command)
         

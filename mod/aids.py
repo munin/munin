@@ -58,6 +58,7 @@ class aids(loadable.loadable):
         # do stuff here
         
         if search.lower() == 'munin':
+            # Hardcoded == bad?
             self.client.reply(prefix,nick,target,"I am Munin. I gave aids to jester and Rob.")
             return 1
         

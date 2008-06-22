@@ -23,6 +23,9 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
+# Removed ascendancy specific things. I think.
+# qebab, 22/06/08
+
 class book(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,50)
@@ -63,8 +66,8 @@ class book(loadable.loadable):
             if not i.load_from_db(self.conn,self.client,self.cursor):
                 pass
             else:
-                if i and i.alliance and i.alliance.lower()=='ascendancy':
-                    self.client.reply(prefix,nick,target,"%s:%s:%s is %s in Ascendancy. Quick, launch before they notice the highlight."%(x,y,z,i.nick or 'someone'))
+                if i and i.alliance and i.alliance.lower()== self.config.get("Auth", "alliance"):
+                    self.client.reply(prefix,nick,target,"%s:%s:%s is %s in %s. Quick, launch before they notice the highlight."%(x,y,z,i.nick or 'someone',self.config.get('Auth', 'alliance')))
                     return 0 
         curtick=self.current_tick()
         tick=-1

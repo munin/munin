@@ -7,6 +7,11 @@ port: 6667
 nick: Munin
 user: raven
 name: <insert wit here>
+[Auth]
+alliance: Ascendancy
+home: #ascendancy
+owner_nick: jesterina
+owner_pnick: jester
 [Database]
 dbname: patools
 user: munin

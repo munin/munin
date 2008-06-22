@@ -25,6 +25,9 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright  
 # owners. 
 
+# This file has no alliance specific stuff as far as I can tell.
+# qebab, 22/06/08
+
 
 
 class bumchums(loadable.loadable):

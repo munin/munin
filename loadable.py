@@ -23,7 +23,9 @@ Loadable class
 # are included in this collective work with permission of the copyright 
 # owners.
 
-import re,string
+import re
+import string
+import ConfigParser
 
 class loadable:
     def __init__(self,client,conn,cursor,level):
@@ -35,8 +37,10 @@ class loadable:
         self.planet_coordre=re.compile(r"(\d+)[. :-](\d+)[. :-](\d+)")
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)",re.I)
         self.helptext=None
-        pass
-
+        self.config = ConfigParser.ConfigParser()
+        if not self.config.read('muninrc'):
+            raise ValueError('Failed to read ./muninrc. Can not run without configuration')
+        
     def execute(self,nick,username,host,target,prefix,command,user,access):
         print "Loadable execute"
         pass

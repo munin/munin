@@ -9,7 +9,7 @@ user: raven
 name: <insert wit here>
 [Auth]
 alliance: Ascendancy
-home: #ascendancy
+home: ascendancy
 owner_nick: jesterina
 owner_pnick: jester
 [Database]

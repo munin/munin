@@ -23,9 +23,10 @@ Loadable.Loadable subclass
 # Individual portions may be copyright by individual contributors, and
 
 # are included in this collective work with permission of the copyright  
-# owners. 
+# owners.
 
-
+# I have removed everything alliance specific that I could find in this module.
+# qebab, 24/6/08.
 
 class getanewdaddy(loadable.loadable):
     """ 
@@ -36,7 +37,7 @@ class getanewdaddy(loadable.loadable):
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(\S+)")
         self.usage=self.__class__.__name__ + " <pnick>"
-        self.helptext=['This command is used when you no longer wish to be sponsor for a person. Their access to #ascendancy will be removed and their Munin access will be lowered to "galmate" level.',
+        self.helptext=['This command is used when you no longer wish to be sponsor for a person. Their access to #%s will be removed and their Munin access will be lowered to "galmate" level.' % self.config.get('Auth', 'home'),
                        "Anyone is free to sponsor the person back under the usual conditions. This isn't a kick and it's not final."]
         #self.helptext=['This command is used to vote someone out of the alliance. Your vote is logged and everyone can see what a cunt you are.']
 
@@ -76,9 +77,9 @@ class getanewdaddy(loadable.loadable):
 
         query="UPDATE user_list SET userlevel = 1 WHERE id = %s"
         self.cursor.execute(query,(idiot.id,))
-        self.client.privmsg('p','remuser #ascendancy %s'%(idiot.pnick,))
-        self.client.privmsg('p',"ban #ascendancy *!*@%s.users.netgamers.org Your sponsor doesn't like you anymore"%(idiot.pnick,))
-        self.client.privmsg('p',"note send %s Your sponsor (%s) no longer wishes to be your sponsor for Ascendancy. If you still wish to be a member, go ahead and find someone else to sponsor you back."%(idiot.pnick,voter.pnick))
+        self.client.privmsg('p','remuser #%s %s'%(self.config.get('Auth', 'home'), idiot.pnick,))
+        self.client.privmsg('p',"ban #%s *!*@%s.users.netgamers.org Your sponsor doesn't like you anymore"%(self.config.get('Auth', 'home'), idiot.pnick,))
+        self.client.privmsg('p',"note send %s Your sponsor (%s) no longer wishes to be your sponsor for %s. If you still wish to be a member, go ahead and find someone else to sponsor you back."%(idiot.pnick,voter.pnick, self.config.get('Auth', 'alliance')))
         if voter.sponsor != idiot.pnick:
             reply="%s has been reduced to level 1 and removed from the channel. %s is no longer %s's sponsor. If anyone else would like to sponsor that person back, they may."%(idiot.pnick,idiot.sponsor,idiot.pnick)
         else:

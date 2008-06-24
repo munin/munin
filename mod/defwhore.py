@@ -25,7 +25,8 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright  
 # owners. 
 
-
+# This module doesn't have anything alliance specific as far as I can tell.
+# qebab, 24/6/08.
 
 class defwhore(loadable.loadable):
     """ 

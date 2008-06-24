@@ -447,5 +447,5 @@ CREATE TABLE froglet_logs (
        acces_time timestamp NOT NULL DEFAULT NOW(),
        page_url VARCHAR(1023) NOT NULL,
 --       user_id integer NOT NULL REFERENCES user_list(id),
-       pnick VARCHAR(15)
+       pnick VARCHAR(15) NOT NULL
 );

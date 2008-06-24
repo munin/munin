@@ -67,5 +67,6 @@ def main(argv):
                          ', '.join(len(params) * ['%s']))
         cursor.execute(query, tuple(params))
     connection.commit()
+
 if __name__ == '__main__':
     sys.exit(main(sys.argv[1:]))

@@ -23,6 +23,9 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
+# Nothing alliance specific in this module as far as I can tell.
+# qebab, 24/6/08.
+
 class scans(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,50)

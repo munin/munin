@@ -23,6 +23,9 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
+# Nothing hardcoded found here.
+# qebab, 24/6/08.
+
 class whore(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,50)

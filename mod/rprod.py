@@ -1,4 +1,9 @@
-import math, re, sys
+import math
+import re
+import sys
+
+# Nothing alliance specific in here.
+# qebab, 24/6/08.
 
 class rprod(loadable.loadable):
     """Find out how much you can spend with n factories

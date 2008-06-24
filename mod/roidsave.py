@@ -23,6 +23,9 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
+# Nothing alliance specific here.
+# qebab, 24/6/08.
+
 class roidsave(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,1)

@@ -23,6 +23,9 @@ Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
+# This module doesn't have anything alliance specific.
+# qebab, 24/6/08.
+
 class remchan(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,100)

@@ -67,7 +67,7 @@ class remuser(loadable.loadable):
         try:
             self.cursor.execute(query,(real_pnick,))
             if self.cursor.rowcount>0:
-                self.client.privmsg('p',"remuser #ascendancy %s" %(real_pnick,))
+                self.client.privmsg('p',"remuser #%s %s" %(self.config.get('Auth', 'home'), real_pnick,))
                 self.client.reply(prefix,nick,target,"Removed user %s" % (real_pnick,))
             else:
                 self.client.reply(prefix,nick,target,"No user removed" )

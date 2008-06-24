@@ -23,6 +23,9 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
+# Nothing ascendancy/jester specific found in this module.
+# qebab, 24/6/08.
+
 class unbook(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,50)

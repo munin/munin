@@ -23,6 +23,9 @@ Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
+# No alliance specific things found in this module.
+# qebab, 24/6/08.
+
 class lookup(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,1)

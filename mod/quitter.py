@@ -2,6 +2,9 @@
 Loadable.Loadable subclass
 """
 
+# This module doesn't have anything alliance specific as fas as I can tell.
+# qebab, 24/6/08.
+
 class quitter(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,1)

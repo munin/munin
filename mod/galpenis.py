@@ -24,6 +24,10 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
+# This module doesn't seem to have anything alliance specific.
+# There's a comment which has ilike %asc%, but that's it.
+# qebab, 24/6/08.
+
 class galpenis(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,1)

@@ -2,6 +2,9 @@
 Loadable.Loadable subclass
 """
 
+# This module doesn't have anything ascendancy specific in it.
+# qebab, 24/6/08.
+
 class quits(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,1)

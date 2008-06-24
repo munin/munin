@@ -34,7 +34,6 @@ import math
 import loadable 
 import scan
 import galstatus
-import ConfigParser
 
 DEBUG = 1
 
@@ -55,9 +54,11 @@ class parser:
         self.mod_dir="mod"
         self.user=config.get("Database", "user")
         self.dbname=config.get("Database", "dbname")
-
+        self.dsn = 'user=%s dbname=%s' % (self.user, self.dbname)
+        if config.has_option("Database", "password"):
+            self.dsn += ' password=%s' % config.get("Database", "password")
         # database connection and cursor
-        self.conn=psycopg.connect("user=%s dbname=%s" % (self.user,self.dbname))
+        self.conn=psycopg.connect(self.dsn)
         self.conn.serialize()
         self.conn.autocommit()
         self.cursor=self.conn.cursor()

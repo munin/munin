@@ -25,7 +25,8 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright  
 # owners. 
 
-
+# Nothing alliance specific found in this module.
+# qebab, 24/6/08.
 
 class s(loadable.loadable):
     """ 

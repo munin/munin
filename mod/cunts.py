@@ -23,6 +23,9 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
+# I think I removed the ascendancy specific from this module.
+# qebab - 24/6/08
+
 class cunts(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,100)
@@ -34,7 +37,7 @@ class cunts(loadable.loadable):
         self.bashre=re.compile(r"^(bash)$",re.I)
         self.clusterre=re.compile(r"^c(\d+)$",re.I)
         self.usage=self.__class__.__name__ + " [alliance] [race] [<|>][size] [<|>][value] [bash]" + " (must include at least one search criteria, order doesn't matter)"
-        self.helptext=["Lists planets currently attacking Ascendancy planets (as per intel). Sorts by size. This command is a bit spammy and will probably highlight people, so please do it in private or with a private command prefix."]
+        self.helptext=["Lists planets currently attacking %s planets (as per intel). Sorts by size. This command is a bit spammy and will probably highlight people, so please do it in private or with a private command prefix." % self.config.get("Auth", "alliance")]
         
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
@@ -115,7 +118,7 @@ class cunts(loadable.loadable):
             reply="No"
             if race:
                 reply+=" %s"%(race,)
-            reply+=" planets attacking Ascendancy"
+            reply+=" planets attacking %s" % self.config.get('Auth', 'alliance')
             if alliance:
                 reply+=" in intel matching Alliance: %s"%(alliance,)
             else:
@@ -175,8 +178,8 @@ class cunts(loadable.loadable):
         query+=" AND t3.target IN ("
         query+=" SELECT t5.pid FROM intel AS t5 "
         query+=" LEFT JOIN alliance_canon AS t7 ON t5.alliance_id=t7.id"
-        query+=" WHERE t7.name ilike '%%asc%%') "
-
+        query+=" WHERE t7.name ilike %s) " #% self.config.get('Auth', 'alliance')
+        args += (self.config.get('Auth', 'alliance'),)
         if alliance:
             query+=" AND t6.name ILIKE %s"
             args+=('%'+alliance+'%',)

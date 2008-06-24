@@ -23,6 +23,9 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
+# This module has nothing alliance specific as far as I can tell.
+# qebab, 24/6/08.
+
 class res(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,1)
@@ -134,7 +137,7 @@ class res(loadable.loadable):
 
 	    elif govt=="none":
 		    return 0
-
+                
 	    else:
 		    return -1
 

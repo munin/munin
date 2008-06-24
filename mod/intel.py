@@ -23,6 +23,9 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
+# Nothing alliance specific in here as far as I can tell.
+# qebab, 24/6/08.
+
 import string
 
 class intel(loadable.loadable):

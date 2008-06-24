@@ -23,6 +23,11 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
+# This file has no alliance specific stuff as far as I can tell.
+# qebab, 22/06/08
+# I lied. Removed alliance specific things.
+# qebab, 24/6/08.
+
 class bigdicks(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,100)
@@ -71,7 +76,7 @@ class bigdicks(loadable.loadable):
         query+=" ON t1.id=t5.id AND t1.tick - 72 = t5.tick"
         query+=" LEFT JOIN alliance_canon AS t6 ON t2.alliance_id=t6.id"
         query+=" WHERE t1.tick = (select max(tick) from updates)"
-        query+=" AND t6.name ILIKE '%asc%'"
+        query+=" AND t6.name ILIKE '%s'" % self.config.get('Auth', 'alliance')
         query+=" ORDER BY xp_gain DESC) AS t6"
         query+=" ORDER BY value_diff DESC) AS t7"
         query+=" ORDER BY activity DESC) AS t8)"

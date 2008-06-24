@@ -23,6 +23,9 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
+# Removed alliance specific things from this module.
+# qebab, 24/6/08.
+
 class invite(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,100)
@@ -61,8 +64,8 @@ class invite(loadable.loadable):
         if res['success']:
             # msg p adduser
             # msg p modinfo automode
-            self.client.privmsg('P',"adduser #ascendancy %s 399" %(gimp,));
-            self.client.privmsg('P',"modinfo #ascendancy automode %s op" %(gimp,));
+            self.client.privmsg('P',"adduser #%s %s 399" %(self.config.get('Auth', 'home'), gimp,));
+            self.client.privmsg('P',"modinfo #%s automode %s op" %(self.config.get('Auth', 'home'), gimp,));
             reply="You have successfully invited '%s'. The gimp is now your responsibility. If they fuck up and didn't know, it's your fault. So teach them well." % (gimp,)
             #reply="You have sponsored '%s'. In 36 hours you may use the !invite command to make them a member. It is your responsibility to get feedback about their suitability as a member in this period" % (gimp,)
         else:

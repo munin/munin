@@ -1,0 +1,42 @@
+# This is a comment. It lasts until the end of the line.
+[IRC]
+# auth is the p user name and the p password used to connect.
+auth: pnick ppassword
+# which modes to enable when connected.
+modes: ix
+[Connection]
+# where to connect.
+server: irc.netgamers.org
+# on which port.
+port: 6667
+# the nick the bot should use
+nick: Botolf
+# the user the bot should use
+user: Cake
+# the ircname the bot should use
+name: MC Hammer
+[Auth]
+# This section determines which alliance the bot belongs to,
+# and other misc. things.
+# alliance should be the same as the ingame tag.
+alliance: CareBears
+# home is the 'home-channel' of the bot, without the pound-mark.
+home: carebears
+# owner_nick is the nickname of the owner of the bot.
+owner_nick: Sauron1337
+# owner_pnick is then the p-nick of the owner.
+owner_pnick: MyNickWasTaken
+[Database]
+# This determines what postgres database to connect to, and how.
+dbname: BankOfNorway
+# What user to connect as?
+user: MrPresident
+# Uncomment password if you have to use one to give one to connect.
+#password: EasyToGuessHaha
+[Url]
+# Don't change these unless they actually change in reality.
+# This is where Hugin finds the data it puts in the database.
+planetlist: http://195.149.21.23/botfiles/planet_listing.txt
+galaxylist: http://195.149.21.23/botfiles/galaxy_listing.txt
+alliancelist: http://195.149.21.23/botfiles/alliance_listing.txt
+

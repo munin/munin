@@ -23,6 +23,9 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
+# Nothing ascendancy/jester specific (aside from infrajerome.)
+# qebab, 24/6/08.
+
 class tech(loadable.loadable):
     """
     foo

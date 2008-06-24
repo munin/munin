@@ -2,6 +2,9 @@
 Loadable.Loadable subclass
 """
 
+# This file has no alliance specific stuff as far as I can tell.
+# qebab, 22/06/08
+
 class bashee(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,1)

@@ -25,7 +25,8 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright  
 # owners. 
 
-
+# Nothing ascendancy/jester specific found here.
+# qebab, 24/6/08.
 
 class topcunts(loadable.loadable):
     """ 

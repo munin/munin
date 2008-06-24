@@ -23,6 +23,10 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
+# Switched hardcoded owner nick for config.get('Auth', 'owner_nick').
+# Shouldn't be anything jester/ascendancy dependent left
+# qebab, 24/6/08.
+
 class status(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,100)
@@ -63,7 +67,7 @@ class status(loadable.loadable):
                 tick=curtick+when
                 eta=when
             elif when and when < curtick:
-                self.client.reply(prefix,nick,target,"Can not check status on the past. You wanted tick %s, but current tick is %s. (If you really need to know, poke jester.)"%(when,curtick))
+                self.client.reply(prefix,nick,target,"Can not check status on the past. You wanted tick %s, but current tick is %s. (If you really need to know, poke %s.)"%(when,curtick, self.config.get('Auth', 'owner_nick')))
                 return 1
             elif when:
                 tick=when
@@ -164,7 +168,7 @@ class status(loadable.loadable):
                 tick=curtick+when
                 eta=when
             elif when and when < curtick:
-                self.client.reply(prefix,nick,target,"Can not check status on the past. You wanted tick %s, but current tick is %s. (If you really need to know, poke jester.)"%(when,curtick))
+                self.client.reply(prefix,nick,target,"Can not check status on the past. You wanted tick %s, but current tick is %s. (If you really need to know, poke %s.)"%(when,curtick, self.config.get('Auth', 'owner_nick')))
                 return 1
             elif when:
                 tick=when

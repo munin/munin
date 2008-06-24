@@ -23,6 +23,9 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
+# Removed alliance specific things from this module.
+# qebab 24/6/08.
+
 class epenis(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,100)
@@ -76,12 +79,12 @@ class epenis(loadable.loadable):
         query+=" ON t1.id=t5.id AND t1.tick - 72 = t5.tick"
         query+=" LEFT JOIN alliance_canon AS t6 ON t2.alliance_id=t6.id"
         query+=" WHERE t1.tick = (select max(tick) from updates)"
-        query+=" AND t6.name ILIKE '%asc%'"
+        query+=" AND t6.name ILIKE %s"
         query+=" ORDER BY xp_gain DESC) AS t6"
         query+=" ORDER BY value_diff DESC) AS t7"
         query+=" ORDER BY activity DESC) AS t8)"
 
-        self.cursor.execute(query)
+        self.cursor.execute(query, (self.config.get('Auth', 'alliance'),))
 
         query="SELECT nick,pnick,xp_gain,activity,value_diff,xp_gain_rank,value_diff_rank,activity_rank"
         query+=" FROM epenis"
@@ -100,7 +103,8 @@ class epenis(loadable.loadable):
             reply="No epenis stats matching %s"% (search,)
         else:
             person=res['pnick'] or res['nick']
-            reply ="epenis for %s is %s score long. This makes %s rank: %s for epenis in Ascendancy!" % (person,res['activity'],person,res['activity_rank'])
+            reply ="epenis for %s is %s score long. This makes %s rank: %s for epenis in %s!" % (person,res['activity'],person,res['activity_rank'],
+                                                                                                 self.config.get('Auth', 'alliance'))
 
         self.client.reply(prefix,nick,target,reply)
         

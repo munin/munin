@@ -2,7 +2,11 @@
 loadable.loadable subclass.
 """
 
-import math, re
+import math
+import re
+
+# This module doesn't have anything alliance specific.
+# qebab, 24/6/08.
 
 class prod(loadable.loadable):
     """Mod for calculating the production time of a spend."""

@@ -59,7 +59,7 @@ class aids(loadable.loadable):
         
         if search.lower() == 'munin':
             # Hardcoded == bad?
-            self.client.reply(prefix,nick,target,"I am Munin. I gave aids to jester and Rob.")
+            self.client.reply(prefix,nick,target,"I am Munin. I gave aids to all you bitches.")
             return 1
         
         u=loadable.user(pnick=search)

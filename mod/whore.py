@@ -199,7 +199,6 @@ class whore(loadable.loadable):
             args+=(cluster,)
         query+=" ORDER BY xp_gain DESC, t1.size DESC, t1.value DESC"
         
-        #self.client.privmsg('jesterina',query % args)
         self.cursor.execute(query,args)
         return self.cursor.dictfetchall()
 

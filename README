@@ -39,7 +39,7 @@ j) you should be set (though I've probably forgotten a bunch of
 stuff).
 
 
-Instructions for inserting stats (also found in howto_makestats.txt):
+Instructions for inserting stats (also found in howto_makestats.txt or use putships.py):
 
 a) copy stats from html to excel
 b) remove efficiency columns, add total cost column

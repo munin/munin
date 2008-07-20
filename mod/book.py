@@ -66,7 +66,7 @@ class book(loadable.loadable):
             if not i.load_from_db(self.conn,self.client,self.cursor):
                 pass
             else:
-                if i and i.alliance and i.alliance.lower()== self.config.get("Auth", "alliance"):
+                if i and i.alliance and i.alliance.lower()== self.config.get("Auth", "alliance").lower():
                     self.client.reply(prefix,nick,target,"%s:%s:%s is %s in %s. Quick, launch before they notice the highlight."%(x,y,z,i.nick or 'someone',self.config.get('Auth', 'alliance')))
                     return 0 
         curtick=self.current_tick()

@@ -18,9 +18,9 @@ Loadable.Loadable subclass
 # along with Munin; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# This work is Copyright (C)2006 by Andreas Jacobsen 
+# This work is Copyright (C)2006 by Andreas Jacobsen
 # Individual portions may be copyright by individual contributors, and
-# are included in this collective work with permission of the copyright 
+# are included in this collective work with permission of the copyright
 # owners.
 
 # This module doesn't have anything alliance specific as far as I can tell.
@@ -31,7 +31,7 @@ class pref(loadable.loadable):
         loadable.loadable.__init__(self,client,conn,cursor,1)
         self.paramre=re.compile(r"^\s+(.*)")
         self.usage=self.__class__.__name__ + " [option=value]+"
-        self.helptext=['Options: planet=x.y.z | password=OnlyWorksInPM']
+        self.helptext=['Options: planet=x.y.z | password=OnlyWorksInPM | phone=+1-800-HOT-BIRD']
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
         if not m:
@@ -75,6 +75,9 @@ class pref(loadable.loadable):
             if opt == "password":
                 self.save_password(prefix,nick,target,u,val)
                 pass
+            if opt == "phone":
+                self.save_phone(prefix,nick,target,u,val)
+                pass
 
         return 1
 
@@ -93,7 +96,7 @@ class pref(loadable.loadable):
             query="INSERT INTO user_pref (id,planet_id) VALUES (%s,%s)"
             self.cursor.execute(query,(u.id,p.id))
             self.client.reply(prefix,nick,target,"Your planet has been saved as %s:%s:%s" % (x,y,z))
-        
+
     def save_stay(self,prefix,nick,target,u,status,access):
         if access < 100:
             return 0
@@ -104,7 +107,7 @@ class pref(loadable.loadable):
             query="UPDATE user_list SET stay=%s WHERE id=%s"
             args+=(status,u.id)
         else:
-            raise Exception("This code /should/ be defunct now that prefs are in the user_list table")            
+            raise Exception("This code /should/ be defunct now that prefs are in the user_list table")
             query="INSERT INTO user_pref (id,stay) VALUES (%s,%s)"
             args+=(u.id,status)
         reply="Your stay status has been saved as %s"%(status,)
@@ -113,6 +116,17 @@ class pref(loadable.loadable):
         except psycopg.ProgrammingError :
             reply="Your stay status '%s' is not a valid value. If you are staying for next round, it should be 'yes'. Otherwise it should be 'no'." %(status,)
         self.client.reply(prefix,nick,target,reply)
+
+    def save_phone(self,prefix,nick,target,u,passwd):
+        print "trying to set phone for %s"%(u.pnick,)
+        query="UPDATE user_list SET phone = %s"
+        query+=" WHERE id = %s"
+
+        self.cursor.execute(query,(passwd,u.id))
+        if self.cursor.rowcount > 0:
+            self.client.reply(prefix,nick,target, "Updated your phone number")
+        else:
+            self.client.reply(prefix,nick,target, "Something went wrong. Go whine to your sponsor.")
 
     def save_password(self,prefix,nick,target,u,passwd):
         print "trying to set password for %s"%(u.pnick,)
@@ -128,4 +142,3 @@ class pref(loadable.loadable):
                 self.client.reply(prefix,nick,target, "Updated your password")
             else:
                 self.client.reply(prefix,nick,target, "Something went wrong. Go whine to your sponsor.")
-

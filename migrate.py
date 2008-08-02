@@ -16,9 +16,9 @@
 # along with Munin; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# This work is Copyright (C)2006 by Andreas Jacobsen 
+# This work is Copyright (C)2006 by Andreas Jacobsen
 # Individual portions may be copyright by individual contributors, and
-# are included in this collective work with permission of the copyright 
+# are included in this collective work with permission of the copyright
 # owners.
 
 import psycopg, sys
@@ -40,10 +40,10 @@ old_curs=old_conn.cursor()
 
 new_curs=new_conn.cursor()
 
-old_curs.execute("SELECT t1.id AS id, t1.pnick AS pnick,t1.userlevel AS userlevel,t1.sponsor AS sponsor, t1.invites AS invites, t1.passwd AS passwd, t1.salt AS salt  FROM user_list AS t1")
+old_curs.execute("SELECT t1.id AS id, t1.pnick AS pnick,t1.userlevel AS userlevel,t1.sponsor AS sponsor, t1.invites AS invites, t1.phone AS phone, t1.passwd AS passwd, t1.salt AS salt  FROM user_list AS t1")
 
 for u in old_curs.dictfetchall():
-    new_curs.execute("INSERT INTO user_list (id,pnick,userlevel,sponsor,invites,passwd,salt) VALUES (%s,%s,%s,%s,%s,%s,%s)",(u['id'],u['pnick'],u['userlevel'],u['sponsor'],u['invites'],u['passwd'],u['salt']))
+    new_curs.execute("INSERT INTO user_list (id,pnick,userlevel,sponsor,invites,phone,passwd,salt) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",(u['id'],u['pnick'],u['userlevel'],u['sponsor'],u['invites'],u['phone'],u['passwd'],u['salt']))
 
 old_curs.execute("SELECT t1.quote AS quote FROM quote AS t1")
 

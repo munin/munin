@@ -65,6 +65,7 @@ class planet(loadable.loadable):
                 return 1
 
             query="SELECT tick,nick,scantype,rand_id,timestamp,roid_metal,roid_crystal,roid_eonium,res_metal,res_crystal,res_eonium"
+            query+=", prod_res" 
             query+=" FROM scan AS t1 INNER JOIN planet AS t2 ON t1.id=t2.scan_id"
             query+=" WHERE t1.pid=%s ORDER BY timestamp DESC"
             self.cursor.execute(query,(p.id,))
@@ -75,8 +76,9 @@ class planet(loadable.loadable):
                 s=self.cursor.dictfetchone()
                 reply+="Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,p.y,p.z,s['rand_id'],s['tick'])
                 reply+=" Roids: (m:%s, c:%s, e:%s) | Resources: (m:%s, c:%s, e:%s)" % (s['roid_metal'],s['roid_crystal'],s['roid_eonium'],s['res_metal'],s['res_crystal'],s['res_eonium'])
+                reply+=" | Hidden: %s" % (s['prod_res'],)
                 i=0
-                reply+=" Older scans: "
+                reply+=" | Older scans: "
                 prev=[]
                 for s in self.cursor.dictfetchall():
                     i+=1

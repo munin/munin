@@ -450,3 +450,9 @@ CREATE TABLE froglet_logs (
 --       user_id integer NOT NULL REFERENCES user_list(id),
        pnick VARCHAR(15) NOT NULL
 );
+
+CREATE TABLE phone (
+       id SERIAL,
+       user_id integer NOT NULL REFERENCES user_list(id),
+       friend_id integer NOT NULL REFERENCES user_list(id)
+);

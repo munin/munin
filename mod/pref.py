@@ -31,7 +31,7 @@ class pref(loadable.loadable):
         loadable.loadable.__init__(self,client,conn,cursor,1)
         self.paramre=re.compile(r"^\s+(.*)")
         self.usage=self.__class__.__name__ + " [option=value]+"
-        self.helptext=['Options: planet=x.y.z | password=OnlyWorksInPM | phone=+1-800-HOT-BIRD']
+        self.helptext=['Options: planet=x.y.z | password=OnlyWorksInPM | phone=+1-800-HOT-BIRD | pubphone=T|F']
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
         if not m:
@@ -72,6 +72,8 @@ class pref(loadable.loadable):
                 self.save_planet(prefix,nick,target,u,x,y,z)
             if opt == "stay":
                 self.save_stay(prefix,nick,target,u,val,access)
+            if opt == "pubphone":
+                self.save_pubphone(prefix,nick,target,u,val,access)
             if opt == "password":
                 self.save_password(prefix,nick,target,u,val)
                 pass
@@ -128,6 +130,22 @@ class pref(loadable.loadable):
         else:
             self.client.reply(prefix,nick,target, "Something went wrong. Go whine to your sponsor.")
 
+    def save_pubphone(self,prefix,nick,target,u,status,access):
+        if access < 100:
+            self.client.reply(prefix,nick,target,
+                              "Only %s members can allow all members of %s to view their phone"%(self.config.get('Auth','alliance'),
+                                                                                                 self.config.get('Auth','alliance')))
+            return 0
+        query=""
+        args=()
+        query="UPDATE user_list SET pubphone=%s WHERE id=%s"
+        args+=(status,u.id)
+        reply="Your pubphone status has been saved as %s"%(status,)
+        try:
+            self.cursor.execute(query,args)
+        except psycopg.ProgrammingError :
+            reply="Your pubphone status '%s' is not a valid value. If you want your phone number to be visible to all %s members, it should be 'yes'. Otherwise it should be 'no'." %(status,self.config.get('Auth','alliance'))
+        self.client.reply(prefix,nick,target,reply)
     def save_password(self,prefix,nick,target,u,passwd):
         print "trying to set password for %s"%(u.pnick,)
         query="UPDATE user_list SET passwd = MD5(MD5(salt) || MD5(%s))"

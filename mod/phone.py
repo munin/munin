@@ -116,10 +116,6 @@ class phone(loadable.loadable):
             self.client.reply(prefix,nick,target,reply)
             return 1
         elif "show".find(command) > -1:
-            m=re.match(r"(#\S+)",target,re.I)
-            if m:
-                self.client.reply(prefix,nick,target,"Don't look up phone numbers in public, Alki might see them")
-                return 1
             if u.id == t_user.id:
                 if u.phone:
                     reply="Your phone number is %s."%(u.phone,)
@@ -127,14 +123,22 @@ class phone(loadable.loadable):
                     reply="You haven't set your phone number. To set your phone number, do !pref phone=1-800-HOT-BIRD."
                 self.client.reply(prefix,nick,target,reply)
                 return 1
-            results=self.phone_query_builder(nick,username,host,target,prefix,command,u,access,"AND t1.friend_id=%s",(t_user.id,))
-            if len(results) < 1:
-                reply="%s won't let you see their phone number. That paranoid cunt just doesn't trust you I guess."%(t_user.pnick,)
+
+            m=re.match(r"(#\S+)",target,re.I)
+            if m and prefix==self.client.PUBLIC_PREFIX:
+                self.client.reply(prefix,nick,target,"Don't look up phone numbers in public, Alki might see them")
+                return 1
+            if t_user.pubphone and u.userlevel >= 100:
+                reply="%s says his phone number is %s"%(t_user.pnick,t_user.phone)
             else:
-                if t_user.phone:
-                    reply="%s says his phone number is %s"%(t_user.pnick,t_user.phone)
+                results=self.phone_query_builder(nick,username,host,target,prefix,command,u,access,"AND t1.friend_id=%s",(t_user.id,))
+                if len(results) < 1:
+                    reply="%s won't let you see their phone number. That paranoid cunt just doesn't trust you I guess."%(t_user.pnick,)
                 else:
-                    reply="%s hasn't shared his phone number. What a paranoid cunt ."%(t_user.pnick,)
+                    if t_user.phone:
+                        reply="%s says his phone number is %s"%(t_user.pnick,t_user.phone)
+                    else:
+                        reply="%s hasn't shared his phone number. What a paranoid cunt ."%(t_user.pnick,)
 
             self.client.reply(prefix,nick,target,reply)
             return 1

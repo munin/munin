@@ -40,10 +40,10 @@ old_curs=old_conn.cursor()
 
 new_curs=new_conn.cursor()
 
-old_curs.execute("SELECT t1.id AS id, t1.pnick AS pnick,t1.userlevel AS userlevel,t1.sponsor AS sponsor, t1.invites AS invites, t1.phone AS phone, t1.passwd AS passwd, t1.salt AS salt  FROM user_list AS t1")
+old_curs.execute("SELECT t1.id AS id, t1.pnick AS pnick,t1.userlevel AS userlevel,t1.sponsor AS sponsor, t1.invites AS invites, t1.phone AS phone, t1.pubphone AS pubphone, t1.passwd AS passwd, t1.salt AS salt  FROM user_list AS t1")
 
 for u in old_curs.dictfetchall():
-    new_curs.execute("INSERT INTO user_list (id,pnick,userlevel,sponsor,invites,phone,passwd,salt) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",(u['id'],u['pnick'],u['userlevel'],u['sponsor'],u['invites'],u['phone'],u['passwd'],u['salt']))
+    new_curs.execute("INSERT INTO user_list (id,pnick,userlevel,sponsor,invites,phone,pubphone,passwd,salt) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",(u['id'],u['pnick'],u['userlevel'],u['sponsor'],u['invites'],u['phone'],['Y','N'][int(u['pubphone'])],u['passwd'],u['salt']))
 
 old_curs.execute("SELECT t1.quote AS quote FROM quote AS t1")
 

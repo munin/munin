@@ -124,6 +124,7 @@
 	invites smallint NOT NULL DEFAULT 0 CHECK (invites >= 0),
 	quit smallint NOT NULL DEFAULT 0,
 	phone VARCHAR(32),
+	pubphone BOOLEAN NOT NULL DEFALUT FALSE, 
     	salt varchar(4) NOT NULL DEFAULT SUBSTRING(CAST(RANDOM() AS VARCHAR) FROM 3 FOR 4)
 );
 

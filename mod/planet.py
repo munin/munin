@@ -65,7 +65,7 @@ class planet(loadable.loadable):
                 return 1
 
             query="SELECT tick,nick,scantype,rand_id,timestamp,roid_metal,roid_crystal,roid_eonium,res_metal,res_crystal,res_eonium"
-            query+=", prod_res" 
+            query+=", prod_res,agents,guards" 
             query+=" FROM scan AS t1 INNER JOIN planet AS t2 ON t1.id=t2.scan_id"
             query+=" WHERE t1.pid=%s ORDER BY timestamp DESC"
             self.cursor.execute(query,(p.id,))
@@ -76,7 +76,7 @@ class planet(loadable.loadable):
                 s=self.cursor.dictfetchone()
                 reply+="Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,p.y,p.z,s['rand_id'],s['tick'])
                 reply+=" Roids: (m:%s, c:%s, e:%s) | Resources: (m:%s, c:%s, e:%s)" % (s['roid_metal'],s['roid_crystal'],s['roid_eonium'],s['res_metal'],s['res_crystal'],s['res_eonium'])
-                reply+=" | Hidden: %s" % (s['prod_res'],)
+                reply+=" | Hidden: %s | Agents: %s | Guards: %s" % (s['prod_res'],s['agents'],s['guards'])
                 i=0
                 reply+=" | Older scans: "
                 prev=[]
@@ -94,7 +94,12 @@ class planet(loadable.loadable):
                 return 0
 
             rand_id=m.group(1)
+
+
+
+
             query="SELECT x,y,z,t1.tick AS tick,nick,scantype,rand_id,timestamp,roid_metal,roid_crystal,roid_eonium,res_metal,res_crystal,res_eonium"
+            query+=", prod_res,agents,guards" 
             query+=" FROM scan AS t1 INNER JOIN planet AS t2 ON t1.id=t2.scan_id"
             query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
             query+=" WHERE t3.tick=(SELECT MAX(tick) FROM updates) AND t1.rand_id=%s ORDER BY timestamp DESC"
@@ -104,9 +109,9 @@ class planet(loadable.loadable):
                 reply+="No planet scans matching ID %s" % (rand_id,)
             else:
                 s=self.cursor.dictfetchone()
-                
-                reply+="Planet scan on %s:%s:%s (id: %s, pt: %s)" % (s['x'],s['y'],s['z'],s['rand_id'],s['tick'])
+                reply+="Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,p.y,p.z,s['rand_id'],s['tick'])
                 reply+=" Roids: (m:%s, c:%s, e:%s) | Resources: (m:%s, c:%s, e:%s)" % (s['roid_metal'],s['roid_crystal'],s['roid_eonium'],s['res_metal'],s['res_crystal'],s['res_eonium'])
+                reply+=" | Hidden: %s | Agents: %s | Guards: %s" % (s['prod_res'],s['agents'],s['guards'])
 
         self.client.reply(prefix,nick,target,reply)
         return 1

@@ -316,7 +316,9 @@ CREATE TABLE planet (
 	factory_usage_light VARCHAR(7) NOT NULL CHECK(factory_usage_light IN ('None','Low', 'Medium', 'High')),
 	factory_usage_medium VARCHAR(7) NOT NULL CHECK(factory_usage_light IN ('None','Low', 'Medium', 'High')),
 	factory_usage_heavy VARCHAR(7) NOT NULL CHECK(factory_usage_light IN ('None','Low', 'Medium', 'High')),
-	prod_res integer NOT NULL
+	prod_res integer NOT NULL,
+	agents integer NOT NULL,
+	guards integer NOT NULL
 );
 
 CREATE TABLE structure (

@@ -75,7 +75,8 @@ class eff(loadable.loadable):
         if not ship:
             self.client.reply(prefix,nick,target,"%s is not a ship" % (ship_name))
             return 0
-        total_damage=ship['damage']*ship_number
+        if ship['damage']:
+            total_damage=ship['damage']*ship_number
         
         if ship['target_1'] == 'Roids':
             killed=total_damage/50
@@ -101,7 +102,7 @@ class eff(loadable.loadable):
                 else:
                     raise Exception("Erroneous type %s" % (ship['type'],))
                 for t in targets:
-                    if ship['type'] == "Emp" :
+                    if ship['type'].lower() == "emp" :
                         killed=int(efficiency * ship['gun']*ship_number*float(100-t['empres'])/100)
                     else:
                         killed=int(efficiency * total_damage/t['armor'])

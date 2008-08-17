@@ -155,7 +155,7 @@ class parser:
                     print "Exception during command logger: " + e.__str__()
 
 
-            if access > 0:
+            if access >= 0:
                 m=self.loadmodre.search(command)
                 if m:
                     if access < 1000:

@@ -43,8 +43,10 @@ class letmein(loadable.loadable):
         if not m:
             return 0
 
-        m=re.match(r"(#\S+)",target,re.I)
-        if m:
+        
+        
+        public=re.match(r"(#\S+)",target,re.I)
+        if public:
             self.client.reply(prefix,nick,target,"Don't use this command in public you shit")
         
         m=self.paramre.search(m.group(1))

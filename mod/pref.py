@@ -126,7 +126,7 @@ class pref(loadable.loadable):
 
         self.cursor.execute(query,(passwd,u.id))
         if self.cursor.rowcount > 0:
-            self.client.reply(prefix,nick,target, "Updated your phone number")
+            self.client.reply(prefix,nick,target, "Updated your phone number. Remember to set your phone to public (!pref pubphone=yes) or allow some people to see your phone number (!phone allow stalker) or no one will be able to see your number.")
         else:
             self.client.reply(prefix,nick,target, "Something went wrong. Go whine to your sponsor.")
 

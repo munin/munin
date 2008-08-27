@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 """
-Put the ships from stdin into our database.
+Put the ships from url into our database.
 """
 
 import ConfigParser
 import psycopg
-import sys
+import urllib2
+import re
 
 QUERY = """
 INSERT INTO ship(%s)
@@ -29,8 +30,16 @@ keys = ['name', 'class', 'target_1', 'target_2', 'target_3', 'type', 'init',
         'gun', 'armor', 'damage', 'empres', 'metal', 'crystal', 'eonium',
         'race']
 
-def main(argv):
-    """Parse stdin, and put the ships into our database."""
+regex = r'^<tr class="(Ter|Cath|Xan|Zik|Etd)">.+?(\w+)</td>' # race & name
+regex += r'<td>(\w+)</td>' # class
+regex += r'<td>(\w\w|\-)</td>'*3 # t1,t2,t3
+regex += r'<td>(\w+)</td>' # type
+regex += r'.+?(\d+|\-)</td>'*8 # some numbers
+regex += r'.+?</tr>$' # end of the line
+sre = re.compile(regex,re.I|re.M)
+
+def main(url="http://game.planetarion.com/manual.php?page=stats"):
+    """Parse url, and put the ships into our database."""
 
     config = ConfigParser.ConfigParser()
     if not config.read('muninrc'):
@@ -42,13 +51,10 @@ def main(argv):
         DSN += ' password=%s' % config.get('Database', 'password')
     connection = psycopg.connect(DSN)
     cursor = connection.cursor()
-    if argv:
-        sys.stdin = open(argv[0])
-    for line in sys.stdin:
-        line = line.strip().split('\t')
-        if line[0] == 'Name' or not line[0].strip():
-            continue
-        del line[-3:-1] # Get rid of A/C and D/C
+
+    stats = urllib2.urlopen(url).read()
+
+    for line in sre.findall(stats):
         ship = {}
         for index, key in enumerate(keys):
             if line[index] in mapping:
@@ -69,4 +75,4 @@ def main(argv):
     connection.commit()
 
 if __name__ == '__main__':
-    sys.exit(main(sys.argv[1:]))
+    sys.exit(main())

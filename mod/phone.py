@@ -131,7 +131,7 @@ class phone(loadable.loadable):
             if t_user.pubphone and u.userlevel >= 100:
                 reply="%s says his phone number is %s"%(t_user.pnick,t_user.phone)
             else:
-                results=self.phone_query_builder(nick,username,host,target,prefix,command,u,access,"AND t1.friend_id=%s",(t_user.id,))
+                results=self.phone_query_builder(nick,username,host,target,prefix,command,t_user,access,"AND t1.friend_id=%s",(u.id,))
                 if len(results) < 1:
                     reply="%s won't let you see their phone number. That paranoid cunt just doesn't trust you I guess."%(t_user.pnick,)
                 else:

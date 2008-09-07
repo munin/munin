@@ -8,7 +8,7 @@
      planets smallint,
      galaxies smallint,
      alliances smallint,
-     timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT now(), 
+     timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
      PRIMARY KEY (id)
     );
 
@@ -123,7 +123,9 @@
 	stay BOOLEAN DEFAULT FALSE,
 	invites smallint NOT NULL DEFAULT 0 CHECK (invites >= 0),
 	quit smallint NOT NULL DEFAULT 0,
-    salt varchar(4) NOT NULL DEFAULT SUBSTRING(CAST(RANDOM() AS VARCHAR) FROM 3 FOR 4)
+	phone VARCHAR(32),
+	pubphone BOOLEAN NOT NULL DEFALUT FALSE, 
+    	salt varchar(4) NOT NULL DEFAULT SUBSTRING(CAST(RANDOM() AS VARCHAR) FROM 3 FOR 4)
 );
 
 CREATE UNIQUE INDEX user_list_pnick_case_insensitive_index ON user_list(LOWER(pnick));
@@ -148,7 +150,7 @@ CREATE TABLE channel_list (
 --DROP TRIGGER chan_max_level ON channel_list;
 --DROP FUNCTION chan_max_level();
 /*
-IT WOULD BE NICE IF THIS WORKED, REALLY IT WOULD 
+IT WOULD BE NICE IF THIS WORKED, REALLY IT WOULD
 CREATE FUNCTION chan_max_level() RETURNS trigger AS $PROC$
 BEGIN
 	NEW.maxlevel := NEW.userlevel;
@@ -180,7 +182,7 @@ CREATE TRIGGER recruit_not_member BEFORE INSERT ON sponsor FOR EACH ROW EXECUTE 
 */
 
 
-CREATE TABLE target ( 
+CREATE TABLE target (
 	id serial PRIMARY KEY,
 	nick VARCHAR(20) NOT NULL,
 	pid integer REFERENCES planet_canon(id) NOT NULL,
@@ -311,10 +313,12 @@ CREATE TABLE planet (
 	res_metal integer NOT NULL,
 	res_crystal integer NOT NULL,
 	res_eonium integer NOT NULL,
-	factory_usage_light VARCHAR(7) NOT NULL CHECK(factory_usage_light IN ('None','Low', 'Medium', 'High')),	
+	factory_usage_light VARCHAR(7) NOT NULL CHECK(factory_usage_light IN ('None','Low', 'Medium', 'High')),
 	factory_usage_medium VARCHAR(7) NOT NULL CHECK(factory_usage_light IN ('None','Low', 'Medium', 'High')),
 	factory_usage_heavy VARCHAR(7) NOT NULL CHECK(factory_usage_light IN ('None','Low', 'Medium', 'High')),
-	prod_res integer NOT NULL
+	prod_res integer NOT NULL,
+	agents integer NOT NULL,
+	guards integer NOT NULL
 );
 
 CREATE TABLE structure (
@@ -376,9 +380,9 @@ CREATE TABLE fleet (
 	scan_id bigint REFERENCES scan(id),
 	owner_id integer NOT NULL REFERENCES planet_canon(id),
 	target integer NOT NULL REFERENCES planet_canon(id),
-	fleet_size integer, 
+	fleet_size integer,
 	fleet_name VARCHAR(24) NOT NULL,
-	launch_tick smallint, 
+	launch_tick smallint,
 	landing_tick smallint NOT NULL,
 	mission varchar(7) NOT NULL CHECK(mission in ('defend','attack','unknown','return')),
 	UNIQUE(owner_id,target,fleet_size,fleet_name,landing_tick,mission)
@@ -446,6 +450,13 @@ CREATE TABLE froglet_logs (
        id SERIAL,
        acces_time timestamp NOT NULL DEFAULT NOW(),
        page_url VARCHAR(1023) NOT NULL,
+       ip CIDR NOT NULL,
 --       user_id integer NOT NULL REFERENCES user_list(id),
        pnick VARCHAR(15) NOT NULL
+);
+
+CREATE TABLE phone (
+       id SERIAL,
+       user_id integer NOT NULL REFERENCES user_list(id),
+       friend_id integer NOT NULL REFERENCES user_list(id)
 );

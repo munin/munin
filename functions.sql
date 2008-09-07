@@ -1,8 +1,8 @@
--- Since the plpythonu language is unrestricted, functions must be created as 
+-- Since the plpythonu language is unrestricted, functions must be created as
 -- superuser. This is somewhat undesirable. Poop.
 /*CREATE FUNCTION test(table) RETURNS text AS $PROC$
 return args[0]
-$PROC$ LANGUAGE 'plpythonu';*/ 
+$PROC$ LANGUAGE 'plpythonu';*/
 
 -- BEGIN HUGIN RELATED FUNCTIONS
 
@@ -16,7 +16,7 @@ $PROC$ LANGUAGE plpgsql;
 
 DROP FUNCTION gen_planet_id();
 CREATE FUNCTION gen_planet_id() RETURNS void AS $PROC$
-DECLARE 
+DECLARE
 r RECORD;
 BEGIN
 -- deactive missing
@@ -28,13 +28,13 @@ ALTER TABLE ptmp ADD COLUMN id integer DEFAULT -1;
 UPDATE ptmp SET id=t1.id FROM planet_canon AS t1 WHERE ptmp.rulername=t1.rulername AND ptmp.planetname=t1.planetname;
 CREATE INDEX ptmp_id_index ON ptmp(id);
 ANALYZE ptmp;
-END 
+END
 $PROC$ LANGUAGE plpgsql;
 
 
 DROP FUNCTION gen_galaxy_id();
 CREATE FUNCTION gen_galaxy_id() RETURNS void AS $PROC$
-DECLARE 
+DECLARE
 r RECORD;
 BEGIN
 -- deactive missing
@@ -47,13 +47,13 @@ UPDATE gtmp SET id=t1.id FROM galaxy_canon AS t1 WHERE gtmp.x=t1.x AND gtmp.y=t1
 --FOR r IN EXECUTE 'SELECT x,y FROM '||tmptab||' INTERSECT (SELECT x,y FROM galaxy_canon)' LOOP
 -- EXECUTE 'UPDATE '||tmptab||' SET id=(SELECT id FROM galaxy_canon WHERE x='||r.x||' AND y='||r.y||')';
 --END LOOP;
-END 
+END
 $PROC$ LANGUAGE plpgsql;
 
 
 DROP FUNCTION gen_alliance_id();
 CREATE FUNCTION gen_alliance_id() RETURNS void AS $PROC$
-DECLARE 
+DECLARE
 r RECORD;
 BEGIN
 -- deactive missing
@@ -68,19 +68,19 @@ UPDATE atmp SET id=t1.id FROM alliance_canon AS t1 WHERE atmp.name=t1.name;
 --FOR r IN EXECUTE 'SELECT name FROM '||tmptab||' INTERSECT (SELECT name FROM alliance_canon)' LOOP
 -- EXECUTE 'UPDATE '||tmptab||' SET id=(SELECT id FROM alliance_canon WHERE name='||r.name||')';
 --END LOOP;
-END 
+END
 $PROC$ LANGUAGE plpgsql;
 
 
 DROP FUNCTION add_rank(text,text);
 CREATE FUNCTION add_rank(tmptab text,colname text) RETURNS void AS $PROC$
-DECLARE 
+DECLARE
 r RECORD;
 rank INT := 0;
-BEGIN 
+BEGIN
 EXECUTE 'ALTER TABLE '||quote_ident(tmptab)||' ADD COLUMN '||quote_ident(colname)||'_rank smallint DEFAULT -1';
 /*PERFORM setval('rank_seq',1,false);
-EXECUTE 'UPDATE '||quote_ident(tmptab)||' SET '||quote_ident(colname)||'_rank=nextval(\'rank_seq\') 
+EXECUTE 'UPDATE '||quote_ident(tmptab)||' SET '||quote_ident(colname)||'_rank=nextval(\'rank_seq\')
 FROM (SELECT id FROM '||quote_ident(tmptab)||' ORDER BY '||quote_ident(colname)||' DESC) AS t1
 WHERE '||quote_ident(tmptab)||'.id=t1.id';*/
 FOR r IN EXECUTE 'SELECT id FROM '||quote_ident(tmptab)||' ORDER BY '||quote_ident(colname)||' DESC' LOOP
@@ -105,7 +105,7 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
--- PLANET SPECIFIC RANK FUNCTIONS FOR PERFORMANCE 
+-- PLANET SPECIFIC RANK FUNCTIONS FOR PERFORMANCE
 
 DROP FUNCTION add_rank_planet_size();
 CREATE FUNCTION add_rank_planet_size() RETURNS void AS $PROC$
@@ -171,21 +171,21 @@ ALTER TABLE ptmp ADD COLUMN idle smallint DEFAULT 0;
 ALTER TABLE ptmp ADD COLUMN vdiff integer DEFAULT 0;
 
 UPDATE ptmp SET vdiff = ptmp.value - t2.value
-	FROM planet_dump AS t2 
+	FROM planet_dump AS t2
         WHERE ptmp.id=t2.id AND t2.tick=curtick-1;
 
 UPDATE ptmp SET idle = t2.idle + 1
-	FROM planet_dump AS t2  
+	FROM planet_dump AS t2
         WHERE ptmp.id=t2.id AND t2.tick=curtick-1 AND ptmp.vdiff >= t2.vdiff - 1 AND ptmp.vdiff <= t2.vdiff + 1 AND ptmp.xp - t2.xp = 0;
-END 
+END
 $PROC$ LANGUAGE plpgsql;
 
 
 DROP FUNCTION store_planets(smallint);
 CREATE FUNCTION store_planets(curtick smallint) RETURNS void AS $PROC$
-DECLARE 
+DECLARE
  r RECORD;
-BEGIN 
+BEGIN
 	--remove quotes from names added by the dumpfile generator
 
 	PERFORM trim_quotes('ptmp','rulername');
@@ -193,7 +193,7 @@ BEGIN
 	--generate IDs, insert missing into canonical, deactive missing planets
 
 	PERFORM gen_planet_id();
-	
+
 /*	CREATE TEMP SEQUENCE rank_seq ;
 	PERFORM add_rank('ptmp','size');
 	PERFORM add_rank('ptmp','score');
@@ -208,12 +208,12 @@ BEGIN
 	PERFORM add_rank_planet_xp();
 	PERFORM add_planet_idle_ticks(curtick);
 	--ALTER TABLE ptmp ADD COLUMN idle smallint DEFAULT 0;
-	--ALTER TABLE ptmp ADD COLUMN vdiff integer DEFAULT 0; 
-	
-	--transfer temporary data into permanent dump 
+	--ALTER TABLE ptmp ADD COLUMN vdiff integer DEFAULT 0;
+
+	--transfer temporary data into permanent dump
 	INSERT INTO planet_dump (tick,x,y,z,planetname,rulername,race,size,score,value,xp,idle,vdiff,size_rank,score_rank,value_rank,xp_rank,id)
 		SELECT curtick,x,y,z,planetname,rulername,race,size,score,value,xp,idle,vdiff,size_rank,score_rank,value_rank,xp_rank,id FROM ptmp;
-	   
+
 END
 $PROC$ LANGUAGE plpgsql;
 
@@ -253,7 +253,7 @@ BEGIN
 	PERFORM add_average('atmp','size','members','smallint');
 	PERFORM add_average('atmp','score','members','integer');
 
-        --generate ranks 
+        --generate ranks
         PERFORM add_rank('atmp','size');
 --        PERFORM add_rank('atmp','score');
         PERFORM add_rank('atmp','members');
@@ -271,7 +271,7 @@ $PROC$ LANGUAGE plpgsql;
 
 DROP FUNCTION store_update(smallint,text,text,text);
 CREATE FUNCTION store_update(curtick smallint,ptable text,gtable text,atable text) RETURNS void AS $PROC$
-BEGIN 
+BEGIN
 	INSERT INTO updates (tick,planets,galaxies,alliances) VALUES (curtick,(SELECT COUNT(*) FROM quote_ident(ptable)),(SELECT COUNT(*) FROM quote_ident(gtable)),(SELECT COUNT(*) FROM quote_ident(atable)));
 END
 $PROC$ LANGUAGE plpgsql;
@@ -293,8 +293,8 @@ BEGIN
 is_friendly := false;
 defcall_id = 0;
 
-SELECT INTO is_friendly COUNT(*) 
-FROM alliance_canon a, intel 
+SELECT INTO is_friendly COUNT(*)
+FROM alliance_canon a, intel
 WHERE intel.alliance_id = a.id
 AND a.name ILIKE 'ascendancy'
 AND NEW.mission ILIKE 'attack'
@@ -302,7 +302,7 @@ AND intel.pid = NEW.target;
 
 IF is_friendly THEN
   SELECT INTO defcall_id id
-  FROM defcalls WHERE target=NEW.target 
+  FROM defcalls WHERE target=NEW.target
   AND landing_tick = NEW.landing_TICK;
 
   IF defcall_id > 0 THEN
@@ -355,7 +355,7 @@ DECLARE
 BEGIN
 --RAISE EXCEPTION 'Foo %',quote_literal(inviter);
 SELECT INTO r sponsor.id AS id,count(sponsor.id) AS count FROM sponsor WHERE pnick ILIKE recruit AND sponsor_id=(SELECT id FROM user_list WHERE pnick ILIKE inviter) GROUP BY id;
-IF r.count > 0 THEN 
+IF r.count > 0 THEN
 	DELETE FROM sponsor WHERE id=r.id;
 	UPDATE user_list SET invites=invites+1 WHERE pnick ILIKE inviter;
 	ret=ROW(TRUE,'Removed sponsorship of '||recruit);
@@ -373,14 +373,14 @@ DECLARE
         ret munin_return%ROWTYPE;
         r RECORD;
 BEGIN
-SELECT INTO r (EXTRACT(DAYS FROM now()-t1.timestamp)*24+EXTRACT(HOUR FROM now() - t1.timestamp)) AS age,t1.pnick AS gimp,t2.pnick AS sponsor 
-	FROM sponsor AS t1 INNER JOIN user_list AS t2 ON t1.sponsor_id=t2.id 
+SELECT INTO r (EXTRACT(DAYS FROM now()-t1.timestamp)*24+EXTRACT(HOUR FROM now() - t1.timestamp)) AS age,t1.pnick AS gimp,t2.pnick AS sponsor
+	FROM sponsor AS t1 INNER JOIN user_list AS t2 ON t1.sponsor_id=t2.id
 	WHERE t1.pnick ILIKE recruit AND t2.pnick ILIKE inviter LIMIT 1;
 IF r.age >= 0 THEN
 	INSERT INTO user_list (userlevel,pnick,sponsor) VALUES (100,recruit,inviter);
 	DELETE FROM sponsor WHERE pnick ILIKE r.gimp;
 	ret=ROW(TRUE,recruit||' successfully invited');
-       	RETURN ret;	
+       	RETURN ret;
 ELSIF r.age < 36 THEN
 	ret=ROW(FALSE,'Sponsorship of '||recruit||' has only stood for '||r.age||' hours, needs to stand for 36 hours');
 	RETURN ret;
@@ -389,7 +389,7 @@ ELSE
         RETURN ret;
 END IF;
 EXCEPTION
-	WHEN integrity_constraint_violation THEN 
+	WHEN integrity_constraint_violation THEN
 		UPDATE user_list SET userlevel=100, sponsor=inviter WHERE pnick ilike recruit;
 		DELETE FROM sponsor WHERE pnick=r.gimp;
 		ret=ROW(TRUE,recruit||' successfully invited');
@@ -449,7 +449,7 @@ ret := ROW(FALSE,voters);
 IF voters >= 7 THEN
 	FOR r IN SELECT pnick FROM kickvote INNER JOIN user_list ON user_list.id=kickvote.voter WHERE moron=idjit LOOP
 		kickers = kickers || ' ' ;
-	END LOOP; 
+	END LOOP;
 	ret := ROW(TRUE,kickers);
 	DELETE FROM kickvote WHERE moron = idjit;
 	DELETE FROM kickvote WHERE voter = idjit;
@@ -459,19 +459,20 @@ RETURN ret;
 END
 $PROC$ LANGUAGE plpgsql;
 
-DROP FUNCTION access_level(text,text);
-CREATE FUNCTION access_level(username text,target text) RETURNS int AS $PROC$
+DROP FUNCTION access_level(text,text,INT);
+CREATE FUNCTION access_level(username text,target text,private INT) RETURNS int AS $PROC$
 DECLARE
         chanrec RECORD;
 	uslvl INT;
 	access INT;
-BEGIN 
+BEGIN
 SELECT INTO chanrec userlevel,maxlevel FROM channel_list WHERE chan ILIKE target;
 SELECT INTO uslvl COALESCE((SELECT userlevel FROM user_list WHERE pnick ILIKE username),0);
 SELECT INTO access CASE WHEN chanrec.userlevel > uslvl THEN chanrec.userlevel ELSE uslvl END;
 --RAISE EXCEPTION 'access: %, chanrec: %, userrec: %',access, chanrec, uslvl;
 SELECT INTO access CASE WHEN access > chanrec.maxlevel THEN chanrec.maxlevel ELSE access END;
-RETURN access; 
+SELECT INTO access CASE WHEN private > 0 AND uslvl > access THEN uslvl ELSE access END;
+RETURN access;
 END
 $PROC$ LANGUAGE plpgsql;
 
@@ -487,7 +488,7 @@ $PROC$ LANGUAGE plpgsql;
 DROP FUNCTION race_in_gal(smallint,smallint,text);
 CREATE FUNCTION race_in_gal(gal_x smallint, gal_y smallint, gal_race text) RETURNS int AS $PROC$
 BEGIN
-RETURN count(*) FROM planet_dump 
+RETURN count(*) FROM planet_dump
 WHERE tick=(SELECT max_tick()) AND race=gal_race AND x=gal_x AND y=gal_y
 GROUP BY x,y;
 END
@@ -512,4 +513,3 @@ BEGIN
 EXCEPTION
 
 END;*/
-

@@ -307,6 +307,14 @@ class scan(threading.Thread):
         score = m.group(2)
 
         m=re.search(r"""
+            <tr><th[^>]*>Agents</th><th[^>]*>Security\s+Guards</th></tr>\s*
+	    <tr><td[^>]*>([^<]+)</td><td[^>]*>([^<]+)</td></tr>\s*
+        """,page,re.VERBOSE)
+        	
+        agents=m.group(1)
+        guards=m.group(2)
+        
+        m=re.search(r"""
             <tr><th[^>]*>Light</th><th[^>]*>Medium</th><th[^>]*>Heavy</th></tr>\s*
             <tr><td[^>]*>([^<]+)</td><td[^>]*>([^<]+)</td><td[^>]*>([^<]+)</td></tr>
         """,page,re.VERBOSE)
@@ -321,10 +329,10 @@ class scan(threading.Thread):
         prod_res=m.group(1)
 
 
-        query="INSERT INTO planet (scan_id,roid_metal,roid_crystal,roid_eonium,res_metal,res_crystal,res_eonium,factory_usage_light,factory_usage_medium,factory_usage_heavy,prod_res)"
-        query+=" VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        query="INSERT INTO planet (scan_id,roid_metal,roid_crystal,roid_eonium,res_metal,res_crystal,res_eonium,factory_usage_light,factory_usage_medium,factory_usage_heavy,prod_res,agents,guards)"
+        query+=" VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
 
-        self.cursor.execute(query,(scan_id,roid_m,roid_c,roid_e,res_m,res_c,res_e,factory_usage_light,factory_usage_medium,factory_usage_heavy,prod_res))
+        self.cursor.execute(query,(scan_id,roid_m,roid_c,roid_e,res_m,res_c,res_e,factory_usage_light,factory_usage_medium,factory_usage_heavy,prod_res,agents,guards))
         
         print 'Planet: '+x+':'+y+':'+z
 

@@ -1,5 +1,5 @@
 """
-Parser class 
+Parser class
 """
 
 # This file is part of Munin.
@@ -18,9 +18,9 @@ Parser class
 # along with Munin; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# This work is Copyright (C)2006 by Andreas Jacobsen 
+# This work is Copyright (C)2006 by Andreas Jacobsen
 # Individual portions may be copyright by individual contributors, and
-# are included in this collective work with permission of the copyright 
+# are included in this collective work with permission of the copyright
 # owners.
 
 import re
@@ -31,7 +31,7 @@ import os
 import traceback
 import string
 import math
-import loadable 
+import loadable
 import scan
 import galstatus
 
@@ -64,21 +64,21 @@ class parser:
         self.cursor=self.conn.cursor()
 
         self.galstatus=galstatus.galstatus(self.client,self.conn,self.cursor)
-        
+
         # Necessary regexps (still private)
         self.welcomre=re.compile(r"\S+\s+001.*",re.I)
-        
+
         # obey P
         self.pinvitere=re.compile(r":P!cservice@netgamers.org\s+INVITE\s+\S+\s+:#(\S+)",re.I)
-        
+
         # privmsg command regexes
         self.privmsgre=re.compile(r":(\S+)!(\S+)@(\S+)\s+PRIVMSG\s+(\S+)\s+:(.*)")
         self.ischannelre=re.compile(r"(#\S+)")
-        
+
         self.pnickre=re.compile(r"(\S{2,15})\.users\.netgamers\.org")
 
         self.reg_controllers()
-        
+
         #self.commandre=re.compile(r"(%s|%s)(\S+)\s+(.*)\s*$" % (self.pubprefix,self.privprefix))
         self.commandre=re.compile(r"^(%s|%s|%s)(.*)\s*$" % (self.notprefix,self.pubprefix,self.privprefix))
         self.loadmodre=re.compile(r"^loadmod\s+(\S+)")
@@ -93,8 +93,8 @@ class parser:
         #self.modtargre=re.compile(r"^(\d+) ?(.*)\s*")
         #self.remtargre=re.compile(r"^(\d{1,3}):(\d{1,2}):(\d{1,2})\s*")
         #self.coordre=re.compile(r"^(\d{1,3}):(\d{1,2}):(\d{1,2})$")
-        
-        
+
+
         self.scanre=re.compile("http://[^/]+/showscan.pl\?scan_id=(\d+)")
         self.scangrpre=re.compile("http://[^/]+/showscan.pl\?scan_grp=(\d+)")
     def parse(self,line):
@@ -125,26 +125,26 @@ class parser:
                 self.scan(None, nick, user, m.group(1))
                 pass
             self.galstatus.parse(message,nick,user,target)
-            
+
             m=self.commandre.search(message)
             if not m:
                 return None
             prefix=m.group(1)
             command=m.group(2)
-            
 
-            query="SELECT * FROM access_level(%s,%s)"
-            self.cursor.execute(query,(user,target))
+
+            query="SELECT * FROM access_level(%s,%s,%d)"
+            self.cursor.execute(query,(user,target,self.prefix_to_numeric(prefix) == self.client.NOTICE_PREFIX or self.prefix_to_numeric(prefix) == self.client.PRIVATE_PREFIX))
             access=self.cursor.dictfetchone()['access_level'] or 0
             print "access: %d, user: %s, #channel: %s"%(access,user,target)
-            
+
             com_list = command.split(' ',1)
-            
+
             if command.lower() != 'pref' and len(com_list) > 0:
                 query="INSERT INTO command_log (command_prefix,command,command_parameters,nick,pnick,username,hostname,target)"
                 query+=" VALUES"
                 query+=" (%s,%s,%s,%s,%s,%s,%s,%s)"
-                
+
                 command_command = com_list[0]
                 command_parameters = None
                 if len(com_list) > 1:
@@ -153,9 +153,9 @@ class parser:
                     self.cursor.execute(query,(prefix,command_command,command_parameters,nick,user,username,host,target))
                 except Exception, e:
                     print "Exception during command logger: " + e.__str__()
-                    
-            
-            if access > 0:
+
+
+            if access >= 0:
                 m=self.loadmodre.search(command)
                 if m:
                     if access < 1000:
@@ -174,10 +174,10 @@ class parser:
                 m=self.helpre.search(command)
                 if m:
                     return self.help(nick,username,host,target,message,self.prefix_to_numeric(prefix),command,user,access,m.group(2))
-                
+
                 return self.run_commands(nick,username,host,target,message,prefix,command,user,access)
-                            
-                            
+
+
                 #do stuff!
         return None
 
@@ -194,7 +194,7 @@ class parser:
         for k in self.ctrl_list.keys():
             ctrl=self.ctrl_list[k]
             #print "Trying key %s with obj of class '%s'" % (k,ctrl.__class__.__name__)
-            
+
             try:
                 if ctrl.execute(nick,username,host,target,self.prefix_to_numeric(prefix),command,user,access):
                     return "Successfully executed command '%s' with key '%s'" % (ctrl.__class__.__name__,k)
@@ -280,25 +280,25 @@ class parser:
                 command_list.append(ctrl.__class__.__name__)
         command_list.sort()
         self.client.reply(prefix,nick,target,"Loaded modules: "+ ", ".join(command_list))
-        
-                          
+
+
     def getpnick(self,host):
         m=self.pnickre.search(host)
         if m:
             return m.group(1).lower()
         else:
             return None
-        
+
     def get_user_access(self,pnick):
         query="SELECT userlevel FROM user_list WHERE pnick=%s"
-        
+
         user_found=self.cursor.execute(query,(pnick,))
         result=self.cursor.fetchone()
         if result:
             return result[0]
         else:
             return 0
-        
+
     def get_chan_access(self,channel):
         query="SELECT userlevel FROM channel_list WHERE chan=%s"
         self.cursor.execute(query,(channel,))
@@ -319,12 +319,12 @@ class parser:
                     self.ctrl_list[source] = locals().get(source)(self.client,self.conn,self.cursor)
 
 
-                
+
     def prefix_to_numeric(self,prefix):
         if self.notprefix.replace("|","").find(prefix) > -1:
             return self.client.NOTICE_PREFIX
         if self.pubprefix.replace("|","").find(prefix) > -1:
             return self.client.PUBLIC_PREFIX
         if self.privprefix.replace("|","").find(prefix) > -1:
-            return self.client.PRIVATE_PREFIX        
+            return self.client.PRIVATE_PREFIX
         return -1

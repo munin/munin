@@ -18,9 +18,9 @@ Loadable class
 # along with Munin; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# This work is Copyright (C)2006 by Andreas Jacobsen 
+# This work is Copyright (C)2006 by Andreas Jacobsen
 # Individual portions may be copyright by individual contributors, and
-# are included in this collective work with permission of the copyright 
+# are included in this collective work with permission of the copyright
 # owners.
 
 import re
@@ -40,7 +40,7 @@ class loadable:
         self.config = ConfigParser.ConfigParser()
         if not self.config.read('muninrc'):
             raise ValueError('Failed to read ./muninrc. Can not run without configuration')
-        
+
     def execute(self,nick,username,host,target,prefix,command,user,access):
         print "Loadable execute"
         pass
@@ -62,7 +62,7 @@ class loadable:
         if value/1000000 > 9:
             return str(value/1000000)+"m"
         elif value/1000 > 9:
-            return str(value/1000)+"k"        
+            return str(value/1000)+"k"
         else:
             return str(value)
 
@@ -78,7 +78,7 @@ class loadable:
     def current_tick(self):
         self.cursor.execute("SELECT MAX(tick) FROM updates")
         return self.cursor.fetchone()[0]
-        
+
 
 class defcall:
     def __init__(self,id=-1,bcalc=None,status=-1,claimed_by=None,comment=None,target=None,landing_tick=-1):
@@ -93,7 +93,7 @@ class defcall:
         self.actual_owner=None
         self.actual_status=None
         pass
-    
+
     def __str__(self):
         ret_str="Defcall with id %s for %s:%s:%s landing %s"%(self.id,self.actual_target.x,self.actual_target.y,self.actual_target.z,self.landing_tick)
         ret_str+=" has status '%s' and was last modified by %s."%(self.actual_status,self.claimed_by or "no one")
@@ -109,7 +109,7 @@ class defcall:
             ret_str+=" no"
         ret_str+=" comment."
         return ret_str
-    
+
     def load_most_recent(self,conn,client,cursor):
         #for now, always load from ID
         query="SELECT id,bcalc,status,claimed_by,comment,target,landing_tick"
@@ -129,19 +129,19 @@ class defcall:
         if not p.load_most_recent(conn,client,cursor):
             raise Exception("Defcall with id %s has no valid planet information. Oops...")
         self.actual_target=p
-        
+
         u=user(id=self.claimed_by)
         if not u.load_from_db(conn,client,cursor):
             self.actual_owner=None
         self.actual_owner=u
-        
+
         query="SELECT status FROM defcall_status WHERE id = %s"
         cursor.execute(query,(self.status,))
         s=cursor.dictfetchone()
         if not s:
             self.client.reply(prefix,nick,target,"foo!")
         self.actual_status=s['status']
-        
+
         return 1
 
 class fleet:
@@ -161,14 +161,14 @@ class fleet:
         self.actual_rand_id=None
         self.eta=-1
         pass
-    
+
     def __str__(self):
         reply="Fleet with id: %s from %s:%s:%s (%s)"%(self.id,self.actual_owner.x,
                                                       self.actual_owner.y,self.actual_owner.z,
                                                       self.actual_owner.race)
         reply+=" named '%s' with %s ships" %(self.fleet_name,self.fleet_size)
         reply+=" headed for %s:%s:%s"%(self.actual_target.x,self.actual_target.y,self.actual_target.z)
-        
+
         reply+=" with eta %s"%(self.eta,)
         if self.launch_tick:
             reply+=" (%s)"%(self.landing_tick-self.launch_tick,)
@@ -176,8 +176,8 @@ class fleet:
         if self.defcall:
             reply+=" as part of defcall id: %s"%(self.defcall.id,)
         return reply
-    
-    
+
+
     def load_most_recent(self,conn,client,cursor):
         #for now, always load from ID
         query="SELECT id,scan_id,owner_id,target,fleet_size,fleet_name"
@@ -198,23 +198,23 @@ class fleet:
         self.landing_tick=d['landing_tick']
         self.mission=d['mission']
         self.eta=d['eta']
-        
+
         p=planet(id=self.target_id)
         if not p.load_most_recent(conn,client,cursor):
             raise Exception("Defcall with id %s has no valid target information. Oops..."%(self.id,))
         self.actual_target=p
-        
+
         p=planet(id=self.owner_id)
         if not p.load_most_recent(conn,client,cursor):
             raise Exception("Defcall with id %s has no valid owner information. Oops..."%(self.id,))
         self.actual_owner=p
-        
+
         query="SELECT rand_id FROM scan WHERE id = %s"
         cursor.execute(query,(self.scan_id,))
         s=cursor.dictfetchone()
         if s:
             self.actual_rand_id=s['rand_id']
-        
+
         query="SELECT id FROM defcalls WHERE target=%s AND landing_tick=%s"
         cursor.execute(query,(self.target_id,self.landing_tick))
         s=cursor.dictfetchone()
@@ -253,7 +253,7 @@ class planet:
         retstr+="Idle: %s " % (self.idle,)
         return retstr
         pass
-    
+
     def load_most_recent(self,conn,client,cursor):
         p={}
         if self.x > -1 and self.y > -1 and self.z > -1:
@@ -290,7 +290,7 @@ class planet:
         self.idle=p['idle']
         self.id=p['id']
         return 1
-    
+
 class galaxy:
     def __init__(self,x=-1,y=-1,name=None,size=-1,score=-1,value=-1,id=-1):
         self.x=int(x)
@@ -310,7 +310,7 @@ class galaxy:
 #        self.xp_avg=-1
         self.id=id
         self.members=-1
-        
+
 
     def __str__(self):
         retstr="%s:%s '%s' " % (self.x,self.y,self.name)
@@ -318,9 +318,9 @@ class galaxy:
         retstr+="Value: %s (%s) " % (self.value,self.value_rank)
         retstr+="Size: %s (%s) " % (self.size,self.size_rank)
         retstr+="XP: %s (%s) " % (self.xp,self.xp_rank)
-        return retstr        
+        return retstr
         pass
-    
+
     def load_most_recent(self,conn,client,cursor):
         g={}
         if self.x > 0 and self.y > 0:
@@ -334,7 +334,7 @@ class galaxy:
         if not g:
             return None
         self.x=g['x']
-        self.y=g['y']        
+        self.y=g['y']
         self.name=g['name']
         self.size=g['size']
         self.score=g['score']
@@ -363,7 +363,7 @@ class alliance:
         self.size_avg_rank=-1
 
         self.id=id
-        
+
     def __str__(self):
         retstr="'%s' Members: %s (%s) " % (self.name,self.members,self.members_rank)
         retstr+="Score: %s (%s) Avg: %s (%s) " % (self.score,self.score_rank,self.score_avg,self.score_avg_rank)
@@ -379,7 +379,7 @@ class alliance:
             cursor.execute(query,(self.name,))
 
             #if that doesn't work, load from fuzzy name
-            if cursor.rowcount < 1: 
+            if cursor.rowcount < 1:
                 query="SELECT name,size,members,score,size_rank,members_rank,score_rank,score_avg,size_avg,score_avg_rank,size_avg_rank,id FROM alliance_dump WHERE name ILIKE %s AND tick=(SELECT MAX(tick) FROM updates)"
                 cursor.execute(query,("%"+self.name+"%",))
             pass
@@ -398,39 +398,41 @@ class alliance:
         self.score_avg=a['score_avg']
         self.size_avg=a['size_avg']
         self.score_avg_rank=a['score_avg_rank']
-        self.size_avg_rank=a['size_avg_rank']        
+        self.size_avg_rank=a['size_avg_rank']
         self.id=a['id']
-        return 1    
+        return 1
 
 class user:
-    def __init__(self,id=-1,pnick=None,sponsor=None,userlevel=-1,planet_id=-1,stay=False):
+    def __init__(self,id=-1,pnick=None,sponsor=None,userlevel=-1,planet_id=-1,phone=None,pubphone=False,stay=False):
         self.id=id
         self.pnick=pnick
         self.sponsor=sponsor
         self.userlevel=userlevel
         self.planet_id=planet_id
         self.planet=None
-        self.stay=False
+        self.phone=phone
+        self.pubphone=pubphone
+        self.stay=stay
         self.pref=False
 
 #        if planet_id > 0:
 #            self.planet=planet(id=planet_id)
 #        else:
 #            self.planet=None
-        
+
 
     def load_from_db(self,conn,client,cursor):
         if self.pnick:
-            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.stay AS stay FROM user_list AS t1 WHERE t1.pnick ILIKE %s"
+            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.phone AS phone, t1.pubphone AS pubphone, t1.stay AS stay FROM user_list AS t1 WHERE t1.pnick ILIKE %s"
             cursor.execute(query,(self.pnick,))
         elif self.id > 0:
-            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor,t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.stay AS stay FROM user_list AS t1 WHERE  t1.id=%s"
+            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor,t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.phone AS phone, t1.pubphone AS pubphone, t1.stay AS stay FROM user_list AS t1 WHERE  t1.id=%s"
             cursor.execute(query,(self.pnick,))
         else:
             return None
         u=cursor.dictfetchone()
         if not u and self.pnick:
-            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.stay AS stay FROM user_list AS t1 WHERE t1.pnick ILIKE %s"
+            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.phone AS phone, t1.pubphone AS pubphone, t1.stay AS stay FROM user_list AS t1 WHERE t1.pnick ILIKE %s"
             cursor.execute(query,('%'+self.pnick+'%',))
             u=cursor.dictfetchone()
         if u:
@@ -439,31 +441,35 @@ class user:
             self.sponsor=u['sponsor']
             self.userlevel=u['userlevel']
             self.planet_id=u['planet_id']
+            self.phone=u['phone']
+            self.pubphone=u['pubphone']
             if u['planet_id']:
                 self.planet=planet(id=self.planet_id)
-                self.planet.load_most_recent(conn,client,cursor)                
+                self.planet.load_most_recent(conn,client,cursor)
             else:
                 self.planet=None
             self.stay=u['stay']
             self.pref=True
             return 1
         else:
-            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel FROM user_list AS t1 WHERE t1.pnick ILIKE %s"
+            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.pubphone AS pubphone, t1.phone AS phone FROM user_list AS t1 WHERE t1.pnick ILIKE %s"
             cursor.execute(query,(self.pnick,))
             u=cursor.dictfetchone()
             if u:
                 self.id=u['id']
                 self.pnick=u['pnick']
                 self.sponsor=u['sponsor']
+                self.phone=u['phone']
+                self.pubphone=u['pubphone']
                 self.userlevel=u['userlevel']
                 return 1
         return None
-            
+
 
 class intel:
     def __init__(self,id=None,pid=-1,nick=None,gov=None,bg=None,covop=False,defwhore=False,fakenick=None,alliance=None,reportchan=None,scanner=False,distwhore=False,relay=False,comment=None):
         self.id=id
-        self.pid=pid        
+        self.pid=pid
         self.nick=nick
         self.gov=gov
         self.covop=covop
@@ -491,20 +497,20 @@ class intel:
 
         elif self.nick:
             query+="nick=%s LIMIT 1"
-            cursor.execute(query,("%"+self.nick+"%",))            
+            cursor.execute(query,("%"+self.nick+"%",))
         elif self.fakenick:
             query+="fakenick=%s LIMIT 1"
-            cursor.execute(query,("%"+self.fakenick+"%",))                    
+            cursor.execute(query,("%"+self.fakenick+"%",))
         elif self.comment:
             query+="comment=%s LIMIT 1"
-            cursor.execute(query,("%"+self.comment+"%",))                        
+            cursor.execute(query,("%"+self.comment+"%",))
         i=cursor.dictfetchone()
         if not i:
             return None
         self.id=i['id']
         self.pid=i['pid']
         self.nick=i['nick']
-        self.gov=i['gov'] 
+        self.gov=i['gov']
         self.defwhore=i['defwhore'] and True or False
         self.bg=i['bg']
         self.covop=i['covop'] and True or False
@@ -531,21 +537,21 @@ class intel:
         if self.bg:
             retlist.append("bg=%s"%(self.bg,))
         if self.covop:
-            retlist.append("covop=%s"%(self.covop,))   
+            retlist.append("covop=%s"%(self.covop,))
         if self.alliance:
             retlist.append("alliance=%s"%(self.alliance,))
         if self.relay:
             retlist.append("relay=%s"%(self.relay,))
         if self.reportchan:
-            retlist.append("reportchan=%s"%(self.reportchan,))               
+            retlist.append("reportchan=%s"%(self.reportchan,))
         if self.scanner:
-            retlist.append("scanner=%s"%(self.scanner,))                        
+            retlist.append("scanner=%s"%(self.scanner,))
         if self.distwhore:
-            retlist.append("distwhore=%s"%(self.distwhore,))                        
+            retlist.append("distwhore=%s"%(self.distwhore,))
         if self.comment:
-            retlist.append("comment=%s"%(self.comment,))                        
+            retlist.append("comment=%s"%(self.comment,))
 
-        
+
         return string.join(retlist)
 
     def change_list(self):
@@ -561,20 +567,20 @@ class intel:
         if self.bg:
             retlist.append("bg=%s")
         if self.covop:
-            retlist.append("covop=%s") 
+            retlist.append("covop=%s")
         if self.alliance:
             retlist.append("alliance=%s")
         if self.relay:
             retlist.append("relay=%s")
         if self.reportchan:
-            retlist.append("reportchan=%s")                             
+            retlist.append("reportchan=%s")
         if self.scanner:
-            retlist.append("scanner=%s")                        
+            retlist.append("scanner=%s")
         if self.distwhore:
-            retlist.append("distwhore=%s")                        
+            retlist.append("distwhore=%s")
         if self.comment:
-            retlist.append("comment=%s")                        
-        
+            retlist.append("comment=%s")
+
         return string.join(retlist)
 
     def change_tuple(self):
@@ -603,11 +609,11 @@ class intel:
             rettup+=(self.distwhore,)
         if self.comment:
             rettup+=(self.comment,)
-        
+
         return rettup
 
     def is_empty(self):
-        
+
         if self.nick:
             return 0
         if self.fakenick:
@@ -627,7 +633,7 @@ class intel:
         if self.reportchan:
             return 0
         if self.scanner:
-            return 0 
+            return 0
         if self.distwhore:
             return 0
         if self.comment:
@@ -664,5 +670,3 @@ class booking:
         else:
             return None
         return None
-
-

@@ -76,7 +76,7 @@ class prod(loadable.loadable):
         required = 2 * math.sqrt(cost) * ln(cost)
         
         # For the gay cost bonus of feudalism
-        feud_required = 2 * math.sqrt(cost * 0.85) * ln(cost * 0.85)
+        feud_required = 2 * math.sqrt(cost * 0.86) * ln(cost * 0.86)
         
         output = int((4000 * factories) ** 0.98)
 

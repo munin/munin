@@ -99,7 +99,7 @@ class rprod(loadable.loadable):
         
         res = int(self.revprod(ticks, factories))
         ships = int(res / ship['total_cost'])
-        feud_ships = int(res / ((ship['total_cost'] * 0.85) / 1.2))
+        feud_ships = int(res / ((ship['total_cost'] * 0.86) / 1.2))
         
         self.client.reply(prefix, nick, target,
         "You can build %s %s (%s) in %d ticks, or \

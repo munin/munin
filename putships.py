@@ -7,6 +7,7 @@ import ConfigParser
 import psycopg
 import urllib2
 import re
+import sys
 
 QUERY = """
 INSERT INTO ship(%s)
@@ -26,9 +27,8 @@ mapping = {"Fi": "Fighter",
            "Zik": "Zikonian",
            "Xan": "Xandathrii"}
 
-keys = ['name', 'class', 'target_1', 'target_2', 'target_3', 'type', 'init',
-        'gun', 'armor', 'damage', 'empres', 'metal', 'crystal', 'eonium',
-        'race']
+keys = ['race', 'name', 'class', 'target_1', 'target_2', 'target_3', 'type', 'init',
+        'gun', 'armor', 'damage', 'empres', 'metal', 'crystal', 'eonium']
 
 regex = r'^<tr class="(Ter|Cath|Xan|Zik|Etd)">.+?(\w+)</td>' # race & name
 regex += r'<td>(\w+)</td>' # class
@@ -57,6 +57,7 @@ def main(url="http://game.planetarion.com/manual.php?page=stats"):
     stats = urllib2.urlopen(url).read()
 
     for line in sre.findall(stats):
+        line = list(line)
         ship = {}
         for index, key in enumerate(keys):
             if line[index] in mapping:

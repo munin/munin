@@ -59,6 +59,9 @@ class addchan(loadable.loadable):
             self.cursor.execute(query,(chan,access_lvl,access_lvl))
             if self.cursor.rowcount>0:
                 self.client.reply(prefix,nick,target,"Added chan %s at level %s" % (chan,access_lvl))
+                self.client.privmsg('P',"set %s autoinvite on" %(chan,));
+                self.client.privmsg('P',"invite %s" %(chan,));
+                        
         except psycopg.IntegrityError:
             self.client.reply(prefix,nick,target,"Channel %s already exists" % (chan,))
             return 0

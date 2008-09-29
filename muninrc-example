@@ -33,6 +33,8 @@ dbname: BankOfNorway
 user: MrPresident
 # Uncomment password if you have to use one to give one to connect.
 #password: EasyToGuessHaha
+# Uncomment host if the db is running on a different host
+#host: whitehouse.gov
 [Url]
 # Don't change these unless they actually change in reality.
 # This is where Hugin finds the data it puts in the database.

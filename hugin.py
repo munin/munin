@@ -44,6 +44,8 @@ DSN = "dbname=%s user=%s" % (config.get("Database", "dbname"),
                              config.get("Database", "user"))
 if config.has_option('Database', 'password'):
     DSN += ' password=%s' % config.get('Database', 'password')
+if config.has_option('Database', 'host'):
+    DSN += ' host=%s' % config.get('Database', 'host')
 
 t_start=time.time()
 t1=t_start

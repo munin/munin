@@ -57,6 +57,8 @@ class parser:
         self.dsn = 'user=%s dbname=%s' % (self.user, self.dbname)
         if config.has_option("Database", "password"):
             self.dsn += ' password=%s' % config.get("Database", "password")
+        if config.has_option("Database", "host"):
+            self.dsn += ' host=%s' % config.get("Database", "host")
         # database connection and cursor
         self.conn=psycopg.connect(self.dsn)
         self.conn.serialize()

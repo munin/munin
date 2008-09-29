@@ -49,6 +49,8 @@ def main(url="http://game.planetarion.com/manual.php?page=stats"):
                                  config.get('Database', 'user'))
     if config.has_option('Database', 'password'):
         DSN += ' password=%s' % config.get('Database', 'password')
+    if config.has_option('Database', 'host'):
+        DSN += ' host=%s' % config.get('Database', 'host')
     connection = psycopg.connect(DSN)
     cursor = connection.cursor()
 

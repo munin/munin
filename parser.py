@@ -34,6 +34,7 @@ import math
 import loadable
 import scan
 import galstatus
+import datetime
 
 DEBUG = 1
 

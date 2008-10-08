@@ -22,18 +22,19 @@
 import re,traceback,loadable
 
 class galstatus:
-    def __init__(self, client,conn,cursor):
+    def __init__(self,client,conn,cursor,config):
         self.client=client
         self.conn=conn
         self.cursor=cursor
         self.statusre=re.compile(r"(\d+):(\d+):(\d+)\*?\s+(\d+):(\d+):(\d+)\s+(.*?)\s+((Xan|Ter|Cat|Zik|Etd)\s+)?(\d+)\s+(Return|Attack|Defend)\s+(\d+)")
+        self.config = config
 
     def parse(self,message,nick,pnick,target):
         try:
             self.unsafe_method(message,nick,pnick,target)
         except Exception, e:
             print "Exception in galstatus: "+e.__str__()
-            self.client.privmsg('jesterina',"Exception in galstatus: "+e.__str__())
+            self.client.privmsg(self.config.get("Auth", "owner_nick"),"Exception in galstatus: "+e.__str__())
             traceback.print_exc()
 
     def report_incoming(self,target,message,reporter,source):
@@ -42,12 +43,12 @@ class galstatus:
             print "planet %s:%s:%s not in intel"%(target.x,target.y,target.z)
             return
         
-        if i.alliance and i.alliance.lower() == 'ascendancy' and source != "#ascendancy" and not (i.relay and i.reportchan != "#ascendancy"):
+        if i.alliance and i.alliance.lower() == self.config.get("Auth", "alliance").lower() and source != "#"+self.config.get("Auth", "home") and not (i.relay and i.reportchan != "#"+self.config.get("Auth", "home")):
             reply="%s reports: " % (reporter,)
             if i.nick:
                 reply+=i.nick + " -> "
             reply+=message
-            self.client.privmsg("#ascendancy",reply)
+            self.client.privmsg("#"+self.config.get("Auth", "home"),reply)
             return
         
         if i.relay and i.reportchan and source != i.reportchan:

@@ -66,7 +66,7 @@ class parser:
         self.conn.autocommit()
         self.cursor=self.conn.cursor()
 
-        self.galstatus=galstatus.galstatus(self.client,self.conn,self.cursor)
+        self.galstatus=galstatus.galstatus(self.client,self.conn,self.cursor,config)
 
         # Necessary regexps (still private)
         self.welcomre=re.compile(r"\S+\s+001.*",re.I)

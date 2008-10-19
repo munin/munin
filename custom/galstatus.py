@@ -37,25 +37,22 @@ class galstatus:
             self.client.privmsg(self.config.get("Auth", "owner_nick"),"Exception in galstatus: "+e.__str__())
             traceback.print_exc()
 
-    def report_incoming(self,target,message,reporter,source):
+    def report_incoming(self,target,owner,message,reporter,source):
         i=loadable.intel(pid=target.id)
         if not i.load_from_db(self.conn,self.client,self.cursor):
             print "planet %s:%s:%s not in intel"%(target.x,target.y,target.z)
             return
-        
+        reply="%s reports: " % (reporter,)
+        if i.nick:
+            reply+=i.nick + " -> "
+        reply+=" (xp: %s) " % (owner.xp(target),)
+        reply+=message
+
         if i.alliance and i.alliance.lower() == self.config.get("Auth", "alliance").lower() and source != "#"+self.config.get("Auth", "home") and not (i.relay and i.reportchan != "#"+self.config.get("Auth", "home")):
-            reply="%s reports: " % (reporter,)
-            if i.nick:
-                reply+=i.nick + " -> "
-            reply+=message
             self.client.privmsg("#"+self.config.get("Auth", "home"),reply)
             return
         
         if i.relay and i.reportchan and source != i.reportchan:
-            reply="%s reports: " % (reporter,)
-            if i.nick:
-                reply+=i.nick + " -> "
-            reply+=message
             self.client.privmsg(i.reportchan,reply)
         else:
             print "planet not set to relay (%s) or report (%s) or report is source (%s)"%(i.relay,i.reportchan,source)
@@ -90,11 +87,13 @@ class galstatus:
         if not target.load_most_recent(self.conn, 0 ,self.cursor):
             return
 
-        self.report_incoming(target,message,nick,source)
-
         owner=loadable.planet(owner_x,owner_y,owner_z)
         if not owner.load_most_recent(self.conn, 0 ,self.cursor):
             return
+
+        self.report_incoming(target,owner,message,nick,source)
+
+
         self.cursor.execute("SELECT max_tick() AS max_tick")
         curtick=self.cursor.dictfetchone()['max_tick']
 

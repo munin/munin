@@ -28,7 +28,7 @@ Loadable.Loadable subclass
 
 class invite(loadable.loadable):
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,1000)
+        loadable.loadable.__init__(self,client,conn,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(\S+)")
         self.usage=self.__class__.__name__ + " <gimp>"

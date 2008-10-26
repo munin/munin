@@ -37,7 +37,7 @@ class galstatus:
             self.client.privmsg(self.config.get("Auth", "owner_nick"),"Exception in galstatus: "+e.__str__())
             traceback.print_exc()
 
-    def report_incoming(self,target,owner,message,reporter,source):
+    def report_incoming(self,target,owner,message,reporter,source,landing_tick):
         i=loadable.intel(pid=target.id)
         if not i.load_from_db(self.conn,self.client,self.cursor):
             print "planet %s:%s:%s not in intel"%(target.x,target.y,target.z)
@@ -45,14 +45,19 @@ class galstatus:
         reply="%s reports: " % (reporter,)
         if i.nick:
             reply+=i.nick + " -> "
-        reply+=" (xp: %s) " % (owner.xp(target),)
-        reply+=message
+        reply+=" (xp: %s" % (owner.xp(target),)
 
         if i.alliance and i.alliance.lower() == self.config.get("Auth", "alliance").lower() and source != "#"+self.config.get("Auth", "home") and not (i.relay and i.reportchan != "#"+self.config.get("Auth", "home")):
+            d = self.get_defcall(target.id, landing_tick)
+            reply+=", d: %s)" % (d['id'],)
+            reply+=message
             self.client.privmsg("#"+self.config.get("Auth", "home"),reply)
             return
+
         
+
         if i.relay and i.reportchan and source != i.reportchan:
+            reply+=message
             self.client.privmsg(i.reportchan,reply)
         else:
             print "planet not set to relay (%s) or report (%s) or report is source (%s)"%(i.relay,i.reportchan,source)
@@ -90,17 +95,24 @@ class galstatus:
         owner=loadable.planet(owner_x,owner_y,owner_z)
         if not owner.load_most_recent(self.conn, 0 ,self.cursor):
             return
-
-        self.report_incoming(target,owner,message,nick,source)
-
-
+        
         self.cursor.execute("SELECT max_tick() AS max_tick")
         curtick=self.cursor.dictfetchone()['max_tick']
-
+        landing_tick = int(eta) + int(cursor)
+            
         query="INSERT INTO fleet(owner_id,target,fleet_size,fleet_name,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s)"
-        
         try:
-            self.cursor.execute(query,(owner.id,target.id,fleetsize,fleetname,int(eta)+int(curtick),mission.lower()))
+            self.cursor.execute(query,(owner.id,target.id,fleetsize,fleetname,landing_tick,mission.lower()))
         except Exception,e:
             print "Exception in galstatus: "+e.__str__()
             traceback.print_exc()
+
+        self.report_incoming(target,owner,message,nick,source,landing_tick)
+
+    def get_defcall(self, target_id, landing_tick):
+        query="SELECT id FROM defcalls"
+        query+="WHERE target = %s AND landing_tick = %s"
+
+        self.cursor.execute(query,(target_id, landing_tick))
+
+        return self.cursor.dictfetchone()

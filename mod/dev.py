@@ -23,10 +23,13 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
-# Nothing ascendancy/jester specific in this module.
+# Nothing ascendancy/jester specific (aside from infrajerome.)
 # qebab, 24/6/08.
 
-class surface(loadable.loadable):
+class dev(loadable.loadable):
+    """
+    foo
+    """
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,50)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
@@ -64,22 +67,24 @@ class surface(loadable.loadable):
                 self.client.reply(prefix,nick,target,"No planet matching '%s' found"%(param,))
                 return 1
             
-            query="SELECT t2.id AS id,tick,nick,scantype,rand_id,light_factory,medium_factory,heavy_factory,wave_amplifier,wave_distorter"
-            query+=",metal_refinery,crystal_refinery,eonium_refinery,research_lab,finance_centre,security_centre"
-            query+=" FROM scan AS t1 INNER JOIN structure AS t2 ON t1.id=t2.scan_id"
+            query="SELECT t2.id AS id,tick,nick,scantype,rand_id,travel,infrastructure,hulls,waves,core,covert_op,mining"
+            query+=",light_factory,medium_factory,heavy_factory,wave_amplifier,wave_distorter"
+            query+=" FROM scan AS t1 INNER JOIN development AS t2 ON t1.id=t2.scan_id"
             query+=" WHERE t1.pid=%s ORDER BY tick DESC"
             self.cursor.execute(query,(p.id,))
                 
             if self.cursor.rowcount < 1:
-                reply+="No surface scans available on %s:%s:%s" % (p.x,p.y,p.z)
+                reply+="No dev scans available on %s:%s:%s" % (p.x,p.y,p.z)
             else:
                 s=self.cursor.dictfetchone()
-                query="SELECT light_factory+medium_factory+heavy_factory+wave_amplifier+wave_distorter+metal_refinery+crystal_refinery+eonium_refinery+research_lab+finance_centre+security_centre AS total FROM structure WHERE id=%s"
-                self.cursor.execute(query,(s['id'],))
-                total=self.cursor.dictfetchone()['total']
-                reply+="Newest surface scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,p.y,p.z,s['rand_id'],s['tick'])
-                #reply+=" Roids: (m:%s, c:%s, e:%s) | Resources: (m:%s, c:%s, e:%s)" % (s['roid_metal'],s['roid_crystal'],s['roid_eonium'],s['res_metal'],s['res_crystal'],s['res_eonium'])
-                reply+=" LFac: %s, MFac: %s, HFac: %s, Amp: %s, Dist: %s, MRef: %s, CRef: %s, ERef: %s, ResLab: %s (%s%%), FC: %s, Sec: %s (%s%%) " % (s['light_factory'],s['medium_factory'],
+                reply+="Newest development scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,p.y,p.z,s['rand_id'],s['tick'])
+                reply+=" Travel: %s, Infrajerome: %s, Hulls: %s, Waves: %s, Core: %s, Covop: %s, Mining: %s"%(s['travel'],self.infra(s['infrastructure']),self.hulls(s['hulls']),
+                                                                                                              self.waves(s['waves']),s['core'],self.covop(s['covert_op']),
+                                                                                                              self.mining(s['mining']))
+
+                
+                self.client.reply(prefix,nick,target,reply)
+                reply=" LFac: %s, MFac: %s, HFac: %s, Amp: %s, Dist: %s, MRef: %s, CRef: %s, ERef: %s, ResLab: %s (%s%%), FC: %s, Sec: %s (%s%%) " % (s['light_factory'],s['medium_factory'],
                                                                                                                                                        s['heavy_factory'],s['wave_amplifier'],
                                                                                                                                                        s['wave_distorter'],s['metal_refinery'],
                                                                                                                                                        s['crystal_refinery'],s['eonium_refinery'],
@@ -87,7 +92,7 @@ class surface(loadable.loadable):
                                                                                                                                                        int(float(s['research_lab'])/total*100),
                                                                                                                                                        s['finance_centre'],
                                                                                                                                                        s['security_centre'],
-                                                                                                                                                       int(float(s['security_centre'])/total*100))
+                                                                                                                                                       int(float(s['security_centre'])/total*100))                
                 i=0
                 reply+=" Older scans: "
                 prev=[]
@@ -105,25 +110,23 @@ class surface(loadable.loadable):
                 return 0
 
             rand_id=m.group(1)
-            #query="SELECT x,y,z,t1.tick AS tick,nick,scantype,rand_id,timestamp,roid_metal,roid_crystal,roid_eonium,res_metal,res_crystal,res_eonium"
-            query="SELECT x,y,z,t2.id AS id,t1.tick AS tick,nick,scantype,rand_id,light_factory,medium_factory,heavy_factory,wave_amplifier,wave_distorter"
-            query+=",metal_refinery,crystal_refinery,eonium_refinery,research_lab,finance_centre,security_centre"            
-            query+=" FROM scan AS t1 INNER JOIN structure AS t2 ON t1.id=t2.scan_id"
+            query="SELECT t2.id AS id,tick,nick,scantype,rand_id,travel,infrastructure,hulls,waves,core,covert_op,mining"
+            query+=",light_factory,medium_factory,heavy_factory,wave_amplifier,wave_distorter"
+            query+=" FROM scan AS t1 INNER JOIN development AS t2 ON t1.id=t2.scan_id"
             query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
             query+=" WHERE t3.tick=(SELECT MAX(tick) FROM updates) AND t1.rand_id=%s ORDER BY tick DESC"
             self.cursor.execute(query,(rand_id,))
         
             if self.cursor.rowcount < 1:
-                reply+="No surface scans matching ID %s" % (rand_id,)
+                reply+="No dev scans matching ID %s" % (rand_id,)
             else:
                 s=self.cursor.dictfetchone()
-                query="SELECT light_factory+medium_factory+heavy_factory+wave_amplifier+wave_distorter+metal_refinery+crystal_refinery+eonium_refinery+research_lab+finance_centre+security_centre AS total FROM structure WHERE id=%s"
-                self.cursor.execute(query,(s['id'],))
-                total=self.cursor.dictfetchone()['total']                
-                reply+="Surface scan on %s:%s:%s (id: %s, pt: %s)" % (s['x'],s['y'],s['z'],s['rand_id'],s['tick'])
-                #reply+=" Roids: (m:%s, c:%s, e:%s) | Resources: (m:%s, c:%s, e:%s)" % (s['roid_metal'],s['roid_crystal'],s['roid_eonium'],s['res_metal'],s['res_crystal'],s['res_eonium'])
-                
-                reply+=" LFac: %s, MFac: %s, HFac: %s, Amp: %s, Dist: %s, MRef: %s, CRef: %s, ERef: %s, ResLab: %s (%s%%), FC: %s, Sec: %s (%s%%) " % (s['light_factory'],s['medium_factory'],
+                reply+="Development scan on %s:%s:%s (id: %s, pt: %s)" % (s['x'],s['y'],s['z'],s['rand_id'],s['tick'])
+                reply+=" Travel: %s, Infrajerome: %s, Hulls: %s, Waves: %s, Core: %s, Covop: %s, Mining: %s"%(s['travel'],self.infra(s['infrastructure']),self.hulls(s['hulls']),
+                                                                                                              self.waves(s['waves']),s['core'],self.covop(s['covert_op']),
+                                                                                                              self.mining(s['mining']))
+                self.client.reply(prefix,nick,target,reply)
+                reply=" LFac: %s, MFac: %s, HFac: %s, Amp: %s, Dist: %s, MRef: %s, CRef: %s, ERef: %s, ResLab: %s (%s%%), FC: %s, Sec: %s (%s%%) " % (s['light_factory'],s['medium_factory'],
                                                                                                                                                        s['heavy_factory'],s['wave_amplifier'],
                                                                                                                                                        s['wave_distorter'],s['metal_refinery'],
                                                                                                                                                        s['crystal_refinery'],s['eonium_refinery'],
@@ -131,11 +134,103 @@ class surface(loadable.loadable):
                                                                                                                                                        int(float(s['research_lab'])/total*100),
                                                                                                                                                        s['finance_centre'],
                                                                                                                                                        s['security_centre'],
-                                                                                                                                                       int(float(s['security_centre'])/total*100))
+                                                                                                                                                       int(float(s['security_centre'])/total*100))                
+                
         self.client.reply(prefix,nick,target,reply)
         
-                       
-
-        # do stuff here
-
         return 1
+
+    def infra(self,level):
+        if level==0:
+            return "10 constructions"
+        if level==1:
+            return "20 constructions"
+        if level==2:
+            return "50 constructions"
+        if level==3:
+            return "100 constructions"        
+        if level==4:
+            return "150 constructions"                
+
+    def hulls(self,level):
+        if level==1:
+            return "FI/CO"
+        if level==2:
+            return "FR/DE"
+        if level==3:
+            return "CR/BS"
+
+    def waves(self,level):
+        if level==0:
+            return "Planet"
+        if level==1:
+            return "Surface"
+        if level==2:
+            return "Technology"
+        if level==3:
+            return "Unit"
+        if level==4:
+            return "News"
+        if level==5:
+            return "Fleet"
+        if level==6:
+            return "JGP"
+        if level==7:
+            return "Advanced Unit"
+
+    def covop(self,level):
+        if level==0:
+            return "Research Hack"
+        if level==1:
+            return "Raise Stealth"
+        if level==2:
+            return "Blow up roids"
+        if level==3:
+            return "Blow up shits"
+        if level==4:
+            return "Blow up Amps/Dists"
+        if level==5:
+            return "Resource hacking (OMG!)"
+        if level==6:
+            return "Blow up Strucs"
+        
+
+    def mining(self,level):
+        level+=1
+        
+        if level==0:
+            return "50 roids"
+        if level==1:
+            return "100 roids (scanner!)"
+        if level==2:
+            return "200 roids"
+        if level==3:
+            return "300 roids"
+        if level==4:
+            return "500 roids"
+        if level==5:
+            return "750 roids"
+        if level==6:
+            return "1k roids"
+        if level==7:
+            return "1250 roids"
+        if level==8:
+            return "1500 roids"
+        if level==9:
+            return "Jan 1. 1900"
+        if level==10:
+            return "2500 roids"
+        if level==11:
+            return "3000 roids"
+        if level==12:
+            return "3500 roids"
+        if level==13:
+            return "4500 roids"
+        if level==14:
+            return "5500 roids"
+        if level==15:
+            return "6500 roids"
+        if level==16:
+            return "8000 roids"
+        if level==17:
+            return "top10 or dumb"

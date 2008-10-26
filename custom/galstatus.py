@@ -45,11 +45,11 @@ class galstatus:
         reply="%s reports: " % (reporter,)
         if i.nick:
             reply+=i.nick + " -> "
-        reply+=" (xp: %s" % (owner.xp(target),)
+        reply+=" (xp: %s" % (owner.calc_xp(target),)
 
         if i.alliance and i.alliance.lower() == self.config.get("Auth", "alliance").lower() and source != "#"+self.config.get("Auth", "home") and not (i.relay and i.reportchan != "#"+self.config.get("Auth", "home")):
             d = self.get_defcall(target.id, landing_tick)
-            reply+=", d: %s)" % (d['id'],)
+            reply+=", d: %s) " % (d['id'],)
             reply+=message
             self.client.privmsg("#"+self.config.get("Auth", "home"),reply)
             return
@@ -98,7 +98,7 @@ class galstatus:
         
         self.cursor.execute("SELECT max_tick() AS max_tick")
         curtick=self.cursor.dictfetchone()['max_tick']
-        landing_tick = int(eta) + int(cursor)
+        landing_tick = int(eta) + int(curtick)
             
         query="INSERT INTO fleet(owner_id,target,fleet_size,fleet_name,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s)"
         try:
@@ -111,7 +111,7 @@ class galstatus:
 
     def get_defcall(self, target_id, landing_tick):
         query="SELECT id FROM defcalls"
-        query+="WHERE target = %s AND landing_tick = %s"
+        query+=" WHERE target = %s AND landing_tick = %s"
 
         self.cursor.execute(query,(target_id, landing_tick))
 

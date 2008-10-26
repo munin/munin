@@ -291,12 +291,11 @@ class planet:
         self.id=p['id']
         return 1
     
-    def xp(self,victim):
+    def calc_xp(self,victim):
         bravery = max(0,(min(2,float(victim.value)/self.value)-0.1 ) * (min(2,float(victim.score)/self.score)-0.2))
         bravery *= 10
-        return int(bravery*roid_count)
+        return int(bravery*int(victim.size*0.25))
 
-bravery_factor = (min(2,target_planet_score/your_planet_score) -0.2) * (min(2,target_planet_value/your_planet_value) - 0.1)
 
 
 class galaxy:

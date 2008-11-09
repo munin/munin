@@ -294,7 +294,7 @@ CREATE TABLE scan (
 	pnick VARCHAR(15) ,
 	rand_id bigint NOT NULL,
         group_id bigint,
-	scantype VARCHAR(10) NOT NULL CHECK(scantype in ('unknown','planet','development','unit','news','jgp','fleet','au')),
+	scantype VARCHAR(11) NOT NULL CHECK(scantype in ('unknown','planet','development','unit','news','jgp','fleet','au')),
 	UNIQUE(rand_id,tick)
 );
 
@@ -321,6 +321,7 @@ CREATE TABLE planet (
 	guards integer NOT NULL
 );
 
+
 CREATE TABLE development (
 	id serial PRIMARY KEY,
 	scan_id bigint NOT NULL REFERENCES scan(id),
@@ -334,7 +335,7 @@ CREATE TABLE development (
 	eonium_refinery smallint NOT NULL,
 	research_lab smallint NOT NULL,
 	finance_centre smallint NOT NULL,
-	security_centre smallint NOT NULL
+	security_centre smallint NOT NULL,
 	travel smallint NOT NULL,
 	infrastructure smallint NOT NULL,
 	hulls smallint NOT NULL,

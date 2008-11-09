@@ -394,7 +394,7 @@ class scan(threading.Thread):
         query+=",research_lab,finance_centre,security_centre"
         query+=",travel,infrastructure,hulls,waves,core,covert_op,mining)"
         query+=" VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-        self.cursor.execute(query,)
+        self.cursor.execute(query,args)
         
         print 'Development: '+x+':'+y+':'+z
 

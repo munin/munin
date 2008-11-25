@@ -70,7 +70,7 @@ class getanewdaddy(loadable.loadable):
 
         # do stuff here
 
-        if idiot.sponsor.lower() != voter.pnick.lower() and access < 1000:
+        if access < 1000 and idiot.sponsor.lower() != voter.pnick.lower():
             reply="You are not %s's sponsor"%(idiot.pnick,)
             self.client.reply(prefix,nick,target,reply)
             return 1

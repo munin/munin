@@ -157,9 +157,8 @@ class intel(loadable.loadable):
     def exec_gal(self,nick,username,host,target,prefix,command,user,access,x,y):
         query="SELECT t2.id AS id, t1.id AS pid, t1.x AS x, t1.y AS y, t1.z AS z, t2.nick AS nick, t2.fakenick AS fakenick, t2.defwhore AS defwhore, t2.gov AS gov, t2.bg AS bg, t2.covop AS covop, t2.alliance_id AS alliance_id, t2.relay AS relay, t2.reportchan AS reportchan, t2.scanner AS scanner, t2.distwhore AS distwhore, t2.comment AS comment, t3.name AS alliance FROM planet_dump as t1, intel as t2 LEFT JOIN alliance_canon AS t3 ON t2.alliance_id=t3.id WHERE tick=(SELECT MAX(tick) FROM updates) AND t1.id=t2.pid AND x=%s AND y=%s ORDER BY y,z,x"
         self.cursor.execute(query,(x,y))
-        if self.cursor.rowcount < 1:
-            self.client.reply(prefix,nick,target,"No information stored for galaxy %s:%s" % (x,y))
-            return 1
+
+        replied_to_request = False
         for d in self.cursor.dictfetchall():
             x=d['x']
             y=d['y']
@@ -168,7 +167,11 @@ class intel(loadable.loadable):
                              covop=d['covop'],alliance=d['alliance'],relay=d['relay'],reportchan=d['reportchan'],
                              scanner=d['scanner'],distwhore=d['distwhore'],comment=d['comment'])
             if not i.is_empty():
+                replied_to_request = True
                 reply="Information stored for %s:%s:%s - "% (x,y,z)
                 reply+=i.__str__()
-                self.client.reply(prefix,nick,target,reply)            
+                self.client.reply(prefix,nick,target,reply)
+
+        if not replied_to_request:
+            self.client.reply(prefix,nick,target,"No information stored for galaxy %s:%s" % (x,y))
         return 1

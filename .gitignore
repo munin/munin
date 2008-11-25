@@ -2,3 +2,7 @@
 mod/*.pyc
 custom/*.pyc
 muninrc
+botlog
+pid.*
+TAGS
+*~

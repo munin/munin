@@ -290,6 +290,13 @@ class planet:
         self.idle=p['idle']
         self.id=p['id']
         return 1
+    
+    def calc_xp(self,victim):
+        bravery = max(0,(min(2,float(victim.value)/self.value)-0.1 ) * (min(2,float(victim.score)/self.score)-0.2))
+        bravery *= 10
+        return int(bravery*int(victim.size*0.25))
+
+
 
 class galaxy:
     def __init__(self,x=-1,y=-1,name=None,size=-1,score=-1,value=-1,id=-1):

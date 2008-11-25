@@ -26,7 +26,7 @@ Loadable.Loadable subclass
 # Nothing ascendancy/jester specific (aside from infrajerome.)
 # qebab, 24/6/08.
 
-class tech(loadable.loadable):
+class dev(loadable.loadable):
     """
     foo
     """
@@ -67,19 +67,43 @@ class tech(loadable.loadable):
                 self.client.reply(prefix,nick,target,"No planet matching '%s' found"%(param,))
                 return 1
             
-            query="SELECT t2.id AS id,tick,nick,scantype,rand_id,travel,infrastructure,hulls,waves,core,covert_op,mining"
-            query+=" FROM scan AS t1 INNER JOIN technology AS t2 ON t1.id=t2.scan_id"
-            query+=" WHERE t1.pid=%s ORDER BY tick DESC"
+            query="SELECT t2.id AS id,t1.tick,nick,scantype,rand_id,travel,infrastructure,hulls,waves,core,covert_op,mining"
+            query+=",light_factory,medium_factory,heavy_factory,wave_amplifier,wave_distorter"
+            query+=",metal_refinery,crystal_refinery,eonium_refinery,research_lab,finance_centre,security_centre"
+            query+=" FROM scan AS t1 INNER JOIN development AS t2 ON t1.id=t2.scan_id"
+            query+=" WHERE t1.pid=%s ORDER BY t1.tick DESC"
             self.cursor.execute(query,(p.id,))
                 
             if self.cursor.rowcount < 1:
-                reply+="No tech scans available on %s:%s:%s" % (p.x,p.y,p.z)
+                reply+="No dev scans available on %s:%s:%s" % (p.x,p.y,p.z)
             else:
                 s=self.cursor.dictfetchone()
-                reply+="Newest tech scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,p.y,p.z,s['rand_id'],s['tick'])
+
+                query="SELECT light_factory+medium_factory+heavy_factory+wave_amplifier+wave_distorter"
+                query+="+metal_refinery+crystal_refinery+eonium_refinery+research_lab+finance_centre+security_centre"
+                query+=" AS total FROM development WHERE id=%s"
+                
+                self.cursor.execute(query,(s['id'],))
+                total=self.cursor.dictfetchone()['total']
+
+                
+                reply+="Newest development scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,p.y,p.z,s['rand_id'],s['tick'])
                 reply+=" Travel: %s, Infrajerome: %s, Hulls: %s, Waves: %s, Core: %s, Covop: %s, Mining: %s"%(s['travel'],self.infra(s['infrastructure']),self.hulls(s['hulls']),
                                                                                                               self.waves(s['waves']),s['core'],self.covop(s['covert_op']),
                                                                                                               self.mining(s['mining']))
+
+
+
+                self.client.reply(prefix,nick,target,reply)
+                reply="Structures: LFac: %s, MFac: %s, HFac: %s, Amp: %s, Dist: %s, MRef: %s, CRef: %s, ERef: %s, ResLab: %s (%s%%), FC: %s, Sec: %s (%s%%) " % (s['light_factory'],s['medium_factory'],
+                                                                                                                                                       s['heavy_factory'],s['wave_amplifier'],
+                                                                                                                                                       s['wave_distorter'],s['metal_refinery'],
+                                                                                                                                                       s['crystal_refinery'],s['eonium_refinery'],
+                                                                                                                                                       s['research_lab'],
+                                                                                                                                                       int(float(s['research_lab'])/total*100),
+                                                                                                                                                       s['finance_centre'],
+                                                                                                                                                       s['security_centre'],
+                                                                                                                                                       int(float(s['security_centre'])/total*100))                
                 i=0
                 reply+=" Older scans: "
                 prev=[]
@@ -97,20 +121,40 @@ class tech(loadable.loadable):
                 return 0
 
             rand_id=m.group(1)
-            query="SELECT x,y,z,t2.id AS id,t1.tick AS tick,nick,scantype,rand_id,travel,infrastructure,hulls,waves,core,covert_op,mining"
-            query+=" FROM scan AS t1 INNER JOIN technology AS t2 ON t1.id=t2.scan_id"
+            query="SELECT t2.id AS id,t1.tick,nick,scantype,rand_id,travel,infrastructure,hulls,waves,core,covert_op,mining"
+            query+=",light_factory,medium_factory,heavy_factory,wave_amplifier,wave_distorter"
+            query+="+metal_refinery+crystal_refinery+eonium_refinery+research_lab+finance_centre+security_centre"
+            query+=" FROM scan AS t1 INNER JOIN development AS t2 ON t1.id=t2.scan_id"
             query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
-            query+=" WHERE t3.tick=(SELECT MAX(tick) FROM updates) AND t1.rand_id=%s ORDER BY tick DESC"
+            query+=" WHERE t3.tick=(SELECT MAX(tick) FROM updates) AND t1.rand_id=%s ORDER BY t1.tick DESC"
             self.cursor.execute(query,(rand_id,))
         
             if self.cursor.rowcount < 1:
-                reply+="No tech scans matching ID %s" % (rand_id,)
+                reply+="No dev scans matching ID %s" % (rand_id,)
             else:
                 s=self.cursor.dictfetchone()
-                reply+="Tech scan on %s:%s:%s (id: %s, pt: %s)" % (s['x'],s['y'],s['z'],s['rand_id'],s['tick'])
+
+                query="SELECT light_factory+medium_factory+heavy_factory+wave_amplifier+wave_distorter"
+                query+="+metal_refinery+crystal_refinery+eonium_refinery+research_lab+finance_centre+security_centre"
+                query+=" AS total FROM development WHERE id=%s"
+                
+                self.cursor.execute(query,(s['id'],))
+                total=self.cursor.dictfetchone()['total']
+                
+                reply+="Development scan on %s:%s:%s (id: %s, pt: %s)" % (s['x'],s['y'],s['z'],s['rand_id'],s['tick'])
                 reply+=" Travel: %s, Infrajerome: %s, Hulls: %s, Waves: %s, Core: %s, Covop: %s, Mining: %s"%(s['travel'],self.infra(s['infrastructure']),self.hulls(s['hulls']),
                                                                                                               self.waves(s['waves']),s['core'],self.covop(s['covert_op']),
                                                                                                               self.mining(s['mining']))
+                self.client.reply(prefix,nick,target,reply)
+                reply="Surface: LFac: %s, MFac: %s, HFac: %s, Amp: %s, Dist: %s, MRef: %s, CRef: %s, ERef: %s, ResLab: %s (%s%%), FC: %s, Sec: %s (%s%%) " % (s['light_factory'],s['medium_factory'],
+                                                                                                                                                       s['heavy_factory'],s['wave_amplifier'],
+                                                                                                                                                       s['wave_distorter'],s['metal_refinery'],
+                                                                                                                                                       s['crystal_refinery'],s['eonium_refinery'],
+                                                                                                                                                       s['research_lab'],
+                                                                                                                                                       int(float(s['research_lab'])/total*100),
+                                                                                                                                                       s['finance_centre'],
+                                                                                                                                                       s['security_centre'],
+                                                                                                                                                       int(float(s['security_centre'])/total*100))                
                 
         self.client.reply(prefix,nick,target,reply)
         

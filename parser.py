@@ -234,7 +234,7 @@ class parser:
                 return None
             if mod_name == 'galstatus':
                 galstatus = reload(sys.modules['galstatus'])
-                self.galstatus=galstatus.galstatus(self.client,self.conn,self.cursor)
+                self.galstatus=galstatus.galstatus(self.client,self.conn,self.cursor,self.config)
                 return None
             filename=os.path.join(self.mod_dir,mod_name+'.py')
             execfile(filename)

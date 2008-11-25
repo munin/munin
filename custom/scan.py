@@ -92,15 +92,12 @@ class scan(threading.Thread):
                 return
             if next_id < 0:
                 raise Exception("Scan id is %s"%(next_id,))
-            #scantype VARCHAR(10) NOT NULL CHECK(scantype in ('planet','structure','technology','unit','news','jgp','fleet'))
+            #scantype VARCHAR(10) NOT NULL CHECK(scantype in ('planet','development','unit','news','jgp','fleet'))
             if scantype=='planet':
                 self.parse_planet(next_id,page)
                 
-            elif scantype=='structure':
-                self.parse_surface(next_id,page)
-                
-            elif scantype=='technology':
-                self.parse_technology(next_id,page)
+            elif scantype=='development':
+                self.parse_development(next_id,page)
                 
             elif scantype=='unit':
                 self.parse_unit(next_id,page,'unit')
@@ -117,10 +114,8 @@ class scan(threading.Thread):
     def name_to_type(self,name):
         if name=='Planet Scan':
             return "planet"
-        elif name=='Surface Analysis Scan':
-            return "structure"
-        elif name=='Technology Analysis Scan':
-            return "technology"
+        elif name=='Development Scan':
+            return "development"
         elif name=='Unit Scan':
             return "unit"
         elif name=='News Scan':
@@ -336,7 +331,7 @@ class scan(threading.Thread):
         
         print 'Planet: '+x+':'+y+':'+z
 
-    def parse_surface(self, scan_id, page):
+    def parse_development(self, scan_id, page):
         #m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)</th></tr><tr><td class="left">Light Factory</td><td>(\d*)</td></tr><tr><td class="left">Medium Factory</td><td>(\d*)</td></tr><tr><td class="left">Heavy Factory</td><td>(\d*)</td></tr><tr><td class="left">Wave Amplifier</td><td>(\d*)</td></tr><tr><td class="left">Wave Distorter</td><td>(\d*)</td></tr><tr><td class="left">Metal Refinery</td><td>(\d*)</td></tr><tr><td class="left">Crystal Refinery</td><td>(\d*)</td></tr><tr><td class="left">Eonium Refinery</td><td>(\d*)</td></tr><tr><td class="left">Research Laboratory</td><td>(\d*)</td></tr><tr><td class="left">Finance Centre</td><td>(\d*)</td></tr><tr><td class="left">Security Centre</td><td>(\d*)</td></tr>', page)
         m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)</h2>',page)
         
@@ -371,20 +366,8 @@ class scan(threading.Thread):
         finance = m.group(10)
         security = m.group(11)
 
-        query="INSERT INTO structure (scan_id,light_factory,medium_factory,heavy_factory,wave_amplifier,wave_distorter,metal_refinery,crystal_refinery,eonium_refinery,research_lab,finance_centre,security_centre)"
-        query+=" VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-        self.cursor.execute(query,(scan_id,lightfactory,medfactory,heavyfactory,waveamp,wavedist,metalref,crystalref,eref,reslab,finance,security))        
-        
-        print 'Surface: '+x+':'+y+':'+z
-
-    def parse_technology(self,scan_id, page):
-        m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)</h2>',page)
-        
-        x = m.group(1)
-        y = m.group(2)
-        z = m.group(3)
-        tick = m.group(4)
-        
+        args = ()
+        args += (scan_id,lightfactory,medfactory,heavyfactory,waveamp,wavedist,metalref,crystalref,eref,reslab,finance,security)
         
         m = re.search("""
         <tr><td[^>]*>Space\s+Travel</td><td[^>]*>(\d+)</td></tr>\s*
@@ -404,11 +387,16 @@ class scan(threading.Thread):
         covop = m.group(6)
         mining = m.group(7)
 
-        query="INSERT INTO technology (scan_id,travel,infrastructure,hulls,waves,core,covert_op,mining)"
-        query+=" VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
-        self.cursor.execute(query,(scan_id,travel,inf,hulls,waves,core,covop,mining))
-
-        print 'Technology: '+x+':'+y+':'+z
+        args += (travel,inf,hulls,waves,core,covop,mining)
+        
+        query="INSERT INTO development (scan_id,light_factory,medium_factory,heavy_factory"
+        query+=",wave_amplifier,wave_distorter,metal_refinery,crystal_refinery,eonium_refinery"
+        query+=",research_lab,finance_centre,security_centre"
+        query+=",travel,infrastructure,hulls,waves,core,covert_op,mining)"
+        query+=" VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        self.cursor.execute(query,args)
+        
+        print 'Development: '+x+':'+y+':'+z
 
     def parse_unit(self, scan_id, page, table):
         m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)', page)

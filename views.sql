@@ -1,4 +1,4 @@
-DROP VIEW latest_tick;
+DROP VIEW IF EXISTS latest_tick;
 CREATE VIEW latest_tick AS
 SELECT t1.id AS id, t1.planetname AS planetname, t1.rulername AS rulername, t2.nick AS nick,
     t2.fakenick AS fakenick, t2.defwhore AS defwhore, t2.gov AS gov, t2.bg AS bg, t2.covop AS covop,

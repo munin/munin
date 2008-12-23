@@ -79,10 +79,12 @@ class getanewdaddy(loadable.loadable):
         self.cursor.execute(query,(idiot.id,))
         self.client.privmsg('p','remuser #%s %s'%(self.config.get('Auth', 'home'), idiot.pnick,))
         self.client.privmsg('p',"ban #%s *!*@%s.users.netgamers.org Your sponsor doesn't like you anymore"%(self.config.get('Auth', 'home'), idiot.pnick,))
-        self.client.privmsg('p',"note send %s Your sponsor (%s) no longer wishes to be your sponsor for %s. If you still wish to be a member, go ahead and find someone else to sponsor you back."%(idiot.pnick,voter.pnick, self.config.get('Auth', 'alliance')))
-        if voter.sponsor != idiot.pnick:
+        
+        if idiot.sponsor != voter.pnick:
+            self.client.privmsg('p',"note send %s Some admin has removed you from %s for whatever reason. If you still wish to be a member, go ahead and find someone else to sponsor you back."%(idiot.pnick,voter.pnick, self.config.get('Auth', 'alliance')))
             reply="%s has been reduced to level 1 and removed from the channel. %s is no longer %s's sponsor. If anyone else would like to sponsor that person back, they may."%(idiot.pnick,idiot.sponsor,idiot.pnick)
         else:
+            self.client.privmsg('p',"note send %s Your sponsor (%s) no longer wishes to be your sponsor for %s. If you still wish to be a member, go ahead and find someone else to sponsor you back."%(idiot.pnick,voter.pnick, self.config.get('Auth', 'alliance')))
             reply="%s has been reduced to level 1 and removed from the channel. You are no longer %s's sponsor. If anyone else would like to sponsor that person back, they may."%(idiot.pnick,idiot.pnick)
         self.client.reply(prefix,nick,target,reply)
         return 1

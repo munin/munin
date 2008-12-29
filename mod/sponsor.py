@@ -46,7 +46,7 @@ class sponsor(loadable.loadable):
         if not user:
             self.client.reply(prefix,nick,target,"You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
             return 1
-        
+
         m=self.paramre.search(m.group(1))
         if not m:
             self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))

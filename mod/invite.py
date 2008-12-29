@@ -47,17 +47,22 @@ class invite(loadable.loadable):
         if not user:
             self.client.reply(prefix,nick,target,"You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")        
             return 0
+        u=loadable.user(pnick=user)
+        if not u.load_from_db(self.conn,self.client,self.cursor):
+            self.client.reply(prefix,nick,target,"You must be registered to use the automatic "+self.__class__.__name__+" command (log in with P and set mode +x, then make sure you've set your planet with the pref command)")
+            return 1
+        
         m=self.paramre.search(m.group(1))
         
         if not m:
             self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
             return 0
-
+            
         # assign param variables 
         gimp=m.group(1)
 
-        query="SELECT * FROM invite(%s,%s)"# AS t1(success BOOLEAN, retmessage TEXT)"
-        self.cursor.execute(query,(user,gimp))
+        query="SELECT * FROM invite(%s,%s,%d::smallint)"# AS t1(success BOOLEAN, retmessage TEXT)"
+        self.cursor.execute(query,(u.pnick,gimp,u.invites))
         
         res=self.cursor.dictfetchone()
         

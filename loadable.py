@@ -410,7 +410,7 @@ class alliance:
         return 1
 
 class user:
-    def __init__(self,id=-1,pnick=None,sponsor=None,userlevel=-1,planet_id=-1,phone=None,pubphone=False,stay=False):
+    def __init__(self,id=-1,pnick=None,sponsor=None,userlevel=-1,planet_id=-1,phone=None,pubphone=False,stay=False,invites=-1):
         self.id=id
         self.pnick=pnick
         self.sponsor=sponsor
@@ -421,6 +421,7 @@ class user:
         self.pubphone=pubphone
         self.stay=stay
         self.pref=False
+        self.invites=-1
 
 #        if planet_id > 0:
 #            self.planet=planet(id=planet_id)
@@ -430,16 +431,16 @@ class user:
 
     def load_from_db(self,conn,client,cursor):
         if self.pnick:
-            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.phone AS phone, t1.pubphone AS pubphone, t1.stay AS stay FROM user_list AS t1 WHERE t1.pnick ILIKE %s"
+            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.phone AS phone, t1.pubphone AS pubphone, t1.stay AS stay, t1.invites AS invites FROM user_list AS t1 WHERE t1.pnick ILIKE %s"
             cursor.execute(query,(self.pnick,))
         elif self.id > 0:
-            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor,t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.phone AS phone, t1.pubphone AS pubphone, t1.stay AS stay FROM user_list AS t1 WHERE  t1.id=%s"
+            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor,t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.phone AS phone, t1.pubphone AS pubphone, t1.stay AS stay, t1.invites AS invites FROM user_list AS t1 WHERE  t1.id=%s"
             cursor.execute(query,(self.pnick,))
         else:
             return None
         u=cursor.dictfetchone()
         if not u and self.pnick:
-            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.phone AS phone, t1.pubphone AS pubphone, t1.stay AS stay FROM user_list AS t1 WHERE t1.pnick ILIKE %s"
+            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.phone AS phone, t1.pubphone AS pubphone, t1.stay AS stay, t1.invites AS invites FROM user_list AS t1 WHERE t1.pnick ILIKE %s"
             cursor.execute(query,('%'+self.pnick+'%',))
             u=cursor.dictfetchone()
         if u:
@@ -457,6 +458,7 @@ class user:
                 self.planet=None
             self.stay=u['stay']
             self.pref=True
+            self.invites=u['invites']
             return 1
         else:
             query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.pubphone AS pubphone, t1.phone AS phone FROM user_list AS t1 WHERE t1.pnick ILIKE %s"

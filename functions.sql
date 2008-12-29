@@ -368,8 +368,8 @@ END IF;
 END
 $PROC$ LANGUAGE plpgsql;
 
-DROP FUNCTION IF EXISTS invite(text,text);
-CREATE FUNCTION invite(inviter text,recruit text) RETURNS munin_return AS $PROC$
+DROP FUNCTION IF EXISTS invite(text,text,smallint);
+CREATE FUNCTION invite(inviter text,recruit text,invite_sum smallint) RETURNS munin_return AS $PROC$
 DECLARE
         ret munin_return%ROWTYPE;
         r RECORD;
@@ -378,7 +378,7 @@ SELECT INTO r (EXTRACT(DAYS FROM now()-t1.timestamp)*24+EXTRACT(HOUR FROM now() 
 	FROM sponsor AS t1 INNER JOIN user_list AS t2 ON t1.sponsor_id=t2.id
 	WHERE t1.pnick ILIKE recruit AND t2.pnick ILIKE inviter LIMIT 1;
 IF r.age >= 0 THEN
-	INSERT INTO user_list (userlevel,pnick,sponsor) VALUES (100,recruit,inviter);
+	INSERT INTO user_list (userlevel,pnick,sponsor,invites) VALUES (100,recruit,inviter,invite_sum);
 	DELETE FROM sponsor WHERE pnick ILIKE r.gimp;
 	ret=ROW(TRUE,recruit||' successfully invited');
        	RETURN ret;
@@ -391,7 +391,7 @@ ELSE
 END IF;
 EXCEPTION
 	WHEN integrity_constraint_violation THEN
-		UPDATE user_list SET userlevel=100, sponsor=inviter WHERE pnick ilike recruit;
+		UPDATE user_list SET userlevel=100, sponsor=inviter, invites=invite_sum WHERE pnick ilike recruit;
 		DELETE FROM sponsor WHERE pnick=r.gimp;
 		ret=ROW(TRUE,recruit||' successfully invited');
 		RETURN ret;

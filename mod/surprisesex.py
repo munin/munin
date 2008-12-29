@@ -152,7 +152,7 @@ class surprisesex(loadable.loadable):
             i=0
             prev=[]
             for a in attackers:
-               if i>4:
+               if i>9:
                    break
                else:
                    i+=1

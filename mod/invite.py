@@ -39,8 +39,6 @@ class invite(loadable.loadable):
         if not m:
             return 0
 
-
-
         if access < self.level:
             self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
             return 0
@@ -67,12 +65,10 @@ class invite(loadable.loadable):
         res=self.cursor.dictfetchone()
         
         if res['success']:
-            # msg p adduser
-            # msg p modinfo automode
             self.client.privmsg('P',"adduser #%s %s 399" %(self.config.get('Auth', 'home'), gimp,));
             self.client.privmsg('P',"modinfo #%s automode %s op" %(self.config.get('Auth', 'home'), gimp,));
             reply="You have successfully invited '%s'. The gimp is now your responsibility. If they fuck up and didn't know, it's your fault. So teach them well." % (gimp,)
-            #reply="You have sponsored '%s'. In 36 hours you may use the !invite command to make them a member. It is your responsibility to get feedback about their suitability as a member in this period" % (gimp,)
+
         else:
             reply="You may not invite '%s'. Reason: %s"%(gimp,res['retmessage'])
         self.client.reply(prefix,nick,target,reply)

@@ -32,8 +32,8 @@ class sponsor(loadable.loadable):
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(\S+)(\s+(.*))")
         self.usage=self.__class__.__name__ + " <pnick> <comments>"
-        self.helptext=["This command is used to sponsor a new recruit. When you sponsor someone, you suggest them for recuitment to the alliance and state that you will make sure they're at home and don't fuck up. Once you've sponsored someone, make sure you speak to others about your possible invite, it is your responsibility to guarantee that they will be welcome.",
-                   "After a set time period (currently 36 hours) you may use the !invite command to add them to the channel and Munin. You may at any point withdraw your sponsorship by using the unsponsor command. You may view currently pending sponsorships with !gimp. If you have any questions, good luck finding useful answers. "]
+        self.helptext=["This command is used to sponsor a new recruit. When you sponsor someone, you suggest them for recuitment to the alliance and state that you will make sure they're at home and don't fuck up. Once you've sponsored someone you must ensure that there are absolutely no objections or I'm going to beat you up.",
+                   "Once you've ensured that your gimp is generally accepted, you may use the !invite command to add them to the channel and Munin. You may at any point withdraw your sponsorship by using the unsponsor command. You may view currently pending sponsorships with !gimp. If you have any questions, good luck finding useful answers. "]
         
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
@@ -67,7 +67,7 @@ class sponsor(loadable.loadable):
         res=self.cursor.dictfetchone()
  
         if res['success']:
-            reply="You have sponsored '%s' (MAKE SURE THIS IS THE RECRUIT'S PNICK.) In 36 hours you may use the !invite command to make them a member. It is your responsibility to get feedback about their suitability as a member in this period" % (recruit,)
+            reply="You have sponsored '%s' (MAKE SURE THIS IS THE RECRUIT'S PNICK.) When you have ensured that there are no objections you may use the !invite command to make them a member." % (recruit,)
         else:
             reply="You may not sponsor '%s'. Reason: %s"%(recruit,res['retmessage'])
         self.client.reply(prefix,nick,target,reply)        

@@ -29,6 +29,7 @@ Loadable.Loadable subclass
 class invite(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,100)
+        self.max_invites=5
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(\S+)")
         self.usage=self.__class__.__name__ + " <gimp>"
@@ -58,9 +59,13 @@ class invite(loadable.loadable):
             
         # assign param variables 
         gimp=m.group(1)
+        sponsor_munin_number = u.munin_number(self.conn,self.client,self.cursor,self.config)
+        invites = 0
+        if sponsor_munin_number:
+            invites=self.max_invites-sponsor_munin_number
 
         query="SELECT * FROM invite(%s,%s,%d::smallint)"# AS t1(success BOOLEAN, retmessage TEXT)"
-        self.cursor.execute(query,(u.pnick,gimp,u.invites))
+        self.cursor.execute(query,(u.pnick,gimp,invites))
         
         res=self.cursor.dictfetchone()
         

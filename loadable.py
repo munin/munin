@@ -474,7 +474,17 @@ class user:
                 return 1
         return None
 
+    def munin_number(self,conn,client,cursor,config):
+        if self.sponsor.lower() == config.get("Connection","nick").lower():
+            return 1
 
+        u=user(pnick=self.sponsor)
+        if u.load_from_db(conn,client,cursor) and u.userlevel >= 100:
+            return u.munin_number() + 1
+        else:
+            return None # dead subtree, get rid of these.
+        
+    
 class intel:
     def __init__(self,id=None,pid=-1,nick=None,gov=None,bg=None,covop=False,defwhore=False,fakenick=None,alliance=None,reportchan=None,scanner=False,distwhore=False,relay=False,comment=None):
         self.id=id

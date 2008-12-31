@@ -480,7 +480,7 @@ class user:
 
         u=user(pnick=self.sponsor)
         if u.load_from_db(conn,client,cursor) and u.userlevel >= 100:
-            return u.munin_number() + 1
+            return u.munin_number(conn,client,cursor,config ) + 1
         else:
             return None # dead subtree, get rid of these.
         

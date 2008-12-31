@@ -78,11 +78,13 @@ class whois(loadable.loadable):
         if not r:
             reply+="No members matching '%s'"%(search,)
         else:
+            u=loadable.user(pnick=r['pnick'])
+            u.load_from_db(self.conn, self.client, self.cursor)
             if r['pnick'] == user:
-                reply+="You are %s. Your sponsor is %s. You have %s invite%s left."
+                reply+="You are %s. Your sponsor is %s. You have %s invite%s left. Your Munin number is %s."
             else:
-                reply+="Information about %s: Their sponsor is %s. They have %s invite%s left."
-            reply=reply%(r['pnick'],r['sponsor'],r['invites'],['','s'][r['invites']!=1])
+                reply+="Information about %s: Their sponsor is %s. They have %s invite%s left. Their Munin number is %s."
+            reply=reply%(r['pnick'],r['sponsor'],r['invites'],['','s'][r['invites']!=1],u.munin_number(self.conn, self.client, self.cursor, self.config))
 
         self.client.reply(prefix,nick,target,reply)
         

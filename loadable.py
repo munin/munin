@@ -479,7 +479,7 @@ class user:
             return 1
 
         u=user(pnick=self.sponsor)
-        if u.load_from_db(conn,client,cursor) and u.userlevel >= 100:
+        if u.load_from_db(conn,client,cursor) and u.userlevel >= 100 and u.pnick.lower() != u.sponsor.lower():
             return u.munin_number(conn,client,cursor,config ) + 1
         else:
             return None # dead subtree, get rid of these.

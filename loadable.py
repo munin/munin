@@ -460,18 +460,6 @@ class user:
             self.pref=True
             self.invites=u['invites']
             return 1
-        else:
-            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.pubphone AS pubphone, t1.phone AS phone FROM user_list AS t1 WHERE t1.pnick ILIKE %s"
-            cursor.execute(query,(self.pnick,))
-            u=cursor.dictfetchone()
-            if u:
-                self.id=u['id']
-                self.pnick=u['pnick']
-                self.sponsor=u['sponsor']
-                self.phone=u['phone']
-                self.pubphone=u['pubphone']
-                self.userlevel=u['userlevel']
-                return 1
         return None
 
     def munin_number(self,conn,client,cursor,config):

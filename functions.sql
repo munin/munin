@@ -1,3 +1,4 @@
+
 -- Since the plpythonu language is unrestricted, functions must be created as
 -- superuser. This is somewhat undesirable. Poop.
 /*CREATE FUNCTION test(table) RETURNS text AS $PROC$
@@ -6,7 +7,7 @@ $PROC$ LANGUAGE 'plpythonu';*/
 
 -- BEGIN HUGIN RELATED FUNCTIONS
 
-DROP FUNCTION IF EXISTS trim_quotes(text,text);
+DROP FUNCTION trim_quotes(text,text);
 CREATE FUNCTION trim_quotes(tmptab text,colname text) RETURNS void AS $PROC$
 BEGIN
 EXECUTE 'UPDATE '||tmptab||' SET '||colname||'=trim(''"'' FROM '||colname||')';
@@ -14,7 +15,7 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
-DROP FUNCTION IF EXISTS gen_planet_id();
+DROP FUNCTION gen_planet_id();
 CREATE FUNCTION gen_planet_id() RETURNS void AS $PROC$
 DECLARE
 r RECORD;
@@ -32,7 +33,7 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
-DROP FUNCTION IF EXISTS gen_galaxy_id();
+DROP FUNCTION gen_galaxy_id();
 CREATE FUNCTION gen_galaxy_id() RETURNS void AS $PROC$
 DECLARE
 r RECORD;
@@ -51,7 +52,7 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
-DROP FUNCTION IF EXISTS gen_alliance_id();
+DROP FUNCTION gen_alliance_id();
 CREATE FUNCTION gen_alliance_id() RETURNS void AS $PROC$
 DECLARE
 r RECORD;
@@ -72,7 +73,7 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
-DROP FUNCTION IF EXISTS add_rank(text,text);
+DROP FUNCTION add_rank(text,text);
 CREATE FUNCTION add_rank(tmptab text,colname text) RETURNS void AS $PROC$
 DECLARE
 r RECORD;
@@ -96,7 +97,7 @@ $PROC$ LANGUAGE plpgsql;
 
 
 
-DROP FUNCTION IF EXISTS add_average(text,text,text,text);
+DROP FUNCTION add_average(text,text,text,text);
 CREATE FUNCTION add_average(tmptab text,value_colname text,quantity_colname text,coltype text) RETURNS void AS $PROC$
 BEGIN
 EXECUTE 'ALTER TABLE '||quote_ident(tmptab)||' ADD COLUMN '||quote_ident(value_colname)||'_avg '||coltype||' DEFAULT -1';
@@ -107,7 +108,7 @@ $PROC$ LANGUAGE plpgsql;
 
 -- PLANET SPECIFIC RANK FUNCTIONS FOR PERFORMANCE
 
-DROP FUNCTION IF EXISTS add_rank_planet_size();
+DROP FUNCTION add_rank_planet_size();
 CREATE FUNCTION add_rank_planet_size() RETURNS void AS $PROC$
 DECLARE
 r RECORD;
@@ -121,7 +122,7 @@ END LOOP;
 END
 $PROC$ LANGUAGE plpgsql;
 
-DROP FUNCTION IF EXISTS add_rank_planet_score();
+DROP FUNCTION add_rank_planet_score();
 CREATE FUNCTION add_rank_planet_score() RETURNS void AS $PROC$
 DECLARE
 r RECORD;
@@ -135,7 +136,7 @@ END LOOP;
 END
 $PROC$ LANGUAGE plpgsql;
 
-DROP FUNCTION IF EXISTS add_rank_planet_value();
+DROP FUNCTION add_rank_planet_value();
 CREATE FUNCTION add_rank_planet_value() RETURNS void AS $PROC$
 DECLARE
 r RECORD;
@@ -149,7 +150,7 @@ END LOOP;
 END
 $PROC$ LANGUAGE plpgsql;
 
-DROP FUNCTION IF EXISTS add_rank_planet_xp();
+DROP FUNCTION add_rank_planet_xp();
 CREATE FUNCTION add_rank_planet_xp() RETURNS void AS $PROC$
 DECLARE
 r RECORD;
@@ -164,7 +165,7 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
-DROP FUNCTION IF EXISTS add_planet_idle_ticks(smallint);
+DROP FUNCTION add_planet_idle_ticks(smallint);
 CREATE FUNCTION add_planet_idle_ticks(curtick smallint) RETURNS void AS $PROC$
 BEGIN
 ALTER TABLE ptmp ADD COLUMN idle smallint DEFAULT 0;
@@ -181,7 +182,7 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
-DROP FUNCTION IF EXISTS store_planets(smallint);
+DROP FUNCTION store_planets(smallint);
 CREATE FUNCTION store_planets(curtick smallint) RETURNS void AS $PROC$
 DECLARE
  r RECORD;
@@ -217,7 +218,7 @@ BEGIN
 END
 $PROC$ LANGUAGE plpgsql;
 
-DROP FUNCTION IF EXISTS store_galaxies(smallint);
+DROP FUNCTION store_galaxies(smallint);
 CREATE FUNCTION store_galaxies(curtick smallint) RETURNS void AS $PROC$
 BEGIN
 	--remove quotes from names added by the dumpfile generator
@@ -240,7 +241,7 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
-DROP FUNCTION IF EXISTS store_alliances(smallint);
+DROP FUNCTION store_alliances(smallint);
 CREATE FUNCTION store_alliances(curtick smallint) RETURNS void AS $PROC$
 BEGIN
 	--remove quotes from names added by the dumpfile generator
@@ -269,7 +270,7 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
-DROP FUNCTION IF EXISTS store_update(smallint,text,text,text);
+DROP FUNCTION store_update(smallint,text,text,text);
 CREATE FUNCTION store_update(curtick smallint,ptable text,gtable text,atable text) RETURNS void AS $PROC$
 BEGIN
 	INSERT INTO updates (tick,planets,galaxies,alliances) VALUES (curtick,(SELECT COUNT(*) FROM quote_ident(ptable)),(SELECT COUNT(*) FROM quote_ident(gtable)),(SELECT COUNT(*) FROM quote_ident(atable)));
@@ -280,7 +281,7 @@ $PROC$ LANGUAGE plpgsql;
 
 -- Function: defcall_update()
 
-DROP FUNCTION IF EXISTS defcall_update();
+DROP FUNCTION defcall_update();
 
 CREATE OR REPLACE FUNCTION defcall_update()
   RETURNS "trigger" AS
@@ -326,10 +327,10 @@ CREATE TRIGGER fleet_updates_defcalls
 
 -- BEGIN MUNIN RELATED FUNCTIONS
 
-DROP TYPE IF EXISTS munin_return CASCADE;
+DROP TYPE munin_return CASCADE;
 CREATE TYPE munin_return AS (success BOOLEAN, retmessage TEXT);
 
-DROP FUNCTION IF EXISTS sponsor(text,text,text);
+DROP FUNCTION sponsor(text,text,text);
 CREATE FUNCTION sponsor(inviter text,recruit text,comment_text text) RETURNS munin_return AS $PROC$
 DECLARE
 	ret munin_return%ROWTYPE;
@@ -348,7 +349,7 @@ EXCEPTION
 END
 $PROC$ LANGUAGE plpgsql;
 
-DROP FUNCTION IF EXISTS unsponsor(text,text);
+DROP FUNCTION unsponsor(text,text);
 CREATE FUNCTION unsponsor(inviter text,recruit text) RETURNS munin_return AS $PROC$
 DECLARE
         ret munin_return%ROWTYPE;
@@ -368,7 +369,7 @@ END IF;
 END
 $PROC$ LANGUAGE plpgsql;
 
-DROP FUNCTION IF EXISTS invite(text,text,smallint);
+DROP FUNCTION invite(text,text,smallint);
 CREATE FUNCTION invite(inviter text,recruit text,invite_sum smallint) RETURNS munin_return AS $PROC$
 DECLARE
         ret munin_return%ROWTYPE;
@@ -398,7 +399,7 @@ EXCEPTION
 END
 $PROC$ LANGUAGE plpgsql;
 
-DROP FUNCTION IF EXISTS kickvote(INT, INT);
+DROP FUNCTION kickvote(INT, INT);
 CREATE FUNCTION kickvote(vtr INT,idjit INT) RETURNS munin_return AS $PROC$
 DECLARE
 	ret munin_return%ROWTYPE;
@@ -420,7 +421,7 @@ EXCEPTION
 END
 $PROC$ LANGUAGE plpgsql;
 
-DROP FUNCTION IF EXISTS unkickvote(INT, INT);
+DROP FUNCTION unkickvote(INT, INT);
 CREATE FUNCTION unkickvote(vtr INT,idjit INT) RETURNS munin_return AS $PROC$
 DECLARE
 	ret munin_return%ROWTYPE;
@@ -439,7 +440,7 @@ RETURN ret;
 END
 $PROC$ LANGUAGE plpgsql;
 
-DROP FUNCTION IF EXISTS kickloser(INT);
+DROP FUNCTION kickloser(INT);
 CREATE FUNCTION kickloser(idjit INT) RETURNS munin_return AS $PROC$
 DECLARE
 	ret munin_return%ROWTYPE;
@@ -462,7 +463,7 @@ RETURN ret;
 END
 $PROC$ LANGUAGE plpgsql;
 
-DROP FUNCTION IF EXISTS access_level(text,text,INT);
+DROP FUNCTION access_level(text,text,INT);
 CREATE FUNCTION access_level(username text,target text,private INT) RETURNS int AS $PROC$
 DECLARE
         chanrec RECORD;
@@ -480,7 +481,7 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
-DROP FUNCTION IF EXISTS max_tick();
+DROP FUNCTION max_tick();
 CREATE FUNCTION max_tick() RETURNS int AS $PROC$
 BEGIN
 RETURN MAX(tick) FROM updates;
@@ -488,7 +489,7 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
-DROP FUNCTION IF EXISTS race_in_gal(smallint,smallint,text);
+DROP FUNCTION race_in_gal(smallint,smallint,text);
 CREATE FUNCTION race_in_gal(gal_x smallint, gal_y smallint, gal_race text) RETURNS int AS $PROC$
 BEGIN
 RETURN count(*) FROM planet_dump
@@ -498,7 +499,7 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
-DROP FUNCTION IF EXISTS gal_value(smallint,smallint);
+DROP FUNCTION gal_value(smallint,smallint);
 CREATE FUNCTION gal_value(gal_x smallint, gal_y smallint) RETURNS int AS $PROC$
 BEGIN
 RETURN sum(value) FROM planet_dump

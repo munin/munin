@@ -125,6 +125,9 @@
 	quit smallint NOT NULL DEFAULT 0,
 	phone VARCHAR(32),
 	pubphone BOOLEAN NOT NULL DEFAULT FALSE, 
+        available_cookies smallint NOT NULL DEFAULT 0,
+        carebears integer NOT NULL DEFAULT 0,
+        last_cookie_date TIMESTAMP DEFAULT NULL,
     	salt varchar(4) NOT NULL DEFAULT SUBSTRING(CAST(RANDOM() AS VARCHAR) FROM 3 FOR 4)
 );
 

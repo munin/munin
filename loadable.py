@@ -26,6 +26,8 @@ Loadable class
 import re
 import string
 import ConfigParser
+import psycopg
+from mx import DateTime
 
 class loadable:
     def __init__(self,client,conn,cursor,level):
@@ -79,7 +81,30 @@ class loadable:
         self.cursor.execute("SELECT MAX(tick) FROM updates")
         return self.cursor.fetchone()[0]
 
-
+    def load_user(self,pnick,prefix,nick,target):
+        if not pnick:
+            self.client.reply(prefix,nick,target,"You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")        
+            return None
+        u=self.load_user_from_pnick(pnick)
+        if not u:
+            self.client.reply(prefix,nick,target,"You must be registered to use the automatic "+self.__class__.__name__+" command (log in with P and set mode +x, then make sure you've set your planet with the pref command)")
+            return None
+        return u
+    
+    def load_user_from_pnick(self,username):
+        u=user(pnick=username)
+        if u.load_from_db(self.conn,self.client,self.cursor):
+            return u
+        else:
+            return None
+        
+    def pluralize(self,number,text):
+        if text.lower() == "cookie" and number != 1:
+            return text+"s"
+        elif text.lower() == "carebear" and number != 1:
+            return text+"s"
+        return text
+    
 class defcall:
     def __init__(self,id=-1,bcalc=None,status=-1,claimed_by=None,comment=None,target=None,landing_tick=-1):
         self.id=id
@@ -410,7 +435,7 @@ class alliance:
         return 1
 
 class user:
-    def __init__(self,id=-1,pnick=None,sponsor=None,userlevel=-1,planet_id=-1,phone=None,pubphone=False,stay=False,invites=-1):
+    def __init__(self,id=-1,pnick=None,sponsor=None,userlevel=-1,planet_id=-1,phone=None,pubphone=False,stay=False,invites=-1,available_cookies=-1,last_cookie_date=None,carebears=-1):
         self.id=id
         self.pnick=pnick
         self.sponsor=sponsor
@@ -421,26 +446,31 @@ class user:
         self.pubphone=pubphone
         self.stay=stay
         self.pref=False
+        self.available_cookies=-1
+        self.last_cookie_date=None
         self.invites=-1
+        self.carebears=carebears
 
-#        if planet_id > 0:
-#            self.planet=planet(id=planet_id)
-#        else:
-#            self.planet=None
-
-
+    def lookup_query(self):
+        query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.phone AS phone, t1.pubphone AS pubphone,"
+        query+=" t1.stay AS stay, t1.invites AS invites, t1.available_cookies AS available_cookies, t1.last_cookie_date AS last_cookie_date, t1.carebears AS carebears "
+        query+=" FROM user_list AS t1 WHERE"
+        return query
+    
     def load_from_db(self,conn,client,cursor):
+        query=self.lookup_query()
         if self.pnick:
-            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.phone AS phone, t1.pubphone AS pubphone, t1.stay AS stay, t1.invites AS invites FROM user_list AS t1 WHERE t1.pnick ILIKE %s"
+            query+=" t1.pnick ILIKE %s"
             cursor.execute(query,(self.pnick,))
         elif self.id > 0:
-            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor,t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.phone AS phone, t1.pubphone AS pubphone, t1.stay AS stay, t1.invites AS invites FROM user_list AS t1 WHERE  t1.id=%s"
-            cursor.execute(query,(self.pnick,))
+            query+=" t1.id=%s"
+            cursor.execute(query,(self.id,))
         else:
             return None
         u=cursor.dictfetchone()
         if not u and self.pnick:
-            query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.phone AS phone, t1.pubphone AS pubphone, t1.stay AS stay, t1.invites AS invites FROM user_list AS t1 WHERE t1.pnick ILIKE %s"
+            query=self.lookup_query()
+            query+=" t1.pnick ILIKE %s"
             cursor.execute(query,('%'+self.pnick+'%',))
             u=cursor.dictfetchone()
         if u:
@@ -459,18 +489,28 @@ class user:
             self.stay=u['stay']
             self.pref=True
             self.invites=u['invites']
+            self.available_cookies=u['available_cookies']
+            self.last_cookie_date=u['last_cookie_date']
+            self.carebears=u['carebears']
             return 1
         return None
 
     def munin_number(self,conn,client,cursor,config):
         if self.sponsor.lower() == config.get("Connection","nick").lower():
             return 1
-
         u=user(pnick=self.sponsor)
         if u.load_from_db(conn,client,cursor) and u.userlevel >= 100 and u.pnick.lower() != u.sponsor.lower():
             return u.munin_number(conn,client,cursor,config ) + 1
         else:
             return None # dead subtree, get rid of these.
+    
+    def check_available_cookies(self,conn,client,cursor,config):
+        if not self.last_cookie_date or DateTime.RelativeDateTime(DateTime.now(),self.last_cookie_date) > 6:
+            self.available_cookies = config.get("Alliance","cookies_per_week")
+            query="UPDATE user_list SET available_cookies = %s,last_cookie_date = %s WHERE id = %s"
+            cursor.execute(query,(self.available_cookies,psycopg.TimestampFromMx(DateTime.now()), self.id))
+
+        return self.available_cookies
         
     
 class intel:

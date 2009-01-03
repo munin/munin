@@ -35,6 +35,11 @@ user: MrPresident
 #password: EasyToGuessHaha
 # Uncomment host if the db is running on a different host
 #host: whitehouse.gov
+[Alliance]
+# This section determines alliance policy stuff.
+# cookies_per_week: how many cookies should the bot give out every Monday?
+cookies_per_week: 10000000
+
 [Url]
 # Don't change these unless they actually change in reality.
 # This is where Hugin finds the data it puts in the database.

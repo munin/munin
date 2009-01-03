@@ -62,7 +62,7 @@ class whois(loadable.loadable):
             self.client.reply(prefix,nick,target,"I am Munin. Hear me roar.")
             return 1
         
-        query="SELECT pnick,sponsor,invites"
+        query="SELECT pnick,sponsor,invites,carebears"
         query+=" FROM user_list"
         query+=" WHERE pnick ilike %s"
         query+=" AND userlevel >= 100"
@@ -81,10 +81,10 @@ class whois(loadable.loadable):
             u=loadable.user(pnick=r['pnick'])
             u.load_from_db(self.conn, self.client, self.cursor)
             if r['pnick'] == user:
-                reply+="You are %s. Your sponsor is %s. You have %s invite%s left. Your Munin number is %s."
+                reply+="You are %s. Your sponsor is %s. You have %s invite%s left. Your Munin number is %s. You have %d %s."
             else:
-                reply+="Information about %s: Their sponsor is %s. They have %s invite%s left. Their Munin number is %s."
-            reply=reply%(r['pnick'],r['sponsor'],r['invites'],['','s'][r['invites']!=1],self.munin_number_to_output(u))
+                reply+="Information about %s: Their sponsor is %s. They have %s invite%s left. Their Munin number is %s. They have %d %s."
+            reply=reply%(r['pnick'],r['sponsor'],r['invites'],['','s'][r['invites']!=1],self.munin_number_to_output(u),r['carebears'],self.pluralize(r['carebears'],"carebear"))
 
         self.client.reply(prefix,nick,target,reply)
         

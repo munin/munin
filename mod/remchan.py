@@ -59,7 +59,7 @@ class remchan(loadable.loadable):
         real_chan = res['chan']
         
         if access_lvl >= access:
-            self.client.reply(prefix,nick,target,"You may not remove %s, the channel's access (%s) exceeds your own (%s)" % (chan, access_lvl, access))
+            self.client.reply(prefix,nick,target,"You may not remove %s, the channel's access (%s) exceeds your own (%s)" % (real_chan, access_lvl, access))
             return 0
         
         query="DELETE FROM channel_list WHERE chan=%s"
@@ -67,7 +67,8 @@ class remchan(loadable.loadable):
         try:
             self.cursor.execute(query,(real_chan,))
             if self.cursor.rowcount>0:
-                self.client.privmsg('P',"remuser %s Munin" %(chan,))
+                self.client.privmsg('P',"remuser %s %s" %(real_chan, self.config.get('Connection', 'nick')))
+                self.client.wline("PART %s" % (real_chan,))
                 self.client.reply(prefix,nick,target,"Removed channel %s" % (real_chan,))
             else:
                 self.client.reply(prefix,nick,target,"No channel removed" )

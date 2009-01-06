@@ -197,7 +197,7 @@ CREATE TABLE target (
 
 CREATE TABLE alliance_tags
 (
- id SERIAL,
+ id SERIAL PRIMARY KEY,
  alliance_id integer REFERENCES alliance_canon(id) NOT NULL,
  tag varchar(20) NOT NULL
 );
@@ -446,7 +446,7 @@ CREATE TABLE command_log (
 );
 
 CREATE TABLE froglet_logs (
-       id SERIAL,
+       id SERIAL PRIMARY KEY,
        acces_time timestamp NOT NULL DEFAULT NOW(),
        page_url VARCHAR(1023) NOT NULL,
        ip CIDR NOT NULL,
@@ -455,7 +455,27 @@ CREATE TABLE froglet_logs (
 );
 
 CREATE TABLE phone (
-       id SERIAL,
+       id SERIAL PRIMARY KEY,
        user_id integer NOT NULL REFERENCES user_list(id),
        friend_id integer NOT NULL REFERENCES user_list(id)
+);
+
+CREATE SEQUENCE proposal_id_seq;
+
+CREATE TABLE invite_proposal (
+       id integer PRIMARY KEY NOT NULL DEFAULT nextval('proposal_id_seq'),
+       active BOOLEAN NOT NULL DEFAULT TRUE,
+       proposer_id integer NOT NULL REFERENCES user_list(id),
+       person VARCHAR(15) NOT NULL,
+       created TIMESTAMP NOT NULL DEFAULT now(),
+       comment_text TEXT NOT NULL
+);
+
+CREATE TABLE kick_proposal (
+       id integer PRIMARY KEY NOT NULL DEFAULT nextval('proposal_id_seq'),
+       active BOOLEAN NOT NULL DEFAULT TRUE,
+       proposer_id integer NOT NULL REFERENCES user_list(id),
+       person_id integer NOT NULL REFERENCES user_list(id),
+       created TIMESTAMP NOT NULL DEFAULT now(),
+       comment_text TEXT NOT NULL
 );

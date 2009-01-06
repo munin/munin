@@ -35,6 +35,7 @@ import loadable
 import scan
 import galstatus
 import datetime
+from mx import DateTime
 
 DEBUG = 1
 

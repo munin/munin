@@ -103,8 +103,16 @@ class loadable:
             return text+"s"
         elif text.lower() == "carebear" and number != 1:
             return text+"s"
+        elif text.lower() == "day" and number != 1:
+            return text+"s"
         return text
     
+    def match_or_usage(self, needle, haystack):
+        m=needle.search(haystack)
+        if not m:
+            self.client.reply(prefix,nick,target,"Usage: %s" %(self.usage,))
+        return m
+        
 class defcall:
     def __init__(self,id=-1,bcalc=None,status=-1,claimed_by=None,comment=None,target=None,landing_tick=-1):
         self.id=id
@@ -505,7 +513,9 @@ class user:
             return None # dead subtree, get rid of these.
     
     def check_available_cookies(self,conn,client,cursor,config):
-        if not self.last_cookie_date or DateTime.RelativeDateTime(DateTime.now(),self.last_cookie_date) > 6:
+        print self.last_cookie_date
+        print DateTime.RelativeDateTime(DateTime.now(),self.last_cookie_date).days
+        if not self.last_cookie_date or DateTime.RelativeDateTime(DateTime.now(),self.last_cookie_date).days > 6:
             self.available_cookies = config.get("Alliance","cookies_per_week")
             query="UPDATE user_list SET available_cookies = %s,last_cookie_date = %s WHERE id = %s"
             cursor.execute(query,(self.available_cookies,psycopg.TimestampFromMx(DateTime.now()), self.id))

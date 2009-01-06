@@ -37,7 +37,7 @@ class cookie(loadable.loadable):
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+((\d+)\s+)?(\S+)\s+(\S.+)")
         self.usage=self.__class__.__name__ + " [howmany] <receiver> <reason>"
-	self.helptext=["MMMmmmmmmmm, cookies"]
+	self.helptext=["Cookies are used to give out carebears. Carebears are rewards for carefaces. Give cookies to people when you think they've done something benificial for you or for the alliance in general."]
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
@@ -67,7 +67,7 @@ class cookie(loadable.loadable):
             howmany=1
         receiver=m.group(3)
         reason=m.group(4)
-        print "u: %s" % (u,)
+
         if not self.can_give_cookies(prefix,nick,target,u,howmany):
             return 0
 
@@ -76,9 +76,14 @@ class cookie(loadable.loadable):
         if not rec or rec.userlevel < 100:
             self.client.reply(prefix,nick,target,"I don't know who '%s' is, so I can't very well give them any cookies can I?" % (receiver,))
             return 1
+        if u.pnick == rec.pnick:
+            self.client.reply(prefix,nick,target,"Fuck you, %s. You can't have your cookies and eat them, you selfish dicksuck."%(u.pnick,))
+            return 1
 
         query="UPDATE user_list SET carebears = carebears + %d WHERE id = %s"
         self.cursor.execute(query,(howmany,rec.id))
+        query="UPDATE user_list SET available_cookies = available_cookies - %d WHERE id = %s"
+        self.cursor.execute(query,(howmany,u.id))
         self.client.reply(prefix,nick,target,
                           "%s said '%s' and gave %d %s to %s, who stuffed their face and now has %d carebears"%(u.pnick,
                                                                                                                 reason,

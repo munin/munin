@@ -56,7 +56,9 @@ class cookie(loadable.loadable):
         if not m:
             self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
             return 0
-
+        if target.lower() != "#"+self.config.get("Auth","home").lower():
+            self.client.reply(prefix,nick,target,"This command may only be used in #%s."%(self.config.get("Auth","home"),))
+            return 1
         # assign param variables 
         howmany=m.group(2)
         if howmany:

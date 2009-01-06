@@ -58,7 +58,7 @@ class afford(loadable.loadable):
         
         p=loadable.planet(x=x,y=y,z=z)
         if not p.load_most_recent(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"No planet matching '%s' found"%(param,))
+            self.client.reply(prefix,nick,target,"No planet matching '%s:%s:%s' found"%(x,y,z))
             return 1
         
         query="SELECT tick,nick,scantype,rand_id,timestamp,roid_metal,roid_crystal,roid_eonium,res_metal,res_crystal,res_eonium"

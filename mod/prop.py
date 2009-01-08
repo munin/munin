@@ -137,8 +137,8 @@ class prop(loadable.loadable):
             reply="No proposition number %d exists."%(prop_id,)
         else:
         
-            age=DateTime.RelativeDateTime(DateTime.now(),r['created']).days
-            reply="prosition %d (%d %s old): %s %s. %s says %s."%(r['id'],age,self.pluralize(age,"day"),
+            age=DateTime.Age(DateTime.now(),r['created']).days
+            reply="proposition %d (%d %s old): %s %s. %s says %s."%(r['id'],age,self.pluralize(age,"day"),
                                                                   r['prop_type'],r['person'],r['proposer'],
                                                                   r['comment_text'])
             if target[0] != "#" or prefix == self.client.NOTICE_PREFIX or prefix == self.client.PRIVATE_PREFIX:

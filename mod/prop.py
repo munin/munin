@@ -34,9 +34,10 @@ class prop(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
-        self.paramre=re.compile(r"^\s+(invite|kick|list|show)(.*)")
+        self.paramre=re.compile(r"^\s+(invite|kick|list|show|vote)(.*)")
         self.invite_kickre=re.compile(r"^\s+(\S+)(\s+(\S.*))")
-        self.usage=self.__class__.__name__ + " [<invite|kick> <pnick> <comment>] | [<list>] | [<vote> <yes|no> <number>] | [<expire> <number] | [<show> <number>]"
+        self.votere=re.compile(r"^\s+(\d+)\s+(yes|no|abstain)(\s+(\d+))?")
+        self.usage=self.__class__.__name__ + " [<invite|kick> <pnick> <comment>] | [<list>] | [<vote> <number> <yes|no|abstain> [carebears]] | [<expire> <number] | [<show> <number>]"
 	self.helptext=["A proposition is a vote to do something. For now, you can raise propositions to invite or kick someone. Once raised the proposition will stand until you expire it.  Make sure you give everyone time to have their say.",
                        "Votes for and against a proposition are made using carebears. You must have at least 1 carebear to vote. You can bid as many carebears as you want, and if you lose, you'll be compensated this many carebears for being outvoted. If you win, you'll get some back, but I'll take enough to compensate the losers."]
 
@@ -82,8 +83,15 @@ class prop(loadable.loadable):
             if not m: return 1
             prop_id=int(m.group(1))
             self.process_show_proposal(prefix,nick,target,prop_id)
-                        
-        # do stuff here
+        elif prop_type.lower() == 'vote':
+            m=self.match_or_usage(self.votere,m.group(2))
+            if not m: return 1
+            prop_id=int(m.group(1))
+            vote=m.group(2)
+            carebears=m.group(3)
+            if carebears: carebears=int(carebears)
+            self.process_vote_proposal(prefix,nick,target,u,prop_id,vote,carebears)
+        # Do stuff here
 
         return 1
     
@@ -124,6 +132,66 @@ class prop(loadable.loadable):
         self.client.reply(prefix,nick,target,reply)
 
     def process_show_proposal(self,prefix,nick,target,prop_id):
+        r=self.find_single_prop_by_id(prop_id)
+        if not r:
+            reply="No proposition number %d exists."%(prop_id,)
+        else:
+        
+            age=DateTime.RelativeDateTime(DateTime.now(),r['created']).days
+            reply="prosition %d (%d %s old): %s %s. %s says %s"%(r['id'],age,self.pluralize(age,"day"),
+                                                                 r['prop_type'],r['person'],r['proposer'],
+                                                                 r['comment_text'])
+        self.client.reply(prefix,nick,target,reply)
+
+    def process_vote_proposal(self,prefix,nick,target,u,prop_id,vote,carebears):
+        # todo ensure prop is active
+        if not carebears:
+            if vote == 'abstain':
+                carebears=0
+            else:
+                carebears=1
+        prop=self.find_single_prop_by_id(prop_id)
+        if not prop:
+            self.client.reply(prefix,nick,target,"No proposition number %d exists (idiot)."%(prop_id,))
+            return
+        query="SELECT id,vote,carebears, prop_id FROM prop_vote"
+        query+=" WHERE prop_id=%d"
+        self.cursor.execute(query,(prop_id,))
+        old_vote=self.cursor.dictfetchone()
+        cost=0
+        if old_vote:
+            cost=carebears-old_vote['carebears']
+        else:
+            cost=carebears
+
+        if cost > u.carebears:
+            self.client.reply(prefix,nick,target,"You don't have enough carebears to cover that vote. Your vote would have required %d, but you only have %d carebears."%(cost,u.carebears))
+            return
+        #deduct carebears
+        query="UPDATE user_list SET carebears = carebears - %d WHERE id = %d"
+        self.cursor.execute(query,(cost,u.id))
+        if old_vote:
+            query="DELETE FROM prop_vote WHERE id=%d"
+            self.cursor.execute(query,(old_vote['id'],))
+
+        query="INSERT INTO prop_vote (vote,carebears,prop_id) VALUES (%s,%d,%d)"
+        self.cursor.execute(query,(vote,carebears,prop['id']))
+        if old_vote:
+            reply="Changed your vote on proposition %d from %s"%(prop['id'],old_vote['vote'])
+            if old_vote['vote'] != 'abstain':
+                reply+=" (%d)"%(old_vote['carebears'],)
+            reply+=" to %s"%(vote,)
+            if vote != 'abstain':
+                reply+=" with %d carebears"%(carebears,)
+            reply+="."
+        else:
+            reply="Set your vote on proposition %d as %s"%(prop['id'],vote)
+            if vote != 'abstain':
+                reply+="with %d carebears."%(carebears,)
+            reply+="."
+        self.client.reply(prefix,nick,target,reply)
+
+    def find_single_prop_by_id(self,prop_id):
         query="SELECT id, prop_type, proposer, person, created, comment_text FROM ("
         query+="SELECT t1.id AS id, 'invite' AS prop_type, t2.pnick AS proposer, t1.person AS person, t1.created AS created, t1.comment_text AS comment_text"
         query+=" FROM invite_proposal AS t1 INNER JOIN user_list AS t2 ON t1.proposer_id=t2.id UNION ("
@@ -133,16 +201,7 @@ class prop(loadable.loadable):
         query+=" INNER JOIN user_list AS t5 ON t3.person_id=t5.id)) AS t6 WHERE t6.id=%d"
         
         self.cursor.execute(query,(prop_id,))
-
-        if self.cursor.rowcount < 1:
-            reply="No proposition number %d exists."%(prop_id,)
-        else:
-            r=self.cursor.dictfetchone()
-            age=DateTime.RelativeDateTime(DateTime.now(),r['created']).days
-            reply="prosition %d (%d %s old): %s %s. %s says %s"%(r['id'],age,self.pluralize(age,"day"),
-                                                                 r['prop_type'],r['person'],r['proposer'],
-                                                                 r['comment_text'])
-        self.client.reply(prefix,nick,target,reply)
+        return self.cursor.dictfetchone()
     def is_member(self,person):
         query="SELECT id FROM user_list WHERE pnick ilike %s AND userlevel >= 100"
         self.cursor.execute(query,(person,))
@@ -172,4 +231,4 @@ class prop(loadable.loadable):
     def is_already_proposed_kick(self,person_id):
         query="SELECT id FROM kick_proposal WHERE person_id = %d"
         self.cursor.execute(query,(person_id,))
-        return self.cursor.rowcount > 1
+        return self.cursor.rowcount > 0

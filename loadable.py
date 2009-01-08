@@ -107,7 +107,7 @@ class loadable:
             return text+"s"
         return text
     
-    def match_or_usage(self, needle, haystack):
+    def match_or_usage(self, prefix, nick, target, needle, haystack):
         m=needle.search(haystack)
         if not m:
             self.client.reply(prefix,nick,target,"Usage: %s" %(self.usage,))

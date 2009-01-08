@@ -62,14 +62,14 @@ class prop(loadable.loadable):
         prop_type=m.group(1)
 
         if prop_type.lower() == 'invite':
-            m=self.match_or_usage(self.invite_kickre,m.group(2))
+            m=self.match_or_usage(prefix,nick,target,self.invite_kickre,m.group(2))
             if not m: return 1
             person=m.group(1)
             comment=m.group(3)
             self.process_invite_proposal(prefix,nick,target,u,person,comment)
             
         elif prop_type.lower() == 'kick':
-            m=self.match_or_usage(self.invite_kickre,m.group(2))
+            m=self.match_or_usage(prefix,nick,target,self.invite_kickre,m.group(2))
             if not m: return 1
             person=m.group(1)
             comment=m.group(3)
@@ -79,12 +79,12 @@ class prop(loadable.loadable):
             self.process_list_all_proposals(prefix,nick,target,u)
 
         elif prop_type.lower() == 'show':
-            m=self.match_or_usage(re.compile(r"^\s*(\d+)"),m.group(2))
+            m=self.match_or_usage(prefix,nick,target,re.compile(r"^\s*(\d+)"),m.group(2))
             if not m: return 1
             prop_id=int(m.group(1))
             self.process_show_proposal(prefix,nick,target,prop_id)
         elif prop_type.lower() == 'vote':
-            m=self.match_or_usage(self.votere,m.group(2))
+            m=self.match_or_usage(prefix,nick,target,self.votere,m.group(2))
             if not m: return 1
             prop_id=int(m.group(1))
             vote=m.group(2)
@@ -138,9 +138,21 @@ class prop(loadable.loadable):
         else:
         
             age=DateTime.RelativeDateTime(DateTime.now(),r['created']).days
-            reply="prosition %d (%d %s old): %s %s. %s says %s"%(r['id'],age,self.pluralize(age,"day"),
-                                                                 r['prop_type'],r['person'],r['proposer'],
-                                                                 r['comment_text'])
+            reply="prosition %d (%d %s old): %s %s. %s says %s."%(r['id'],age,self.pluralize(age,"day"),
+                                                                  r['prop_type'],r['person'],r['proposer'],
+                                                                  r['comment_text'])
+            if target[0] != "#" or prefix == self.client.NOTICE_PREFIX or prefix == self.client.PRIVATE_PREFIX:
+                query="SELECT vote,carebears FROM prop_vote"
+                query+=" WHERE prop_id=%d"
+                self.cursor.execute(query,(prop_id,))
+                s=self.cursor.dictfetchone()
+                if s:
+                    reply+=" You are currently voting '%s'"%(s['vote'],)
+                    if s['vote'] != 'abstain':
+                        reply+=" with %d carebears"%(s['carebears'],)
+                    reply+=" on this proposition." 
+                else:
+                    reply+=" You are not currently voting on this proposition."
         self.client.reply(prefix,nick,target,reply)
 
     def process_vote_proposal(self,prefix,nick,target,u,prop_id,vote,carebears):

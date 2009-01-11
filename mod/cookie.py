@@ -72,6 +72,11 @@ class cookie(loadable.loadable):
             return 0
         
         #rec=load_user
+
+        if receiver.lower() == self.config.get('Connection','nick').lower():
+            self.client.reply(prefix,nick,target,"Cookies? Pah! I only eat carrion.")
+            return 1
+        
         rec=self.load_user_from_pnick(receiver)
         if not rec or rec.userlevel < 100:
             self.client.reply(prefix,nick,target,"I don't know who '%s' is, so I can't very well give them any cookies can I?" % (receiver,))

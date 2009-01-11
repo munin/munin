@@ -107,7 +107,7 @@ class loadable:
             return text+"s"
         return text
     
-    def match_or_usage(self, needle, haystack):
+    def match_or_usage(self, prefix, nick, target, needle, haystack):
         m=needle.search(haystack)
         if not m:
             self.client.reply(prefix,nick,target,"Usage: %s" %(self.usage,))
@@ -514,8 +514,8 @@ class user:
     
     def check_available_cookies(self,conn,client,cursor,config):
         print self.last_cookie_date
-        print DateTime.RelativeDateTime(DateTime.now(),self.last_cookie_date).days
-        if not self.last_cookie_date or DateTime.RelativeDateTime(DateTime.now(),self.last_cookie_date).days > 6:
+        print DateTime.Age(DateTime.now(),self.last_cookie_date).days
+        if not self.last_cookie_date or DateTime.Age(DateTime.now(),self.last_cookie_date).days > 6:
             self.available_cookies = config.get("Alliance","cookies_per_week")
             query="UPDATE user_list SET available_cookies = %s,last_cookie_date = %s WHERE id = %s"
             cursor.execute(query,(self.available_cookies,psycopg.TimestampFromMx(DateTime.now()), self.id))

@@ -479,3 +479,10 @@ CREATE TABLE kick_proposal (
        created TIMESTAMP NOT NULL DEFAULT now(),
        comment_text TEXT NOT NULL
 );
+
+CREATE TABLE prop_vote (
+       id SERIAL PRIMARY KEY,
+       vote VARCHAR(7) NOT NULL CHECK(vote in ('yes', 'no', 'abstain')),
+       carebears integer NOT NULL,
+       prop_id integer NOT NULL
+);

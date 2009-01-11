@@ -484,6 +484,7 @@ class user:
         if not u and self.pnick:
             query=self.lookup_query()
             query+=" t1.pnick ILIKE %s"
+            query+=" ORDER BY userlevel DESC"
             cursor.execute(query,('%'+self.pnick+'%',))
             u=cursor.dictfetchone()
         if u:

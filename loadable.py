@@ -112,6 +112,11 @@ class loadable:
         if not m:
             self.client.reply(prefix,nick,target,"Usage: %s" %(self.usage,))
         return m
+    def command_not_used_in_home(self,prefix,nick,target,command_name):
+        if target.lower() != "#"+self.config.get("Auth","home").lower():
+            self.client.reply(prefix,nick,target,"The %s command may only be used in #%s."%(command_name,self.config.get("Auth","home"),))
+            return True
+        False
         
 class defcall:
     def __init__(self,id=-1,bcalc=None,status=-1,claimed_by=None,comment=None,target=None,landing_tick=-1):

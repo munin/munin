@@ -65,6 +65,8 @@ class prop(loadable.loadable):
         if prop_type.lower() == 'invite':
             m=self.match_or_usage(prefix,nick,target,self.invite_kickre,m.group(2))
             if not m: return 1
+            if self.command_not_used_in_home(prefix,nick,target,self.__class__.__name__ + " invite"): return 1
+            
             person=m.group(1)
             comment=m.group(3)
             self.process_invite_proposal(prefix,nick,target,u,person,comment)
@@ -72,6 +74,8 @@ class prop(loadable.loadable):
         elif prop_type.lower() == 'kick':
             m=self.match_or_usage(prefix,nick,target,self.invite_kickre,m.group(2))
             if not m: return 1
+            if self.command_not_used_in_home(prefix,nick,target,self.__class__.__name__ + " kick"): return 1
+            
             person=m.group(1)
             comment=m.group(3)
             self.process_kick_proposal(prefix,nick,target,u,person,comment)
@@ -87,6 +91,10 @@ class prop(loadable.loadable):
         elif prop_type.lower() == 'vote':
             m=self.match_or_usage(prefix,nick,target,self.votere,m.group(2))
             if not m: return 1
+            in_pub=re.match(r"(#\S+)",target,re.I)
+            if in_pub:
+                self.client.reply(prefix,nick,target,"Don't set your vote in public.")
+                return 1
             prop_id=int(m.group(1))
             vote=m.group(2)
             carebears=m.group(3)
@@ -95,6 +103,8 @@ class prop(loadable.loadable):
         elif prop_type.lower() == 'expire':
             m=self.match_or_usage(prefix,nick,target,re.compile(r"\s*(\d+)"),m.group(2))
             if not m: return 1
+            if self.command_not_used_in_home(prefix,nick,target,self.__class__.__name__ + " expire"): return 1
+            
             prop_id=int(m.group(1))
             self.process_expire_proposal(prefix,nick,target,u,prop_id)
         # Do stuff here

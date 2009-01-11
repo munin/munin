@@ -232,6 +232,9 @@ class prop(loadable.loadable):
         if not prop:
             self.client.reply(prefix,nick,target,"No proposition number %d exists (idiot)."%(prop_id,))
             return
+        if u.pnick.lower() != prop['proposer']:
+            self.client.reply(prefix,nick,target,"Only %s may expire proposition %d."%(prop['proposer'],prop['id']))
+            return
         #tally votes for and against
         query="SELECT t1.vote AS vote,t1.carebears AS carebears"
         query+=", t1.prop_id AS prop_idd,t1.voter_id AS voter_id,t2.pnick AS pnick"

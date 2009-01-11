@@ -468,6 +468,7 @@ CREATE TABLE invite_proposal (
        proposer_id integer NOT NULL REFERENCES user_list(id),
        person VARCHAR(15) NOT NULL,
        created TIMESTAMP NOT NULL DEFAULT now(),
+       closed TIMESTAMP,
        comment_text TEXT NOT NULL
 );
 
@@ -477,6 +478,7 @@ CREATE TABLE kick_proposal (
        proposer_id integer NOT NULL REFERENCES user_list(id),
        person_id integer NOT NULL REFERENCES user_list(id),
        created TIMESTAMP NOT NULL DEFAULT now(),
+       closed TIMESTAMP,
        comment_text TEXT NOT NULL
 );
 
@@ -484,5 +486,6 @@ CREATE TABLE prop_vote (
        id SERIAL PRIMARY KEY,
        vote VARCHAR(7) NOT NULL CHECK(vote in ('yes', 'no', 'abstain')),
        carebears integer NOT NULL,
-       prop_id integer NOT NULL
+       prop_id integer NOT NULL,
+       voter_id integer NOT NULL REFERENCES user_list(id)
 );

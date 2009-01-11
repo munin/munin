@@ -112,6 +112,11 @@ class loadable:
         if not m:
             self.client.reply(prefix,nick,target,"Usage: %s" %(self.usage,))
         return m
+    def command_not_used_in_home(self,prefix,nick,target,command_name):
+        if target.lower() != "#"+self.config.get("Auth","home").lower():
+            self.client.reply(prefix,nick,target,"The %s command may only be used in #%s."%(command_name,self.config.get("Auth","home"),))
+            return True
+        False
         
 class defcall:
     def __init__(self,id=-1,bcalc=None,status=-1,claimed_by=None,comment=None,target=None,landing_tick=-1):
@@ -514,11 +519,13 @@ class user:
     
     def check_available_cookies(self,conn,client,cursor,config):
         print self.last_cookie_date
-        print DateTime.Age(DateTime.now(),self.last_cookie_date).days
-        if not self.last_cookie_date or DateTime.Age(DateTime.now(),self.last_cookie_date).days > 6:
-            self.available_cookies = config.get("Alliance","cookies_per_week")
+        now = DateTime.now()
+
+        if not self.last_cookie_date or DateTime.Age(now,self.last_cookie_date).days > 6:
+            self.available_cookies = int(config.get("Alliance","cookies_per_week"))
             query="UPDATE user_list SET available_cookies = %s,last_cookie_date = %s WHERE id = %s"
-            cursor.execute(query,(self.available_cookies,psycopg.TimestampFromMx(DateTime.now()), self.id))
+            last_monday=now - DateTime.RelativeDateTime(days=(now.day_of_week))
+            cursor.execute(query,(self.available_cookies,psycopg.TimestampFromMx(last_monday), self.id))
 
         return self.available_cookies
         

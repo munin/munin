@@ -56,9 +56,9 @@ class cookie(loadable.loadable):
         if not m:
             self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
             return 0
-        if target.lower() != "#"+self.config.get("Auth","home").lower():
-            self.client.reply(prefix,nick,target,"This command may only be used in #%s."%(self.config.get("Auth","home"),))
+        if self.command_not_used_in_home(prefix,nick,target,self.__class__.__name__):
             return 1
+
         # assign param variables 
         howmany=m.group(2)
         if howmany:
@@ -70,7 +70,7 @@ class cookie(loadable.loadable):
 
         if not self.can_give_cookies(prefix,nick,target,u,howmany):
             return 0
-
+        
         #rec=load_user
         rec=self.load_user_from_pnick(receiver)
         if not rec or rec.userlevel < 100:
@@ -79,7 +79,7 @@ class cookie(loadable.loadable):
         if u.pnick == rec.pnick:
             self.client.reply(prefix,nick,target,"Fuck you, %s. You can't have your cookies and eat them, you selfish dicksuck."%(u.pnick,))
             return 1
-
+        
         query="UPDATE user_list SET carebears = carebears + %d WHERE id = %s"
         self.cursor.execute(query,(howmany,rec.id))
         query="UPDATE user_list SET available_cookies = available_cookies - %d WHERE id = %s"
@@ -99,6 +99,7 @@ class cookie(loadable.loadable):
 
     def can_give_cookies(self,prefix,nick,target,u,howmany):
         available_cookies = u.check_available_cookies(self.conn,self.client,self.cursor,self.config)
+
         if howmany > available_cookies:
             reply="Silly, %s. You currently only have %s cookies to give out, but are trying to give out %s cookies. I'll bake you some new cookies on Monday morning." % (u.pnick, u.available_cookies, howmany)
             self.client.reply(prefix, nick, target, reply)

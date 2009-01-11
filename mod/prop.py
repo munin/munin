@@ -297,7 +297,7 @@ class prop(loadable.loadable):
 
     def do_invite(self,prefix,nick,target,prop):
         gimp=self.load_user_from_pnick(prop['person'])
-        if not gimp:
+        if not gimp or gimp.pnick.lower() != prop['person'].lower():
             query="INSERT INTO user_list (userlevel,sponsor,pnick) VALUES (100,%s,%s)"
         else:
             query="UPDATE user_list SET userlevel = 100, sponsor=%s WHERE pnick ilike %s"

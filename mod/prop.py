@@ -38,6 +38,7 @@ class prop(loadable.loadable):
         self.invite_kickre=re.compile(r"^\s+(\S+)(\s+(\S.*))")
         self.votere=re.compile(r"^\s+(\d+)\s+(yes|no|abstain)(\s+(\d+))?")
         self.usage=self.__class__.__name__ + " [<invite|kick> <pnick> <comment>] | [<list>] | [<vote> <number> <yes|no|abstain> [carebears]] | [<expire> <number] | [<show> <number>]"
+        self.MIN_WAIT=7
 	self.helptext=["A proposition is a vote to do something. For now, you can raise propositions to invite or kick someone. Once raised the proposition will stand until you expire it.  Make sure you give everyone time to have their say.",
                        "Votes for and against a proposition are made using carebears. You must have at least 1 carebear to vote. You can bid as many carebears as you want, and if you lose, you'll be compensated this many carebears for being outvoted. If you win, you'll get some back, but I'll take enough to compensate the losers."]
 
@@ -105,7 +106,11 @@ class prop(loadable.loadable):
             self.client.reply(prefix,nick,target,"Stupid %s, that wanker %s is already a member."%(user.pnick,person))
             return 1
         if self.is_already_proposed_invite(person):
-            self.client.reply(prefix,nick,target,"Silly %s, there's already a proposal to invite %s (I'm voting against)."%(user.pnick,person))
+            self.client.reply(prefix,nick,target,"Silly %s, there's already a proposal to invite %s."%(user.pnick,person))
+            return 1
+        recent=self.was_recently_proposed_invite(person)
+        if recent > -1:
+            self.client.reply(prefix,nick,target,"You are too impatient, young %s. Wait at least %d days before trying to invite %s again."%(user.pnick,self.MIN_WAIT-recent,person))
             return 1
         prop_id=self.create_invite_proposal(user,person,comment)
         reply="%s created a new proposition (nr. %d) to invite %s." %(user.pnick,prop_id,person)
@@ -118,7 +123,11 @@ class prop(loadable.loadable):
             self.client.reply(prefix,nick,target,"Stupid %s, you can't kick %s, they're not a member.")
             return 1
         if self.is_already_proposed_kick(p.id):
-            self.client.reply(prefix,nick,target,"Silly %s, there's already a proposition to kick %s (I'm voting against)."%(user.pnick,p.pnick))
+            self.client.reply(prefix,nick,target,"Silly %s, there's already a proposition to kick %s."%(user.pnick,p.pnick))
+            return 1
+        recent=self.was_recently_proposed_invite(person)
+        if recent > -1:
+            self.client.reply(prefix,nick,target,"You are too impatient, young %s. Wait at least %d days before trying to kick %s again."%(user.pnick,self.MIN_WAIT-recent,p.pnick))
             return 1
         prop_id=self.create_kick_proposal(user,p,comment)
         reply="%s created a new proposition (nr. %d) to kick %s."%(user.pnick,prop_id,p.pnick)
@@ -280,7 +289,7 @@ class prop(loadable.loadable):
 
         self.client.privmsg('p',"note send %s A proposition to kick you from %s has been raised by %s with reason '%s' and passed by a vote of %d to %d."%(idiot.pnick,self.config.get('Auth','alliance'),prop['proposer'],prop['comment_text'],yes,no))
 
-        query="UPDATE kick_proposal SET active = FALSE WHERE id=%d"
+        query="UPDATE kick_proposal SET active = FALSE, closed=NOW() WHERE id=%d"
         self.cursor.execute(query,(prop['id'],))
 
         reply="%s has been reduced to level 1 and removed from #%s."%(idiot.pnick,self.config.get('Auth','home'))
@@ -296,7 +305,7 @@ class prop(loadable.loadable):
         self.client.privmsg('P',"adduser #%s %s 399" %(self.config.get('Auth', 'home'), prop['person'],));
         self.client.privmsg('P',"modinfo #%s automode %s op" %(self.config.get('Auth', 'home'), prop['person'],));
 
-        query="UPDATE invite_proposal SET active = FALSE WHERE id=%d"
+        query="UPDATE invite_proposal SET active = FALSE, closed=NOW() WHERE id=%d"
         self.cursor.execute(query,(prop['id'],))
 
         self.client.reply(prefix,nick,target,"%s has been added to #%s and given level 100 access to me."%(prop['person'],self.config.get('Auth','home')))
@@ -319,9 +328,19 @@ class prop(loadable.loadable):
         return self.cursor.rowcount > 0 
 
     def is_already_proposed_invite(self,person):
-        query="SELECT id FROM invite_proposal WHERE person ilike %s"
+        query="SELECT id FROM invite_proposal WHERE person ilike %s AND active"
         self.cursor.execute(query,(person,))
-        return self.cursor.rowcount > 0 
+        return self.cursor.rowcount > 0
+
+    def was_recently_proposed_invite(self,person):
+        query="SELECT closed FROM invite_proposal WHERE person ilike %s AND not active"
+        self.cursor.execute(query,(person,))
+        r=self.cursor.dictfetchone()
+        if r:
+            age=DateTime.Age(DateTime.now(),r['closed']).days
+            if age < self.MIN_WAIT:
+                return age
+        return -1
     
     def create_invite_proposal(self,user,person,comment):
         query="INSERT INTO invite_proposal (proposer_id, person, comment_text)"
@@ -343,3 +362,13 @@ class prop(loadable.loadable):
         query="SELECT id FROM kick_proposal WHERE person_id = %d"
         self.cursor.execute(query,(person_id,))
         return self.cursor.rowcount > 0
+
+    def was_recently_proposed_kick(self,person):
+        query="SELECT closed FROM kick_proposal WHERE person ilike %s AND not active"
+        self.cursor.execute(query,(person,))
+        r=self.cursor.dictfetchone()
+        if r:
+            age=DateTime.Age(DateTime.now(),r['closed']).days
+            if age < self.MIN_WAIT:
+                return age
+        return -1

@@ -249,15 +249,26 @@ class prop(loadable.loadable):
         if yes > no:
             losers=voters['no']
             winners=voters['yes']
+            winning_total=yes
+            losing_total=no
         else:
             winners=voters['no']
             losers=voters['yes']
+            winning_total=no
+            losing_total=yes
 
         for l in losers:
             query="UPDATE user_list SET carebears = carebears + %d"
             query+=" WHERE id=%d"
             self.cursor.execute(query,(l['carebears']*2, l['voter_id']))
 
+        for w in winners:
+            query="UPDATE user_list SET carebears = carebears + %d"
+            query+=" WHERE id=%d"
+            r=((winning_total-losing_total)*int(w['carebears']))/winning_total
+            print "Reimbursing %d with %d carebears for w: %d and l: %d"%(r,w['voter_id'],winning_total,losing_total)
+            self.cursor.execute(query,(r, w['voter_id']))
+        
         age=DateTime.Age(DateTime.now(),prop['created']).days
         reply="The proposition raised by %s %d %s ago to %s %s has"%(prop['proposer'],age,self.pluralize(age,"day"),prop['prop_type'],prop['person'])
         if yes > no:

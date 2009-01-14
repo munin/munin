@@ -310,7 +310,11 @@ class prop(loadable.loadable):
             return
 
         (voters, yes, no)=self.get_voters_for_prop(prop_id)
-        for v in voters:
+
+        all_voters=[]
+        all_voters.extend(voters['yes'])
+        all_voters.extend(voters['no'])
+        for v in all_voters:
             query="UPDATE user_list SET carebears = carebears + %d WHERE id=%d"
             self.cursor.execute(query,(v['carebears'],v['voter_id']))
 

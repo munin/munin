@@ -104,6 +104,15 @@ class prop(loadable.loadable):
             
             prop_id=int(m.group(1))
             self.process_expire_proposal(prefix,nick,target,u,prop_id)
+
+        elif prop_type.lower() == 'cancel':
+            m=self.match_or_usage(prefix,nick,target,re.compile(r"\s*(\d+)"),m.group(2))
+            if not m: return 1
+            if self.command_not_used_in_home(prefix, nick, target, self.__class__.__name__ + " cancel"): return 1
+
+            prop_id=int(m.group(1))
+            self.process_cancel_proposal(prefix, nick, target, u, prop_id)
+            pass
         # Do stuff here
 
         return 1
@@ -239,27 +248,7 @@ class prop(loadable.loadable):
             self.client.reply(prefix,nick,target,"Only %s may expire proposition %d."%(prop['proposer'],prop['id']))
             return
         #tally votes for and against
-        query="SELECT t1.vote AS vote,t1.carebears AS carebears"
-        query+=", t1.prop_id AS prop_idd,t1.voter_id AS voter_id,t2.pnick AS pnick"
-        query+=" FROM prop_vote AS t1"
-        query+=" INNER JOIN user_list AS t2 ON t1.voter_id=t2.id"
-        query+=" WHERE prop_id=%d"
-        self.cursor.execute(query,(prop_id,))
-        voters={}
-        voters['yes']=[]
-        voters['no']=[]
-        voters['abstain']=[]
-        yes=0;no=0
-        
-        for r in self.cursor.dictfetchall():
-            if r['vote'] == 'yes':
-                yes+=r['carebears']
-                voters['yes'].append(r)
-            elif r['vote'] == 'no':
-                no+=r['carebears']
-                voters['no'].append(r)
-            elif r['vote'] == 'abstain':
-                voters['abstain'].append(r)
+        (voters, yes, no) = self.get_voters_for_prop(prop_id)
         winners=[]
         losers=[]
         if yes > no:
@@ -310,6 +299,63 @@ class prop(loadable.loadable):
 
         self.cursor.execute(query,(prop['id'],))
         pass
+
+    def process_cancel_proposal(self, prefix, nick, target, u, prop_id):
+        prop=self.find_single_prop_by_id(prop_id)
+        if not prop:
+            self.client.reply(prefix,nick,target,"No proposition number %d exists (idiot)."%(prop_id,))
+            return
+        if u.pnick.lower() != prop['proposer']:
+            self.client.reply(prefix,nick,target,"Only %s may expire proposition %d."%(prop['proposer'],prop['id']))
+            return
+
+        (voters, yes, no)=self.get_voters_for_prop(prop_id)
+        for v in voters:
+            query="UPDATE user_list SET carebears = carebears + %d WHERE id=%d"
+            self.cursor.execute(query,(v['carebears'],v['voter_id']))
+
+        query="DELETE FROM prop_vote WHERE prop_id=%d"
+        self.cursor.execute(query,(prop['id'],))
+
+        query="DELETE FROM %s_proposal " %(prop['prop_type'],)
+        query+=" WHERE id=%d"
+        self.cursor.execute(query,(prop['id'],))
+
+        reply="Cancelled proposal %d to %s %s. Compensating voters in favor (" %(prop['id'],prop['prop_type'],prop['person'])
+
+        pretty_print=lambda x:"%s (%d)"%(x['pnick'],x['carebears'])
+        reply+=string.join(map(pretty_print,voters['yes']),', ')
+        reply+=") and against ("
+        reply+=string.join(map(pretty_print,voters['no']),', ')
+        reply+=")"
+        self.client.privmsg("#%s"%(self.config.get('Auth','home'),),reply)
+
+        pass
+
+
+    def get_voters_for_prop(self,prop_id):
+        query="SELECT t1.vote AS vote,t1.carebears AS carebears"
+        query+=", t1.prop_id AS prop_idd,t1.voter_id AS voter_id,t2.pnick AS pnick"
+        query+=" FROM prop_vote AS t1"
+        query+=" INNER JOIN user_list AS t2 ON t1.voter_id=t2.id"
+        query+=" WHERE prop_id=%d"
+        self.cursor.execute(query,(prop_id,))
+        voters={}
+        voters['yes']=[]
+        voters['no']=[]
+        voters['abstain']=[]
+        yes=0;no=0
+        
+        for r in self.cursor.dictfetchall():
+            if r['vote'] == 'yes':
+                yes+=r['carebears']
+                voters['yes'].append(r)
+            elif r['vote'] == 'no':
+                no+=r['carebears']
+                voters['no'].append(r)
+            elif r['vote'] == 'abstain':
+                voters['abstain'].append(r)
+        return (voters, yes, no)
 
     def do_kick(self,prefix,nick,target,prop,yes,no):
         idiot=self.load_user_from_pnick(prop['person'])

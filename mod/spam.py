@@ -59,7 +59,6 @@ class spam(loadable.loadable):
         query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates) AND (t6.name ILIKE %s) ORDER BY x,y,z"
         self.cursor.execute(query,args)
 
-        i=0
         planets=self.cursor.dictfetchall()
         if not len(planets):
             reply="No planets in intel matching alliance: %s"%(params,)

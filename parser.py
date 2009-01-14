@@ -296,7 +296,7 @@ class parser:
     def get_user_access(self,pnick):
         query="SELECT userlevel FROM user_list WHERE pnick=%s"
 
-        user_found=self.cursor.execute(query,(pnick,))
+        self.cursor.execute(query,(pnick,))
         result=self.cursor.fetchone()
         if result:
             return result[0]

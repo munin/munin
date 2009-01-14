@@ -65,14 +65,12 @@ class status(loadable.loadable):
                 when=int(when)
             if when and when < 80:
                 tick=curtick+when
-                eta=when
             elif when and when < curtick:
                 self.client.reply(prefix,nick,target,"Can not check status on the past. You wanted tick %s, but current tick is %s. (If you really need to know, poke %s.)"%(when,curtick, self.config.get('Auth', 'owner_nick')))
                 return 1
             elif when:
                 tick=when
-                eta=tick-curtick
-                                                                                            
+
             args=()
             query="SELECT t1.id AS id, t1.nick AS nick, t1.pid AS pid, t1.tick AS tick, t1.uid AS uid, t2.pnick AS pnick, t2.userlevel AS userlevel, t3.x AS x, t3.y AS y, t3.z AS z"
             query+=" FROM target AS t1"
@@ -166,13 +164,11 @@ class status(loadable.loadable):
             
             if when and when < 80:
                 tick=curtick+when
-                eta=when
             elif when and when < curtick:
                 self.client.reply(prefix,nick,target,"Can not check status on the past. You wanted tick %s, but current tick is %s. (If you really need to know, poke %s.)"%(when,curtick, self.config.get('Auth', 'owner_nick')))
                 return 1
             elif when:
                 tick=when
-                eta=tick-curtick
 
             if not subject:
                 if user:

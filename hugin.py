@@ -21,18 +21,14 @@
 # are included in this collective work with permission of the copyright 
 # owners.
 
-import psycopg
 import time
-import urllib2
-import sys
+
+import ConfigParser
 import os
+import psycopg
 import re
 import traceback
-import ConfigParser
-
-from loadable import planet
-from loadable import galaxy
-from loadable import alliance
+import urllib2
 
 config = ConfigParser.ConfigParser()
 if not config.read("muninrc"):

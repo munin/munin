@@ -86,7 +86,6 @@ class book(loadable.loadable):
             tick=32767
 
 
-        args=()
         query="SELECT t1.id AS id, t1.nick AS nick, t1.pid AS pid, t1.tick AS tick, t1.uid AS uid, t2.pnick AS pnick, t2.userlevel AS userlevel, t3.x AS x, t3.y AS y, t3.z AS z"
         query+=" FROM target AS t1"
         query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"

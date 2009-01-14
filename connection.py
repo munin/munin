@@ -19,7 +19,10 @@
 # are included in this collective work with permission of the copyright 
 # owners.
 
-import socket,string,re,time
+import time
+
+import re
+import socket
 
 CRLF = "\r\n"
 DEBUG = 1

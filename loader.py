@@ -3,7 +3,9 @@ A class for loading and reloading modules, and keeping track
 of them in a dictionary.
 """
 
-import traceback, sys
+import sys
+
+import traceback
 
 class Loader(object):
     """Loader class for modules."""

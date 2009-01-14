@@ -1,6 +1,5 @@
-import math
+import loadable
 import re
-import sys
 
 # Nothing alliance specific in here.
 # qebab, 24/6/08.

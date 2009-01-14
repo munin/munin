@@ -77,7 +77,6 @@ class whore(loadable.loadable):
         size=None
         value_mod=None
         value=None
-        bash=False
         cluster=None
         param=m.group(1)
         params=param.split()

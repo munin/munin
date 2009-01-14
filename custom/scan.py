@@ -19,7 +19,12 @@
 # are included in this collective work with permission of the copyright 
 # owners.
 
-import urllib2, re, os, sys, string, psycopg, loadable, threading, traceback
+import loadable
+import psycopg
+import re
+import threading
+import traceback
+import urllib2
 
 class scan(threading.Thread):
     def __init__(self, rand_id,client,conn,cursor,nick,pnick,group_id): # random scan ID, and client for debug ONLY
@@ -88,7 +93,6 @@ class scan(threading.Thread):
             except psycopg.IntegrityError, e:
                 print "Scan %s may already exist" %(self.rand_id,)
                 print e.__str__()
-                #FIXME: enable the following line once done testing:
                 return
             if next_id < 0:
                 raise Exception("Scan id is %s"%(next_id,))

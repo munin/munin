@@ -1,11 +1,11 @@
 #!/usr/bin/python 
 
-import traceback
-import psycopg,time,urllib2,sys,os,re
+import sys
+import time
 
-from loadable import planet
-from loadable import galaxy
-from loadable import alliance
+import os
+import psycopg
+import traceback
 
 sys.path.insert(0, "custom")
 

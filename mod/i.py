@@ -67,8 +67,6 @@ class i(loadable.loadable):
             self.client.reply(prefix,nick,target,"No defcall matching id %s found" %(call_id,))
             return 0
         
-        p=d.actual_target
-        
         query="SELECT t1.id AS fleet_id, t4.id AS defcall_id"
         query+=", t2.race AS race, t2.x AS owner_x, t2.y AS owner_y, t2.z AS owner_z"
         query+=", t3.x AS target_x, t3.y AS target_y, t3.z AS target_z"

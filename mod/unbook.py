@@ -57,7 +57,6 @@ class unbook(loadable.loadable):
 
         curtick=self.current_tick()
         tick=-1
-        eta=-1
 
         p=loadable.planet(x=x,y=y,z=z)
         if not p.load_most_recent(self.conn,self.client,self.cursor):
@@ -71,13 +70,11 @@ class unbook(loadable.loadable):
         
         if when and when < 80:
             tick=curtick+when
-            eta=when
         elif when and when < curtick:
             self.client.reply(prefix,nick,target,"Can not unbook targets in the past. You wanted tick %s, but current tick is %s."%(when,curtick))
             return 1
         elif when:
             tick=when
-            eta=tick-curtick
 
         if not override: # trying to unbook own target
             query="DELETE FROM target WHERE pid = %s " 

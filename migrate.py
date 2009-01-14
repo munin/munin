@@ -21,7 +21,9 @@
 # are included in this collective work with permission of the copyright
 # owners.
 
-import psycopg, sys
+import sys
+
+import psycopg
 
 user="munin"
 

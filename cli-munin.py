@@ -21,11 +21,11 @@
 # are included in this collective work with permission of the copyright 
 # owners.
 
-import os
+from parser import parser
 import sys
+
 import ConfigParser
 from cli import connection
-from parser import parser
 
 config = ConfigParser.ConfigParser()
 

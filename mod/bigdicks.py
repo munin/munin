@@ -54,7 +54,7 @@ class bigdicks(loadable.loadable):
                   "DROP SEQUENCE value_diff_rank","DROP SEQUENCE activity_rank"]:
             try:
                 self.cursor.execute(q)
-            except Exception, e:
+            except Exception:
                 pass
 
         query="CREATE TEMP SEQUENCE xp_gain_rank;CREATE TEMP SEQUENCE value_diff_rank;CREATE TEMP SEQUENCE activity_rank"

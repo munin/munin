@@ -19,7 +19,9 @@
 # are included in this collective work with permission of the copyright 
 # owners.
 
-import re,traceback,loadable
+import loadable
+import re
+import traceback
 
 class galstatus:
     def __init__(self,client,conn,cursor,config):

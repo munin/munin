@@ -34,10 +34,10 @@ class prop(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
-        self.paramre=re.compile(r"^\s+(invite|kick|list|show|vote|expire)(.*)")
+        self.paramre=re.compile(r"^\s+(invite|kick|list|show|vote|expire|cancel)(.*)")
         self.invite_kickre=re.compile(r"^\s+(\S+)(\s+(\S.*))")
         self.votere=re.compile(r"^\s+(\d+)\s+(yes|no|abstain)(\s+(\d+))?")
-        self.usage=self.__class__.__name__ + " [<invite|kick> <pnick> <comment>] | [<list>] | [<vote> <number> <yes|no|abstain> [carebears]] | [<expire> <number] | [<show> <number>]"
+        self.usage=self.__class__.__name__ + " [<invite|kick> <pnick> <comment>] | [list] | [vote <number> <yes|no|abstain> [carebears]] | [expire <number] | [show <number>] | [cancel <number>]"
         self.MIN_WAIT=7
 	self.helptext=["A proposition is a vote to do something. For now, you can raise propositions to invite or kick someone. Once raised the proposition will stand until you expire it.  Make sure you give everyone time to have their say.",
                        "Votes for and against a proposition are made using carebears. You must have at least 1 carebear to vote. You can bid as many carebears as you want, and if you lose, you'll be compensated this many carebears for being outvoted. If you win, you'll get some back, but I'll take enough to compensate the losers."]
@@ -91,10 +91,7 @@ class prop(loadable.loadable):
         elif prop_type.lower() == 'vote':
             m=self.match_or_usage(prefix,nick,target,self.votere,m.group(2))
             if not m: return 1
-            in_pub=re.match(r"(#\S+)",target,re.I)
-            if in_pub:
-                self.client.reply(prefix,nick,target,"Don't set your vote in public.")
-                return 1
+
             prop_id=int(m.group(1))
             vote=m.group(2)
             carebears=m.group(3)
@@ -162,9 +159,11 @@ class prop(loadable.loadable):
         else:
         
             age=DateTime.Age(DateTime.now(),r['created']).days
-            reply="proposition %d (%d %s old): %s %s. %s says %s."%(r['id'],age,self.pluralize(age,"day"),
+            reply="proposition %d (%d %s old): %s %s. %s commented '%s'."%(r['id'],age,self.pluralize(age,"day"),
                                                                   r['prop_type'],r['person'],r['proposer'],
                                                                   r['comment_text'])
+            if not bool(r['active']):
+                reply+=" This prop expired %d days ago."%(DateTime.Age(DateTime.now(),r['closed']).days,)
             if target[0] != "#" or prefix == self.client.NOTICE_PREFIX or prefix == self.client.PRIVATE_PREFIX:
                 query="SELECT vote,carebears FROM prop_vote"
                 query+=" WHERE prop_id=%d AND voter_id=%d"
@@ -190,6 +189,10 @@ class prop(loadable.loadable):
         if not prop:
             self.client.reply(prefix,nick,target,"No proposition number %d exists (idiot)."%(prop_id,))
             return
+
+        if not bool(prop['active']):
+            self.client.reply(prefix,nick,target,"You can't vote on prop %d, it's expired."%(prop_id,))
+            return 
         query="SELECT id,vote,carebears, prop_id FROM prop_vote"
         query+=" WHERE prop_id=%d AND voter_id=%d"
         self.cursor.execute(query,(prop_id,u.id))
@@ -300,8 +303,12 @@ class prop(loadable.loadable):
 
         if prop['prop_type'] == 'kick' and yes > no:
             self.do_kick(prefix,nick,target,prop,yes,no)
+            query="UPDATE kick_proposal SET active = FALSE, closed=NOW() WHERE id=%d"
         elif prop['prop_type'] == 'invite' and yes > no:
             self.do_invite(prefix,nick,target,prop)
+            query="UPDATE invite_proposal SET active = FALSE, closed=NOW() WHERE id=%d"
+
+        self.cursor.execute(query,(prop['id'],))
         pass
 
     def do_kick(self,prefix,nick,target,prop,yes,no):
@@ -313,11 +320,9 @@ class prop(loadable.loadable):
 
         self.client.privmsg('p',"note send %s A proposition to kick you from %s has been raised by %s with reason '%s' and passed by a vote of %d to %d."%(idiot.pnick,self.config.get('Auth','alliance'),prop['proposer'],prop['comment_text'],yes,no))
 
-        query="UPDATE kick_proposal SET active = FALSE, closed=NOW() WHERE id=%d"
-        self.cursor.execute(query,(prop['id'],))
 
         reply="%s has been reduced to level 1 and removed from #%s."%(idiot.pnick,self.config.get('Auth','home'))
-        self.client.reply(prefix,nick,target,reply)
+        self.client.privmsg('#%s'%(self.config.get('Auth','home')),reply)
 
     def do_invite(self,prefix,nick,target,prop):
         gimp=self.load_user_from_pnick(prop['person'])
@@ -329,17 +334,17 @@ class prop(loadable.loadable):
         self.client.privmsg('P',"adduser #%s %s 399" %(self.config.get('Auth', 'home'), prop['person'],));
         self.client.privmsg('P',"modinfo #%s automode %s op" %(self.config.get('Auth', 'home'), prop['person'],));
 
-        query="UPDATE invite_proposal SET active = FALSE, closed=NOW() WHERE id=%d"
-        self.cursor.execute(query,(prop['id'],))
 
-        self.client.reply(prefix,nick,target,"%s has been added to #%s and given level 100 access to me."%(prop['person'],self.config.get('Auth','home')))
-              
+        reply="%s has been added to #%s and given level 100 access to me."%(prop['person'],self.config.get('Auth','home'))
+        self.client.privmsg('#%s'%(self.config.get('Auth','home')),reply)
     
     def find_single_prop_by_id(self,prop_id):
-        query="SELECT id, prop_type, proposer, person, created, comment_text FROM ("
-        query+="SELECT t1.id AS id, 'invite' AS prop_type, t2.pnick AS proposer, t1.person AS person, t1.created AS created, t1.comment_text AS comment_text"
+        query="SELECT id, prop_type, proposer, person, created, comment_text, active, closed FROM ("
+        query+="SELECT t1.id AS id, 'invite' AS prop_type, t2.pnick AS proposer, t1.person AS person, t1.created AS created,"
+        query+=" t1.comment_text AS comment_text, t1.active AS active, t1.closed AS closed"
         query+=" FROM invite_proposal AS t1 INNER JOIN user_list AS t2 ON t1.proposer_id=t2.id UNION ("
-        query+=" SELECT t3.id AS id, 'kick' AS prop_type, t4.pnick AS proposer, t5.pnick AS person, t3.created AS created, t3.comment_text AS comment_text"
+        query+=" SELECT t3.id AS id, 'kick' AS prop_type, t4.pnick AS proposer, t5.pnick AS person, t3.created AS created,"
+        query+=" t3.comment_text AS comment_text, t3.active AS active, t3.closed AS closed"
         query+=" FROM kick_proposal AS t3"
         query+=" INNER JOIN user_list AS t4 ON t3.proposer_id=t4.id"
         query+=" INNER JOIN user_list AS t5 ON t3.person_id=t5.id)) AS t6 WHERE t6.id=%d"

@@ -37,7 +37,7 @@ class cookie(loadable.loadable):
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+((\d+)\s+)?(\S+)\s+(\S.+)")
         self.usage=self.__class__.__name__ + " [howmany] <receiver> <reason>"
-	self.helptext=["Cookies are used to give out carebears. Carebears are rewards for carefaces. Give cookies to people when you think they've done something benificial for you or for the alliance in general."]
+	self.helptext=["Cookies are used to give out carebears. Carebears are rewards for carefaces. Give cookies to people when you think they've done something beneficial for you or for the alliance in general."]
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)

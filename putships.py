@@ -78,4 +78,7 @@ def main(url="http://game.planetarion.com/manual.php?page=stats"):
     connection.commit()
 
 if __name__ == '__main__':
-    sys.exit(main())
+    if len(sys.argv) > 1:
+        sys.exit(main(url=sys.argv[1]))
+    else:
+        sys.exit(main())

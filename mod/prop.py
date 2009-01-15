@@ -201,7 +201,12 @@ class prop(loadable.loadable):
 
         if not bool(prop['active']):
             self.client.reply(prefix,nick,target,"You can't vote on prop %d, it's expired."%(prop_id,))
-            return 
+            return
+        if prop['proposer'].lower() == u.pnick:
+            reply="Arbitrary Munin rule #167: No voting on your own props."
+            self.client.reply(prefix,nick,target,reply)
+            return
+        
         query="SELECT id,vote,carebears, prop_id FROM prop_vote"
         query+=" WHERE prop_id=%d AND voter_id=%d"
         self.cursor.execute(query,(prop_id,u.id))

@@ -292,11 +292,11 @@ class prop(loadable.loadable):
 
         if prop['prop_type'] == 'kick' and yes > no:
             self.do_kick(prefix,nick,target,prop,yes,no)
-            query="UPDATE kick_proposal SET active = FALSE, closed=NOW() WHERE id=%d"
         elif prop['prop_type'] == 'invite' and yes > no:
             self.do_invite(prefix,nick,target,prop)
-            query="UPDATE invite_proposal SET active = FALSE, closed=NOW() WHERE id=%d"
-
+        
+        query="UPDATE %s_proposal SET active = FALSE, closed = NOW()" % (prop['prop_type'],)
+        query+=" WHERE id=%d"
         self.cursor.execute(query,(prop['id'],))
         pass
 
@@ -325,7 +325,7 @@ class prop(loadable.loadable):
         query+=" WHERE id=%d"
         self.cursor.execute(query,(prop['id'],))
 
-        reply="Cancelled proposal %d to %s %s. Compensating voters in favor (" %(prop['id'],prop['prop_type'],prop['person'])
+        reply="Cancelled proposal %d to %s %s. Reimbursing voters in favor (" %(prop['id'],prop['prop_type'],prop['person'])
 
         pretty_print=lambda x:"%s (%d)"%(x['pnick'],x['carebears'])
         reply+=string.join(map(pretty_print,voters['yes']),', ')

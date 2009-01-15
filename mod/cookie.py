@@ -36,7 +36,8 @@ class cookie(loadable.loadable):
         loadable.loadable.__init__(self,client,conn,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+((\d+)\s+)?(\S+)\s+(\S.+)")
-        self.usage=self.__class__.__name__ + " [howmany] <receiver> <reason>"
+        self.statre=re.compile(r"^\s+statu?s?")
+        self.usage=self.__class__.__name__ + " [howmany] <receiver> <reason> | [stat]"
 	self.helptext=["Cookies are used to give out carebears. Carebears are rewards for carefaces. Give cookies to people when you think they've done something beneficial for you or for the alliance in general."]
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
@@ -51,14 +52,22 @@ class cookie(loadable.loadable):
         u=self.load_user(user,prefix,nick,target)
         if not u: return 0
 
-
+        s=self.statre.search(m.group(1))
+        
         m=self.paramre.search(m.group(1))
-        if not m:
+
+        if not (m or s):
+            print s
+            print m
             self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
             return 0
+        if s:
+            u=self.load_user(user,prefix,nick,target)
+            if not u: return 0
+            self.show_status(prefix,nick,target,u)
+            return 1
         if self.command_not_used_in_home(prefix,nick,target,self.__class__.__name__):
             return 1
-
         # assign param variables 
         howmany=m.group(2)
         if howmany:
@@ -110,3 +119,9 @@ class cookie(loadable.loadable):
             self.client.reply(prefix, nick, target, reply)
             return False
         return True
+
+    def show_status(self,prefix,nick,target,u):
+        available_cookies = u.check_available_cookies(self.conn,self.client,self.cursor,self.config)
+
+        reply="You have %d cookies left until next bakeday, %s"%(available_cookies,u.pnick)
+        self.client.reply(prefix,nick,target,reply)

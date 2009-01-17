@@ -202,7 +202,7 @@ class prop(loadable.loadable):
         if not bool(prop['active']):
             self.client.reply(prefix,nick,target,"You can't vote on prop %d, it's expired."%(prop_id,))
             return
-        if prop['proposer'].lower() == u.pnick:
+        if prop['proposer'].lower() == u.pnick.lower():
             reply="Arbitrary Munin rule #167: No voting on your own props."
             self.client.reply(prefix,nick,target,reply)
             return
@@ -249,7 +249,7 @@ class prop(loadable.loadable):
         if not prop:
             self.client.reply(prefix,nick,target,"No proposition number %d exists (idiot)."%(prop_id,))
             return
-        if u.pnick.lower() != prop['proposer']:
+        if u.pnick.lower() != prop['proposer'].lower():
             self.client.reply(prefix,nick,target,"Only %s may expire proposition %d."%(prop['proposer'],prop['id']))
             return
         #tally votes for and against

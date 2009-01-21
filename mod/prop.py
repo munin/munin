@@ -34,7 +34,7 @@ class prop(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
-        self.paramre=re.compile(r"^\s+(invite|kick|list|show|vote|expire|cancel)(.*)")
+        self.paramre=re.compile(r"^\s+(invite|kick|list|show|vote|expire|cancel|recent)(.*)")
         self.invite_kickre=re.compile(r"^\s+(\S+)(\s+(\S.*))")
         self.votere=re.compile(r"^\s+(\d+)\s+(yes|no|abstain)(\s+(\d+))?")
         self.usage=self.__class__.__name__ + " [<invite|kick> <pnick> <comment>] | [list] | [vote <number> <yes|no|abstain> [carebears]] | [expire <number] | [show <number>] | [cancel <number>]"
@@ -112,9 +112,9 @@ class prop(loadable.loadable):
 
             prop_id=int(m.group(1))
             self.process_cancel_proposal(prefix, nick, target, u, prop_id)
+        elif prop_type.lower() == 'recent':
+            self.process_recent_proposal(prefix,nick,target,u)
             pass
-        # Do stuff here
-
         return 1
     
     def process_invite_proposal(self,prefix,nick,target,user,person,comment):
@@ -347,7 +347,19 @@ class prop(loadable.loadable):
         reply+=string.join(map(pretty_print,voters['no']),', ')
         reply+=")"
         self.client.privmsg("#%s"%(self.config.get('Auth','home'),),reply)
+        pass
 
+    def process_recent_proposal(self,prefix,nick,target,u):
+        query="SELECT t1.id AS id, t1.person AS person, 'invite' AS prop_type FROM invite_proposal AS t1 WHERE NOT t1.active UNION ("
+        query+=" SELECT t2.id AS id, t3.pnick AS person, 'kick' AS prop_type FROM kick_proposal AS t2"
+        query+=" INNER JOIN user_list AS t3 ON t2.person_id=t3.id WHERE NOT t2.active) ORDER BY id DESC LIMIT 10"
+        self.cursor.execute(query,())
+        a=[]
+        for r in self.cursor.dictfetchall():
+            a.append("%d: %s %s"%(r['id'],r['prop_type'],r['person']))
+        reply="Recently expired propositions: %s"%(string.join(a, ", "),)
+        self.client.reply(prefix,nick,target,reply)
+        
         pass
 
     def get_winners_and_losers(self,voters,yes,no):

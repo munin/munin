@@ -165,27 +165,47 @@ class prop(loadable.loadable):
         r=self.find_single_prop_by_id(prop_id)
         if not r:
             reply="No proposition number %d exists."%(prop_id,)
-        else:
+            self.client.reply(prefix,nick,target,reply)
+            return
         
-            age=DateTime.Age(DateTime.now(),r['created']).days
-            reply="proposition %d (%d %s old): %s %s. %s commented '%s'."%(r['id'],age,self.pluralize(age,"day"),
-                                                                  r['prop_type'],r['person'],r['proposer'],
-                                                                  r['comment_text'])
-            if not bool(r['active']):
-                reply+=" This prop expired %d days ago."%(DateTime.Age(DateTime.now(),r['closed']).days,)
-            if target[0] != "#" or prefix == self.client.NOTICE_PREFIX or prefix == self.client.PRIVATE_PREFIX:
-                query="SELECT vote,carebears FROM prop_vote"
-                query+=" WHERE prop_id=%d AND voter_id=%d"
-                self.cursor.execute(query,(prop_id,u.id))
-                s=self.cursor.dictfetchone()
-                if s:
-                    reply+=" You are currently voting '%s'"%(s['vote'],)
-                    if s['vote'] != 'abstain':
-                        reply+=" with %d carebears"%(s['carebears'],)
-                    reply+=" on this proposition." 
-                else:
-                    reply+=" You are not currently voting on this proposition."
+        age=DateTime.Age(DateTime.now(),r['created']).days
+        reply="proposition %d (%d %s old): %s %s. %s commented '%s'."%(r['id'],age,self.pluralize(age,"day"),
+                                                                       r['prop_type'],r['person'],r['proposer'],
+                                                                       r['comment_text'])
+        if not bool(r['active']):
+            reply+=" This prop expired %d days ago."%(DateTime.Age(DateTime.now(),r['closed']).days,)
+        if target[0] != "#" or prefix == self.client.NOTICE_PREFIX or prefix == self.client.PRIVATE_PREFIX:
+            query="SELECT vote,carebears FROM prop_vote"
+            query+=" WHERE prop_id=%d AND voter_id=%d"
+            self.cursor.execute(query,(prop_id,u.id))
+            s=self.cursor.dictfetchone()
+            if s:
+                reply+=" You are currently voting '%s'"%(s['vote'],)
+                if s['vote'] != 'abstain':
+                    reply+=" with %d carebears"%(s['carebears'],)
+                reply+=" on this proposition." 
+            else:
+                reply+=" You are not currently voting on this proposition."
         self.client.reply(prefix,nick,target,reply)
+        if not bool(r['active']):
+            reply=""
+            (voters, yes, no) = self.get_voters_for_prop(prop_id)
+            (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(voters,yes,no)
+            reply+="The prop"
+            if yes > no:
+                reply+=" passed by a vote of %d to %d"%(yes,no)
+            else:
+                reply+=" failed by a vote of %d to %d"%(no,yes)
+            reply+=". The voters in favor were ("
+
+            pretty_print=lambda x:"%s (%d)"%(x['pnick'],x['carebears'])
+            reply+=string.join(map(pretty_print,voters['yes']),', ')
+            reply+=") and against ("
+            reply+=string.join(map(pretty_print,voters['no']),', ')
+            reply+=")"
+            self.client.reply(prefix,nick,target,reply)
+            pass
+
 
     def process_vote_proposal(self,prefix,nick,target,u,prop_id,vote,carebears):
         # todo ensure prop is active
@@ -254,18 +274,7 @@ class prop(loadable.loadable):
             return
         #tally votes for and against
         (voters, yes, no) = self.get_voters_for_prop(prop_id)
-        winners=[]
-        losers=[]
-        if yes > no:
-            losers=voters['no']
-            winners=voters['yes']
-            winning_total=yes
-            losing_total=no
-        else:
-            winners=voters['no']
-            losers=voters['yes']
-            winning_total=no
-            losing_total=yes
+        (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(voters,yes,no)
 
         for l in losers:
             query="UPDATE user_list SET carebears = carebears + %d"
@@ -341,6 +350,18 @@ class prop(loadable.loadable):
 
         pass
 
+    def get_winners_and_losers(self,voters,yes,no):
+        if yes > no:
+            losers=voters['no']
+            winners=voters['yes']
+            winning_total=yes
+            losing_total=no
+        else:
+            winners=voters['no']
+            losers=voters['yes']
+            winning_total=no
+            losing_total=yes
+        return (winners,losers,winning_total,losing_total)
 
     def get_voters_for_prop(self,prop_id):
         query="SELECT t1.vote AS vote,t1.carebears AS carebears"

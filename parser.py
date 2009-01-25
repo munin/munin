@@ -87,8 +87,8 @@ class parser:
         self.loadmodre=re.compile(r"^loadmod\s+(\S+)")
         self.helpre=re.compile(r"^help(\s+(\S+))?")
 
-        self.scanre=re.compile("http://[^/]+/showscan.pl\?scan_id=(\d+)")
-        self.scangrpre=re.compile("http://[^/]+/showscan.pl\?scan_grp=(\d+)")
+        self.scanre=re.compile("http://[^/]+/showscan.pl\?scan_id=([0-9a-zA-Z]+)")
+        self.scangrpre=re.compile("http://[^/]+/showscan.pl\?scan_grp=([0-9a-zA-Z]+)")
     def parse(self,line):
         m=self.welcomre.search(line)
         if m:

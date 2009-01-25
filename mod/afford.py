@@ -31,7 +31,6 @@ class afford(loadable.loadable):
         loadable.loadable.__init__(self,client,conn,cursor,1)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(\d+)[. :-](\d+)[. :-](\d+)\s+(\S+)")
-        self.idre=re.compile(r"(\d{1,9})")
         self.usage=self.__class__.__name__ + " <x:y:z> <shipname>"
         self.helptext=None
 

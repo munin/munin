@@ -37,6 +37,7 @@ class loadable:
         self.level=level
         self.coordre=re.compile(r"(\d+)[. :-](\d+)([. :-](\d+))?")
         self.planet_coordre=re.compile(r"(\d+)[. :-](\d+)[. :-](\d+)")
+        self.idre=re.compile(r"([0-9a-zA-Z]+)")
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)",re.I)
         self.helptext=None
         self.config = ConfigParser.ConfigParser()

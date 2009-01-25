@@ -295,8 +295,8 @@ CREATE TABLE scan (
 	pid integer NOT NULL REFERENCES planet_canon(id),
 	nick VARCHAR(15) NOT NULL,
 	pnick VARCHAR(15) ,
-	rand_id bigint NOT NULL,
-        group_id bigint,
+	rand_id VARCHAR(20) NOT NULL,
+        group_id VARCHAR(20),
 	scantype VARCHAR(11) NOT NULL CHECK(scantype in ('unknown','planet','development','unit','news','jgp','fleet','au')),
 	UNIQUE(rand_id,tick)
 );

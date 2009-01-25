@@ -83,21 +83,9 @@ class parser:
 
         self.reg_controllers()
 
-        #self.commandre=re.compile(r"(%s|%s)(\S+)\s+(.*)\s*$" % (self.pubprefix,self.privprefix))
         self.commandre=re.compile(r"^(%s|%s|%s)(.*)\s*$" % (self.notprefix,self.pubprefix,self.privprefix))
         self.loadmodre=re.compile(r"^loadmod\s+(\S+)")
         self.helpre=re.compile(r"^help(\s+(\S+))?")
-        #self.addmoduserre=re.compile(r"(\S{1,5})\s+(\d+)\s*$")
-        #self.addmodchanre=re.compile(r"(#\S+)\s+(\d+)\s*$")
-        #self.remuserre=re.compile(r"^(\S{1,15})\s*$")
-        #self.remchanre=re.compile(r"^(#\S+)\s*$")
-        #self.addremtargtypere=re.compile(r"^(\S+)\s*$")
-        #self.addtargre=re.compile(r"^(\d{1,3}):(\d{1,2}):(\d{1,2})$")
-        #self.taketargre=re.compile(r"^(\d{1,3}):(\d{1,2}):(\d{1,2})$")
-        #self.modtargre=re.compile(r"^(\d+) ?(.*)\s*")
-        #self.remtargre=re.compile(r"^(\d{1,3}):(\d{1,2}):(\d{1,2})\s*")
-        #self.coordre=re.compile(r"^(\d{1,3}):(\d{1,2}):(\d{1,2})$")
-
 
         self.scanre=re.compile("http://[^/]+/showscan.pl\?scan_id=(\d+)")
         self.scangrpre=re.compile("http://[^/]+/showscan.pl\?scan_grp=(\d+)")

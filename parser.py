@@ -281,25 +281,6 @@ class parser:
         else:
             return None
 
-    def get_user_access(self,pnick):
-        query="SELECT userlevel FROM user_list WHERE pnick=%s"
-
-        self.cursor.execute(query,(pnick,))
-        result=self.cursor.fetchone()
-        if result:
-            return result[0]
-        else:
-            return 0
-
-    def get_chan_access(self,channel):
-        query="SELECT userlevel FROM channel_list WHERE chan=%s"
-        self.cursor.execute(query,(channel,))
-        result=self.cursor.fetchone()
-        if result:
-            return result[0]
-        else:
-            return 0
-
     def reg_controllers(self):
         for command_name in os.listdir(self.mod_dir):
             m=re.search("(.*)\.py$",command_name,re.I)
@@ -309,8 +290,6 @@ class parser:
                     filename=os.path.join(self.mod_dir, source+'.py')
                     execfile(filename)
                     self.ctrl_list[source] = locals().get(source)(self.client,self.conn,self.cursor)
-
-
 
     def prefix_to_numeric(self,prefix):
         if self.notprefix.replace("|","").find(prefix) > -1:

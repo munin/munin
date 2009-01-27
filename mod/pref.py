@@ -69,7 +69,20 @@ class pref(loadable.loadable):
                 else:
                     self.client.reply(prefix,nick,target,"You must provide coordinates (x:y:z) for the planet option")
                     continue
-                self.save_planet(prefix,nick,target,u,x,y,z)
+                pid = self.save_planet(prefix,nick,target,u,x,y,z):
+                if pid > 0 and access >= 100:
+                    a=loadable.alliance(name=self.config.get('Auth', 'alliance'))
+                    if a.load_most_recent(self.conn,self.client,self.cursor):
+                        i=loadable.intel(pid=pid)
+                        i.load_from_db(self.conn,self.client,self.cursor)
+                        if i.id:
+                            query="UPDATE intel SET "
+                            query+="nick=%s,alliance_id=%s"
+                            query+=" WHERE id=%s"
+                            self.cursor.execute(query,(user,a.id,i.id))
+                        else:
+                            query="INSERT INTO intel (pid,nick,alliance_id) VALUES (%s,%s,%s)"
+                            self.cursor.execute(query,(opts['pid'],user,a.id))
             if opt == "stay":
                 self.save_stay(prefix,nick,target,u,val,access)
             if opt == "pubphone":
@@ -93,6 +106,7 @@ class pref(loadable.loadable):
             query="UPDATE user_list SET planet_id=%s WHERE id=%s"
             self.cursor.execute(query,(p.id,u.id))
             self.client.reply(prefix,nick,target,"Your planet has been saved as %s:%s:%s" % (x,y,z))
+            return p.id
         else:
             raise Exception("This code /should/ be defunct now that prefs are in the user_list table")
             query="INSERT INTO user_pref (id,planet_id) VALUES (%s,%s)"

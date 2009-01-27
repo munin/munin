@@ -82,7 +82,7 @@ class pref(loadable.loadable):
                             self.cursor.execute(query,(user,a.id,i.id))
                         else:
                             query="INSERT INTO intel (pid,nick,alliance_id) VALUES (%s,%s,%s)"
-                            self.cursor.execute(query,(opts['pid'],user,a.id))
+                            self.cursor.execute(query,(pid,user,a.id))
             if opt == "stay":
                 self.save_stay(prefix,nick,target,u,val,access)
             if opt == "pubphone":

@@ -69,8 +69,8 @@ class pref(loadable.loadable):
                 else:
                     self.client.reply(prefix,nick,target,"You must provide coordinates (x:y:z) for the planet option")
                     continue
-                pid = self.save_planet(prefix,nick,target,u,x,y,z):
-                if pid > 0 and access >= 100:
+                pid = self.save_planet(prefix,nick,target,u,x,y,z)
+                if pid > 0 and u.userlevel >= 100:
                     a=loadable.alliance(name=self.config.get('Auth', 'alliance'))
                     if a.load_most_recent(self.conn,self.client,self.cursor):
                         i=loadable.intel(pid=pid)

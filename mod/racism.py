@@ -32,11 +32,11 @@ class racism(loadable.loadable):
     foo 
     """ 
     def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,100)
+        loadable.loadable.__init__(self,client,conn,cursor,50)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
-        self.paramre=re.compile(r"^\s+(STUFFGOESHERE)")
-        self.usage=self.__class__.__name__ + ""
-	self.helptext=None
+        self.paramre=re.compile(r"^\s+(\S+)")
+        self.usage=self.__class__.__name__ + " [alliance] (All information taken from intel, for tag information use the lookup command)"
+        self.help=['Shows averages for each race matching a given alliance in intel.']
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
@@ -61,7 +61,7 @@ class racism(loadable.loadable):
         query+=" INNER JOIN intel AS t2 ON t1.id=t2.pid"
         query+=" LEFT JOIN alliance_canon t3 ON t2.alliance_id=t3.id"
         query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates) AND t3.name ILIKE %s"
-        query+=" GROUP BY t3.name ILIKE %s, t1.race"
+        query+=" GROUP BY t3.name ILIKE %s, t1.race ORDER by t1.race ASC"
 
         self.cursor.execute(query,('%'+alliance+'%','%'+alliance+'%'))
         reply=""
@@ -69,14 +69,14 @@ class racism(loadable.loadable):
             reply="Nothing in intel matches your search '%s'" % (alliance,)
         else:
             results=self.cursor.dictfetchall()
-            reply="Members in %s: "%(alliance,)
-            reply+=string.join(map(profile,results),', ')
+            reply="Demographics for %s: "%(alliance,)
+            reply+=string.join(map(self.profile,results),' | ')
         self.client.reply(prefix,nick,target,reply)
         
         return 1
     
-    def profile(res):
-        reply="Race: %s Value: %s, Avg: %s," % (res['race'],res['members'],res['tot_value'],res['tot_value']/res['members'])
-        reply+=" Score: %s, Avg: %s," % (res['tot_score'],res['tot_score']/res['members']) 
-        reply+=" Size: %s, Avg: %s, XP: %s, Avg: %s" % (res['tot_size'],res['tot_size']/res['members'],res['tot_xp'],res['tot_xp']/res['members'])
+    def profile(self,res):
+        reply="%s %s Val(%s)" % (res['members'],res['race'],self.format_real_value(res['tot_value']/res['members']))
+        reply+=" Score(%s)" % (self.format_real_value(res['tot_score']/res['members']),)
+        reply+=" Size(%s) XP(%s)" % (res['tot_size']/res['members'],self.format_real_value(res['tot_xp']/res['members']))
         return reply

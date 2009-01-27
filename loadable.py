@@ -69,6 +69,9 @@ class loadable:
         else:
             return str(value)
 
+    def format_real_value(self,value):
+        return self.format_value(value*100)
+        
     def split_opts(self,params):
         param_dict={}
         for s in params.split():

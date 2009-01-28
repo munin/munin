@@ -82,6 +82,9 @@ class intel(loadable.loadable):
 
         opts=self.split_opts(params)
         opts['pid']=p.id
+        a=loadable.alliance(name=i.alliance)
+        if i.alliance:
+            a.load_most_recent(self.conn,self.client,self.cursor)
         for opt, val in opts.items():
             if opt == "alliance":
                 if val in self.nulls:

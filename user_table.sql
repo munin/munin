@@ -220,28 +220,6 @@ CREATE TABLE intel (
 	alliance_id integer REFERENCES alliance_canon(id)
 );
 
-CREATE FUNCTION intel_update_nulls() RETURNS trigger AS $PROC$
-BEGIN
-IF NEW.nick = '?' THEN
-	NEW.nick=NULL;
-END IF;
-IF NEW.fakenick = '?' THEN
-	NEW.fakenick=NULL;
-END IF;
-IF NEW.reportchan = '?' THEN
-        NEW.reportchan=NULL;
-END IF;
-IF NEW.comment = '?' THEN
-        NEW.comment=NULL;
-END IF;
-RETURN NEW;
-END
-$PROC$ LANGUAGE plpgsql;
-
-
-CREATE TRIGGER intel_update_nulls BEFORE UPDATE ON intel FOR EACH ROW EXECUTE PROCEDURE intel_update_nulls();
-CREATE TRIGGER intel_insert_nulls BEFORE INSERT ON intel FOR EACH ROW EXECUTE PROCEDURE intel_update_nulls();
-
 CREATE TABLE epenis_cache (
     id SERIAL PRIMARY KEY,
     planet_id integer NOT NULL REFERENCES planet_canon(id),

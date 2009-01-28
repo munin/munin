@@ -30,7 +30,7 @@ mapping = {"Fi": "Fighter",
 keys = ['race', 'name', 'class', 'target_1', 'target_2', 'target_3', 'type', 'init',
         'gun', 'armor', 'damage', 'empres', 'metal', 'crystal', 'eonium']
 
-regex = r'^<tr class="(Ter|Cath|Xan|Zik|Etd)">.+?(\w+)</td>' # race & name
+regex = r'^<tr class="(Ter|Cath|Xan|Zik|Etd)">.+?>([^<]+)</td>' # race & name
 regex += r'<td>(\w+)</td>' # class
 regex += r'<td>(\w\w|\-)</td>'*3 # t1,t2,t3
 regex += r'<td>(\w+)</td>' # type

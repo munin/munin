@@ -135,13 +135,16 @@ class prop(loadable.loadable):
 
     def process_kick_proposal(self,prefix,nick,target,user,person,comment):
         p=self.load_user_from_pnick(person)
+        if person.lower() == "munin".lower():
+            self.client.reply(prefix,nick,target,"I'll peck your eyes out, cunt.")
+            return 1
         if not p:
-            self.client.reply(prefix,nick,target,"Stupid %s, you can't kick %s, they're not a member.")
+            self.client.reply(prefix,nick,target,"Stupid %s, you can't kick %s, they're not a member."%(user.pnick,person))
             return 1
         if self.is_already_proposed_kick(p.id):
             self.client.reply(prefix,nick,target,"Silly %s, there's already a proposition to kick %s."%(user.pnick,p.pnick))
             return 1
-        recent=self.was_recently_proposed_invite(person)
+        recent=self.was_recently_proposed_kick(p)
         if recent > -1:
             self.client.reply(prefix,nick,target,"You are too impatient, young %s. Wait at least %d days before trying to kick %s again."%(user.pnick,self.MIN_WAIT-recent,p.pnick))
             return 1
@@ -476,13 +479,13 @@ class prop(loadable.loadable):
         return self.cursor.dictfetchone()['id']
         
     def is_already_proposed_kick(self,person_id):
-        query="SELECT id FROM kick_proposal WHERE person_id = %d"
+        query="SELECT id FROM kick_proposal WHERE person_id = %d AND active" 
         self.cursor.execute(query,(person_id,))
         return self.cursor.rowcount > 0
 
     def was_recently_proposed_kick(self,person):
-        query="SELECT closed FROM kick_proposal WHERE person ilike %s AND not active"
-        self.cursor.execute(query,(person,))
+        query="SELECT closed FROM kick_proposal WHERE person_id = %d AND not active"
+        self.cursor.execute(query,(person.id,))
         r=self.cursor.dictfetchone()
         if r:
             age=DateTime.Age(DateTime.now(),r['closed']).days

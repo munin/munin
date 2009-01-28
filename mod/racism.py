@@ -25,21 +25,18 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright  
 # owners. 
 
-# This file has no alliance specific stuff as far as I can tell.
-# qebab, 22/06/08
 
 
-
-class bumchums(loadable.loadable):
+class racism(loadable.loadable):
     """ 
     foo 
     """ 
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,50)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
-        self.paramre=re.compile(r"^\s+(\S+)\s+(\d+)")
-        self.usage=self.__class__.__name__ + " <alliance> <number>"
-        self.helptext=['Pies']
+        self.paramre=re.compile(r"^\s+(\S+)")
+        self.usage=self.__class__.__name__ + " [alliance] (All information taken from intel, for tag information use the lookup command)"
+        self.help=['Shows averages for each race matching a given alliance in intel.']
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
@@ -56,38 +53,30 @@ class bumchums(loadable.loadable):
             return 0
 
         # assign param variables 
-
+        
         alliance=m.group(1)
-        bums=m.group(2)
-
-        a=loadable.alliance(name=alliance)
-           
-        if not a.load_most_recent(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"No alliance matching '%s' found" % (alliance,))
-            return 1
-
-        query="SELECT x,y,count(*) AS bums FROM planet_dump AS t1"
+        
+        query="SELECT count(*) AS members, sum(t1.value) AS tot_value, sum(t1.score) AS tot_score, sum(t1.size) AS tot_size, sum(t1.xp) AS tot_xp, t1.race AS race"
+        query+=" FROM planet_dump AS t1"
         query+=" INNER JOIN intel AS t2 ON t1.id=t2.pid"
-        query+=" LEFT JOIN alliance_canon AS t3 ON t2.alliance_id=t3.id"
-        query+=" WHERE t1.tick=(SELECT max_tick())"
-        query+=" AND t3.name ilike %s"
-        query+=" GROUP BY x,y"
-        query+=" HAVING count(*) >= %s"
+        query+=" LEFT JOIN alliance_canon t3 ON t2.alliance_id=t3.id"
+        query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates) AND t3.name ILIKE %s"
+        query+=" GROUP BY t3.name ILIKE %s, t1.race ORDER by t1.race ASC"
 
-        # do stuff here
-        
-        self.cursor.execute(query,(a.name,bums or 1))
-        
+        self.cursor.execute(query,('%'+alliance+'%','%'+alliance+'%'))
         reply=""
-        if self.cursor.rowcount < 1:
-            reply+="No galaxies with at least %s bumchums from %s"%(bums or 1, a.name)
+        if self.cursor.rowcount<1:
+            reply="Nothing in intel matches your search '%s'" % (alliance,)
         else:
-            prev=[]
-            for b in self.cursor.dictfetchall():
-                prev.append("%s:%s (%s)"%(b['x'],b['y'],b['bums']))
-            reply+="Galaxies with at least %s bums from %s: "%(bums or 1,a.name)+ ' | '.join(prev)
-        
+            results=self.cursor.dictfetchall()
+            reply="Demographics for %s: "%(alliance,)
+            reply+=string.join(map(self.profile,results),' | ')
         self.client.reply(prefix,nick,target,reply)
-
-
+        
         return 1
+    
+    def profile(self,res):
+        reply="%s %s Val(%s)" % (res['members'],res['race'],self.format_real_value(res['tot_value']/res['members']))
+        reply+=" Score(%s)" % (self.format_real_value(res['tot_score']/res['members']),)
+        reply+=" Size(%s) XP(%s)" % (res['tot_size']/res['members'],self.format_real_value(res['tot_xp']/res['members']))
+        return reply

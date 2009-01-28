@@ -31,7 +31,6 @@ class news(loadable.loadable):
         loadable.loadable.__init__(self,client,conn,cursor,50)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(.*)")
-        self.idre=re.compile(r"(\d{1,9})")
         self.usage=self.__class__.__name__ + " <x:y:z>" 
         self.helptext=["Looks up recent news scan IDs on a planet"]
 

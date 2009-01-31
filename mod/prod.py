@@ -76,7 +76,7 @@ class prod(loadable.loadable):
         required = 2 * math.sqrt(cost) * ln(cost)
         
         # For the gay cost bonus of feudalism
-        feud_required = 2 * math.sqrt(cost * 0.86) * ln(cost * 0.86)
+        feud_required = 2 * math.sqrt(cost * (1-float(self.config.get('Planetarion', 'feudalism')))) * ln(cost * (1-float(self.config.get('Planetarion', 'feudalism'))))
         
         output = int((4000 * factories) ** 0.98)
 

@@ -65,11 +65,13 @@ class cost(loadable.loadable):
             self.client.reply(prefix,nick,target,"%s is not a ship" % (ship_name))
             return 0
 
+        feudalism = 1-float(self.config.get('Planetarion', 'feudalism'))
+
         reply="Buying %s %s will cost %s metal, %s crystal and %s eonium."%(ship_number,ship['name'],ship['metal'] * ship_number,
                                                                             ship['crystal'] * ship_number,ship['eonium'] * ship_number)
 
-        reply+=" Feudalism: %s metal, %s crystal and %s eonium."%(int(ship['metal'] *.86) * ship_number,int(ship['crystal'] * .86)* ship_number,
-                                                                  int(ship['eonium'] *.86) *ship_number)
+        reply+=" Feudalism: %s metal, %s crystal and %s eonium."%(int(ship['metal'] * feudalism) * ship_number,int(ship['crystal'] * feudalism)* ship_number,
+                                                                  int(ship['eonium'] * feudalism) * ship_number)
         
 #        reply+=" Dictatorship: %s metal, %s crystal and %s eonium."%(int(ship['metal'] * 1.05)*ship_number,int(ship['crystal'] *1.05) *ship_number,
 #                                                                  int(ship['eonium'] * 1.05)*ship_number)

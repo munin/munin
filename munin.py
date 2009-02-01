@@ -34,13 +34,11 @@ class munin:
             # No configfile. What to do?
             raise ValueError("Expected configuration in muninrc, "
                              "not found.")
-        self.server = config.get("Connection", "server")
-        self.port = int(config.get("Connection", "port"))
         self.nick = config.get("Connection", "nick")
         self.user = config.get("Connection", "user")
         self.ircname = config.get("Connection", "name")
 
-        self.client = connection(self.server, self.port)
+        self.client = connection(config)
         self.handler = parser(config, self.client,self)
         self.client.connect()
         self.run()

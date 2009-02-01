@@ -48,9 +48,5 @@ class talk(loadable.loadable):
             self.client.reply(prefix,nick,target,"You do not have enough access to send raw commands")
             return 0
 
-        #print "%s sent raw '%s'" % (user,irc_command)
-        #self.client.wline(irc_command)
         self.client.privmsg(targ,stuff)
-        #self.client.reply(prefix,nick,target,"Sent raw command '%s'" % (irc_command,))
-                          
         return 1

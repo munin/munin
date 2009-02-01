@@ -66,9 +66,6 @@ class aids(loadable.loadable):
         if not u.load_from_db(self.conn,self.client,self.cursor):
             self.client.reply(prefix,nick,target,"No users matching '%s'"%(search,))
             return 1
-        if u.userlevel < 100:
-            self.client.reply(prefix,nick,target,"%s is not a member, his aids is worthless."%(u.pnick,))
-            return 1
 
         query="SELECT pnick,sponsor,invites"
         query+=" FROM user_list"

@@ -31,6 +31,7 @@ class planet(loadable.loadable):
         loadable.loadable.__init__(self,client,conn,cursor,50)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(.*)")
+        self.idre=re.compile(r"(\d{1,9})")
         self.usage=self.__class__.__name__ + ""
         self.helptext=None
 
@@ -94,18 +95,21 @@ class planet(loadable.loadable):
 
             rand_id=m.group(1)
 
+
+
+
             query="SELECT x,y,z,t1.tick AS tick,nick,scantype,rand_id,timestamp,roid_metal,roid_crystal,roid_eonium,res_metal,res_crystal,res_eonium"
             query+=", prod_res,agents,guards" 
             query+=" FROM scan AS t1 INNER JOIN planet AS t2 ON t1.id=t2.scan_id"
             query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
             query+=" WHERE t3.tick=(SELECT MAX(tick) FROM updates) AND t1.rand_id=%s ORDER BY timestamp DESC"
             self.cursor.execute(query,(rand_id,))
-
+        
             if self.cursor.rowcount < 1:
                 reply+="No planet scans matching ID %s" % (rand_id,)
             else:
                 s=self.cursor.dictfetchone()
-                reply+="Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (s['x'],s['y'],s['z'],s['rand_id'],s['tick'])
+                reply+="Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,p.y,p.z,s['rand_id'],s['tick'])
                 reply+=" Roids: (m:%s, c:%s, e:%s) | Resources: (m:%s, c:%s, e:%s)" % (s['roid_metal'],s['roid_crystal'],s['roid_eonium'],s['res_metal'],s['res_crystal'],s['res_eonium'])
                 reply+=" | Hidden: %s | Agents: %s | Guards: %s" % (s['prod_res'],s['agents'],s['guards'])
 

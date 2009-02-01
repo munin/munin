@@ -81,11 +81,11 @@ class bumchums(loadable.loadable):
         reply=""
         if self.cursor.rowcount < 1:
             reply+="No galaxies with at least %s bumchums from %s"%(bums or 1, a.name)
-        else:
-            prev=[]
-            for b in self.cursor.dictfetchall():
-                prev.append("%s:%s (%s)"%(b['x'],b['y'],b['bums']))
-            reply+="Galaxies with at least %s bums from %s: "%(bums or 1,a.name)+ ' | '.join(prev)
+        
+        prev=[]
+        for b in self.cursor.dictfetchall():
+            prev.append("%s:%s (%s)"%(b['x'],b['y'],b['bums']))
+        reply+="Galaxies with at least %s bums from %s: "%(bums or 1,a.name)+ ' | '.join(prev)
         
         self.client.reply(prefix,nick,target,reply)
 

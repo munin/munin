@@ -73,34 +73,22 @@ class parser:
         self.welcomre=re.compile(r"\S+\s+001.*",re.I)
 
         # obey P
-        self.pinvitere=re.compile(r"^:P!cservice@netgamers.org\s+INVITE\s+\S+\s+:#(\S+)",re.I)
+        self.pinvitere=re.compile(r":P!cservice@netgamers.org\s+INVITE\s+\S+\s+:#(\S+)",re.I)
 
         # privmsg command regexes
-        self.privmsgre=re.compile(r"^:(\S+)!(\S+)@(\S+)\s+PRIVMSG\s+(\S+)\s+:(.*)")
+        self.privmsgre=re.compile(r":(\S+)!(\S+)@(\S+)\s+PRIVMSG\s+(\S+)\s+:(.*)")
         self.ischannelre=re.compile(r"(#\S+)")
 
         self.pnickre=re.compile(r"(\S{2,15})\.users\.netgamers\.org")
 
         self.reg_controllers()
 
-        #self.commandre=re.compile(r"(%s|%s)(\S+)\s+(.*)\s*$" % (self.pubprefix,self.privprefix))
         self.commandre=re.compile(r"^(%s|%s|%s)(.*)\s*$" % (self.notprefix,self.pubprefix,self.privprefix))
         self.loadmodre=re.compile(r"^loadmod\s+(\S+)")
         self.helpre=re.compile(r"^help(\s+(\S+))?")
-        #self.addmoduserre=re.compile(r"(\S{1,5})\s+(\d+)\s*$")
-        #self.addmodchanre=re.compile(r"(#\S+)\s+(\d+)\s*$")
-        #self.remuserre=re.compile(r"^(\S{1,15})\s*$")
-        #self.remchanre=re.compile(r"^(#\S+)\s*$")
-        #self.addremtargtypere=re.compile(r"^(\S+)\s*$")
-        #self.addtargre=re.compile(r"^(\d{1,3}):(\d{1,2}):(\d{1,2})$")
-        #self.taketargre=re.compile(r"^(\d{1,3}):(\d{1,2}):(\d{1,2})$")
-        #self.modtargre=re.compile(r"^(\d+) ?(.*)\s*")
-        #self.remtargre=re.compile(r"^(\d{1,3}):(\d{1,2}):(\d{1,2})\s*")
-        #self.coordre=re.compile(r"^(\d{1,3}):(\d{1,2}):(\d{1,2})$")
 
-
-        self.scanre=re.compile("http://[^/]+/showscan.pl\?scan_id=(\d+)")
-        self.scangrpre=re.compile("http://[^/]+/showscan.pl\?scan_grp=(\d+)")
+        self.scanre=re.compile("http://[^/]+/showscan.pl\?scan_id=([0-9a-zA-Z]+)")
+        self.scangrpre=re.compile("http://[^/]+/showscan.pl\?scan_grp=([0-9a-zA-Z]+)")
     def parse(self,line):
         m=self.welcomre.search(line)
         if m:
@@ -293,25 +281,6 @@ class parser:
         else:
             return None
 
-    def get_user_access(self,pnick):
-        query="SELECT userlevel FROM user_list WHERE pnick=%s"
-
-        self.cursor.execute(query,(pnick,))
-        result=self.cursor.fetchone()
-        if result:
-            return result[0]
-        else:
-            return 0
-
-    def get_chan_access(self,channel):
-        query="SELECT userlevel FROM channel_list WHERE chan=%s"
-        self.cursor.execute(query,(channel,))
-        result=self.cursor.fetchone()
-        if result:
-            return result[0]
-        else:
-            return 0
-
     def reg_controllers(self):
         for command_name in os.listdir(self.mod_dir):
             m=re.search("(.*)\.py$",command_name,re.I)
@@ -321,8 +290,6 @@ class parser:
                     filename=os.path.join(self.mod_dir, source+'.py')
                     execfile(filename)
                     self.ctrl_list[source] = locals().get(source)(self.client,self.conn,self.cursor)
-
-
 
     def prefix_to_numeric(self,prefix):
         if self.notprefix.replace("|","").find(prefix) > -1:

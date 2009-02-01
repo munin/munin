@@ -35,11 +35,22 @@ class intel(loadable.loadable):
         self.usage=self.__class__.__name__ + " <x:y:z> [option=value]+"
         self.planet_coordre=re.compile(r"(\d+)[. :-](\d+)[. :-](\d+)(.*)")
         self.gal_coordre=re.compile(r"(\d+)[. :-](\d+)")
-        self.options = ['alliance', 'nick', 'fakenick', 'defwhore', 'covop', 'scanner', 'distwhore', 'bg', 'gov', 'relay', 'reportchan', 'comment']
-        self.nulls = ["<>",".","-","?"]
-        self.true = ["1","yes","y","true","t"]
-        self.false = ["0","no","n","false","f"]
-        self.helptext=["Valid options: %s" % (string.join(self.options,', '))]
+        self.optionsre={}
+        self.optionsre['nick']=re.compile("^(\S+)")
+        self.optionsre['gov']=re.compile("^(\S+)")
+        self.optionsre['bg']=re.compile("^(\S+)")
+        self.optionsre['covop']=re.compile("^(t|f)",re.I)
+        self.optionsre['defwhore']=re.compile("^(t|f)",re.I)
+        self.optionsre['fakenick']=re.compile("^(\S+)")
+        self.optionsre['alliance']=re.compile("^(\S+.*?)(\s+\S+)?$")
+        self.optionsre['reportchan']=re.compile("^(\S+)")
+        self.optionsre['relay']=re.compile("^(t|f)",re.I)
+        self.optionsre['scanner']=re.compile("^(t|f)",re.I)
+        self.optionsre['distwhore']=re.compile("^(t|f)",re.I)
+        self.optionsre['comment']=re.compile("^(.*)")                
+        options=self.optionsre.keys()
+        options.sort()
+        self.helptext=["Valid options: %s" % (string.join(options,', '))]
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
@@ -82,31 +93,20 @@ class intel(loadable.loadable):
 
         opts=self.split_opts(params)
         opts['pid']=p.id
-        for opt, val in opts.items():
-            if opt == "alliance":
-                if val in self.nulls:
-                    a=loadable.alliance(id=None)
-                    continue
-                a=loadable.alliance(name=val)
-                if not a.load_most_recent(self.conn,self.client,self.cursor):
-                    self.client.reply(prefix,nick,target,"'%s' is not a valid alliance, your information was not added."%(val,))
-                    return 1
-            if (opt in self.options) and (val in self.nulls):
-                opts[opt] = None
-                continue
-            if opt in ("nick","fakenick","bg","gov","reportchan"):
-                opts[opt] = val
-            if opt in ("defwhore","covop","scanner","distwhore","relay"):
-                if val in self.true:
-                    opts[opt] = True
-                if val in self.false:
-                    opts[opt] = False
-            if opt == "comment":
-                opts[opt] = command.split("comment=")[1]
 
-        for k in self.options:
+        for k in self.optionsre.keys():
             if not opts.has_key(k):
                 opts[k]=getattr(i,k)
+        if opts['alliance']:
+            a=loadable.alliance(name=opts['alliance'])
+            if not a.load_most_recent(self.conn,self.client,self.cursor):
+                if opts['alliance'] == '<>':
+                    a.id=None
+                else:
+                    self.client.reply(prefix,nick,target,"'%s' is not a valid alliance, your information was not added."%(opts['alliance'],))
+                    return 1
+        else:
+            a=loadable.alliance(id=None)
 
         if i.id:
             query="UPDATE intel SET "
@@ -136,12 +136,20 @@ class intel(loadable.loadable):
 
     def split_opts(self,params):
         param_dict={}
-        for s in params.split():
-            a=s.split('=')
-            if len(a) != 2:
-                continue
-            param_dict[a[0].lower()]=a[1]
+        active_opt=None
+        for s in params.split('='):
+            if active_opt:
+                m=self.optionsre[active_opt].search(s)
+                if m:
+                    param_dict[active_opt]=m.group(1)
+            last_act=active_opt
+            for key in self.optionsre.keys():
+                if s.endswith(" "+key):
+                    active_opt=key
+            if active_opt == last_act:
+                active_opt=None
         return param_dict
+    
 #    def help(self):
 
 

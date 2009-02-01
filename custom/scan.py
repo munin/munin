@@ -55,7 +55,7 @@ class scan(threading.Thread):
     def unsafe_method(self):
         if self.group_id:
             page = urllib2.urlopen('http://game.planetarion.com/showscan.pl?scan_grp='+ self.group_id).read()
-            for m in re.finditer('scan_id=(\d+)',page):
+            for m in re.finditer('scan_id=([0-9a-zA-Z]+)',page):
                 self.rand_id = m.group(1)
                 try:
                     self.unsafe_method2()

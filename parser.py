@@ -73,10 +73,10 @@ class parser:
         self.welcomre=re.compile(r"\S+\s+001.*",re.I)
 
         # obey P
-        self.pinvitere=re.compile(r":P!cservice@netgamers.org\s+INVITE\s+\S+\s+:#(\S+)",re.I)
+        self.pinvitere=re.compile(r"^:P!cservice@netgamers.org\s+INVITE\s+\S+\s+:#(\S+)",re.I)
 
         # privmsg command regexes
-        self.privmsgre=re.compile(r":(\S+)!(\S+)@(\S+)\s+PRIVMSG\s+(\S+)\s+:(.*)")
+        self.privmsgre=re.compile(r"^:(\S+)!(\S+)@(\S+)\s+PRIVMSG\s+(\S+)\s+:(.*)")
         self.ischannelre=re.compile(r"(#\S+)")
 
         self.pnickre=re.compile(r"(\S{2,15})\.users\.netgamers\.org")

@@ -329,7 +329,7 @@ class prop(loadable.loadable):
         query="UPDATE %s_proposal SET active = FALSE, closed = NOW()" % (prop['prop_type'],)
         query+=", vote_result=%s,compensation=%d"
         query+=" WHERE id=%d"
-        self.cursor.execute(query,(['no','yes'][yes>no],[yes,no][yes>no],prop['id']))
+        self.cursor.execute(query,(['no','yes'][yes>no],losing_total,prop['id']))
 
     def process_cancel_proposal(self, prefix, nick, target, u, prop_id):
         prop=self.find_single_prop_by_id(prop_id)

@@ -447,6 +447,9 @@ CREATE TABLE invite_proposal (
        person VARCHAR(15) NOT NULL,
        created TIMESTAMP NOT NULL DEFAULT now(),
        closed TIMESTAMP,
+       padding integer DEFAULT 0,
+       vote_result VARCHAR(7) CHECK(vote_result IN (NULL,'yes','no')),
+       compensation integer, 
        comment_text TEXT NOT NULL
 );
 
@@ -457,6 +460,9 @@ CREATE TABLE kick_proposal (
        person_id integer NOT NULL REFERENCES user_list(id),
        created TIMESTAMP NOT NULL DEFAULT now(),
        closed TIMESTAMP,
+       padding integer DEFAULT 0,
+       vote_result VARCHAR(7) CHECK(vote_result IN (NULL,'yes','no')),
+       compensation integer,
        comment_text TEXT NOT NULL
 );
 

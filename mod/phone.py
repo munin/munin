@@ -89,8 +89,8 @@ class phone(loadable.loadable):
         t_user=loadable.user(pnick=trustee)
 
         if not t_user.load_from_db(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"%s is not a valid user."%(trustee,))
-            return 0
+             self.client.reply(prefix,nick,target,"%s is not a valid user."%(trustee,))
+             return 0
 
         if "allow".find(command) > -1:
             results=self.phone_query_builder(nick,username,host,target,prefix,command,u,access,"AND t1.friend_id=%s",(t_user.id,))

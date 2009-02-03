@@ -292,16 +292,16 @@ class prop(loadable.loadable):
             if yes>no and prop['padding']>0:
                 r+=(prop['padding']*int(l['carebears']))/prop['padding']
             print "Paying out %d with %d carebears (orig %d) for w: %d and l: %d"%(l['voter_id'],l['carebears']+r,l['carebears'],winning_total,losing_total)
+            self.add_return([voters['yes'],voters['no']][yes>no],l['voter_id'],l['carebears']+r)
             self.cursor.execute(query,(l['carebears']+r, l['voter_id']))
 
         for w in winners:
             query="UPDATE user_list SET carebears = carebears + %d"
             query+=" WHERE id=%d"
-
             modifier=[prop['padding'],0][yes>no]
-            
             r=((winning_total-losing_total)*int(w['carebears']))/(winning_total-modifier)
             print "Reimbursing %d with %d carebears (orig %d) for w: %d and l: %d"%(w['voter_id'],r,w['carebears'],winning_total,losing_total)
+            self.add_return([voters['no'],voters['yes']][yes>no],w['voter_id'],r)
             self.cursor.execute(query,(r, w['voter_id']))
         
         age=DateTime.Age(DateTime.now(),prop['created']).days
@@ -313,7 +313,7 @@ class prop(loadable.loadable):
         reply+=" with %d carebears for and %d against."%(yes,no)
         reply+=" In favor: "
 
-        pretty_print=lambda x:"%s (%d)"%(x['pnick'],x['carebears'])
+        pretty_print=lambda x:"%s (%d->%d)"%(x['pnick'],x['carebears'],x['return'])
         reply+=string.join(map(pretty_print,voters['yes']),', ')
         reply+=" Against: "
         reply+=string.join(map(pretty_print,voters['no']),', ')
@@ -442,6 +442,14 @@ class prop(loadable.loadable):
 
         reply="%s has been added to #%s and given level 100 access to me."%(prop['person'],self.config.get('Auth','home'))
         self.client.privmsg('#%s'%(self.config.get('Auth','home')),reply)
+
+    def add_return(self,voter_list,voter_id,ret_sum):
+        for v in voter_list:
+            if v['voter_id'] == voter_id:
+                v['return'] = ret_sum
+                return
+        raise Exception("%d does not match any voters in list '%s'"%(voter_id,map(lambda x: "%d"%(x['voter_id'],),voter_list)))
+            
     
     def find_single_prop_by_id(self,prop_id):
         query="SELECT id, prop_type, proposer, person, created, padding, comment_text, active, closed FROM ("

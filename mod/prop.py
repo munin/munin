@@ -124,13 +124,12 @@ class prop(loadable.loadable):
         if self.is_already_proposed_invite(person):
             self.client.reply(prefix,nick,target,"Silly %s, there's already a proposal to invite %s."%(user.pnick,person))
             return 1
-        recent=self.was_recently_proposed_invite(person)
-        if recent > -1:
-            self.client.reply(prefix,nick,target,"You are too impatient, young %s. Wait at least %d days before trying to invite %s again."%(user.pnick,self.MIN_WAIT-recent,person))
-            return 1
-        prop_id=self.create_invite_proposal(user,person,comment)
+        last_comp=self.was_recently_proposed('invite',person)
+        prop_id=self.create_invite_proposal(user,person,comment,last_comp)
         reply="%s created a new proposition (nr. %d) to invite %s." %(user.pnick,prop_id,person)
-        reply+=" When people have been given a fair shot at voting you can call a count using !prop expire %d and it'll tell everyone whether you got what you wanted or got rich."%(prop_id,)
+        reply+=" When people have been given a fair shot at voting you can call a count using !prop expire %d."%(prop_id,)
+        if last_comp > 0:
+            reply+=" Due to previous failures I'm voting no with %d %s on this vote."%(last_comp,self.pluralize(last_comp,'carebear'))
         self.client.reply(prefix,nick,target,reply)
 
     def process_kick_proposal(self,prefix,nick,target,user,person,comment):
@@ -144,13 +143,12 @@ class prop(loadable.loadable):
         if self.is_already_proposed_kick(p.id):
             self.client.reply(prefix,nick,target,"Silly %s, there's already a proposition to kick %s."%(user.pnick,p.pnick))
             return 1
-        recent=self.was_recently_proposed_kick(p)
-        if recent > -1:
-            self.client.reply(prefix,nick,target,"You are too impatient, young %s. Wait at least %d days before trying to kick %s again."%(user.pnick,self.MIN_WAIT-recent,p.pnick))
-            return 1
-        prop_id=self.create_kick_proposal(user,p,comment)
+        last_comp=self.was_recently_proposed('kick',p.id)
+        prop_id=self.create_kick_proposal(user,p,comment,last_comp)
         reply="%s created a new proposition (nr. %d) to kick %s."%(user.pnick,prop_id,p.pnick)
-        reply+=" When people have had a fair shot at voting you can call a count using !prop expire %d and it'll tell everyone whether %s is out or you're rich."%(prop_id,p.pnick)
+        reply+=" When people have had a fair shot at voting you can call a count using !prop expire %d."%(prop_id,)
+        if last_comp > 0:
+            reply+=" Due to previous failures I'm voting no with %d %s on this vote."%(last_comp,self.pluralize(last_comp,'carebear'))
         self.client.reply(prefix,nick,target, reply)
 
     def process_list_all_proposals(self,prefix,nick,target,user):
@@ -177,6 +175,8 @@ class prop(loadable.loadable):
                                                                        r['comment_text'])
         if not bool(r['active']):
             reply+=" This prop expired %d days ago."%(DateTime.Age(DateTime.now(),r['closed']).days,)
+        elif r['padding'] > 0:
+            reply+=" Due to previous failures I'm voting no on this prop with %d %s"%(r['padding'],self.pluralize(r['padding'],'carebear'))
         if target[0] != "#" or prefix == self.client.NOTICE_PREFIX or prefix == self.client.PRIVATE_PREFIX:
             query="SELECT vote,carebears FROM prop_vote"
             query+=" WHERE prop_id=%d AND voter_id=%d"
@@ -205,6 +205,8 @@ class prop(loadable.loadable):
             reply+=string.join(map(pretty_print,voters['yes']),', ')
             reply+=") and against ("
             reply+=string.join(map(pretty_print,voters['no']),', ')
+            if r['padding'] > 0:
+                reply+=", Munin (%d)"%(r['padding'],)            
             reply+=")"
             self.client.reply(prefix,nick,target,reply)
             pass
@@ -277,18 +279,29 @@ class prop(loadable.loadable):
             return
         #tally votes for and against
         (voters, yes, no) = self.get_voters_for_prop(prop_id)
+        if prop['padding']:
+            no+=prop['padding']
         (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(voters,yes,no)
 
         for l in losers:
             query="UPDATE user_list SET carebears = carebears + %d"
             query+=" WHERE id=%d"
-            self.cursor.execute(query,(l['carebears']*2, l['voter_id']))
+            modifier=[prop['padding'],0][yes>no]
+            total_mod=[0,prop['padding']][yes>no]
+            r=((losing_total-modifier)*int(l['carebears']))/losing_total
+            if yes>no and prop['padding']>0:
+                r+=(prop['padding']*int(l['carebears']))/prop['padding']
+            print "Paying out %d with %d carebears (orig %d) for w: %d and l: %d"%(l['voter_id'],l['carebears']+r,l['carebears'],winning_total,losing_total)
+            self.add_return([voters['yes'],voters['no']][yes>no],l['voter_id'],l['carebears']+r)
+            self.cursor.execute(query,(l['carebears']+r, l['voter_id']))
 
         for w in winners:
             query="UPDATE user_list SET carebears = carebears + %d"
             query+=" WHERE id=%d"
-            r=((winning_total-losing_total)*int(w['carebears']))/winning_total
-            print "Reimbursing %d with %d carebears for w: %d and l: %d"%(r,w['voter_id'],winning_total,losing_total)
+            modifier=[prop['padding'],0][yes>no]
+            r=((winning_total-losing_total)*int(w['carebears']))/(winning_total-modifier)
+            print "Reimbursing %d with %d carebears (orig %d) for w: %d and l: %d"%(w['voter_id'],r,w['carebears'],winning_total,losing_total)
+            self.add_return([voters['no'],voters['yes']][yes>no],w['voter_id'],r)
             self.cursor.execute(query,(r, w['voter_id']))
         
         age=DateTime.Age(DateTime.now(),prop['created']).days
@@ -300,22 +313,23 @@ class prop(loadable.loadable):
         reply+=" with %d carebears for and %d against."%(yes,no)
         reply+=" In favor: "
 
-        pretty_print=lambda x:"%s (%d)"%(x['pnick'],x['carebears'])
+        pretty_print=lambda x:"%s (%d->%d)"%(x['pnick'],x['carebears'],x['return'])
         reply+=string.join(map(pretty_print,voters['yes']),', ')
         reply+=" Against: "
         reply+=string.join(map(pretty_print,voters['no']),', ')
-
+        if prop['padding'] > 0:
+            reply+=", Munin (%d)"%(prop['padding'],)
         self.client.privmsg("#%s"%(self.config.get('Auth','home'),),reply)
 
         if prop['prop_type'] == 'kick' and yes > no:
             self.do_kick(prefix,nick,target,prop,yes,no)
         elif prop['prop_type'] == 'invite' and yes > no:
             self.do_invite(prefix,nick,target,prop)
-        
+
         query="UPDATE %s_proposal SET active = FALSE, closed = NOW()" % (prop['prop_type'],)
+        query+=", vote_result=%s,compensation=%d"
         query+=" WHERE id=%d"
-        self.cursor.execute(query,(prop['id'],))
-        pass
+        self.cursor.execute(query,(['no','yes'][yes>no],losing_total,prop['id']))
 
     def process_cancel_proposal(self, prefix, nick, target, u, prop_id):
         prop=self.find_single_prop_by_id(prop_id)
@@ -428,13 +442,21 @@ class prop(loadable.loadable):
 
         reply="%s has been added to #%s and given level 100 access to me."%(prop['person'],self.config.get('Auth','home'))
         self.client.privmsg('#%s'%(self.config.get('Auth','home')),reply)
+
+    def add_return(self,voter_list,voter_id,ret_sum):
+        for v in voter_list:
+            if v['voter_id'] == voter_id:
+                v['return'] = ret_sum
+                return
+        raise Exception("%d does not match any voters in list '%s'"%(voter_id,map(lambda x: "%d"%(x['voter_id'],),voter_list)))
+            
     
     def find_single_prop_by_id(self,prop_id):
-        query="SELECT id, prop_type, proposer, person, created, comment_text, active, closed FROM ("
-        query+="SELECT t1.id AS id, 'invite' AS prop_type, t2.pnick AS proposer, t1.person AS person, t1.created AS created,"
+        query="SELECT id, prop_type, proposer, person, created, padding, comment_text, active, closed FROM ("
+        query+="SELECT t1.id AS id, 'invite' AS prop_type, t2.pnick AS proposer, t1.person AS person, t1.padding AS padding, t1.created AS created,"
         query+=" t1.comment_text AS comment_text, t1.active AS active, t1.closed AS closed"
         query+=" FROM invite_proposal AS t1 INNER JOIN user_list AS t2 ON t1.proposer_id=t2.id UNION ("
-        query+=" SELECT t3.id AS id, 'kick' AS prop_type, t4.pnick AS proposer, t5.pnick AS person, t3.created AS created,"
+        query+=" SELECT t3.id AS id, 'kick' AS prop_type, t4.pnick AS proposer, t5.pnick AS person, t3.padding AS padding, t3.created AS created,"
         query+=" t3.comment_text AS comment_text, t3.active AS active, t3.closed AS closed"
         query+=" FROM kick_proposal AS t3"
         query+=" INNER JOIN user_list AS t4 ON t3.proposer_id=t4.id"
@@ -452,28 +474,27 @@ class prop(loadable.loadable):
         self.cursor.execute(query,(person,))
         return self.cursor.rowcount > 0
 
-    def was_recently_proposed_invite(self,person):
-        query="SELECT closed FROM invite_proposal WHERE person ilike %s AND not active"
-        self.cursor.execute(query,(person,))
+    def was_recently_proposed(self,prop_type,person_or_person_id):
+        query="SELECT vote_result,compensation FROM %s_proposal WHERE person%s"%(prop_type,['','_id'][prop_type=='kick'])
+        query+=" ilike %s AND not active ORDER BY closed DESC"
+        self.cursor.execute(query,(person_or_person_id,))
         r=self.cursor.dictfetchone()
-        if r:
-            age=DateTime.Age(DateTime.now(),r['closed']).days
-            if age < self.MIN_WAIT:
-                return age
-        return -1
-    
-    def create_invite_proposal(self,user,person,comment):
-        query="INSERT INTO invite_proposal (proposer_id, person, comment_text)"
-        query+=" VALUES (%s, %s, %s)"
-        self.cursor.execute(query,(user.id,person,comment))
+        if r and r['vote_result'] != 'yes':
+            return r['compensation']
+        return 0
+
+    def create_invite_proposal(self,user,person,comment,padding):
+        query="INSERT INTO invite_proposal (proposer_id, person, comment_text, padding)"
+        query+=" VALUES (%s, %s, %s, %s)"
+        self.cursor.execute(query,(user.id,person,comment,padding))
         query="SELECT id FROM invite_proposal WHERE proposer_id = %d AND person = %s AND active ORDER BY created DESC"
         self.cursor.execute(query,(user.id,person))
         return self.cursor.dictfetchone()['id']
 
-    def create_kick_proposal(self,user,person,comment):
-        query="INSERT INTO kick_proposal (proposer_id, person_id, comment_text)"
-        query+=" VALUES (%s, %s, %s)"
-        self.cursor.execute(query,(user.id,person.id,comment))
+    def create_kick_proposal(self,user,person,comment,padding):
+        query="INSERT INTO kick_proposal (proposer_id, person_id, comment_text, padding)"
+        query+=" VALUES (%s, %s, %s, %s)"
+        self.cursor.execute(query,(user.id,person.id,comment,padding))
         query="SELECT id FROM kick_proposal WHERE proposer_id = %d AND person_id = %d AND active ORDER BY created DESC"
         self.cursor.execute(query,(user.id,person.id))
         return self.cursor.dictfetchone()['id']
@@ -483,12 +504,3 @@ class prop(loadable.loadable):
         self.cursor.execute(query,(person_id,))
         return self.cursor.rowcount > 0
 
-    def was_recently_proposed_kick(self,person):
-        query="SELECT closed FROM kick_proposal WHERE person_id = %d AND not active"
-        self.cursor.execute(query,(person.id,))
-        r=self.cursor.dictfetchone()
-        if r:
-            age=DateTime.Age(DateTime.now(),r['closed']).days
-            if age < self.MIN_WAIT:
-                return age
-        return -1

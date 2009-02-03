@@ -119,6 +119,7 @@ class phone(loadable.loadable):
             if u.id == t_user.id:
                 if u.phone:
                     reply="Your phone number is %s."%(u.phone,)
+                    reply+=" Your pubphone setting is: %s"%(["off","on"][u.pubphone],)
                 else:
                     reply="You haven't set your phone number. To set your phone number, do !pref phone=1-800-HOT-BIRD."
                 self.client.reply(prefix,nick,target,reply)

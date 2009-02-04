@@ -71,7 +71,7 @@ class roidcost(loadable.loadable):
         
         reply="Capping %s roids at %s value with %s%% bonus will repay in %s ticks (%s days)" % (roids,self.format_value(cost*100),bonus,repay,repay/24)
          
-        repay = int((cost*100)/(roids*mining*1.1765))
+        repay = int((cost*100)/(roids*mining*(1/(1-float(self.config.get('Planetarion', 'feudalism'))))))
         reply+=" Feudalism: %s ticks (%s days)" % (repay,repay/24)
         
         #repay=(cost*100)/(roids*mining)

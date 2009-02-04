@@ -29,16 +29,18 @@ DEBUG = 1
 
 class connection:
   "Client wrapper class for IRC server"
-  NOTICE_PREFIX = 1
-  PUBLIC_PREFIX = 2
+  NOTICE_PREFIX  = 1
+  PUBLIC_PREFIX  = 2
   PRIVATE_PREFIX = 3
+  MAX_LINE_LEN   = 440
   
-  def __init__ (self, host, port):
+  def __init__ (self, config):
     "Connect to an IRC hub"
     self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.sock.settimeout(300)
-    self.host=host
-    self.port=port
+    self.host=config.get("Connection", "server")
+    self.port = int(config.get("Connection", "port"))
+    self.config=config
     self.pingre=re.compile(r"PING\s*:\s*(\S+)",re.I)
     self.pongre=re.compile(r"PONG\s*:",re.I)
     self.lastcommand=0
@@ -81,17 +83,25 @@ class connection:
 
   def privmsg(self,target,text):
     while len(text) > 0:
-      self.wline("PRIVMSG %s :%s" % (target,text[:440]))
-      text=text[440:]
+      self.wline("PRIVMSG %s :%s" % (target,text[:self.MAX_LINE_LEN]))
+      text=text[self.MAX_LINE_LEN:]
     
   def notice(self,target,text):
     while len(text) > 0:
-      self.wline("NOTICE %s :%s" % (target, text[:440]))
-      text=text[440:]
+      self.wline("NOTICE %s :%s" % (target, text[:self.MAX_LINE_LEN]))
+      text=text[self.MAX_LINE_LEN:]
+
+  def cnotice(self,target,nick,text):
+    while len(text) > 0:
+      self.wline("CNOTICE %s %s :%s" %(nick,target,text[:self.MAX_LINE_LEN]))
+      text=text[self.MAX_LINE_LEN:]
       
   def reply(self,prefix,nick,target,text):
     if prefix == self.NOTICE_PREFIX:
-      self.notice(nick,text)
+      if target.lower() == "#%s"%(self.config.get("Auth","home").lower(),):
+        self.cnotice(target, nick,text)
+      else:
+        self.notice(nick,text)
     if prefix == self.PUBLIC_PREFIX:
       m=re.match(r"(#\S+)",target,re.I)
       if m:

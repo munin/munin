@@ -372,32 +372,29 @@ class prop(loadable.loadable):
         pass
 
     def process_recent_proposal(self,prefix,nick,target,u):
-        query="SELECT t1.id AS id, t1.person AS person, 'invite' AS prop_type FROM invite_proposal AS t1 WHERE NOT t1.active UNION ("
-        query+=" SELECT t2.id AS id, t3.pnick AS person, 'kick' AS prop_type FROM kick_proposal AS t2"
+        query="SELECT t1.id AS id, t1.person AS person, 'invite' AS prop_type, t1.vote_result AS vote_result FROM invite_proposal AS t1 WHERE NOT t1.active UNION ("
+        query+=" SELECT t2.id AS id, t3.pnick AS person, 'kick' AS prop_type, t2.vote_result AS vote_result FROM kick_proposal AS t2"
         query+=" INNER JOIN user_list AS t3 ON t2.person_id=t3.id WHERE NOT t2.active) ORDER BY id DESC LIMIT 10"
         self.cursor.execute(query,())
         a=[]
         for r in self.cursor.dictfetchall():
-            a.append("%d: %s %s"%(r['id'],r['prop_type'],r['person']))
+            a.append("%d: %s %s %s"%(r['id'],r['prop_type'],r['person'],r['vote_result'][0].upper() if r['vote_result'] else ""))
         reply="Recently expired propositions: %s"%(string.join(a, ", "),)
         self.client.reply(prefix,nick,target,reply)
         
         pass
 
     def process_search_proposal(self,prefix,nick,target,u,search):
-        query="SELECT id, prop_type, proposer, person, created, padding, comment_text, active, closed FROM ("
-        query+="SELECT t1.id AS id, 'invite' AS prop_type, t2.pnick AS proposer, t1.person AS person, t1.padding AS padding, t1.created AS created,"
-        query+=" t1.comment_text AS comment_text, t1.active AS active, t1.closed AS closed"
-        query+=" FROM invite_proposal AS t1 INNER JOIN user_list AS t2 ON t1.proposer_id=t2.id UNION ("
-        query+=" SELECT t3.id AS id, 'kick' AS prop_type, t4.pnick AS proposer, t5.pnick AS person, t3.padding AS padding, t3.created AS created,"
-        query+=" t3.comment_text AS comment_text, t3.active AS active, t3.closed AS closed"
-        query+=" FROM kick_proposal AS t3"
-        query+=" INNER JOIN user_list AS t4 ON t3.proposer_id=t4.id"
-        query+=" INNER JOIN user_list AS t5 ON t3.person_id=t5.id)) AS t6 WHERE t6.person ILIKE %s ORDER BY id DESC LIMIT 10"
+        query="SELECT id, prop_type, person, vote_result FROM ("
+        query+=" SELECT t1.id AS id, 'invite' AS prop_type, t1.person AS person, , t1.vote_result AS vote_result"
+        query+="  FROM invite_proposal AS t1 UNION ("
+        query+=" SELECT t3.id AS id, 'kick' AS prop_type, t5.pnick AS person, t3.vote_result AS vote_result"
+        query+="  FROM kick_proposal AS t3 INNER JOIN user_list AS t5 ON t3.person_id=t5.id)) "
+        query+="AS t6 WHERE t6.person ILIKE %s ORDER BY id DESC LIMIT 10"
         self.cursor.execute(query,("%"+search+"%",))
         a=[]
         for r in self.cursor.dictfetchall():
-            a.append("%d: %s %s"%(r['id'],r['prop_type'],r['person']))
+            a.append("%d: %s %s %s"%(r['id'],r['prop_type'],r['person'],r['vote_result'][0].upper() if r['vote_result'] else "",))
         reply="Propositions matching '%s': %s"%(search,string.join(a, ", "),)
         self.client.reply(prefix,nick,target,reply)
         

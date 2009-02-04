@@ -92,6 +92,8 @@ class intel(loadable.loadable):
                 if not a.load_most_recent(self.conn,self.client,self.cursor):
                     self.client.reply(prefix,nick,target,"'%s' is not a valid alliance, your information was not added."%(val,))
                     return 1
+                else:
+                    opts['alliance'] = a.name
             if (opt in self.options) and (val in self.nulls):
                 opts[opt] = None
                 continue

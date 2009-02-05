@@ -32,7 +32,7 @@ class sms(loadable.loadable):
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(\S+)\s+(.*)")
         self.usage=self.__class__.__name__ + " <nick> <message>"
-	self.helptext=['Sends an SMS to the specified user. Your username will be auto-added to the end of each sms. The user must have their phone correctly added and you must have access to their number.']
+	self.helptext=['Sends an SMS to the specified user. Your username will be appended to the end of each sms. The user must have their phone correctly added and you must have access to their number.']
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
         m=self.commandre.search(command)
@@ -48,7 +48,7 @@ class sms(loadable.loadable):
             self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
             return 0
         
-        u=self.load_user(pnick,prefix,nick,target)
+        u=self.load_user(user,prefix,nick,target)
         if not u: return 1
 
         rec = m.group(1)
@@ -60,13 +60,13 @@ class sms(loadable.loadable):
 
         results=self.phone_query_builder(nick,username,host,target,prefix,command,receiver,access,"AND t1.friend_id=%s",(u.id,))
 
-        if not receiver.pubphone or len(results<1):
-            self.client.reply(prefix,nick,target,"%s's phone number is private or they have not chosen to share their password with you. Supersecret message not sent." % (receiver,))
+        if not (receiver.pubphone or len(results)>0):
+            self.client.reply(prefix,nick,target,"%s's phone number is private or they have not chosen to share their number with you. Supersecret message not sent." % (receiver.pnick,))
             return 1
 
-        phone = self.strip_non_numeric(row['phone']) 
+        phone = self.prepare_phone_number(receiver.phone) 
         if not phone or len(phone) <= 6:
-            self.client.reply(prefix,nick,target,"%s has an incorrect phone number '%s'. Super secret message not sent." % (receiver,phone))
+            self.client.reply(prefix,nick,target,"%s has no phone number or their phone number is too short to be valid (under 6 digits). Super secret message not sent." % (receiver.pnick,))
             return 1
 
         if len(text) >= 160:
@@ -90,13 +90,15 @@ class sms(loadable.loadable):
     
         message = {
             'to': str(phone),
+            'sender': "Munin",
             'text': str(text),
-            'climsgid': str(msg_id)
+            'climsgid': str(msg_id),
+            'msg_type': 'SMS_TEXT'
         }
     
-        res, msg = ct.sendmsg(message)
-        if not res:
-            self.client.reply(prefix,nick,target,"That wasn't supposed to happen. I don't really know what wrong. Maybe your mother dropped you." % (text, phone, msg))
+        ret = ct.sendmsg(message)
+        if not ret[0]:
+            self.client.reply(prefix,nick,target,"That wasn't supposed to happen. I don't really know what wrong. Maybe your mother dropped you.")
             return 1
 
         self.client.reply(prefix,nick,target,"Successfully processed To: %s Message: %s" % (receiver.pnick,text))

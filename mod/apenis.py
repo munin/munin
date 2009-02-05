@@ -29,7 +29,7 @@ Loadable.Loadable subclass
 class apenis(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,1)
-        self.paramre=re.compile(r"^\s+(\S+)")
+        self.paramre=re.compile(r"^(\s+(\S+))?")
         self.usage=self.__class__.__name__ + " <alliance>"
         
     def execute(self,nick,username,host,target,prefix,command,user,access):
@@ -47,7 +47,32 @@ class apenis(loadable.loadable):
             self.client.reply(prefix,nick,target,self.usage)
             return 0
 
-        search=m.group(1)
+        search=m.group(2)
+        u=loadable.user(pnick=user)
+        if search is not None:
+            a=loadable.alliance(name=val)
+            if not a.load_most_recent(self.conn,self.client,self.cursor):
+                reply="No alliances match %s" % (search,)
+                self.client.reply(prefix,nick,target,reply)
+                return 1
+        elif u.load_from_db(self.conn,self.client,self.cursor) and u.userlevel >= 100:
+            a=loadable.alliance(name=self.config.get('Auth', 'alliance'))
+            if not a.load_most_recent(self.conn,self.client,self.cursor):
+                reply="No alliances match %s" % (search,)
+                self.client.reply(prefix,nick,target,reply)
+                return 1
+        elif u.id > -1 and u.planet is not None:
+            i=loadable.intel(pid=p.id)
+            if (not i.load_from_db(self.conn,self.client,self.cursor)) or i.alliance is None:
+                reply="Make sure you've set your planet with !pref and alliance with !intel"
+                self.client.reply(prefix,nick,target,reply)
+                return 1
+            else:
+                a=loadable.alliance(name=i.alliance)
+        else:
+            reply="Make sure you've set your planet with !pref and alliance with !intel"
+            self.client.reply(prefix,nick,target,reply)
+            return 1
 
         query="DROP TABLE apenis;DROP SEQUENCE al_activity_rank;"
         try:
@@ -76,17 +101,17 @@ class apenis(loadable.loadable):
         query+=" FROM apenis"
         query+=" WHERE name ILIKE %s"
 
-        self.cursor.execute(query,('%'+search+'%',))
+        self.cursor.execute(query,(a.name,))
         if self.cursor.rowcount < 1:
             query="SELECT name,activity,activity_rank"
             query+=" FROM apenis"
             query+=" WHERE name ILIKE %s"
             
-            self.cursor.execute(query,('%'+search+'%',))
+            self.cursor.execute(query,(a.name,))
 
         res=self.cursor.dictfetchone()
         if not res:
-            reply="No apenis stats matching %s"% (search,)
+            reply="No apenis stats matching %s"% (a.name,)
         else:
             person=res['name']
             reply ="apenis for %s is %s score long. This makes %s rank: %s apenis. The average peon is sporting a %s score epenis." % (person,res['activity'],person,res['activity_rank'],int(res['activity']/res['members']))

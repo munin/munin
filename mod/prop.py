@@ -386,7 +386,7 @@ class prop(loadable.loadable):
 
     def process_search_proposal(self,prefix,nick,target,u,search):
         query="SELECT id, prop_type, person, vote_result FROM ("
-        query+=" SELECT t1.id AS id, 'invite' AS prop_type, t1.person AS person, , t1.vote_result AS vote_result"
+        query+=" SELECT t1.id AS id, 'invite' AS prop_type, t1.person AS person, t1.vote_result AS vote_result"
         query+="  FROM invite_proposal AS t1 UNION ("
         query+=" SELECT t3.id AS id, 'kick' AS prop_type, t5.pnick AS person, t3.vote_result AS vote_result"
         query+="  FROM kick_proposal AS t3 INNER JOIN user_list AS t5 ON t3.person_id=t5.id)) "

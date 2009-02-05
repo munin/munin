@@ -147,17 +147,3 @@ class phone(loadable.loadable):
         self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
 
         return 1
-
-    def phone_query_builder(self,nick,username,host,target,prefix,command,u,access,query_filter=None,query_args=None):
-        args=(u.id,)
-        query="SELECT pnick "
-        query+=" FROM phone AS t1"
-        query+=" INNER JOIN user_list AS t2"
-        query+=" ON t2.id=t1.user_id"
-        query+=" WHERE t1.user_id=%s"
-        if query_filter:
-            query+=query_filter
-            args+=query_args
-
-        self.cursor.execute(query,args)
-        return self.cursor.dictfetchall()

@@ -51,3 +51,8 @@ alliancelist: http://195.149.21.23/botfiles/alliance_listing.txt
 # General game configurations
 # Set this to the feudalism bonus percentage
 feudalism: 0.12
+
+[clickatell]
+user: username
+pass: password
+api: api_key

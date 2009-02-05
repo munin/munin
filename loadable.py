@@ -121,6 +121,21 @@ class loadable:
             self.client.reply(prefix,nick,target,"The %s command may only be used in #%s."%(command_name,self.config.get("Auth","home"),))
             return True
         False
+
+    def phone_query_builder(self,nick,username,host,target,prefix,command,u,access,query_filter=None,query_args=None):
+        args=(u.id,)
+        query="SELECT pnick "
+        query+=" FROM phone AS t1"
+        query+=" INNER JOIN user_list AS t2"
+        query+=" ON t2.id=t1.user_id"
+        query+=" WHERE t1.user_id=%s"
+        if query_filter:
+            query+=query_filter
+            args+=query_args
+
+        self.cursor.execute(query,args)
+        return self.cursor.dictfetchall()
+        
         
 class defcall:
     def __init__(self,id=-1,bcalc=None,status=-1,claimed_by=None,comment=None,target=None,landing_tick=-1):

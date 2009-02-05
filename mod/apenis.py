@@ -50,7 +50,7 @@ class apenis(loadable.loadable):
         search=m.group(2)
         u=loadable.user(pnick=user)
         if search is not None:
-            a=loadable.alliance(name=val)
+            a=loadable.alliance(name=search)
             if not a.load_most_recent(self.conn,self.client,self.cursor):
                 reply="No alliances match %s" % (search,)
                 self.client.reply(prefix,nick,target,reply)

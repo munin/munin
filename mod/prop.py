@@ -34,10 +34,10 @@ class prop(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
-        self.paramre=re.compile(r"^\s+(invite|kick|list|show|vote|expire|cancel|recent)(.*)")
+        self.paramre=re.compile(r"^\s+(invite|kick|list|show|vote|expire|cancel|recent|search)(.*)")
         self.invite_kickre=re.compile(r"^\s+(\S+)(\s+(\S.*))")
         self.votere=re.compile(r"^\s+(\d+)\s+(yes|no|abstain)(\s+(\d+))?")
-        self.usage=self.__class__.__name__ + " [<invite|kick> <pnick> <comment>] | [list] | [vote <number> <yes|no|abstain> [carebears]] | [expire <number] | [show <number>] | [cancel <number>]"
+        self.usage=self.__class__.__name__ + " [<invite|kick> <pnick> <comment>] | [list] | [vote <number> <yes|no|abstain> [carebears]] | [expire <number>] | [show <number>] | [cancel <number>] | [recent] | [search <pnick>]"
         self.MIN_WAIT=7
 	self.helptext=["A proposition is a vote to do something. For now, you can raise propositions to invite or kick someone. Once raised the proposition will stand until you expire it.  Make sure you give everyone time to have their say.",
                        "Votes for and against a proposition are made using carebears. You must have at least 1 carebear to vote. You can bid as many carebears as you want, and if you lose, you'll be compensated this many carebears for being outvoted. If you win, you'll get some back, but I'll take enough to compensate the losers."]
@@ -115,6 +115,11 @@ class prop(loadable.loadable):
         elif prop_type.lower() == 'recent':
             self.process_recent_proposal(prefix,nick,target,u)
             pass
+
+        elif prop_type.lower() == 'search':
+            m=self.match_or_usage(prefix,nick,target,re.compile(r"\s*(\S+)"),m.group(2))
+            if not m: return 1
+            self.process_search_proposal(prefix,nick,target,u,m.group(1))
         return 1
     
     def process_invite_proposal(self,prefix,nick,target,user,person,comment):
@@ -367,14 +372,30 @@ class prop(loadable.loadable):
         pass
 
     def process_recent_proposal(self,prefix,nick,target,u):
-        query="SELECT t1.id AS id, t1.person AS person, 'invite' AS prop_type FROM invite_proposal AS t1 WHERE NOT t1.active UNION ("
-        query+=" SELECT t2.id AS id, t3.pnick AS person, 'kick' AS prop_type FROM kick_proposal AS t2"
+        query="SELECT t1.id AS id, t1.person AS person, 'invite' AS prop_type, t1.vote_result AS vote_result FROM invite_proposal AS t1 WHERE NOT t1.active UNION ("
+        query+=" SELECT t2.id AS id, t3.pnick AS person, 'kick' AS prop_type, t2.vote_result AS vote_result FROM kick_proposal AS t2"
         query+=" INNER JOIN user_list AS t3 ON t2.person_id=t3.id WHERE NOT t2.active) ORDER BY id DESC LIMIT 10"
         self.cursor.execute(query,())
         a=[]
         for r in self.cursor.dictfetchall():
-            a.append("%d: %s %s"%(r['id'],r['prop_type'],r['person']))
+            a.append("%d: %s %s %s"%(r['id'],r['prop_type'],r['person'],r['vote_result'][0].upper() if r['vote_result'] else ""))
         reply="Recently expired propositions: %s"%(string.join(a, ", "),)
+        self.client.reply(prefix,nick,target,reply)
+        
+        pass
+
+    def process_search_proposal(self,prefix,nick,target,u,search):
+        query="SELECT id, prop_type, person, vote_result FROM ("
+        query+=" SELECT t1.id AS id, 'invite' AS prop_type, t1.person AS person, , t1.vote_result AS vote_result"
+        query+="  FROM invite_proposal AS t1 UNION ("
+        query+=" SELECT t3.id AS id, 'kick' AS prop_type, t5.pnick AS person, t3.vote_result AS vote_result"
+        query+="  FROM kick_proposal AS t3 INNER JOIN user_list AS t5 ON t3.person_id=t5.id)) "
+        query+="AS t6 WHERE t6.person ILIKE %s ORDER BY id DESC LIMIT 10"
+        self.cursor.execute(query,("%"+search+"%",))
+        a=[]
+        for r in self.cursor.dictfetchall():
+            a.append("%d: %s %s %s"%(r['id'],r['prop_type'],r['person'],r['vote_result'][0].upper() if r['vote_result'] else "",))
+        reply="Propositions matching '%s': %s"%(search,string.join(a, ", "),)
         self.client.reply(prefix,nick,target,reply)
         
         pass

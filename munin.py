@@ -31,9 +31,7 @@ class munin:
     def __init__(self):
         config = ConfigParser.ConfigParser()
         if not config.read('muninrc'):
-            # No configfile. What to do?
-            raise ValueError("Expected configuration in muninrc, "
-                             "not found.")
+            raise ValueError("Expected configuration in muninrc, not found.")
         self.nick = config.get("Connection", "nick")
         self.user = config.get("Connection", "user")
         self.ircname = config.get("Connection", "name")

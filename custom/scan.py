@@ -37,13 +37,6 @@ class scan(threading.Thread):
         self.group_id=group_id
         
     def run(self):
-        # database connection and cursor
-        #    self.user="andreaja"
-        #    self.dbname="patest"
-        #    self.conn=psycopg.connect("user=%s dbname=%s" % (self.user,self.dbname))
-        #    self.conn.serialize()
-        #    self.conn.autocommit()
-        #    self.c=self.conn.cursor()
         try:
             self.unsafe_method()
         except Exception, e:
@@ -96,7 +89,6 @@ class scan(threading.Thread):
                 return
             if next_id < 0:
                 raise Exception("Scan id is %s"%(next_id,))
-            #scantype VARCHAR(10) NOT NULL CHECK(scantype in ('planet','development','unit','news','jgp','fleet'))
             if scantype=='planet':
                 self.parse_planet(next_id,page)
                 
@@ -108,8 +100,6 @@ class scan(threading.Thread):
 
             elif scantype=='news':
                 self.parse_news(next_id,page)
-#                query="DELETE FROM scan WHERE id=%s"
-#                self.cursor.execute(query,(next_id,))
             elif scantype=='jgp':
                 self.parse_jumpgate(next_id,page)
             elif scantype=='au':

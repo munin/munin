@@ -23,6 +23,7 @@ Parser class
 # are included in this collective work with permission of the copyright
 # owners.
 
+import irc
 import re
 import psycopg
 import sys
@@ -166,15 +167,14 @@ class parser:
                         self.client.reply(self.prefix_to_numeric(prefix),nick,target,"Successfully loaded module '%s'" % (mod_name,))
                     return "Successfully loaded module '%s'" % (mod_name,)
 
-
+                irc_msg=irc.message(client=client,nick=nick,username=username,host=host,
+                                    target=target,message=message,prefix=prefix,command=command,
+                                    user=user,access=access)
 
                 m=self.helpre.search(command)
                 if m:
-                    return self.help(nick,username,host,target,message,self.prefix_to_numeric(prefix),command,user,access,m.group(2))
-
-                return self.run_commands(nick,username,host,target,message,prefix,command,user,access)
-
-
+                    return self.help(irc_msg,m.group(2))
+                return self.run_commands(irc_msg)
                 #do stuff!
         return None
 
@@ -184,7 +184,7 @@ class parser:
 
     # split off parse into a func?
 
-    def run_commands(self,nick,username,host,target,message,prefix,command,user,access):
+    def run_commands(self,irc_msg):
         #if self.ctrl_list.has_key(command):
         #    k=command
 
@@ -193,27 +193,28 @@ class parser:
             #print "Trying key %s with obj of class '%s'" % (k,ctrl.__class__.__name__)
 
             try:
-                if ctrl.execute(nick,username,host,target,self.prefix_to_numeric(prefix),command,user,access):
+                if ctrl.execute(irc_msg.nick,irc_msg.username,irc_msg.host,irc_msg.target,
+                                irc_msg.prefix_numeric(),irc_msg.command,irc_msg.user,irc_msg.access):
                     return "Successfully executed command '%s' with key '%s'" % (ctrl.__class__.__name__,k)
             except Exception, e:
                 del self.ctrl_list[k]
                 print "Exception in "+ ctrl.__class__.__name__ +" module dumped"
-                self.client.reply(self.prefix_to_numeric(prefix),nick,target,"Error in module '"+ ctrl.__class__.__name__ +"'. Please report the command you used to jester as soon as possible.")
+                self.client.reply(irc_msg.prefix_numeric(),nick,target,"Error in module '"+ ctrl.__class__.__name__ +"'. Please report the command you used to jester as soon as possible.")
                 print e.__str__()
                 traceback.print_exc()
                 if DEBUG:
-                    print "nick: '%s'" % (nick,)
-                    print "username: '%s'" % (username,)
-                    print "host: '%s'" % (host,)
-                    print "target: '%s'" % (target,)
-                    print "message: '%s'" % (message,)
-                    print "prefix: '%s'" % (prefix,)
-                    print "command: '%s'" % (command,)
-                    print "user: '%s'" % (user,)
-                    print "access: '%s'" % (access,)
+                    print "nick: '%s'" % (irc_msg.nick,)
+                    print "username: '%s'" % (irc_msg.username,)
+                    print "host: '%s'" % (irc_msg.host,)
+                    print "target: '%s'" % (irc_msg.target,)
+                    print "message: '%s'" % (irc_msg.message,)
+                    print "prefix: '%s'" % (irc_msg.prefix,)
+                    print "command: '%s'" % (irc_msg.command,)
+                    print "user: '%s'" % (irc_msg.user,)
+                    print "access: '%s'" % (irc_msg.access,)
                     err_msg=self.load_mod(k)
                     if err_msg:
-                        self.client.reply(self.prefix_to_numeric(prefix),nick,target,"Unable to reload module '%s', this may seriously impede further use" % (k,))
+                        self.client.reply(irc_msg.prefix_numeric(),nick,target,"Unable to reload module '%s', this may seriously impede further use" % (k,))
                         print err_msg
         return None
 
@@ -239,13 +240,13 @@ class parser:
 
         return None
 
-    def help(self,nick,username,host,target,message,prefix,command,user,access,param):
+    def help(self,irc_msg,param):
         if param:
             if self.ctrl_list.has_key(param):
                 if access >= self.ctrl_list[param].level:
                     try:
                         #self.client.reply(prefix,nick,target,param+": "+self.ctrl_list[param].help())
-                        self.ctrl_list[param].help(nick,username,host,target,prefix,user,access)
+                        self.ctrl_list[param].help(irc_msg.nick,irc_msg.username,irc_msg.host,irc_msg.target,irc_msg.prefix,irc_msg.user,irc_msg.access)
                         return "Successfully executed help for '%s' with key '%s'" % (self.ctrl_list[param].__class__.__name__,param)
                     except Exception, e:
                         ctrl=self.ctrl_list[param]
@@ -255,15 +256,15 @@ class parser:
                         print e.__str__()
                         traceback.print_exc()
                         if DEBUG:
-                            print "nick: '%s'" % (nick,)
-                            print "username: '%s'" % (username,)
-                            print "host: '%s'" % (host,)
-                            print "target: '%s'" % (target,)
-                            print "message: '%s'" % (message,)
-                            print "prefix: '%s'" % (prefix,)
-                            print "command: '%s'" % (command,)
-                            print "user: '%s'" % (user,)
-                            print "access: '%s'" % (access,)
+                            print "nick: '%s'" % (irc_msg.nick,)
+                            print "username: '%s'" % (irc_msg.username,)
+                            print "host: '%s'" % (irc_msg.host,)
+                            print "target: '%s'" % (irc_msg.target,)
+                            print "message: '%s'" % (irc_msg.message,)
+                            print "prefix: '%s'" % (irc_msg.prefix,)
+                            print "command: '%s'" % (irc_msg.command,)
+                            print "user: '%s'" % (irc_msg.user,)
+                            print "access: '%s'" % (irc_msg.access,)
                             err_msg=self.load_mod(param)
                             if err_msg:
                                 self.client.reply(prefix,nick,target,"Unable to reload module '%s', this may seriously impede further use" % (k,))

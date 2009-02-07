@@ -42,7 +42,7 @@ class prop(loadable.loadable):
 	self.helptext=["A proposition is a vote to do something. For now, you can raise propositions to invite or kick someone. Once raised the proposition will stand until you expire it.  Make sure you give everyone time to have their say.",
                        "Votes for and against a proposition are made using carebears. You must have at least 1 carebear to vote. You can bid as many carebears as you want, and if you lose, you'll be compensated this many carebears for being outvoted. If you win, you'll get some back, but I'll take enough to compensate the losers."]
 
-    def execute(self,nick,target,prefix,command,user,access,irc_msg):
+    def execute(self,nick,target,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0
@@ -108,10 +108,10 @@ class prop(loadable.loadable):
         elif prop_type.lower() == 'cancel':
             m=self.match_or_usage(irc_msg,re.compile(r"\s*(\d+)"),m.group(2))
             if not m: return 1
-            if self.command_not_used_in_home(prefix, nick, target, self.__class__.__name__ + " cancel"): return 1
+            if self.command_not_used_in_home(irc_msg, self.__class__.__name__ + " cancel"): return 1
 
             prop_id=int(m.group(1))
-            self.process_cancel_proposal(prefix, nick, target, u, prop_id)
+            self.process_cancel_proposal(irc_msg, u, prop_id)
         elif prop_type.lower() == 'recent':
             self.process_recent_proposal(irc_msg,u)
             pass
@@ -182,7 +182,7 @@ class prop(loadable.loadable):
             reply+=" This prop expired %d days ago."%(DateTime.Age(DateTime.now(),r['closed']).days,)
         elif r['padding'] > 0:
             reply+=" Due to previous failures I'm voting no on this prop with %d %s"%(r['padding'],self.pluralize(r['padding'],'carebear'))
-        if target[0] != "#" or prefix == irc_msg.client.NOTICE_PREFIX or prefix == irc_msg.client.PRIVATE_PREFIX:
+        if target[0] != "#" or irc_msg.prefix == irc_msg.client.NOTICE_PREFIX or irc_msg.prefix == irc_msg.client.PRIVATE_PREFIX:
             query="SELECT vote,carebears FROM prop_vote"
             query+=" WHERE prop_id=%d AND voter_id=%d"
             self.cursor.execute(query,(prop_id,u.id))
@@ -336,7 +336,7 @@ class prop(loadable.loadable):
         query+=" WHERE id=%d"
         self.cursor.execute(query,(['no','yes'][yes>no],losing_total,prop['id']))
 
-    def process_cancel_proposal(self, prefix, nick, target, u, prop_id):
+    def process_cancel_proposal(self, irc_msg, u, prop_id):
         prop=self.find_single_prop_by_id(prop_id)
         if not prop:
             irc_msg.reply("No proposition number %d exists (idiot)."%(prop_id,))

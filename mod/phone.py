@@ -37,7 +37,7 @@ class phone(loadable.loadable):
         self.usage=self.__class__.__name__ + " <list|allow|deny|show> <nick>"
 	self.helptext=None
 
-    def execute(self,nick,target,prefix,command,user,access,irc_msg):
+    def execute(self,nick,target,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0
@@ -93,7 +93,7 @@ class phone(loadable.loadable):
              return 0
 
         if "allow".find(command) > -1:
-            results=self.phone_query_builder(nick,target,prefix,command,u,access,"AND t1.friend_id=%s",(t_user.id,))
+            results=self.phone_query_builder(irc_msg,command,u,access,"AND t1.friend_id=%s",(t_user.id,))
             if len(results) > 0:
                 reply="%s can already access your phone number."%(t_user.pnick,)
             else:
@@ -126,13 +126,13 @@ class phone(loadable.loadable):
                 return 1
 
             m=re.match(r"(#\S+)",target,re.I)
-            if m and prefix==irc_msg.client.PUBLIC_PREFIX:
+            if m and irc_msg.prefix==irc_msg.client.PUBLIC_PREFIX:
                 irc_msg.reply("Don't look up phone numbers in public, Alki might see them")
                 return 1
             if t_user.pubphone and u.userlevel >= 100:
                 reply="%s says his phone number is %s"%(t_user.pnick,t_user.phone)
             else:
-                results=self.phone_query_builder(nick,target,prefix,command,t_user,access,"AND t1.friend_id=%s",(u.id,))
+                results=self.phone_query_builder(irc_msg,command,t_user,access,"AND t1.friend_id=%s",(u.id,))
                 if len(results) < 1:
                     reply="%s won't let you see their phone number. That paranoid cunt just doesn't trust you I guess."%(t_user.pnick,)
                 else:

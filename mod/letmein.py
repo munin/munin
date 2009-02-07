@@ -38,7 +38,7 @@ class letmein(loadable.loadable):
         self.usage=self.__class__.__name__ + " <pnick> <password>"
 	self.helptext=["Give your pnick and password in PM to get invited into #%s. This command is for when P is down."%(self.config.get('Auth','home'),)]
 
-    def execute(self,nick,target,prefix,command,user,access,irc_msg):
+    def execute(self,nick,target,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0

@@ -32,7 +32,7 @@ class pref(loadable.loadable):
         self.paramre=re.compile(r"^\s+(.*)")
         self.usage=self.__class__.__name__ + " [option=value]+"
         self.helptext=['Options: planet=x.y.z | password=OnlyWorksInPM | phone=+1-800-HOT-BIRD | pubphone=T|F']
-    def execute(self,nick,target,prefix,command,user,access,irc_msg):
+    def execute(self,nick,target,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0

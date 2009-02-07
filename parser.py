@@ -193,7 +193,7 @@ class parser:
 
             try:
                 if ctrl.execute(irc_msg.nick,irc_msg.target,
-                                irc_msg.prefix_numeric(),irc_msg.command,irc_msg.user,
+                                irc_msg.command,irc_msg.user,
                                 irc_msg.access,irc_msg):
                     return "Successfully executed command '%s' with key '%s'" % (ctrl.__class__.__name__,k)
             except Exception, e:
@@ -214,7 +214,7 @@ class parser:
                     print "access: '%s'" % (irc_msg.access,)
                     err_msg=self.load_mod(k)
                     if err_msg:
-                        self.client.reply(irc_msg.prefix_numeric(),nick,target,"Unable to reload module '%s', this may seriously impede further use" % (k,))
+                        irc_msg.reply("Unable to reload module '%s', this may seriously impede further use" % (k,))
                         print err_msg
         return None
 
@@ -246,7 +246,7 @@ class parser:
                 if access >= self.ctrl_list[param].level:
                     try:
                         #self.client.reply(prefix,nick,target,param+": "+self.ctrl_list[param].help())
-                        self.ctrl_list[param].help(irc_msg.nick,irc_msg.target,irc_msg.prefix,irc_msg.user,irc_msg.access)
+                        self.ctrl_list[param].help(irc_msg.nick,irc_msg.target,irc_msg.user,irc_msg.access)
                         return "Successfully executed help for '%s' with key '%s'" % (self.ctrl_list[param].__class__.__name__,param)
                     except Exception, e:
                         ctrl=self.ctrl_list[param]

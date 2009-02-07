@@ -34,7 +34,7 @@ class jgp(loadable.loadable):
         self.usage=self.__class__.__name__ + ""
         self.helptext=None
         
-    def execute(self,nick,username,host,target,prefix,command,user,access,irc_msg):
+    def execute(self,nick,host,target,prefix,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0
@@ -75,7 +75,7 @@ class jgp(loadable.loadable):
             self.cursor.execute(query,(p.id,))
 
             if self.cursor.rowcount < 1:
-                if self.fallback(nick,username,host,target,prefix,p,None):
+                if self.fallback(nick,host,target,prefix,p,None):
                     return 1
                 else:
                     reply+="No JGP scans available on %s:%s:%s" % (p.x,p.y,p.z)
@@ -109,7 +109,7 @@ class jgp(loadable.loadable):
             self.cursor.execute(query,(rand_id,))
 
             if self.cursor.rowcount < 1:
-                if self.fallback(nick,username,host,target,prefix,None,rand_id):
+                if self.fallback(nick,host,target,prefix,None,rand_id):
                     return 1
                 else:
                     reply+="No JGP scans matching ID %s" % (rand_id,)
@@ -130,7 +130,7 @@ class jgp(loadable.loadable):
         return 1
                     
                
-    def fallback(self,nick,username,host,target,prefix,planet,rand_id):
+    def fallback(self,nick,host,target,prefix,planet,rand_id):
         query="SELECT rand_id FROM scan AS t1 "
         query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
         query+=" WHERE t3.tick = (SELECT max_tick())"

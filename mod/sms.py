@@ -34,7 +34,7 @@ class sms(loadable.loadable):
         self.usage=self.__class__.__name__ + " <nick> <message>"
 	self.helptext=['Sends an SMS to the specified user. Your username will be appended to the end of each sms. The user must have their phone correctly added and you must have access to their number.']
 
-    def execute(self,nick,username,host,target,prefix,command,user,access,irc_msg):
+    def execute(self,nick,host,target,prefix,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0
@@ -58,7 +58,7 @@ class sms(loadable.loadable):
             irc_msg.reply("No user matching %s does not exist!" % (reciever,))
             return 1
 
-        results=self.phone_query_builder(nick,username,host,target,prefix,command,receiver,access,"AND t1.friend_id=%s",(u.id,))
+        results=self.phone_query_builder(nick,host,target,prefix,command,receiver,access,"AND t1.friend_id=%s",(u.id,))
 
         if not (receiver.pubphone or len(results)>0):
             irc_msg.reply("%s's phone number is private or they have not chosen to share their number with you. Supersecret message not sent." % (receiver.pnick,))

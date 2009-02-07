@@ -42,7 +42,7 @@ class f(loadable.loadable):
         self.usage_oeta=self.__class__.__name__+" <id> <oeta|launch> <original_eta|launch_tick>"
         self.helptext=["Show or modify the status of a fleet. Possible modifications include eta/land to modify landing tick, oeta/launch to modify original eta/launch tick or delete to delete the fleet."]
 
-    def execute(self,nick,username,host,target,prefix,command,user,access,irc_msg):
+    def execute(self,nick,host,target,prefix,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0
@@ -73,15 +73,15 @@ class f(loadable.loadable):
             if not new_eta:
                 irc_msg.reply("Usage: %s"%(self.usage_eta,))
                 return 0
-            self.cmd_eta(nick,username,host,target,prefix,f,new_eta)
+            self.cmd_eta(nick,host,target,prefix,f,new_eta)
         elif "oeta".startswith(s_command) or "launch".startswith(s_command):
             new_orig_eta = self.extract_eta(sub_params or "")
             if not new_orig_eta:
                 irc_msg.reply("Usage: %s"%(self.usage_oeta,))
                 return 0
-            self.cmd_orig_eta(nick,username,host,target,prefix,f,new_orig_eta)
+            self.cmd_orig_eta(nick,host,target,prefix,f,new_orig_eta)
         elif "delete".startswith(s_command):
-            return self.cmd_delete(nick,username,host,target,prefix,f)
+            return self.cmd_delete(nick,host,target,prefix,f)
         else:
             irc_msg.reply("s_command %s"%(s_command,))
         return 1
@@ -93,7 +93,7 @@ class f(loadable.loadable):
         else:
             return int(m.group(1))
     
-    def cmd_eta(self,nick,username,host,target,prefix,f,when):
+    def cmd_eta(self,nick,host,target,prefix,f,when):
         curtick=self.current_tick()
         if when < 80:
             tick=curtick+when
@@ -114,7 +114,7 @@ class f(loadable.loadable):
         return 1
 
     
-    def cmd_orig_eta(self,nick,username,host,target,prefix,f,when):
+    def cmd_orig_eta(self,nick,host,target,prefix,f,when):
         
         if when < 80:
             tick=f.landing_tick-when
@@ -134,7 +134,7 @@ class f(loadable.loadable):
             irc_msg.reply("Updated launch tick for fleet id %s from %s to %s (new original eta is %s)"%(f.id,f.launch_tick,tick,eta))
         return 1
     
-    def cmd_delete(self,nick,username,host,target,prefix,f):
+    def cmd_delete(self,nick,host,target,prefix,f):
         query="DELETE FROM fleet WHERE id=%s"
         
         self.cursor.execute(query,(f.id,))

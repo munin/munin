@@ -192,7 +192,7 @@ class parser:
             #print "Trying key %s with obj of class '%s'" % (k,ctrl.__class__.__name__)
 
             try:
-                if ctrl.execute(irc_msg.nick,irc_msg.username,irc_msg.host,irc_msg.target,
+                if ctrl.execute(irc_msg.nick,irc_msg.host,irc_msg.target,
                                 irc_msg.prefix_numeric(),irc_msg.command,irc_msg.user,
                                 irc_msg.access,irc_msg):
                     return "Successfully executed command '%s' with key '%s'" % (ctrl.__class__.__name__,k)

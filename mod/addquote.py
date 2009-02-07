@@ -30,7 +30,7 @@ class addquote(loadable.loadable):
         self.timestampre=re.compile(r"\s*\[?\s*\d+:\d+(:\d+)?\s*\]?\s*")
         self.usage=self.__class__.__name__ + " <quote goes here>"
 
-    def execute(self,nick,username,host,target,prefix,command,user,access,irc_msg):
+    def execute(self,nick,host,target,prefix,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0

@@ -67,8 +67,8 @@ class remchan(loadable.loadable):
         try:
             self.cursor.execute(query,(real_chan,))
             if self.cursor.rowcount>0:
-                self.client.privmsg('P',"remuser %s %s" %(real_chan, self.config.get('Connection', 'nick')))
-                self.client.wline("PART %s" % (real_chan,))
+                irc_msg.client.privmsg('P',"remuser %s %s" %(real_chan, self.config.get('Connection', 'nick')))
+                irc_msg.client.wline("PART %s" % (real_chan,))
                 irc_msg.reply("Removed channel %s" % (real_chan,))
             else:
                 irc_msg.reply("No channel removed" )

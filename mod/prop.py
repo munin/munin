@@ -182,7 +182,7 @@ class prop(loadable.loadable):
             reply+=" This prop expired %d days ago."%(DateTime.Age(DateTime.now(),r['closed']).days,)
         elif r['padding'] > 0:
             reply+=" Due to previous failures I'm voting no on this prop with %d %s"%(r['padding'],self.pluralize(r['padding'],'carebear'))
-        if target[0] != "#" or prefix == self.client.NOTICE_PREFIX or prefix == self.client.PRIVATE_PREFIX:
+        if target[0] != "#" or prefix == irc_msg.client.NOTICE_PREFIX or prefix == irc_msg.client.PRIVATE_PREFIX:
             query="SELECT vote,carebears FROM prop_vote"
             query+=" WHERE prop_id=%d AND voter_id=%d"
             self.cursor.execute(query,(prop_id,u.id))
@@ -324,7 +324,7 @@ class prop(loadable.loadable):
         reply+=string.join(map(pretty_print,voters['no']),', ')
         if prop['padding'] > 0:
             reply+=", Munin (%d)"%(prop['padding'],)
-        self.client.privmsg("#%s"%(self.config.get('Auth','home'),),reply)
+        irc_msg.client.privmsg("#%s"%(self.config.get('Auth','home'),),reply)
 
         if prop['prop_type'] == 'kick' and yes > no:
             self.do_kick(prefix,nick,target,prop,yes,no)
@@ -368,7 +368,7 @@ class prop(loadable.loadable):
         reply+=") and against ("
         reply+=string.join(map(pretty_print,voters['no']),', ')
         reply+=")"
-        self.client.privmsg("#%s"%(self.config.get('Auth','home'),),reply)
+        irc_msg.client.privmsg("#%s"%(self.config.get('Auth','home'),),reply)
         pass
 
     def process_recent_proposal(self,prefix,nick,target,u):
@@ -441,14 +441,14 @@ class prop(loadable.loadable):
         idiot=self.load_user_from_pnick(prop['person'])
         query="UPDATE user_list SET userlevel = 1 WHERE id = %s"
         self.cursor.execute(query,(idiot.id,))
-        self.client.privmsg('p','remuser #%s %s'%(self.config.get('Auth', 'home'), idiot.pnick,))
-        self.client.privmsg('p',"ban #%s *!*@%s.users.netgamers.org %s"%(self.config.get('Auth', 'home'), idiot.pnick,prop['comment_text']))
+        irc_msg.client.privmsg('p','remuser #%s %s'%(self.config.get('Auth', 'home'), idiot.pnick,))
+        irc_msg.client.privmsg('p',"ban #%s *!*@%s.users.netgamers.org %s"%(self.config.get('Auth', 'home'), idiot.pnick,prop['comment_text']))
 
-        self.client.privmsg('p',"note send %s A proposition to kick you from %s has been raised by %s with reason '%s' and passed by a vote of %d to %d."%(idiot.pnick,self.config.get('Auth','alliance'),prop['proposer'],prop['comment_text'],yes,no))
+        irc_msg.client.privmsg('p',"note send %s A proposition to kick you from %s has been raised by %s with reason '%s' and passed by a vote of %d to %d."%(idiot.pnick,self.config.get('Auth','alliance'),prop['proposer'],prop['comment_text'],yes,no))
 
 
         reply="%s has been reduced to level 1 and removed from #%s."%(idiot.pnick,self.config.get('Auth','home'))
-        self.client.privmsg('#%s'%(self.config.get('Auth','home')),reply)
+        irc_msg.client.privmsg('#%s'%(self.config.get('Auth','home')),reply)
 
     def do_invite(self,prefix,nick,target,prop):
         gimp=self.load_user_from_pnick(prop['person'])
@@ -457,12 +457,12 @@ class prop(loadable.loadable):
         else:
             query="UPDATE user_list SET userlevel = 100, sponsor=%s WHERE pnick ilike %s"
         self.cursor.execute(query,(prop['proposer'],prop['person']))
-        self.client.privmsg('P',"adduser #%s %s 399" %(self.config.get('Auth', 'home'), prop['person'],));
-        self.client.privmsg('P',"modinfo #%s automode %s op" %(self.config.get('Auth', 'home'), prop['person'],));
+        irc_msg.client.privmsg('P',"adduser #%s %s 399" %(self.config.get('Auth', 'home'), prop['person'],));
+        irc_msg.client.privmsg('P',"modinfo #%s automode %s op" %(self.config.get('Auth', 'home'), prop['person'],));
 
 
         reply="%s has been added to #%s and given level 100 access to me."%(prop['person'],self.config.get('Auth','home'))
-        self.client.privmsg('#%s'%(self.config.get('Auth','home')),reply)
+        irc_msg.client.privmsg('#%s'%(self.config.get('Auth','home')),reply)
 
     def add_return(self,voter_list,voter_id,ret_sum):
         for v in voter_list:

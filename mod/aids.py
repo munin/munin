@@ -63,7 +63,7 @@ class aids(loadable.loadable):
             return 1
         
         u=loadable.user(pnick=search)
-        if not u.load_from_db(self.conn,self.client,self.cursor):
+        if not u.load_from_db(self.conn,irc_msg.client,self.cursor):
             irc_msg.reply("No users matching '%s'"%(search,))
             return 1
         if u.userlevel < 100:

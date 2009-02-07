@@ -59,8 +59,8 @@ class addchan(loadable.loadable):
             self.cursor.execute(query,(chan,access_lvl,access_lvl))
             if self.cursor.rowcount>0:
                 irc_msg.reply("Added chan %s at level %s" % (chan,access_lvl))
-                self.client.privmsg('P',"set %s autoinvite on" %(chan,));
-                self.client.privmsg('P',"invite %s" %(chan,));
+                irc_msg.client.privmsg('P',"set %s autoinvite on" %(chan,));
+                irc_msg.client.privmsg('P',"invite %s" %(chan,));
                         
         except psycopg.IntegrityError:
             irc_msg.reply("Channel %s already exists" % (chan,))

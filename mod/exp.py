@@ -51,7 +51,7 @@ class exp(loadable.loadable):
             tick=m.group(4)
 
             p=loadable.planet(x=x,y=y,z=z)
-            if not p.load_most_recent(self.conn,self.client,self.cursor):
+            if not p.load_most_recent(self.conn,irc_msg.client,self.cursor):
                 irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
                 return 1
                                             
@@ -84,7 +84,7 @@ class exp(loadable.loadable):
             z=m.group(3)
 
             p=loadable.planet(x=x,y=y,z=z)
-            if not p.load_most_recent(self.conn,self.client,self.cursor):
+            if not p.load_most_recent(self.conn,irc_msg.client,self.cursor):
                 irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
                 return 1
 

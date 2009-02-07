@@ -58,8 +58,8 @@ class galchan(loadable.loadable):
             if self.cursor.rowcount>0:
                 #irc_msg.reply("Added chan %s at level %s" % (chan,access_lvl))
                 irc_msg.reply("Added your galchannel as %s (if you didn't add me to the channel with at least access 24 first, I'm never going to bother joining)" % (chan,))
-                self.client.privmsg('P',"set %s autoinvite on" %(chan,));
-                self.client.privmsg('P',"invite %s" %(chan,));
+                irc_msg.client.privmsg('P',"set %s autoinvite on" %(chan,));
+                irc_msg.client.privmsg('P',"invite %s" %(chan,));
                 
         except psycopg.IntegrityError:
             irc_msg.reply("Channel %s already exists" % (chan,))

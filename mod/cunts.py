@@ -102,7 +102,7 @@ class cunts(loadable.loadable):
                 irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command's bash option (log in with P and set mode +x)")
                 return 1
             u=loadable.user(pnick=user)
-            if not u.load_from_db(self.conn,self.client,self.cursor):
+            if not u.load_from_db(self.conn,irc_msg.client,self.cursor):
                 irc_msg.reply("Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))" % (self.usage,))
                 return 1
             if u.planet_id:

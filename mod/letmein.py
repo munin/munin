@@ -66,7 +66,7 @@ class letmein(loadable.loadable):
         if self.cursor.rowcount == 1:
             r=self.cursor.dictfetchone()
             if r['userlevel'] >= 100:
-                self.client.wline("INVITE %s #%s"%(nick,self.config.get('Auth','home')))
+                irc_msg.client.wline("INVITE %s #%s"%(nick,self.config.get('Auth','home')))
                 irc_msg.reply("Now get in, bitch")
         else:
             irc_msg.reply( "No.")

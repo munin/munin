@@ -62,7 +62,7 @@ class dev(loadable.loadable):
             z=m.group(3)
             
             p=loadable.planet(x=x,y=y,z=z)
-            if not p.load_most_recent(self.conn,self.client,self.cursor):
+            if not p.load_most_recent(self.conn,irc_msg.client,self.cursor):
                 irc_msg.reply("No planet matching '%s' found"%(param,))
                 return 1
             

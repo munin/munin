@@ -43,7 +43,7 @@ class pref(loadable.loadable):
             return 0
 
         u=loadable.user(pnick=user)
-        if not u.load_from_db(self.conn,self.client,self.cursor):
+        if not u.load_from_db(self.conn,irc_msg.client,self.cursor):
             irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
             #irc_msg.reply("You must be registered to use the pref command")
             return 1
@@ -72,9 +72,9 @@ class pref(loadable.loadable):
                 pid = self.save_planet(prefix,nick,target,u,x,y,z)
                 if pid > 0 and u.userlevel >= 100:
                     a=loadable.alliance(name=self.config.get('Auth', 'alliance'))
-                    if a.load_most_recent(self.conn,self.client,self.cursor):
+                    if a.load_most_recent(self.conn,irc_msg.client,self.cursor):
                         i=loadable.intel(pid=pid)
-                        i.load_from_db(self.conn,self.client,self.cursor)
+                        i.load_from_db(self.conn,irc_msg.client,self.cursor)
                         if i.id:
                             query="UPDATE intel SET "
                             query+="nick=%s,alliance_id=%s"
@@ -98,7 +98,7 @@ class pref(loadable.loadable):
 
     def save_planet(self,prefix,nick,target,u,x,y,z):
         p=loadable.planet(x=x,y=y,z=z)
-        if not p.load_most_recent(self.conn,self.client,self.cursor):
+        if not p.load_most_recent(self.conn,irc_msg.client,self.cursor):
             irc_msg.reply("%s:%s:%s is not a valid planet" % (x,y,z))
             return 0
 

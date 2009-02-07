@@ -61,7 +61,7 @@ class f(loadable.loadable):
         
         # do stuff here
         f=loadable.fleet(fleet_id)
-        if not f.load_most_recent(self.conn,self.client,self.cursor):
+        if not f.load_most_recent(self.conn,irc_msg.client,self.cursor):
             irc_msg.reply("No fleet matching id %s found" %(fleet_id,))
             return 0
         

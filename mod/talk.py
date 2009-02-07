@@ -48,5 +48,5 @@ class talk(loadable.loadable):
             irc_msg.reply("You do not have enough access to send raw commands")
             return 0
 
-        self.client.privmsg(targ,stuff)
+        irc_msg.client.privmsg(targ,stuff)
         return 1

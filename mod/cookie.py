@@ -107,7 +107,7 @@ class cookie(loadable.loadable):
         return 1
 
     def can_give_cookies(self,prefix,nick,target,u,howmany):
-        available_cookies = u.check_available_cookies(self.conn,self.client,self.cursor,self.config)
+        available_cookies = u.check_available_cookies(self.conn,irc_msg.client,self.cursor,self.config)
 
         if howmany > available_cookies:
             reply="Silly, %s. You currently only have %s cookies to give out, but are trying to give out %s cookies. I'll bake you some new cookies on Monday morning." % (u.pnick, u.available_cookies, howmany)
@@ -116,7 +116,7 @@ class cookie(loadable.loadable):
         return True
 
     def show_status(self,prefix,nick,target,u):
-        available_cookies = u.check_available_cookies(self.conn,self.client,self.cursor,self.config)
+        available_cookies = u.check_available_cookies(self.conn,irc_msg.client,self.cursor,self.config)
 
         reply="You have %d cookies left until next bakeday, %s"%(available_cookies,u.pnick)
         irc_msg.reply(reply)

@@ -44,7 +44,7 @@ class lookup(loadable.loadable):
         m=self.paramre.search(m.group(1))
         if not m or not m.group(1):
             u=loadable.user(pnick=user)
-            if not u.load_from_db(self.conn,self.client,self.cursor):
+            if not u.load_from_db(self.conn,irc_msg.client,self.cursor):
                 irc_msg.reply("You must be registered to use the automatic "+self.__class__.__name__+" command (log in with P and set mode +x, then make sure you've set your planet with the pref command)")        
                 #irc_msg.reply("Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
                 return 1
@@ -63,14 +63,14 @@ class lookup(loadable.loadable):
             
             if z:
                 p=loadable.planet(x=x,y=y,z=z)
-                if not p.load_most_recent(self.conn,self.client,self.cursor):
+                if not p.load_most_recent(self.conn,irc_msg.client,self.cursor):
                     irc_msg.reply("No planet matching '%s' found"%(param,))
                     return 1
                 irc_msg.reply(str(p))
                 return 1
             else:
                 g=loadable.galaxy(x=x,y=y)
-                if not g.load_most_recent(self.conn,self.client,self.cursor):
+                if not g.load_most_recent(self.conn,irc_msg.client,self.cursor):
                     irc_msg.reply("No galaxy matching '%s' found"%(param,))
                     return 1
                 irc_msg.reply(str(g))  
@@ -78,7 +78,7 @@ class lookup(loadable.loadable):
 
         #check if this is an alliance
         a=loadable.alliance(name=param.strip())
-        if not a.load_most_recent(self.conn,self.client,self.cursor):
+        if not a.load_most_recent(self.conn,irc_msg.client,self.cursor):
             irc_msg.reply("No alliance matching '%s' found" % (param,))
             return 1
         irc_msg.reply(str(a))

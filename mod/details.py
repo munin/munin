@@ -47,7 +47,7 @@ class details(loadable.loadable):
         if user:
             #irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
             u=loadable.user(pnick=user)
-            if not u.load_from_db(self.conn,self.client,self.cursor):
+            if not u.load_from_db(self.conn,irc_msg.client,self.cursor):
                 pass
                 #irc_msg.reply("Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
                 #return 1                        
@@ -66,7 +66,7 @@ class details(loadable.loadable):
         # first, plain lookup
 
         p=loadable.planet(x=x,y=y,z=z)
-        if not p.load_most_recent(self.conn,self.client,self.cursor):
+        if not p.load_most_recent(self.conn,irc_msg.client,self.cursor):
             irc_msg.reply("No planet matching '%s:%s:%s' found"%(p.x,p.y,p.z,))
             return 1
 
@@ -107,7 +107,7 @@ class details(loadable.loadable):
                                                                                                                                                                                                 
         i=loadable.intel(pid=p.id)
         reply="Information stored for %s:%s:%s - "% (p.x,p.y,p.z)
-        if i.load_from_db(self.conn,self.client,self.cursor) and i.id>0:
+        if i.load_from_db(self.conn,irc_msg.client,self.cursor) and i.id>0:
             reply+=i.__str__()
         irc_msg.reply(reply)
             

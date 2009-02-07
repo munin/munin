@@ -49,7 +49,7 @@ class raw(loadable.loadable):
             return 0
 
         print "%s sent raw '%s'" % (user,irc_command)
-        self.client.wline(irc_command)
+        irc_msg.client.wline(irc_command)
         irc_msg.reply("Sent raw command '%s'" % (irc_command,))
                           
         return 1

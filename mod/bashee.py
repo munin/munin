@@ -27,7 +27,7 @@ class bashee(loadable.loadable):
 
         if not m or not m.group(1):
             u=loadable.user(pnick=user)
-            if not u.load_from_db(self.conn,self.client,self.cursor):
+            if not u.load_from_db(self.conn,irc_msg.client,self.cursor):
                 irc_msg.reply("You must be registered to use the automatic "+self.__class__.__name__+" command (log in with P and set mode +x, then make sure you've set your planet with the pref command)")
                 #
                 return 1
@@ -45,7 +45,7 @@ class bashee(loadable.loadable):
                 # assign param variables
                 if z:
                     p=loadable.planet(x=x,y=y,z=z)
-                    if not p.load_most_recent(self.conn,self.client,self.cursor):
+                    if not p.load_most_recent(self.conn,irc_msg.client,self.cursor):
                         irc_msg.reply("No planet matching '%s' found"%(param,))
                         return 1
                     planet = p

@@ -47,7 +47,7 @@ class phone(loadable.loadable):
             return 0
 
         u=loadable.user(pnick=user)
-        if not u.load_from_db(self.conn,self.client,self.cursor):
+        if not u.load_from_db(self.conn,irc_msg.client,self.cursor):
             irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
             return 0
 
@@ -88,7 +88,7 @@ class phone(loadable.loadable):
         trustee=m.group(3)
         t_user=loadable.user(pnick=trustee)
 
-        if not t_user.load_from_db(self.conn,self.client,self.cursor):
+        if not t_user.load_from_db(self.conn,irc_msg.client,self.cursor):
              irc_msg.reply("%s is not a valid user."%(trustee,))
              return 0
 
@@ -126,7 +126,7 @@ class phone(loadable.loadable):
                 return 1
 
             m=re.match(r"(#\S+)",target,re.I)
-            if m and prefix==self.client.PUBLIC_PREFIX:
+            if m and prefix==irc_msg.client.PUBLIC_PREFIX:
                 irc_msg.reply("Don't look up phone numbers in public, Alki might see them")
                 return 1
             if t_user.pubphone and u.userlevel >= 100:

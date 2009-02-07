@@ -32,7 +32,7 @@ class roidcost(loadable.loadable):
         self.paramre=re.compile(r"^\s+(\d+)\s+(\d+[km]?)(\s+(\d+))?",re.I)
         self.usage=self.__class__.__name__ + " <roids> <_value_ cost> [mining_bonus]" 
 
-    def execute(self,nick,host,target,prefix,command,user,access,irc_msg):
+    def execute(self,nick,target,prefix,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0

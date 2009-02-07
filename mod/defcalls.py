@@ -41,7 +41,7 @@ class defcalls(loadable.loadable):
         self.helptext=["Show defense calls",
                        "Valid statuses include covered, uncovered, recheck, impossible, invalid, semicovered, recall and fake."]
 
-    def execute(self,nick,host,target,prefix,command,user,access,irc_msg):
+    def execute(self,nick,target,prefix,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0
@@ -58,11 +58,11 @@ class defcalls(loadable.loadable):
         defcall_type=m.group(2)
         
         if defcall_type==None:
-            return self.reply_all_defcalls(nick,host,target,prefix,command,user,access)
+            return self.reply_all_defcalls(nick,target,prefix,command,user,access)
         else:
-            return self.reply_typed_defcalls(nick,host,target,prefix,defcall_type,user,access)
+            return self.reply_typed_defcalls(nick,target,prefix,defcall_type,user,access)
     
-    def reply_typed_defcalls(self,nick,host,target,prefix,defcall_type,user,access):
+    def reply_typed_defcalls(self,nick,target,prefix,defcall_type,user,access):
         query="SELECT t2.status,count(*) AS count FROM defcalls AS t1"
         query+=" INNER JOIN defcall_status AS t2"
         query+=" ON t1.status=t2.id"
@@ -106,7 +106,7 @@ class defcalls(loadable.loadable):
         return 1
         
 
-    def reply_all_defcalls(self,nick,host,target,prefix,command,user,access):
+    def reply_all_defcalls(self,nick,target,prefix,command,user,access):
         query="SELECT t2.status,count(*) AS count FROM defcalls AS t1"
         query+=" INNER JOIN defcall_status AS t2"
         query+=" ON t1.status=t2.id"

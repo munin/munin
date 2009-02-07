@@ -32,7 +32,7 @@ class book(loadable.loadable):
         self.paramre=re.compile(r"^\s+(\d+)[. :-](\d+)[. :-](\d+)\s+(\d+)(\s+(yes))?")
         self.usage=self.__class__.__name__ + " <x:y:z> (<eta>|<landing tick>)"
 
-    def execute(self,nick,host,target,prefix,command,user,access,irc_msg):
+    def execute(self,nick,target,prefix,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0

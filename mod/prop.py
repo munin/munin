@@ -42,7 +42,7 @@ class prop(loadable.loadable):
 	self.helptext=["A proposition is a vote to do something. For now, you can raise propositions to invite or kick someone. Once raised the proposition will stand until you expire it.  Make sure you give everyone time to have their say.",
                        "Votes for and against a proposition are made using carebears. You must have at least 1 carebear to vote. You can bid as many carebears as you want, and if you lose, you'll be compensated this many carebears for being outvoted. If you win, you'll get some back, but I'll take enough to compensate the losers."]
 
-    def execute(self,nick,host,target,prefix,command,user,access,irc_msg):
+    def execute(self,nick,target,prefix,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0

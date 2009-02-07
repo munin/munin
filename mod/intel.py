@@ -41,7 +41,7 @@ class intel(loadable.loadable):
         self.false = ["0","no","n","false","f"]
         self.helptext=["Valid options: %s" % (string.join(self.options,', '))]
 
-    def execute(self,nick,host,target,prefix,command,user,access,irc_msg):
+    def execute(self,nick,target,prefix,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0
@@ -61,7 +61,7 @@ class intel(loadable.loadable):
         if not m:
             m=self.gal_coordre.search(par)
             if m:
-                return self.exec_gal(nick,host,target,prefix,command,user,access,m.group(1),m.group(2))
+                return self.exec_gal(nick,target,prefix,command,user,access,m.group(1),m.group(2))
             else:
                 irc_msg.reply("Usage: %s" % (self.usage,))
                 return 1
@@ -146,7 +146,7 @@ class intel(loadable.loadable):
             param_dict[a[0].lower()]=a[1]
         return param_dict
 
-    def exec_gal(self,nick,host,target,prefix,command,user,access,x,y):
+    def exec_gal(self,nick,target,prefix,command,user,access,x,y):
         query="SELECT t2.id AS id, t1.id AS pid, t1.x AS x, t1.y AS y, t1.z AS z, t2.nick AS nick, t2.fakenick AS fakenick, t2.defwhore AS defwhore, t2.gov AS gov, t2.bg AS bg, t2.covop AS covop, t2.alliance_id AS alliance_id, t2.relay AS relay, t2.reportchan AS reportchan, t2.scanner AS scanner, t2.distwhore AS distwhore, t2.comment AS comment, t3.name AS alliance FROM planet_dump as t1, intel as t2 LEFT JOIN alliance_canon AS t3 ON t2.alliance_id=t3.id WHERE tick=(SELECT MAX(tick) FROM updates) AND t1.id=t2.pid AND x=%s AND y=%s ORDER BY y,z,x"
         self.cursor.execute(query,(x,y))
 

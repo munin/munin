@@ -39,7 +39,7 @@ class cunts(loadable.loadable):
         self.usage=self.__class__.__name__ + " [alliance] [race] [<|>][size] [<|>][value] [bash]" + " (must include at least one search criteria, order doesn't matter)"
         self.helptext=["Lists planets currently attacking %s planets (as per intel). Sorts by size. This command is a bit spammy and will probably highlight people, so please do it in private or with a private command prefix." % self.config.get("Auth", "alliance")]
         
-    def execute(self,nick,host,target,prefix,command,user,access,irc_msg):
+    def execute(self,nick,target,prefix,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0

@@ -69,7 +69,7 @@ class pref(loadable.loadable):
                 else:
                     irc_msg.reply("You must provide coordinates (x:y:z) for the planet option")
                     continue
-                pid = self.save_planet(prefix,nick,target,u,x,y,z)
+                pid = self.save_planet(irc_msg,u,x,y,z)
                 if pid > 0 and u.userlevel >= 100:
                     a=loadable.alliance(name=self.config.get('Auth', 'alliance'))
                     if a.load_most_recent(irc_msg.client,self.cursor):
@@ -84,19 +84,19 @@ class pref(loadable.loadable):
                             query="INSERT INTO intel (pid,nick,alliance_id) VALUES (%s,%s,%s)"
                             self.cursor.execute(query,(pid,user,a.id))
             if opt == "stay":
-                self.save_stay(prefix,nick,target,u,val,access)
+                self.save_stay(irc_msg,u,val,access)
             if opt == "pubphone":
-                self.save_pubphone(prefix,nick,target,u,val,access)
+                self.save_pubphone(irc_msg,u,val,access)
             if opt == "password":
-                self.save_password(prefix,nick,target,u,val)
+                self.save_password(irc_msg,u,val)
                 pass
             if opt == "phone":
-                self.save_phone(prefix,nick,target,u,val)
+                self.save_phone(irc_msg,u,val)
                 pass
 
         return 1
 
-    def save_planet(self,prefix,nick,target,u,x,y,z):
+    def save_planet(self,irc_msg,u,x,y,z):
         p=loadable.planet(x=x,y=y,z=z)
         if not p.load_most_recent(irc_msg.client,self.cursor):
             irc_msg.reply("%s:%s:%s is not a valid planet" % (x,y,z))
@@ -113,7 +113,7 @@ class pref(loadable.loadable):
             self.cursor.execute(query,(u.id,p.id))
             irc_msg.reply("Your planet has been saved as %s:%s:%s" % (x,y,z))
 
-    def save_stay(self,prefix,nick,target,u,status,access):
+    def save_stay(self,irc_msg,u,status,access):
         if access < 100:
             return 0
         print "Trying to set stay to %s"%(status,)
@@ -133,7 +133,7 @@ class pref(loadable.loadable):
             reply="Your stay status '%s' is not a valid value. If you are staying for next round, it should be 'yes'. Otherwise it should be 'no'." %(status,)
         irc_msg.reply(reply)
 
-    def save_phone(self,prefix,nick,target,u,passwd):
+    def save_phone(self,irc_msg,u,passwd):
         print "trying to set phone for %s"%(u.pnick,)
         query="UPDATE user_list SET phone = %s"
         query+=" WHERE id = %s"
@@ -144,7 +144,7 @@ class pref(loadable.loadable):
         else:
             irc_msg.reply( "Something went wrong. Go whine to your sponsor.")
 
-    def save_pubphone(self,prefix,nick,target,u,status,access):
+    def save_pubphone(self,irc_msg,u,status,access):
         if access < 100:
             irc_msg.reply(
                               "Only %s members can allow all members of %s to view their phone"%(self.config.get('Auth','alliance'),
@@ -160,7 +160,7 @@ class pref(loadable.loadable):
         except psycopg.ProgrammingError :
             reply="Your pubphone status '%s' is not a valid value. If you want your phone number to be visible to all %s members, it should be 'yes'. Otherwise it should be 'no'." %(status,self.config.get('Auth','alliance'))
         irc_msg.reply(reply)
-    def save_password(self,prefix,nick,target,u,passwd):
+    def save_password(self,irc_msg,u,passwd):
         print "trying to set password for %s"%(u.pnick,)
         query="UPDATE user_list SET passwd = MD5(MD5(salt) || MD5(%s))"
         query+=" WHERE id = %s"

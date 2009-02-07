@@ -48,7 +48,7 @@ class sms(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         
-        u=self.load_user(user,prefix,nick,target)
+        u=self.load_user(user,irc_msg)
         if not u: return 1
 
         rec = m.group(1)

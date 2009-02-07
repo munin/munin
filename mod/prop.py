@@ -51,7 +51,7 @@ class prop(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        u=self.load_user(user,prefix,nick,target)
+        u=self.load_user(user,irc_msg)
         if not u: return 0
         
         m=self.paramre.search(m.group(1))
@@ -63,66 +63,66 @@ class prop(loadable.loadable):
         prop_type=m.group(1)
 
         if prop_type.lower() == 'invite':
-            m=self.match_or_usage(prefix,nick,target,self.invite_kickre,m.group(2))
+            m=self.match_or_usage(irc_msg,self.invite_kickre,m.group(2))
             if not m: return 1
-            if self.command_not_used_in_home(prefix,nick,target,self.__class__.__name__ + " invite"): return 1
+            if self.command_not_used_in_home(irc_msg,self.__class__.__name__ + " invite"): return 1
             
             person=m.group(1)
             comment=m.group(3)
-            self.process_invite_proposal(prefix,nick,target,u,person,comment)
+            self.process_invite_proposal(irc_msg,u,person,comment)
             
         elif prop_type.lower() == 'kick':
-            m=self.match_or_usage(prefix,nick,target,self.invite_kickre,m.group(2))
+            m=self.match_or_usage(irc_msg,self.invite_kickre,m.group(2))
             if not m: return 1
-            if self.command_not_used_in_home(prefix,nick,target,self.__class__.__name__ + " kick"): return 1
+            if self.command_not_used_in_home(irc_msg,self.__class__.__name__ + " kick"): return 1
             
             person=m.group(1)
             comment=m.group(3)
-            self.process_kick_proposal(prefix,nick,target,u,person,comment)
+            self.process_kick_proposal(irc_msg,u,person,comment)
             
         elif prop_type.lower() == 'list':
-            self.process_list_all_proposals(prefix,nick,target,u)
+            self.process_list_all_proposals(irc_msg,u)
 
         elif prop_type.lower() == 'show':
-            m=self.match_or_usage(prefix,nick,target,re.compile(r"^\s*(\d+)"),m.group(2))
+            m=self.match_or_usage(irc_msg,re.compile(r"^\s*(\d+)"),m.group(2))
             if not m: return 1
             prop_id=int(m.group(1))
-            self.process_show_proposal(prefix,nick,target,u,prop_id)
+            self.process_show_proposal(irc_msg,u,prop_id)
         elif prop_type.lower() == 'vote':
-            m=self.match_or_usage(prefix,nick,target,self.votere,m.group(2))
+            m=self.match_or_usage(irc_msg,self.votere,m.group(2))
             if not m: return 1
 
             prop_id=int(m.group(1))
             vote=m.group(2)
             carebears=m.group(3)
             if carebears: carebears=int(carebears)
-            self.process_vote_proposal(prefix,nick,target,u,prop_id,vote,carebears)
+            self.process_vote_proposal(irc_msg,u,prop_id,vote,carebears)
         elif prop_type.lower() == 'expire':
-            m=self.match_or_usage(prefix,nick,target,re.compile(r"\s*(\d+)"),m.group(2))
+            m=self.match_or_usage(irc_msg,re.compile(r"\s*(\d+)"),m.group(2))
             if not m: return 1
-            if self.command_not_used_in_home(prefix,nick,target,self.__class__.__name__ + " expire"): return 1
+            if self.command_not_used_in_home(irc_msg,self.__class__.__name__ + " expire"): return 1
             
             prop_id=int(m.group(1))
-            self.process_expire_proposal(prefix,nick,target,u,prop_id)
+            self.process_expire_proposal(irc_msg,u,prop_id)
 
         elif prop_type.lower() == 'cancel':
-            m=self.match_or_usage(prefix,nick,target,re.compile(r"\s*(\d+)"),m.group(2))
+            m=self.match_or_usage(irc_msg,re.compile(r"\s*(\d+)"),m.group(2))
             if not m: return 1
             if self.command_not_used_in_home(prefix, nick, target, self.__class__.__name__ + " cancel"): return 1
 
             prop_id=int(m.group(1))
             self.process_cancel_proposal(prefix, nick, target, u, prop_id)
         elif prop_type.lower() == 'recent':
-            self.process_recent_proposal(prefix,nick,target,u)
+            self.process_recent_proposal(irc_msg,u)
             pass
 
         elif prop_type.lower() == 'search':
-            m=self.match_or_usage(prefix,nick,target,re.compile(r"\s*(\S+)"),m.group(2))
+            m=self.match_or_usage(irc_msg,re.compile(r"\s*(\S+)"),m.group(2))
             if not m: return 1
-            self.process_search_proposal(prefix,nick,target,u,m.group(1))
+            self.process_search_proposal(irc_msg,u,m.group(1))
         return 1
     
-    def process_invite_proposal(self,prefix,nick,target,user,person,comment):
+    def process_invite_proposal(self,irc_msg,user,person,comment):
         if self.is_member(person):
             irc_msg.reply("Stupid %s, that wanker %s is already a member."%(user.pnick,person))
             return 1
@@ -137,7 +137,7 @@ class prop(loadable.loadable):
             reply+=" Due to previous failures I'm voting no with %d %s on this vote."%(last_comp,self.pluralize(last_comp,'carebear'))
         irc_msg.reply(reply)
 
-    def process_kick_proposal(self,prefix,nick,target,user,person,comment):
+    def process_kick_proposal(self,irc_msg,user,person,comment):
         p=self.load_user_from_pnick(person)
         if person.lower() == "munin".lower():
             irc_msg.reply("I'll peck your eyes out, cunt.")
@@ -156,7 +156,7 @@ class prop(loadable.loadable):
             reply+=" Due to previous failures I'm voting no with %d %s on this vote."%(last_comp,self.pluralize(last_comp,'carebear'))
         irc_msg.reply( reply)
 
-    def process_list_all_proposals(self,prefix,nick,target,user):
+    def process_list_all_proposals(self,irc_msg,user):
         query="SELECT t1.id AS id, t1.person AS person, 'invite' AS prop_type FROM invite_proposal AS t1 WHERE t1.active UNION ("
         query+=" SELECT t2.id AS id, t3.pnick AS person, 'kick' AS prop_type FROM kick_proposal AS t2"
         query+=" INNER JOIN user_list AS t3 ON t2.person_id=t3.id WHERE t2.active)"
@@ -167,7 +167,7 @@ class prop(loadable.loadable):
         reply="Propositions currently being voted on: %s"%(string.join(a, ", "),)
         irc_msg.reply(reply)
 
-    def process_show_proposal(self,prefix,nick,target,u,prop_id):
+    def process_show_proposal(self,irc_msg,u,prop_id):
         r=self.find_single_prop_by_id(prop_id)
         if not r:
             reply="No proposition number %d exists."%(prop_id,)
@@ -217,7 +217,7 @@ class prop(loadable.loadable):
             pass
 
 
-    def process_vote_proposal(self,prefix,nick,target,u,prop_id,vote,carebears):
+    def process_vote_proposal(self,irc_msg,u,prop_id,vote,carebears):
         # todo ensure prop is active
         if not carebears:
             if vote == 'abstain':
@@ -274,7 +274,7 @@ class prop(loadable.loadable):
             reply+="."
         irc_msg.reply(reply)
 
-    def process_expire_proposal(self,prefix,nick,target,u,prop_id):
+    def process_expire_proposal(self,irc_msg,u,prop_id):
         prop=self.find_single_prop_by_id(prop_id)
         if not prop:
             irc_msg.reply("No proposition number %d exists (idiot)."%(prop_id,))
@@ -327,9 +327,9 @@ class prop(loadable.loadable):
         irc_msg.client.privmsg("#%s"%(self.config.get('Auth','home'),),reply)
 
         if prop['prop_type'] == 'kick' and yes > no:
-            self.do_kick(prefix,nick,target,prop,yes,no)
+            self.do_kick(irc_msg,prop,yes,no)
         elif prop['prop_type'] == 'invite' and yes > no:
-            self.do_invite(prefix,nick,target,prop)
+            self.do_invite(irc_msg,prop)
 
         query="UPDATE %s_proposal SET active = FALSE, closed = NOW()" % (prop['prop_type'],)
         query+=", vote_result=%s,compensation=%d"
@@ -371,7 +371,7 @@ class prop(loadable.loadable):
         irc_msg.client.privmsg("#%s"%(self.config.get('Auth','home'),),reply)
         pass
 
-    def process_recent_proposal(self,prefix,nick,target,u):
+    def process_recent_proposal(self,irc_msg,u):
         query="SELECT t1.id AS id, t1.person AS person, 'invite' AS prop_type, t1.vote_result AS vote_result FROM invite_proposal AS t1 WHERE NOT t1.active UNION ("
         query+=" SELECT t2.id AS id, t3.pnick AS person, 'kick' AS prop_type, t2.vote_result AS vote_result FROM kick_proposal AS t2"
         query+=" INNER JOIN user_list AS t3 ON t2.person_id=t3.id WHERE NOT t2.active) ORDER BY id DESC LIMIT 10"
@@ -384,7 +384,7 @@ class prop(loadable.loadable):
         
         pass
 
-    def process_search_proposal(self,prefix,nick,target,u,search):
+    def process_search_proposal(self,irc_msg,u,search):
         query="SELECT id, prop_type, person, vote_result FROM ("
         query+=" SELECT t1.id AS id, 'invite' AS prop_type, t1.person AS person, t1.vote_result AS vote_result"
         query+="  FROM invite_proposal AS t1 UNION ("
@@ -437,7 +437,7 @@ class prop(loadable.loadable):
                 voters['abstain'].append(r)
         return (voters, yes, no)
 
-    def do_kick(self,prefix,nick,target,prop,yes,no):
+    def do_kick(self,irc_msg,prop,yes,no):
         idiot=self.load_user_from_pnick(prop['person'])
         query="UPDATE user_list SET userlevel = 1 WHERE id = %s"
         self.cursor.execute(query,(idiot.id,))
@@ -450,7 +450,7 @@ class prop(loadable.loadable):
         reply="%s has been reduced to level 1 and removed from #%s."%(idiot.pnick,self.config.get('Auth','home'))
         irc_msg.client.privmsg('#%s'%(self.config.get('Auth','home')),reply)
 
-    def do_invite(self,prefix,nick,target,prop):
+    def do_invite(self,irc_msg,prop):
         gimp=self.load_user_from_pnick(prop['person'])
         if not gimp or gimp.pnick.lower() != prop['person'].lower():
             query="INSERT INTO user_list (userlevel,sponsor,pnick) VALUES (100,%s,%s)"

@@ -31,7 +31,6 @@ from mx import DateTime
 
 class loadable:
     def __init__(self,cursor,level,irc_msg):
-        self.conn=conn
         self.cursor=cursor
         self.level=level
         self.coordre=re.compile(r"(\d+)[. :-](\d+)([. :-](\d+))?")
@@ -43,15 +42,15 @@ class loadable:
         if not self.config.read('muninrc'):
             raise ValueError('Failed to read ./muninrc. Can not run without configuration')
 
-    def execute(self,nick,username,host,target,prefix,command,user,access,irc_msg):
+    def execute(self,nick,target,prefix,command,user,access,irc_msg):
         print "Loadable execute"
         pass
 
-    def help(self,nick,username,host,target,prefix,user,access):
-        self.client.reply(prefix,nick,target,self.usage)
+    def help(self,nick,target,prefix,user,access):
+        irc_msg.reply(self.usage)
         if self.helptext:
             for h in self.helptext:
-                self.client.reply(prefix,nick,target,h)
+                irc_msg.reply(h)
 
     def cap(self,text):
         if len(text)>3:
@@ -84,13 +83,13 @@ class loadable:
         self.cursor.execute("SELECT MAX(tick) FROM updates")
         return self.cursor.fetchone()[0]
 
-    def load_user(self,pnick,prefix,nick,target):
+    def load_user(self,irc_msg,target):
         if not pnick:
-            self.client.reply(prefix,nick,target,"You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")        
+            irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")        
             return None
         u=self.load_user_from_pnick(pnick)
         if not u:
-            self.client.reply(prefix,nick,target,"You must be registered to use the automatic "+self.__class__.__name__+" command (log in with P and set mode +x, then make sure you've set your planet with the pref command)")
+            irc_msg.reply("You must be registered to use the automatic "+self.__class__.__name__+" command (log in with P and set mode +x, then make sure you've set your planet with the pref command)")
             return None
         return u
     
@@ -110,14 +109,14 @@ class loadable:
             return text+"s"
         return text
     
-    def match_or_usage(self, prefix, nick, target, needle, haystack):
+    def match_or_usage(self, irc_msg, needle, haystack):
         m=needle.search(haystack)
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" %(self.usage,))
+            irc_msg.reply("Usage: %s" %(self.usage,))
         return m
-    def command_not_used_in_home(self,prefix,nick,target,command_name):
+    def command_not_used_in_home(self,irc_msg,command_name):
         if target.lower() != "#"+self.config.get("Auth","home").lower():
-            self.client.reply(prefix,nick,target,"The %s command may only be used in #%s."%(command_name,self.config.get("Auth","home"),))
+            irc_msg.reply("The %s command may only be used in #%s."%(command_name,self.config.get("Auth","home"),))
             return True
         False
 
@@ -195,7 +194,7 @@ class defcall:
         cursor.execute(query,(self.status,))
         s=cursor.dictfetchone()
         if not s:
-            self.client.reply(prefix,nick,target,"foo!")
+            irc_msg.reply("foo!")
         self.actual_status=s['status']
 
         return 1

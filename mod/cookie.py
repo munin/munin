@@ -49,7 +49,7 @@ class cookie(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        u=self.load_user(user,prefix,nick,target)
+        u=self.load_user(user,irc_msg)
         if not u: return 0
 
         s=self.statre.search(m.group(1))
@@ -62,11 +62,11 @@ class cookie(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         if s:
-            u=self.load_user(user,prefix,nick,target)
+            u=self.load_user(user,irc_msg)
             if not u: return 0
-            self.show_status(prefix,nick,target,u)
+            self.show_status(irc_msg,u)
             return 1
-        if self.command_not_used_in_home(prefix,nick,target,self.__class__.__name__):
+        if self.command_not_used_in_home(irc_msg,self.__class__.__name__):
             return 1
         # assign param variables 
         howmany=m.group(2)
@@ -77,7 +77,7 @@ class cookie(loadable.loadable):
         receiver=m.group(3)
         reason=m.group(4)
 
-        if not self.can_give_cookies(prefix,nick,target,u,howmany):
+        if not self.can_give_cookies(irc_msg,u,howmany):
             return 0
         
         #rec=load_user
@@ -106,7 +106,7 @@ class cookie(loadable.loadable):
                                                                                                             rec.carebears+howmany))
         return 1
 
-    def can_give_cookies(self,prefix,nick,target,u,howmany):
+    def can_give_cookies(self,irc_msg,u,howmany):
         available_cookies = u.check_available_cookies(irc_msg.client,self.cursor,self.config)
 
         if howmany > available_cookies:
@@ -115,7 +115,7 @@ class cookie(loadable.loadable):
             return False
         return True
 
-    def show_status(self,prefix,nick,target,u):
+    def show_status(self,irc_msg,u):
         available_cookies = u.check_available_cookies(irc_msg.client,self.cursor,self.config)
 
         reply="You have %d cookies left until next bakeday, %s"%(available_cookies,u.pnick)

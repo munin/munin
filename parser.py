@@ -246,7 +246,7 @@ class parser:
                 if access >= self.ctrl_list[param].level:
                     try:
                         #self.client.reply(prefix,nick,target,param+": "+self.ctrl_list[param].help())
-                        self.ctrl_list[param].help(irc_msg.nick,irc_msg.username,irc_msg.host,irc_msg.target,irc_msg.prefix,irc_msg.user,irc_msg.access)
+                        self.ctrl_list[param].help(irc_msg.nick,irc_msg.target,irc_msg.prefix,irc_msg.user,irc_msg.access)
                         return "Successfully executed help for '%s' with key '%s'" % (self.ctrl_list[param].__class__.__name__,param)
                     except Exception, e:
                         ctrl=self.ctrl_list[param]
@@ -270,14 +270,13 @@ class parser:
                                 self.client.reply(prefix,nick,target,"Unable to reload module '%s', this may seriously impede further use" % (k,))
                                 print err_msg
                         return
-        self.client.reply(prefix,nick,target,
-                          "Munin help. For more information use: <"+self.notprefix.replace("|","")+self.pubprefix.replace("|","")+self.privprefix.replace("|","")+">help <command>. Built-in commands: help" + (bool(access>=1000) and ", loadmod" or ""))
+        irc_msg.reply("Munin help. For more information use: <"+self.notprefix.replace("|","")+self.pubprefix.replace("|","")+self.privprefix.replace("|","")+">help <command>. Built-in commands: help" + (bool(access>=1000) and ", loadmod" or ""))
         command_list=[]
         for ctrl in self.ctrl_list.values():
             if access >= ctrl.level:
                 command_list.append(ctrl.__class__.__name__)
         command_list.sort()
-        self.client.reply(prefix,nick,target,"Loaded modules: "+ ", ".join(command_list))
+        irc_msg.reply("Loaded modules: "+ ", ".join(command_list))
 
 
     def getpnick(self,host):

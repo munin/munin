@@ -29,7 +29,7 @@ Loadable subclass
 class cost(loadable.loadable):
     def __init__(self,client,conn,cursor):
         loadable.loadable.__init__(self,client,conn,cursor,1)
-        self.paramre=re.compile(r"^\s+(\d+[mk]?)\s+(\S+)")
+        self.paramre=re.compile(r"^\s+(\d+(?:.\d+)?[mk]?)\s+(\S+)")
         self.usage=self.__class__.__name__ + " <number> <shipname>"
 
     def execute(self,nick,username,host,target,prefix,command,user,access):
@@ -46,11 +46,12 @@ class cost(loadable.loadable):
         ship_number=m.group(1)
 
         if ship_number[-1].lower()=='k':
-            ship_number=1000*int(ship_number[:-1])
+            ship_number=1000*float(ship_number[:-1])
         elif ship_number[-1].lower()=='m':
-            ship_number=1000000*int(ship_number[:-1])
+            ship_number=1000000*float(ship_number[:-1])
         else:
-            ship_number=int(ship_number)    
+            ship_number=float(ship_number)    
+        ship_number=int(ship_number)
         ship_name=m.group(2)
                 
         if access < self.level:

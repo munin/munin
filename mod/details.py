@@ -40,21 +40,21 @@ class details(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         u=None
         if user:
-            #self.client.reply(prefix,nick,target,"You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
+            #irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
             u=loadable.user(pnick=user)
             if not u.load_from_db(self.conn,self.client,self.cursor):
                 pass
-                #self.client.reply(prefix,nick,target,"Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
+                #irc_msg.reply("Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
                 #return 1                        
             
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables 
@@ -67,10 +67,10 @@ class details(loadable.loadable):
 
         p=loadable.planet(x=x,y=y,z=z)
         if not p.load_most_recent(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"No planet matching '%s:%s:%s' found"%(p.x,p.y,p.z,))
+            irc_msg.reply("No planet matching '%s:%s:%s' found"%(p.x,p.y,p.z,))
             return 1
 
-        self.client.reply(prefix,nick,target,p.__str__())
+        irc_msg.reply(p.__str__())
 
         # next we do XP
 
@@ -103,13 +103,13 @@ class details(loadable.loadable):
             cap=total_roids/4
             xp=int(cap*bravery)
             reply+="| Roids: %s | XP: %s | Score: %s" % (cap,xp,xp*60)
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
                                                                                                                                                                                                 
         i=loadable.intel(pid=p.id)
         reply="Information stored for %s:%s:%s - "% (p.x,p.y,p.z)
         if i.load_from_db(self.conn,self.client,self.cursor) and i.id>0:
             reply+=i.__str__()
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
             
 
         query="SELECT t1.id AS id, t1.nick AS nick, t1.pid AS pid, t1.tick AS tick, t1.uid AS uid, t2.pnick AS pnick, t2.userlevel AS userlevel, t3.x AS x, t3.y AS y, t3.z AS z"
@@ -132,7 +132,7 @@ class details(loadable.loadable):
                     
             reply+=" "+string.join(prev,', ')
 
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
                                                                                                                                     
         
 

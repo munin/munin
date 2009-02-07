@@ -45,17 +45,17 @@ class i(loadable.loadable):
         if not m:
             return 0
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         u=loadable.user(pnick=user)
         if not u.load_from_db(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
+            irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
             return 1
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         
         # assign param variables 
@@ -64,7 +64,7 @@ class i(loadable.loadable):
         # do stuff here
         d=loadable.defcall(call_id)
         if not d.load_most_recent(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"No defcall matching id %s found" %(call_id,))
+            irc_msg.reply("No defcall matching id %s found" %(call_id,))
             return 0
         
         query="SELECT t1.id AS fleet_id, t4.id AS defcall_id"
@@ -83,7 +83,7 @@ class i(loadable.loadable):
         self.cursor.execute(query,(int(d.id),))
         
         if self.cursor.rowcount < 1:
-            self.client.reply(prefix,nick,target,"No fleets found for defcall with ID '%s'"%(call_id,))
+            irc_msg.reply("No fleets found for defcall with ID '%s'"%(call_id,))
             return 1
         
         all=self.cursor.dictfetchall()
@@ -92,12 +92,12 @@ class i(loadable.loadable):
                                                                d.actual_target.z,
                                                                d.id)
         reply+=" with eta %d"%(d.landing_tick-self.current_tick(),)
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         
         for s in all:
             reply="-> (id: %s) from %s:%s:%s (%s)"%(s['fleet_id'],s['owner_x'],s['owner_y'],s['owner_z'],s['race'])
             reply+=" named '%s' with %s ships set to %s"%(s['fleet_name'],s['fleet_size'],s['mission'])
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
             
         
         

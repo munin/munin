@@ -39,14 +39,14 @@ class search(loadable.loadable):
         
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         
         # assign param variables
         params=m.group(1)
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
         
         # do stuff here
@@ -62,7 +62,7 @@ class search(loadable.loadable):
         planets=self.cursor.dictfetchall()
         if not len(planets):
             reply="No planets in intel matching nick or alliance: %s"%(params,)
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
             return 1
         for p in planets:
             reply="%s:%s:%s (%s)" % (p['x'],p['y'],p['z'],p['race'])
@@ -78,9 +78,9 @@ class search(loadable.loadable):
             i+=1
             if i>4 and len(planets)>4:
                 reply+=" (Too many results to list, please refine your search)"
-                self.client.reply(prefix,nick,target,reply)
+                irc_msg.reply(reply)
                 break
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
 
                                 
         

@@ -39,13 +39,13 @@ class remchan(loadable.loadable):
         
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         
         chan=m.group(1).lower()         
         
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to remove channels")
+            irc_msg.reply("You do not have enough access to remove channels")
             return 0
         
         
@@ -53,13 +53,13 @@ class remchan(loadable.loadable):
         self.cursor.execute(query,(chan,))
         res=self.cursor.dictfetchone()
         if not res:
-            self.client.reply(prefix,nick,target,"Channel '%s' does not exist" % (chan,))
+            irc_msg.reply("Channel '%s' does not exist" % (chan,))
             return 0
         access_lvl = res['userlevel']
         real_chan = res['chan']
         
         if access_lvl >= access:
-            self.client.reply(prefix,nick,target,"You may not remove %s, the channel's access (%s) exceeds your own (%s)" % (real_chan, access_lvl, access))
+            irc_msg.reply("You may not remove %s, the channel's access (%s) exceeds your own (%s)" % (real_chan, access_lvl, access))
             return 0
         
         query="DELETE FROM channel_list WHERE chan=%s"
@@ -69,9 +69,9 @@ class remchan(loadable.loadable):
             if self.cursor.rowcount>0:
                 self.client.privmsg('P',"remuser %s %s" %(real_chan, self.config.get('Connection', 'nick')))
                 self.client.wline("PART %s" % (real_chan,))
-                self.client.reply(prefix,nick,target,"Removed channel %s" % (real_chan,))
+                irc_msg.reply("Removed channel %s" % (real_chan,))
             else:
-                self.client.reply(prefix,nick,target,"No channel removed" )
+                irc_msg.reply("No channel removed" )
         except:
             raise
         

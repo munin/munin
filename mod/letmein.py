@@ -47,11 +47,11 @@ class letmein(loadable.loadable):
         
         public=re.match(r"(#\S+)",target,re.I)
         if public:
-            self.client.reply(prefix,nick,target,"Don't use this command in public you shit")
+            irc_msg.reply("Don't use this command in public you shit")
         
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables 
@@ -67,9 +67,9 @@ class letmein(loadable.loadable):
             r=self.cursor.dictfetchone()
             if r['userlevel'] >= 100:
                 self.client.wline("INVITE %s #%s"%(nick,self.config.get('Auth','home')))
-                self.client.reply(prefix,nick,target,"Now get in, bitch")
+                irc_msg.reply("Now get in, bitch")
         else:
-            self.client.reply(prefix,nick,target, "No.")
+            irc_msg.reply( "No.")
         # do stuff here
 
         return 1

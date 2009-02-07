@@ -44,7 +44,7 @@ class bcalc(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         bcalc = ["http://bcalc.thrud.co.uk/","http://beta.5th-element.org/","http://bcalc.lch-hq.org/index.php",
@@ -53,6 +53,6 @@ class bcalc(loadable.loadable):
                  "http://patools.thrud.co.uk/", "http://game.planetarion.com/bcalc.pl"]
                     
         reply="Bcalcs: "+string.join(bcalc," | ")
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
 
         return 1

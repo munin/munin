@@ -48,7 +48,7 @@ class prop(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         u=self.load_user(user,prefix,nick,target)
@@ -56,7 +56,7 @@ class prop(loadable.loadable):
         
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         
         # assign param variables 
@@ -124,10 +124,10 @@ class prop(loadable.loadable):
     
     def process_invite_proposal(self,prefix,nick,target,user,person,comment):
         if self.is_member(person):
-            self.client.reply(prefix,nick,target,"Stupid %s, that wanker %s is already a member."%(user.pnick,person))
+            irc_msg.reply("Stupid %s, that wanker %s is already a member."%(user.pnick,person))
             return 1
         if self.is_already_proposed_invite(person):
-            self.client.reply(prefix,nick,target,"Silly %s, there's already a proposal to invite %s."%(user.pnick,person))
+            irc_msg.reply("Silly %s, there's already a proposal to invite %s."%(user.pnick,person))
             return 1
         last_comp=self.was_recently_proposed('invite',person)
         prop_id=self.create_invite_proposal(user,person,comment,last_comp)
@@ -135,18 +135,18 @@ class prop(loadable.loadable):
         reply+=" When people have been given a fair shot at voting you can call a count using !prop expire %d."%(prop_id,)
         if last_comp > 0:
             reply+=" Due to previous failures I'm voting no with %d %s on this vote."%(last_comp,self.pluralize(last_comp,'carebear'))
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
 
     def process_kick_proposal(self,prefix,nick,target,user,person,comment):
         p=self.load_user_from_pnick(person)
         if person.lower() == "munin".lower():
-            self.client.reply(prefix,nick,target,"I'll peck your eyes out, cunt.")
+            irc_msg.reply("I'll peck your eyes out, cunt.")
             return 1
         if not p:
-            self.client.reply(prefix,nick,target,"Stupid %s, you can't kick %s, they're not a member."%(user.pnick,person))
+            irc_msg.reply("Stupid %s, you can't kick %s, they're not a member."%(user.pnick,person))
             return 1
         if self.is_already_proposed_kick(p.id):
-            self.client.reply(prefix,nick,target,"Silly %s, there's already a proposition to kick %s."%(user.pnick,p.pnick))
+            irc_msg.reply("Silly %s, there's already a proposition to kick %s."%(user.pnick,p.pnick))
             return 1
         last_comp=self.was_recently_proposed('kick',p.id)
         prop_id=self.create_kick_proposal(user,p,comment,last_comp)
@@ -154,7 +154,7 @@ class prop(loadable.loadable):
         reply+=" When people have had a fair shot at voting you can call a count using !prop expire %d."%(prop_id,)
         if last_comp > 0:
             reply+=" Due to previous failures I'm voting no with %d %s on this vote."%(last_comp,self.pluralize(last_comp,'carebear'))
-        self.client.reply(prefix,nick,target, reply)
+        irc_msg.reply( reply)
 
     def process_list_all_proposals(self,prefix,nick,target,user):
         query="SELECT t1.id AS id, t1.person AS person, 'invite' AS prop_type FROM invite_proposal AS t1 WHERE t1.active UNION ("
@@ -165,13 +165,13 @@ class prop(loadable.loadable):
         for r in self.cursor.dictfetchall():
             a.append("%d: %s %s"%(r['id'],r['prop_type'],r['person']))
         reply="Propositions currently being voted on: %s"%(string.join(a, ", "),)
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
 
     def process_show_proposal(self,prefix,nick,target,u,prop_id):
         r=self.find_single_prop_by_id(prop_id)
         if not r:
             reply="No proposition number %d exists."%(prop_id,)
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
             return
         
         age=DateTime.Age(DateTime.now(),r['created']).days
@@ -194,7 +194,7 @@ class prop(loadable.loadable):
                 reply+=" on this proposition." 
             else:
                 reply+=" You are not currently voting on this proposition."
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         if not bool(r['active']):
             reply=""
             (voters, yes, no) = self.get_voters_for_prop(prop_id)
@@ -213,7 +213,7 @@ class prop(loadable.loadable):
             if r['padding'] > 0:
                 reply+=", Munin (%d)"%(r['padding'],)            
             reply+=")"
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
             pass
 
 
@@ -226,15 +226,15 @@ class prop(loadable.loadable):
                 carebears=1
         prop=self.find_single_prop_by_id(prop_id)
         if not prop:
-            self.client.reply(prefix,nick,target,"No proposition number %d exists (idiot)."%(prop_id,))
+            irc_msg.reply("No proposition number %d exists (idiot)."%(prop_id,))
             return
 
         if not bool(prop['active']):
-            self.client.reply(prefix,nick,target,"You can't vote on prop %d, it's expired."%(prop_id,))
+            irc_msg.reply("You can't vote on prop %d, it's expired."%(prop_id,))
             return
         if prop['proposer'].lower() == u.pnick.lower():
             reply="Arbitrary Munin rule #167: No voting on your own props."
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
             return
         
         query="SELECT id,vote,carebears, prop_id FROM prop_vote"
@@ -248,7 +248,7 @@ class prop(loadable.loadable):
             cost=carebears
 
         if cost > u.carebears:
-            self.client.reply(prefix,nick,target,"You don't have enough carebears to cover that vote. Your vote would have required %d, but you only have %d carebears."%(cost,u.carebears))
+            irc_msg.reply("You don't have enough carebears to cover that vote. Your vote would have required %d, but you only have %d carebears."%(cost,u.carebears))
             return
 
         query="UPDATE user_list SET carebears = carebears - %d WHERE id = %d"
@@ -272,15 +272,15 @@ class prop(loadable.loadable):
             if vote != 'abstain':
                 reply+=" with %d carebears"%(carebears,)
             reply+="."
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
 
     def process_expire_proposal(self,prefix,nick,target,u,prop_id):
         prop=self.find_single_prop_by_id(prop_id)
         if not prop:
-            self.client.reply(prefix,nick,target,"No proposition number %d exists (idiot)."%(prop_id,))
+            irc_msg.reply("No proposition number %d exists (idiot)."%(prop_id,))
             return
         if u.pnick.lower() != prop['proposer'].lower():
-            self.client.reply(prefix,nick,target,"Only %s may expire proposition %d."%(prop['proposer'],prop['id']))
+            irc_msg.reply("Only %s may expire proposition %d."%(prop['proposer'],prop['id']))
             return
         #tally votes for and against
         (voters, yes, no) = self.get_voters_for_prop(prop_id)
@@ -339,10 +339,10 @@ class prop(loadable.loadable):
     def process_cancel_proposal(self, prefix, nick, target, u, prop_id):
         prop=self.find_single_prop_by_id(prop_id)
         if not prop:
-            self.client.reply(prefix,nick,target,"No proposition number %d exists (idiot)."%(prop_id,))
+            irc_msg.reply("No proposition number %d exists (idiot)."%(prop_id,))
             return
         if u.pnick.lower() != prop['proposer']:
-            self.client.reply(prefix,nick,target,"Only %s may expire proposition %d."%(prop['proposer'],prop['id']))
+            irc_msg.reply("Only %s may expire proposition %d."%(prop['proposer'],prop['id']))
             return
 
         (voters, yes, no)=self.get_voters_for_prop(prop_id)
@@ -380,7 +380,7 @@ class prop(loadable.loadable):
         for r in self.cursor.dictfetchall():
             a.append("%d: %s %s %s"%(r['id'],r['prop_type'],r['person'],r['vote_result'][0].upper() if r['vote_result'] else ""))
         reply="Recently expired propositions: %s"%(string.join(a, ", "),)
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         
         pass
 
@@ -396,7 +396,7 @@ class prop(loadable.loadable):
         for r in self.cursor.dictfetchall():
             a.append("%d: %s %s %s"%(r['id'],r['prop_type'],r['person'],r['vote_result'][0].upper() if r['vote_result'] else "",))
         reply="Propositions matching '%s': %s"%(search,string.join(a, ", "),)
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         
         pass
 

@@ -38,7 +38,7 @@ class bitches(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
         
         # do stuff here
@@ -65,7 +65,7 @@ class bitches(loadable.loadable):
         self.cursor.execute(query,args)
         if self.cursor.rowcount < 1:
             reply="No active bookings. This makes Munin sad. Please don't make Munin sad."
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
             return 1
         reply="Active bookings:"
         prev=[]
@@ -73,7 +73,7 @@ class bitches(loadable.loadable):
             prev.append("%s:%s(%s)"%(b['x'],b['y'],b['number']))
 
         reply+=" "+string.join(prev,', ')
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
 
 
         #begin finding of all alliance targets
@@ -100,6 +100,6 @@ class bitches(loadable.loadable):
         for b in self.cursor.dictfetchall():
             prev.append("%s (%s)"%(self.cap(b['alliance'] or "Unknown"),b['number']))
         reply+=" "+string.join(prev,', ')
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         
         return 1

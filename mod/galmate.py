@@ -39,17 +39,17 @@ class galmate(loadable.loadable):
             return 0
 
         if not user:
-            self.client.reply(prefix,nick,target,"You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
+            irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
             return 1
         
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to add galmates")
+            irc_msg.reply("You do not have enough access to add galmates")
             return 0
                         
         
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         
         pnick=m.group(1).lower()
@@ -59,9 +59,9 @@ class galmate(loadable.loadable):
         try:
             self.cursor.execute(query,(pnick,))
             if self.cursor.rowcount>0:
-                self.client.reply(prefix,nick,target,"Added user %s at level 1" % (pnick,))
+                irc_msg.reply("Added user %s at level 1" % (pnick,))
         except psycopg.IntegrityError:
-            self.client.reply(prefix,nick,target,"User %s already exists" % (pnick,))
+            irc_msg.reply("User %s already exists" % (pnick,))
             return 0
         except:
             raise

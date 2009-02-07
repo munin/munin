@@ -44,12 +44,12 @@ class aids(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         
         # assign param variables 
@@ -59,15 +59,15 @@ class aids(loadable.loadable):
         
         if search.lower() == 'munin':
             # Hardcoded == bad?
-            self.client.reply(prefix,nick,target,"I am Munin. I gave aids to all you bitches.")
+            irc_msg.reply("I am Munin. I gave aids to all you bitches.")
             return 1
         
         u=loadable.user(pnick=search)
         if not u.load_from_db(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"No users matching '%s'"%(search,))
+            irc_msg.reply("No users matching '%s'"%(search,))
             return 1
         if u.userlevel < 100:
-            self.client.reply(prefix,nick,target,"%s is not a member, his aids is worthless."%(u.pnick,))
+            irc_msg.reply("%s is not a member, his aids is worthless."%(u.pnick,))
             return 1
 
         query="SELECT pnick,sponsor,invites"
@@ -101,6 +101,6 @@ class aids(loadable.loadable):
                 reply+=", ".join(prev)
 
 
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         
         return 1

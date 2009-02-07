@@ -19,12 +19,12 @@ class quits(loadable.loadable):
             return 0
         
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
         
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         
         # assign param variables
@@ -48,7 +48,7 @@ class quits(loadable.loadable):
                 reply="%s is a stalwart defender of his honor" % (pnick,)
             else:
                 reply="%s is a whining loser who has quit %d times." % (pnick,count)
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         
 
         return 1

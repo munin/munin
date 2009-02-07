@@ -40,11 +40,11 @@ class info(loadable.loadable):
         # assign param variables
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
         
         alliance=m.group(1)
@@ -68,7 +68,7 @@ class info(loadable.loadable):
             reply="%s Members: %s, Value: %s, Avg: %s," % (alliance,res['members'],res['tot_value'],res['tot_value']/res['members'])
             reply+=" Score: %s, Avg: %s," % (res['tot_score'],res['tot_score']/res['members']) 
             reply+=" Size: %s, Avg: %s, XP: %s, Avg: %s" % (res['tot_size'],res['tot_size']/res['members'],res['tot_xp'],res['tot_xp']/res['members'])
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         
         return 1
                                                                                                                                             

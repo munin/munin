@@ -48,11 +48,11 @@ class intel(loadable.loadable):
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 1
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 1
         
         #assign param variables
@@ -63,7 +63,7 @@ class intel(loadable.loadable):
             if m:
                 return self.exec_gal(nick,username,host,target,prefix,command,user,access,m.group(1),m.group(2))
             else:
-                self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+                irc_msg.reply("Usage: %s" % (self.usage,))
                 return 1
         
         p=loadable.planet(x=m.group(1),y=m.group(2),z=m.group(3))
@@ -71,7 +71,7 @@ class intel(loadable.loadable):
         params=m.group(4)
         
         if not p.load_most_recent(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"No planet matching '%s:%s:%s' found"%(p.x,p.y,p.z,))
+            irc_msg.reply("No planet matching '%s:%s:%s' found"%(p.x,p.y,p.z,))
             return 1
 
         i=loadable.intel(pid=p.id)
@@ -90,7 +90,7 @@ class intel(loadable.loadable):
                     continue
                 a=loadable.alliance(name=val)
                 if not a.load_most_recent(self.conn,self.client,self.cursor):
-                    self.client.reply(prefix,nick,target,"'%s' is not a valid alliance, your information was not added."%(val,))
+                    irc_msg.reply("'%s' is not a valid alliance, your information was not added."%(val,))
                     return 1
                 else:
                     opts['alliance'] = a.name
@@ -133,7 +133,7 @@ class intel(loadable.loadable):
 
         reply="Information stored for %s:%s:%s - "% (p.x,p.y,p.z)
         reply+=i.__str__()
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         
         return 1
 
@@ -162,8 +162,8 @@ class intel(loadable.loadable):
                 replied_to_request = True
                 reply="Information stored for %s:%s:%s - "% (x,y,z)
                 reply+=i.__str__()
-                self.client.reply(prefix,nick,target,reply)
+                irc_msg.reply(reply)
 
         if not replied_to_request:
-            self.client.reply(prefix,nick,target,"No information stored for galaxy %s:%s" % (x,y))
+            irc_msg.reply("No information stored for galaxy %s:%s" % (x,y))
         return 1

@@ -39,18 +39,18 @@ class addchan(loadable.loadable):
             return 0
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         
         chan=m.group(1).lower()
         access_lvl=int(m.group(2))
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to add new channels")
+            irc_msg.reply("You do not have enough access to add new channels")
             return 0
         
         if access_lvl >= access:
-            self.client.reply(prefix,nick,target,"You may not add a channel with equal or higher access to your own")
+            irc_msg.reply("You may not add a channel with equal or higher access to your own")
             return 0
         
         query="INSERT INTO channel_list (chan,userlevel,maxlevel) VALUES (%s,%s,%s)"
@@ -58,12 +58,12 @@ class addchan(loadable.loadable):
         try:
             self.cursor.execute(query,(chan,access_lvl,access_lvl))
             if self.cursor.rowcount>0:
-                self.client.reply(prefix,nick,target,"Added chan %s at level %s" % (chan,access_lvl))
+                irc_msg.reply("Added chan %s at level %s" % (chan,access_lvl))
                 self.client.privmsg('P',"set %s autoinvite on" %(chan,));
                 self.client.privmsg('P',"invite %s" %(chan,));
                         
         except psycopg.IntegrityError:
-            self.client.reply(prefix,nick,target,"Channel %s already exists" % (chan,))
+            irc_msg.reply("Channel %s already exists" % (chan,))
             return 0
         except:
             raise

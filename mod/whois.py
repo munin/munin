@@ -45,12 +45,12 @@ class whois(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         
         # assign param variables 
@@ -59,7 +59,7 @@ class whois(loadable.loadable):
         # do stuff here
         
         if search.lower() == 'munin':
-            self.client.reply(prefix,nick,target,"I am Munin. Hear me roar.")
+            irc_msg.reply("I am Munin. Hear me roar.")
             return 1
         
         query="SELECT pnick,sponsor,invites,carebears"
@@ -86,7 +86,7 @@ class whois(loadable.loadable):
                 reply+="Information about %s: Their sponsor is %s. Their Munin number is %s. They have %d %s."
             reply=reply%(r['pnick'],r['sponsor'],self.munin_number_to_output(u),r['carebears'],self.pluralize(r['carebears'],"carebear"))
 
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         
         return 1
     def munin_number_to_output(self,u):

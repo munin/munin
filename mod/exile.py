@@ -40,12 +40,12 @@ class exile(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables 
@@ -80,6 +80,6 @@ class exile(loadable.loadable):
 		
 	    reply="Total galaxies: %s Maximum planets to guarantee a galaxy is in the exile bracket: %s" % (gals,max_planets)
 
-	self.client.reply(prefix,nick,target,reply)
+	irc_msg.reply(reply)
 
         return 1

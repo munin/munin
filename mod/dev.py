@@ -43,12 +43,12 @@ class dev(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables
@@ -63,7 +63,7 @@ class dev(loadable.loadable):
             
             p=loadable.planet(x=x,y=y,z=z)
             if not p.load_most_recent(self.conn,self.client,self.cursor):
-                self.client.reply(prefix,nick,target,"No planet matching '%s' found"%(param,))
+                irc_msg.reply("No planet matching '%s' found"%(param,))
                 return 1
             
             query="SELECT t2.id AS id,t1.tick,nick,scantype,rand_id,travel,infrastructure,hulls,waves,core,covert_op,mining"
@@ -93,7 +93,7 @@ class dev(loadable.loadable):
 
 
 
-                self.client.reply(prefix,nick,target,reply)
+                irc_msg.reply(reply)
                 reply="Structures: LFac: %s, MFac: %s, HFac: %s, Amp: %s, Dist: %s, MRef: %s, CRef: %s, ERef: %s, ResLab: %s (%s%%), FC: %s, Sec: %s (%s%%) " % (s['light_factory'],s['medium_factory'],
                                                                                                                                                        s['heavy_factory'],s['wave_amplifier'],
                                                                                                                                                        s['wave_distorter'],s['metal_refinery'],
@@ -116,7 +116,7 @@ class dev(loadable.loadable):
         else:
             m=self.idre.search(params)
             if not m:
-                self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+                irc_msg.reply("Usage: %s" % (self.usage,))
                 return 0
 
             rand_id=m.group(1)
@@ -144,7 +144,7 @@ class dev(loadable.loadable):
                 reply+=" Travel: %s, Infrajerome: %s, Hulls: %s, Waves: %s, Core: %s, Covop: %s, Mining: %s"%(s['travel'],self.infra(s['infrastructure']),self.hulls(s['hulls']),
                                                                                                               self.waves(s['waves']),s['core'],self.covop(s['covert_op']),
                                                                                                               self.mining(s['mining']))
-                self.client.reply(prefix,nick,target,reply)
+                irc_msg.reply(reply)
                 reply="Surface: LFac: %s, MFac: %s, HFac: %s, Amp: %s, Dist: %s, MRef: %s, CRef: %s, ERef: %s, ResLab: %s (%s%%), FC: %s, Sec: %s (%s%%) " % (s['light_factory'],s['medium_factory'],
                                                                                                                                                        s['heavy_factory'],s['wave_amplifier'],
                                                                                                                                                        s['wave_distorter'],s['metal_refinery'],
@@ -155,7 +155,7 @@ class dev(loadable.loadable):
                                                                                                                                                        s['security_centre'],
                                                                                                                                                        int(float(s['security_centre'])/total*100))                
                 
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         
         return 1
 

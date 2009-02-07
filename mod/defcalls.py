@@ -46,12 +46,12 @@ class defcalls(loadable.loadable):
         if not m:
             return 0
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         
         # assign param variables
@@ -77,7 +77,7 @@ class defcalls(loadable.loadable):
         
         reply=""
         if self.cursor.rowcount < 1:
-            self.client.reply(prefix,nick,target,"No active defcalls matching '%s' at the moment. Seriously."%(defcall_type,))
+            irc_msg.reply("No active defcalls matching '%s' at the moment. Seriously."%(defcall_type,))
             return 1
         c=self.cursor.dictfetchone()
         reply+="Status '%s' shows %s calls:"%(c['status'],c['count'])
@@ -101,7 +101,7 @@ class defcalls(loadable.loadable):
             a.append("%s:%s:%s (id: %s, eta: %s)"%(d['x'],d['y'],d['z'],d['id'],d['landing_tick']-current_tick))
         reply+=" "+string.join(a, " | ")
 
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
     
         return 1
         
@@ -116,7 +116,7 @@ class defcalls(loadable.loadable):
         self.cursor.execute(query)
         
         if self.cursor.rowcount < 1:
-            self.client.reply(prefix,nick,target,"No active defcalls at the moment. Seriously.")
+            irc_msg.reply("No active defcalls at the moment. Seriously.")
             return 1
         
         total_calls=0
@@ -129,7 +129,7 @@ class defcalls(loadable.loadable):
         reply+="Active calls: %d |"%(total_calls,)
         reply+=" "+string.join(a, " ")
         print a
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         
         return 1
     

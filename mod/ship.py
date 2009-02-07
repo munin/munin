@@ -45,19 +45,19 @@ class ship(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables 
         ship_name=m.group(1)
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
 
@@ -68,7 +68,7 @@ class ship(loadable.loadable):
         s=self.cursor.dictfetchone()
         
         if not s:
-            self.client.reply(prefix,nick,target,"%s is not a ship" % (ship_name))
+            irc_msg.reply("%s is not a ship" % (ship_name))
             return 0
 
         reply="%s is class %s | Target 1: %s |"%(s['name'],s['class'],s['target_1'])
@@ -86,6 +86,6 @@ class ship(loadable.loadable):
         reply+=" A/C: %s"%((s['armor']*10000)/s['total_cost'],)
         #reply+=" (%s)"%(
 
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
 
         return 1

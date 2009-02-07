@@ -39,7 +39,7 @@ class roidcost(loadable.loadable):
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables
@@ -51,11 +51,11 @@ class roidcost(loadable.loadable):
         mining=250
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
         
         if roids == 0:
-            self.client.reply(prefix,nick,target,"Another NewDawn landing, eh?")
+            irc_msg.reply("Another NewDawn landing, eh?")
             return 1
 
         if cost[-1].lower()=='k':
@@ -87,6 +87,6 @@ class roidcost(loadable.loadable):
         #repay=int((cost*100)/(roids*mining*.9524))
         #reply+=" | Dictatorship: %s ticks (%s days)" %(repay,repay/24)
         
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
 
         return 1

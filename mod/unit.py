@@ -40,12 +40,12 @@ class unit(loadable.loadable):
             return 0
         
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
         
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         
         # assign param variables
@@ -60,7 +60,7 @@ class unit(loadable.loadable):
             
             p=loadable.planet(x=x,y=y,z=z)
             if not p.load_most_recent(self.conn,self.client,self.cursor):
-                self.client.reply(prefix,nick,target,"No planet matching '%s:%s:%s' found"%(x,y,z))
+                irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
                 return 1
 
             query="SELECT t1.tick,t1.nick,t1.scantype,t1.rand_id,t3.name,t2.amount"
@@ -87,7 +87,7 @@ class unit(loadable.loadable):
         else:
             m=self.idre.search(params)
             if not m:
-                self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+                irc_msg.reply("Usage: %s" % (self.usage,))
                 return 0
             
             rand_id=m.group(1)
@@ -115,7 +115,7 @@ class unit(loadable.loadable):
 
                 reply+="%s:%s:%s (id: %s, pt: %s) " % (x,y,z,rand_id,tick)
                 reply+=string.join(prev,' | ')
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         return 1
                     
                     

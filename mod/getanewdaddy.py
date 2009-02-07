@@ -47,32 +47,32 @@ class getanewdaddy(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables
         
         voter=loadable.user(pnick=user)
         if not voter.load_from_db(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
+            irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
             return 1
 
 
         idiot=loadable.user(pnick=m.group(1))
         if not idiot.load_from_db(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"That idiot doesn't exist")
+            irc_msg.reply("That idiot doesn't exist")
             return 1
 
         # do stuff here
 
         if access < 1000 and idiot.sponsor.lower() != voter.pnick.lower():
             reply="You are not %s's sponsor"%(idiot.pnick,)
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
             return 1
 
         query="UPDATE user_list SET userlevel = 1 WHERE id = %s"
@@ -86,5 +86,5 @@ class getanewdaddy(loadable.loadable):
         else:
             self.client.privmsg('p',"note send %s Your sponsor (%s) no longer wishes to be your sponsor for %s. If you still wish to be a member, go ahead and find someone else to sponsor you back."%(idiot.pnick,voter.pnick, self.config.get('Auth', 'alliance')))
             reply="%s has been reduced to level 1 and removed from the channel. You are no longer %s's sponsor. If anyone else would like to sponsor that person back, they may."%(idiot.pnick,idiot.pnick)
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         return 1

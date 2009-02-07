@@ -38,13 +38,13 @@ class apenis(loadable.loadable):
             return 0
         
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,self.usage)
+            irc_msg.reply(self.usage)
             return 0
 
         search=m.group(2)
@@ -53,25 +53,25 @@ class apenis(loadable.loadable):
             a=loadable.alliance(name=search)
             if not a.load_most_recent(self.conn,self.client,self.cursor):
                 reply="No alliances match %s" % (search,)
-                self.client.reply(prefix,nick,target,reply)
+                irc_msg.reply(reply)
                 return 1
         elif u.load_from_db(self.conn,self.client,self.cursor) and u.userlevel >= 100:
             a=loadable.alliance(name=self.config.get('Auth', 'alliance'))
             if not a.load_most_recent(self.conn,self.client,self.cursor):
                 reply="No alliances match %s" % (search,)
-                self.client.reply(prefix,nick,target,reply)
+                irc_msg.reply(reply)
                 return 1
         elif u.id > -1 and u.planet is not None:
             i=loadable.intel(pid=p.id)
             if (not i.load_from_db(self.conn,self.client,self.cursor)) or i.alliance is None:
                 reply="Make sure you've set your planet with !pref and alliance with !intel"
-                self.client.reply(prefix,nick,target,reply)
+                irc_msg.reply(reply)
                 return 1
             else:
                 a=loadable.alliance(name=i.alliance)
         else:
             reply="Make sure you've set your planet with !pref and alliance with !intel"
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
             return 1
 
         query="DROP TABLE apenis;DROP SEQUENCE al_activity_rank;"
@@ -116,7 +116,7 @@ class apenis(loadable.loadable):
             person=res['name']
             reply ="apenis for %s is %s score long. This makes %s rank: %s apenis. The average peon is sporting a %s score epenis." % (person,res['activity'],person,res['activity_rank'],int(res['activity']/res['members']))
 
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         
         return 1
 

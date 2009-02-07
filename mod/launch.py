@@ -47,12 +47,12 @@ class launch(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
 
@@ -65,7 +65,7 @@ class launch(loadable.loadable):
             try:
                 eta = int(eta)
             except ValueError:
-                self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+                irc_msg.reply("Usage: %s" % (self.usage,))
                 return 0
 
         query="SELECT max_tick()"
@@ -73,7 +73,7 @@ class launch(loadable.loadable):
             self.cursor.execute(query)
             current_tick = self.cursor.dictfetchone()
         except psycopg.IntegrityError:
-            self.client.reply(prefix,nick,target,"Could not fetch current tick.")
+            irc_msg.reply("Could not fetch current tick.")
             return 0
         current_tick = current_tick['max_tick']
 
@@ -83,6 +83,6 @@ class launch(loadable.loadable):
         prelaunch_tick = land_tick - eta + 1
         prelaunch_mod = launch_tick - current_tick
 
-        self.client.reply(prefix,nick,target,"eta %d landing pt %d (currently %d) must launch at pt %d (%s), or with prelaunch tick %d (currently %+d)" % (eta, land_tick, current_tick, launch_tick, (launch_time.strftime("%m-%d %H:55")), prelaunch_tick, prelaunch_mod))
+        irc_msg.reply("eta %d landing pt %d (currently %d) must launch at pt %d (%s), or with prelaunch tick %d (currently %+d)" % (eta, land_tick, current_tick, launch_tick, (launch_time.strftime("%m-%d %H:55")), prelaunch_tick, prelaunch_mod))
 
         return 1

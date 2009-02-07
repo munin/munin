@@ -39,12 +39,12 @@ class galchan(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to add galchannels")
+            irc_msg.reply("You do not have enough access to add galchannels")
             return 0
         
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         
         chan=m.group(1).lower()
@@ -56,13 +56,13 @@ class galchan(loadable.loadable):
         try:
             self.cursor.execute(query,(chan,))
             if self.cursor.rowcount>0:
-                #self.client.reply(prefix,nick,target,"Added chan %s at level %s" % (chan,access_lvl))
-                self.client.reply(prefix,nick,target,"Added your galchannel as %s (if you didn't add me to the channel with at least access 24 first, I'm never going to bother joining)" % (chan,))
+                #irc_msg.reply("Added chan %s at level %s" % (chan,access_lvl))
+                irc_msg.reply("Added your galchannel as %s (if you didn't add me to the channel with at least access 24 first, I'm never going to bother joining)" % (chan,))
                 self.client.privmsg('P',"set %s autoinvite on" %(chan,));
                 self.client.privmsg('P',"invite %s" %(chan,));
                 
         except psycopg.IntegrityError:
-            self.client.reply(prefix,nick,target,"Channel %s already exists" % (chan,))
+            irc_msg.reply("Channel %s already exists" % (chan,))
             return 0
         except:
             raise

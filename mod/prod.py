@@ -22,8 +22,8 @@ class prod(loadable.loadable):
                          " it will take to prod <n>"
                          " <ship> with <factories>."]
 
-    def execute(self, nick, username, host, target, prefix,,irc_msg
-                command, user, access):
+    def execute(self, nick, username, host, target, prefix,
+                command, user, access,irc_msg):
 
         match = self.commandre.search(command)
 
@@ -33,14 +33,12 @@ class prod(loadable.loadable):
         match = self.paramre.search(match.group(1))
         
         if not match:
-            self.client.reply(prefix, nick, target,
-            "Usage: %s, production time of n ships with n factories."
-                              % self.usage)
+            irc_msg.reply("Usage: %s, production time of n ships with n factories."
+                          % self.usage)
             return 0
 
         if access < self.level:
-            self.client.reply(prefix, nick, target,
-            "You do not have the access necessary to use this command.")
+            irc_msg.reply("You do not have the access necessary to use this command.")
             
         number = match.group(1)
         shipname = match.group(2)
@@ -63,8 +61,7 @@ class prod(loadable.loadable):
         ship = self.cursor.dictfetchone()
 
         if not ship:
-            self.client.reply(prefix, nick, target,
-            "%s is not a ship." % shipname)
+            irc_msg.reply("%s is not a ship." % shipname)
             return 0
 
         def ln(n):
@@ -91,7 +88,7 @@ class prod(loadable.loadable):
                                                                           norm_time, factories)
         reply += "With feudalism it is %s ticks." % feud_time
 
-        self.client.reply(prefix, nick, target, reply)
+        irc_msg.reply(reply)
 
         return 1
         

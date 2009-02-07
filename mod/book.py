@@ -39,7 +39,7 @@ class book(loadable.loadable):
             
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         x=m.group(1)
@@ -49,17 +49,17 @@ class book(loadable.loadable):
         override=m.group(6)
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         if access < 100 and not user:
-            self.client.reply(prefix,nick,target,"I don't trust you. You have to set mode +x to book a target.")
+            irc_msg.reply("I don't trust you. You have to set mode +x to book a target.")
             return 0
 
 
         p=loadable.planet(x=x,y=y,z=z)
         if not p.load_most_recent(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"No planet matching '%s:%s:%s' found"%(x,y,z))
+            irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
             return 1
         else:
             i=loadable.intel(pid=p.id)
@@ -67,7 +67,7 @@ class book(loadable.loadable):
                 pass
             else:
                 if i and i.alliance and i.alliance.lower()== self.config.get("Auth", "alliance").lower():
-                    self.client.reply(prefix,nick,target,"%s:%s:%s is %s in %s. Quick, launch before they notice the highlight."%(x,y,z,i.nick or 'someone',self.config.get('Auth', 'alliance')))
+                    irc_msg.reply("%s:%s:%s is %s in %s. Quick, launch before they notice the highlight."%(x,y,z,i.nick or 'someone',self.config.get('Auth', 'alliance')))
                     return 0 
         curtick=self.current_tick()
         tick=-1
@@ -77,7 +77,7 @@ class book(loadable.loadable):
             tick=curtick+when
             eta=when
         elif when < curtick:
-            self.client.reply(prefix,nick,target,"Can not book targets in the past. You wanted tick %s, but current tick is %s."%(when,curtick))
+            irc_msg.reply("Can not book targets in the past. You wanted tick %s, but current tick is %s."%(when,curtick))
             return 1
         else:
             tick=when
@@ -108,7 +108,7 @@ class book(loadable.loadable):
                     prev.append("(%s %s)" % (r['tick'],owner))
             reply+=" "+string.join(prev,', ')
             reply+=" )"
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
             return 1
         
         uid=None
@@ -140,6 +140,6 @@ class book(loadable.loadable):
         except:
             raise
 
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
 
         return 1

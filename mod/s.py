@@ -45,17 +45,17 @@ class s(loadable.loadable):
         if not m:
             return 0
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         u=loadable.user(pnick=user)
         if not u.load_from_db(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
+            irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
             return 1
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         
         # assign param variables 
@@ -65,29 +65,29 @@ class s(loadable.loadable):
         # do stuff here
         d=loadable.defcall(call_id)
         if not d.load_most_recent(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"No defcall matching id %s found" %(call_id,))
+            irc_msg.reply("No defcall matching id %s found" %(call_id,))
             return 0
         
         p=d.actual_target
         
         if not s_command:
-            self.client.reply(prefix,nick,target,str(d))
+            irc_msg.reply(str(d))
             return 1
         
         query="SELECT id, status FROM defcall_status WHERE status ilike %s"
         self.cursor.execute(query,(s_command+'%',))
         s=self.cursor.dictfetchone()
         if not s:
-            self.client.reply(prefix,nick,target,"%s is not a valid defcall status, defcall was not modified"%(s_command,))
+            irc_msg.reply("%s is not a valid defcall status, defcall was not modified"%(s_command,))
             return 0
         
         query="UPDATE defcalls SET status = %s,claimed_by=%s WHERE id = %s"
         print str(u.id)
         self.cursor.execute(query,(s['id'],user,d.id))
         if self.cursor.rowcount < 1:
-            self.client.reply(prefix,nick,target,"Something went wrong. Old status was %s, new status was %s, defcall id was %s"%(old_status,s['status'],d.id))
+            irc_msg.reply("Something went wrong. Old status was %s, new status was %s, defcall id was %s"%(old_status,s['status'],d.id))
         else:
-            self.client.reply(prefix,nick,target,
+            irc_msg.reply(
                               "Updated defcall %s on %s:%s:%s landing pt %s from status '%s' to '%s'"%(d.id,p.x,p.y,p.z,d.landing_tick,d.actual_status,s['status']))
         
         return 1

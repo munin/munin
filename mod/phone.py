@@ -43,17 +43,17 @@ class phone(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         u=loadable.user(pnick=user)
         if not u.load_from_db(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
+            irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
             return 0
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables
@@ -81,7 +81,7 @@ class phone(loadable.loadable):
                 reply="The following people can view your phone number: "
                 reply+=", ".join(people)
 
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
             return 1
 
 
@@ -89,7 +89,7 @@ class phone(loadable.loadable):
         t_user=loadable.user(pnick=trustee)
 
         if not t_user.load_from_db(self.conn,self.client,self.cursor):
-             self.client.reply(prefix,nick,target,"%s is not a valid user."%(trustee,))
+             irc_msg.reply("%s is not a valid user."%(trustee,))
              return 0
 
         if "allow".find(command) > -1:
@@ -101,7 +101,7 @@ class phone(loadable.loadable):
                 args=(u.id,t_user.id)
                 self.cursor.execute(query,args)
                 reply="Added %s to the list of people able to view your phone number."%(t_user.pnick,)
-            self.client.reply(prefix,nick,target, reply)
+            irc_msg.reply( reply)
             return 1
         elif "deny".find(command) > -1:
             query="DELETE FROM phone WHERE user_id=%s and friend_id=%s"
@@ -113,7 +113,7 @@ class phone(loadable.loadable):
                 reply="Could not find %s among the people allowed to see your phone number." % (t_user.pnick,)
             else:
                 reply="Removed %s from the list of people allowed to see your phone number." % (t_user.pnick,)
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
             return 1
         elif "show".find(command) > -1:
             if u.id == t_user.id:
@@ -122,12 +122,12 @@ class phone(loadable.loadable):
                     reply+=" Your pubphone setting is: %s"%(["off","on"][u.pubphone],)
                 else:
                     reply="You haven't set your phone number. To set your phone number, do !pref phone=1-800-HOT-BIRD."
-                self.client.reply(prefix,nick,target,reply)
+                irc_msg.reply(reply)
                 return 1
 
             m=re.match(r"(#\S+)",target,re.I)
             if m and prefix==self.client.PUBLIC_PREFIX:
-                self.client.reply(prefix,nick,target,"Don't look up phone numbers in public, Alki might see them")
+                irc_msg.reply("Don't look up phone numbers in public, Alki might see them")
                 return 1
             if t_user.pubphone and u.userlevel >= 100:
                 reply="%s says his phone number is %s"%(t_user.pnick,t_user.phone)
@@ -141,9 +141,9 @@ class phone(loadable.loadable):
                     else:
                         reply="%s hasn't shared his phone number. What a paranoid cunt ."%(t_user.pnick,)
 
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
             return 1
         # if we're still here someone did something wrong
-        self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+        irc_msg.reply("Usage: %s" % (self.usage,))
 
         return 1

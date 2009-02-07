@@ -39,13 +39,13 @@ class talk(loadable.loadable):
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         targ=m.group(1)
         stuff=m.group(2)
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to send raw commands")
+            irc_msg.reply("You do not have enough access to send raw commands")
             return 0
 
         self.client.privmsg(targ,stuff)

@@ -40,19 +40,19 @@ class news(loadable.loadable):
             return 0
             
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
         
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         # assign param variables    
         params=m.group(1)
         m=self.planet_coordre.search(params)
         reply=""
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         x=m.group(1)
@@ -61,7 +61,7 @@ class news(loadable.loadable):
         p=loadable.planet(x=x,y=y,z=z)
 
         if not p.load_most_recent(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"No planet matching '%s:%s:%s' found"%(x,y,z))
+            irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
             return 1
 
         query="SELECT tick,nick,scantype,rand_id,tick"
@@ -74,7 +74,7 @@ class news(loadable.loadable):
             reply="Latest news scan on %s:%s:%s - http://game.planetarion.com/showscan.pl?scan_id=%s"%(x,y,z,s['rand_id'])
         else:
             reply="No news available on %s:%s:%s"%(x,y,z)
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
 
         return 1
 

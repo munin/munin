@@ -72,14 +72,12 @@ class rprod(loadable.loadable):
         match = self.paramre.search(match.group(1))
 
         if not match:
-            self.client.reply(prefix, nick, target,
-            "Usage: %s, how much you can spend with n factories in m ticks."
-                              % self.usage)
+            irc_msg.reply("Usage: %s, how much you can spend with n factories in m ticks."
+                          % self.usage)
             return 0
 
         if access < self.level:
-            self.client.reply(prefix, nick, target,
-            "You do not have the access necessary to use this command.")
+            irc_msg.reply("You do not have the access necessary to use this command.")
             return 0
 
         shipname = match.group(1)
@@ -92,15 +90,14 @@ class rprod(loadable.loadable):
         ship = self.cursor.dictfetchone()
 
         if not ship:
-            self.client.reply(prefix, nick, target,
-            "%s is not a ship." % shipname)
+            irc_msg.reply("%s is not a ship." % shipname)
             return 0
         
         res = int(self.revprod(ticks, factories))
         ships = int(res / ship['total_cost'])
         feud_ships = int(res / ((ship['total_cost'] * (1-float(self.config.get('Planetarion', 'feudalism')))) / 1.2))
         
-        self.client.reply(prefix, nick, target,
+        irc_msg.reply(
         "You can build %s %s (%s) in %d ticks, or \
 %s %s in (%s) %d ticks with feudalism." % (self.format_value(ships * 100),
                                       ship['name'], self.format_value(ships * ship['total_cost']),

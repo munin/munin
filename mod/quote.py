@@ -43,7 +43,7 @@ class quote(loadable.loadable):
             params=m.group(1)
         
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         args=()
@@ -65,7 +65,7 @@ class quote(loadable.loadable):
             if self.cursor.rowcount > 1 and params:
                 reply+=" (%d more quotes match this search)" % (self.cursor.rowcount - 1)
                 
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         
 
         # do stuff here

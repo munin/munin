@@ -44,12 +44,12 @@ class racism(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables 
@@ -71,7 +71,7 @@ class racism(loadable.loadable):
             results=self.cursor.dictfetchall()
             reply="Demographics for %s: "%(alliance,)
             reply+=string.join(map(self.profile,results),' | ')
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         
         return 1
     

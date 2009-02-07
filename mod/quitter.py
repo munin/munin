@@ -19,12 +19,12 @@ class quitter(loadable.loadable):
             return 0
         
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
         
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         
         # assign param variables
@@ -46,7 +46,7 @@ class quitter(loadable.loadable):
             query="UPDATE user_list SET quit = quit + 1 WHERE pnick = %s"
             self.cursor.execute(query,(pnick,))
             reply="That whining loser %s has now quit %d times." % (pnick,count+1)
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         
 
         return 1

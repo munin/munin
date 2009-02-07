@@ -38,7 +38,7 @@ class epenis(loadable.loadable):
             return 0
         
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         search=user or nick
@@ -106,6 +106,6 @@ class epenis(loadable.loadable):
             reply ="epenis for %s is %s score long. This makes %s rank: %s for epenis in %s!" % (person,res['activity'],person,res['activity_rank'],
                                                                                                  self.config.get('Auth', 'alliance'))
 
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         
         return 1

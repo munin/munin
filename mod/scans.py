@@ -40,7 +40,7 @@ class scans(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
         
         m=self.planet_coordre.search(m.group(1))
@@ -52,7 +52,7 @@ class scans(loadable.loadable):
             
             p=loadable.planet(x=x,y=y,z=z)
             if not p.load_most_recent(self.conn,self.client,self.cursor):
-                self.client.reply(prefix,nick,target,"No planet matching '%s:%s:%s' found"%(x,y,z))
+                irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
                 return 1
             
             query="SELECT scantype,max(tick) AS latest,count(*) AS count FROM scan WHERE pid=%s GROUP BY scantype"
@@ -71,9 +71,9 @@ class scans(loadable.loadable):
                 reply+=" "+string.join(prev,', ')
             
                 
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
 
         else:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         return 1

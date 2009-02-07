@@ -46,7 +46,7 @@ class cookie(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         u=self.load_user(user,prefix,nick,target)
@@ -59,7 +59,7 @@ class cookie(loadable.loadable):
         if not (m or s):
             print s
             print m
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         if s:
             u=self.load_user(user,prefix,nick,target)
@@ -83,32 +83,27 @@ class cookie(loadable.loadable):
         #rec=load_user
 
         if receiver.lower() == self.config.get('Connection','nick').lower():
-            self.client.reply(prefix,nick,target,"Cookies? Pah! I only eat carrion.")
+            irc_msg.reply("Cookies? Pah! I only eat carrion.")
             return 1
         
         rec=self.load_user_from_pnick(receiver)
         if not rec or rec.userlevel < 100:
-            self.client.reply(prefix,nick,target,"I don't know who '%s' is, so I can't very well give them any cookies can I?" % (receiver,))
+            irc_msg.reply("I don't know who '%s' is, so I can't very well give them any cookies can I?" % (receiver,))
             return 1
         if u.pnick == rec.pnick:
-            self.client.reply(prefix,nick,target,"Fuck you, %s. You can't have your cookies and eat them, you selfish dicksuck."%(u.pnick,))
+            irc_msg.reply("Fuck you, %s. You can't have your cookies and eat them, you selfish dicksuck."%(u.pnick,))
             return 1
         
         query="UPDATE user_list SET carebears = carebears + %d WHERE id = %s"
         self.cursor.execute(query,(howmany,rec.id))
         query="UPDATE user_list SET available_cookies = available_cookies - %d WHERE id = %s"
         self.cursor.execute(query,(howmany,u.id))
-        self.client.reply(prefix,nick,target,
-                          "%s said '%s' and gave %d %s to %s, who stuffed their face and now has %d carebears"%(u.pnick,
-                                                                                                                reason,
-                                                                                                                howmany,
-                                                                                                                self.pluralize(howmany,"cookie"),
-                                                                                                                rec.pnick,
-                                                                                                                rec.carebears+howmany))
-        #self.client.reply(prefix, nick, target, "'%s' - '%s' - '%s' " % (howmany,receiver,reason))
-
-        # do stuff here
-
+        irc_msg.reply("%s said '%s' and gave %d %s to %s, who stuffed their face and now has %d carebears"%(u.pnick,
+                                                                                                            reason,
+                                                                                                            howmany,
+                                                                                                            self.pluralize(howmany,"cookie"),
+                                                                                                            rec.pnick,
+                                                                                                            rec.carebears+howmany))
         return 1
 
     def can_give_cookies(self,prefix,nick,target,u,howmany):
@@ -116,7 +111,7 @@ class cookie(loadable.loadable):
 
         if howmany > available_cookies:
             reply="Silly, %s. You currently only have %s cookies to give out, but are trying to give out %s cookies. I'll bake you some new cookies on Monday morning." % (u.pnick, u.available_cookies, howmany)
-            self.client.reply(prefix, nick, target, reply)
+            irc_msg.reply(reply)
             return False
         return True
 
@@ -124,4 +119,4 @@ class cookie(loadable.loadable):
         available_cookies = u.check_available_cookies(self.conn,self.client,self.cursor,self.config)
 
         reply="You have %d cookies left until next bakeday, %s"%(available_cookies,u.pnick)
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)

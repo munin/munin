@@ -42,7 +42,7 @@ class status(loadable.loadable):
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         # assign param variables
         param=m.group(2)
@@ -52,7 +52,7 @@ class status(loadable.loadable):
             if access >= 50:
                 self.hacky_stupid_half_member_status(nick,username,host,target,prefix,command,user,access)
                 return 1
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
         curtick=self.current_tick()
         m=self.coordre.search(param)
@@ -66,7 +66,7 @@ class status(loadable.loadable):
             if when and when < 80:
                 tick=curtick+when
             elif when and when < curtick:
-                self.client.reply(prefix,nick,target,"Can not check status on the past. You wanted tick %s, but current tick is %s. (If you really need to know, poke %s.)"%(when,curtick, self.config.get('Auth', 'owner_nick')))
+                irc_msg.reply("Can not check status on the past. You wanted tick %s, but current tick is %s. (If you really need to know, poke %s.)"%(when,curtick, self.config.get('Auth', 'owner_nick')))
                 return 1
             elif when:
                 tick=when
@@ -88,7 +88,7 @@ class status(loadable.loadable):
             if z:
                 p=loadable.planet(x=x,y=y,z=z)
                 if not p.load_most_recent(self.conn,self.client,self.cursor):
-                    self.client.reply(prefix,nick,target,"No planet matching '%s:%s:%s' found"%(x,y,z))
+                    irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
                     return 1                    
                 query+=" AND t3.z=%s"
                             
@@ -97,7 +97,7 @@ class status(loadable.loadable):
                     reply="No bookings matching planet %s:%s:%s"%(x,y,z)
                     if when:
                         reply+=" for tick %s"%(tick,)
-                    self.client.reply(prefix,nick,target,reply)
+                    irc_msg.reply(reply)
                     return 1
                 reply="Status for %s:%s:%s -" % (x,y,z)
                 if when:
@@ -118,7 +118,7 @@ class status(loadable.loadable):
                         prev.append("(%s %s)" % (r['tick'],owner))
 
                     reply+=" "+string.join(prev,', ')
-                self.client.reply(prefix,nick,target,reply)
+                irc_msg.reply(reply)
             else:
                 query+=" ORDER BY y, z, x, tick"
                 
@@ -128,7 +128,7 @@ class status(loadable.loadable):
                     reply="No bookings matching galaxy %s:%s"%(x,y)
                     if when:
                         reply+=" for tick %s"%(tick,)
-                    self.client.reply(prefix,nick,target,reply)
+                    irc_msg.reply(reply)
                     return 1
                 ticks={}
                 for r in self.cursor.dictfetchall():
@@ -151,7 +151,7 @@ class status(loadable.loadable):
                             
                         
                     reply+=" "+string.join(prev,', ')
-                    self.client.reply(prefix,nick,target,reply.strip())
+                    irc_msg.reply(reply.strip())
                     reply=""
             return 1
         
@@ -165,7 +165,7 @@ class status(loadable.loadable):
             if when and when < 80:
                 tick=curtick+when
             elif when and when < curtick:
-                self.client.reply(prefix,nick,target,"Can not check status on the past. You wanted tick %s, but current tick is %s. (If you really need to know, poke %s.)"%(when,curtick, self.config.get('Auth', 'owner_nick')))
+                irc_msg.reply("Can not check status on the past. You wanted tick %s, but current tick is %s. (If you really need to know, poke %s.)"%(when,curtick, self.config.get('Auth', 'owner_nick')))
                 return 1
             elif when:
                 tick=when
@@ -193,7 +193,7 @@ class status(loadable.loadable):
             self.cursor.execute(query,args+('%'+subject+'%','%'+subject+'%'))
             if self.cursor.rowcount < 1:
                 reply="No active bookings matching nick/user %s" %(subject)
-                self.client.reply(prefix,nick,target,reply)
+                irc_msg.reply(reply)
                 return 1
             reply="Bookings matching nick/user %s"%(subject)
             if when:
@@ -221,13 +221,13 @@ class status(loadable.loadable):
                     tmp+=")"
                     prev.append(tmp)
                 reply+=" "+string.join(prev,', ')
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
             
         return 1
 
     def hacky_stupid_half_member_status(self,nick,username,host,target,prefix,command,user,access):
         if not user:
-            self.client.reply(prefix,nick,target,"You must set mode +x to check your own status.")
+            irc_msg.reply("You must set mode +x to check your own status.")
             return
         curtick=self.current_tick()
         args=()
@@ -242,7 +242,7 @@ class status(loadable.loadable):
         self.cursor.execute(query,args+(user,))
         if self.cursor.rowcount < 1:
             reply="No active bookings matching user %s" %(user,)
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
             return 1
         prev=[]
         for b in self.cursor.dictfetchall():
@@ -254,5 +254,5 @@ class status(loadable.loadable):
             tmp+=")"
             prev.append(tmp)
         reply+=" "+string.join(prev,', ')
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         return 0

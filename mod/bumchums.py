@@ -47,12 +47,12 @@ class bumchums(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables 
@@ -63,7 +63,7 @@ class bumchums(loadable.loadable):
         a=loadable.alliance(name=alliance)
            
         if not a.load_most_recent(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"No alliance matching '%s' found" % (alliance,))
+            irc_msg.reply("No alliance matching '%s' found" % (alliance,))
             return 1
 
         query="SELECT x,y,count(*) AS bums FROM planet_dump AS t1"
@@ -87,7 +87,7 @@ class bumchums(loadable.loadable):
                 prev.append("%s:%s (%s)"%(b['x'],b['y'],b['bums']))
             reply+="Galaxies with at least %s bums from %s: "%(bums or 1,a.name)+ ' | '.join(prev)
         
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
 
 
         return 1

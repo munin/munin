@@ -40,7 +40,7 @@ class value(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
         params=m.group(1)
         m=self.paramre.search(params)
@@ -52,7 +52,7 @@ class value(loadable.loadable):
 
             p=loadable.planet(x=x,y=y,z=z)
             if not p.load_most_recent(self.conn,self.client,self.cursor):
-                self.client.reply(prefix,nick,target,"No planet matching '%s:%s:%s' found"%(x,y,z))
+                irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
                 return 1
                                             
             query="SELECT t1.value,t1.value-t2.value AS vdiff,t1.size-t2.size AS sdiff"
@@ -73,7 +73,7 @@ class value(loadable.loadable):
                 reply+="value: %s (%s%s) " % (x['value'],["+","-"][x['vdiff']<0],abs(x['vdiff']))
                 if x['sdiff']!=0:
                     reply+="roids: %s%s" % (["+","-"][x['sdiff']<0],abs(x['sdiff']))
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
             return 1
             
 
@@ -85,7 +85,7 @@ class value(loadable.loadable):
 
             p=loadable.planet(x=x,y=y,z=z)
             if not p.load_most_recent(self.conn,self.client,self.cursor):
-                self.client.reply(prefix,nick,target,"No planet matching '%s:%s:%s' found"%(x,y,z))
+                irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
                 return 1
 
             #query="SELECT tick,t1.value,t1.value-t2.value AS diff FROM planet_dump AS t1 INNER JOIN planet_dump AS t2 ON
@@ -113,7 +113,7 @@ class value(loadable.loadable):
                 
                 print info
                 reply+=str.join(' | ',info)
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
 
             
         # assign param variables 

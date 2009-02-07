@@ -41,13 +41,13 @@ class xp(loadable.loadable):
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         params=m.group(1)
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         roid_count = -1
@@ -64,7 +64,7 @@ class xp(loadable.loadable):
         if m:
             victim = loadable.planet(x=m.group(1),y=m.group(2),z=m.group(3))
             if not victim.load_most_recent(self.conn,self.client,self.cursor):
-                self.client.reply(prefix,nick,target,"%s:%s:%s is not a valid planet" % (victim.x,victim.y,victim.z))
+                irc_msg.reply("%s:%s:%s is not a valid planet" % (victim.x,victim.y,victim.z))
                 return 1
             params=params[m.end():]
                     
@@ -72,24 +72,24 @@ class xp(loadable.loadable):
         if m:
             attacker = loadable.planet(x=m.group(1),y=m.group(2),z=m.group(3))
             if not attacker.load_most_recent(self.conn,self.client,self.cursor):
-                self.client.reply(prefix,nick,target,"%s:%s:%s is not a valid planet" % (attacker.x,attacker.y,attacker.z))
+                irc_msg.reply("%s:%s:%s is not a valid planet" % (attacker.x,attacker.y,attacker.z))
                 return 1
             params=params[m.end():]
             
         if not victim:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 1
 
         if victim and not attacker:
             u=loadable.user(pnick=user)
             if not u.load_from_db(self.conn,self.client,self.cursor):
-		self.client.reply(prefix,nick,target,"You must be registered to use the automatic "+self.__class__.__name__+" command (log in with P and set mode +x, then make sure your planet is set with the pref command)")
-                #self.client.reply(prefix,nick,target,"Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
+		irc_msg.reply("You must be registered to use the automatic "+self.__class__.__name__+" command (log in with P and set mode +x, then make sure your planet is set with the pref command)")
+                #irc_msg.reply("Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
                 return 1
             if u.planet_id:
                 attacker = u.planet
             else:
-                self.client.reply(prefix,nick,target,"Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
+                irc_msg.reply("Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
                 return 1
 
         if roid_count > -1:
@@ -115,7 +115,7 @@ class xp(loadable.loadable):
             #reply+="XP: %s, Score: %s "%(xp, xp*5)
             #(Bravery: %.2f)" % (xp,xp*50,bravery)
             reply+="XP: %s, Score: %s (Bravery: %.2f)" % (xp,xp*60,bravery)
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
         else:
             reply="Target "
             victim_val = victim.value
@@ -145,7 +145,7 @@ class xp(loadable.loadable):
             cap=total_roids/4
             xp=int(cap*bravery)
             reply+="| Roids: %s | XP: %s | Score: %s" % (cap,xp,xp*60)
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
         
                 
         return 1

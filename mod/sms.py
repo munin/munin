@@ -40,12 +40,12 @@ class sms(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         
         u=self.load_user(user,prefix,nick,target)
@@ -55,22 +55,22 @@ class sms(loadable.loadable):
         text = m.group(2) + ' - %s' % user
         receiver=self.load_user_from_pnick(rec)
         if not receiver:
-            self.client.reply(prefix,nick,target,"No user matching %s does not exist!" % (reciever,))
+            irc_msg.reply("No user matching %s does not exist!" % (reciever,))
             return 1
 
         results=self.phone_query_builder(nick,username,host,target,prefix,command,receiver,access,"AND t1.friend_id=%s",(u.id,))
 
         if not (receiver.pubphone or len(results)>0):
-            self.client.reply(prefix,nick,target,"%s's phone number is private or they have not chosen to share their number with you. Supersecret message not sent." % (receiver.pnick,))
+            irc_msg.reply("%s's phone number is private or they have not chosen to share their number with you. Supersecret message not sent." % (receiver.pnick,))
             return 1
 
         phone = self.prepare_phone_number(receiver.phone) 
         if not phone or len(phone) <= 6:
-            self.client.reply(prefix,nick,target,"%s has no phone number or their phone number is too short to be valid (under 6 digits). Super secret message not sent." % (receiver.pnick,))
+            irc_msg.reply("%s has no phone number or their phone number is too short to be valid (under 6 digits). Super secret message not sent." % (receiver.pnick,))
             return 1
 
         if len(text) >= 160:
-            self.client.reply(prefix,nick,target,"Max length for a text is 160 characters. Your text was %i characters long. Super secret message not sent." % (len(text),))
+            irc_msg.reply("Max length for a text is 160 characters. Your text was %i characters long. Super secret message not sent." % (len(text),))
             return 1
 
         username = self.config.get("clickatell", "user")
@@ -80,7 +80,7 @@ class sms(loadable.loadable):
         ct = Clickatell(username, password, api_id)
 
         if not ct.auth():
-            self.client.reply(prefix,nick,target,"Could not authenticate with server. Super secret message not sent.")
+            irc_msg.reply("Could not authenticate with server. Super secret message not sent.")
             return 1
 
         hasher = md5.new()
@@ -98,10 +98,10 @@ class sms(loadable.loadable):
     
         ret = ct.sendmsg(message)
         if not ret[0]:
-            self.client.reply(prefix,nick,target,"That wasn't supposed to happen. I don't really know what wrong. Maybe your mother dropped you.")
+            irc_msg.reply("That wasn't supposed to happen. I don't really know what wrong. Maybe your mother dropped you.")
             return 1
 
-        self.client.reply(prefix,nick,target,"Successfully processed To: %s Message: %s" % (receiver.pnick,text))
+        irc_msg.reply("Successfully processed To: %s Message: %s" % (receiver.pnick,text))
         return 0
 
     def prepare_phone_number(self,text):

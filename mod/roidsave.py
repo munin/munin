@@ -39,7 +39,7 @@ class roidsave(loadable.loadable):
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables
@@ -48,7 +48,7 @@ class roidsave(loadable.loadable):
         mining=250
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
               
         cost=self.format_value(ticks*roids*mining)
@@ -60,6 +60,6 @@ class roidsave(loadable.loadable):
         reply="%s roids will mine %s value (M: %s/F: %s/D: %s) in %s ticks (%s days)" % (roids,cost,cost_m,cost_f,cost_d,ticks,ticks/24)
 
         
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
 
         return 1

@@ -46,14 +46,14 @@ class cunts(loadable.loadable):
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         
         # assign param variables
         
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
         alliance=None
         race=None
@@ -99,16 +99,16 @@ class cunts(loadable.loadable):
 
         if bash:
             if not user:
-                self.client.reply(prefix,nick,target,"You must be registered to use the "+self.__class__.__name__+" command's bash option (log in with P and set mode +x)")
+                irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command's bash option (log in with P and set mode +x)")
                 return 1
             u=loadable.user(pnick=user)
             if not u.load_from_db(self.conn,self.client,self.cursor):
-                self.client.reply(prefix,nick,target,"Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))" % (self.usage,))
+                irc_msg.reply("Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))" % (self.usage,))
                 return 1
             if u.planet_id:
                 attacker = u.planet
             else:
-                self.client.reply(prefix,nick,target,"Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))" % (self.usage,))
+                irc_msg.reply("Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))" % (self.usage,))
                 return 1
         
         victims=self.cunts(alliance,race,size_mod,size,value_mod,value,attacker,bash,cluster)
@@ -129,7 +129,7 @@ class cunts(loadable.loadable):
                 reply+=" Value %s %s" % (value_mod,value)
             if cluster:
                 reply+=" Cluster %s" %(cluster,)
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
         for v in victims:
             reply="%s:%s:%s (%s)" % (v['x'],v['y'],v['z'],v['race'])
             reply+=" Value: %s Size: %s" % (v['value'],v['size'])
@@ -150,9 +150,9 @@ class cunts(loadable.loadable):
             i+=1
             if i>4 and len(victims)>4:
                 reply+=" (Too many victims to list, please refine your search)"
-                self.client.reply(prefix,nick,target,reply)
+                irc_msg.reply(reply)
                 break
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
         
         
         return 1

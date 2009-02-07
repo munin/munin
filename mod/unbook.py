@@ -39,7 +39,7 @@ class unbook(loadable.loadable):
         
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         
         # assign param variables
@@ -52,7 +52,7 @@ class unbook(loadable.loadable):
         override=m.group(7)
         
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         curtick=self.current_tick()
@@ -60,7 +60,7 @@ class unbook(loadable.loadable):
 
         p=loadable.planet(x=x,y=y,z=z)
         if not p.load_most_recent(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"No planet matching '%s:%s:%s' found"%(x,y,z))
+            irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
             return 1
 
         u=loadable.user(pnick=user)
@@ -71,7 +71,7 @@ class unbook(loadable.loadable):
         if when and when < 80:
             tick=curtick+when
         elif when and when < curtick:
-            self.client.reply(prefix,nick,target,"Can not unbook targets in the past. You wanted tick %s, but current tick is %s."%(when,curtick))
+            irc_msg.reply("Can not unbook targets in the past. You wanted tick %s, but current tick is %s."%(when,curtick))
             return 1
         elif when:
             tick=when
@@ -123,7 +123,7 @@ class unbook(loadable.loadable):
                 reply="No bookings matching %s:%s:%s" %(p.x,p.y,p.z)
                 if when:
                     reply+=" for landing on tick %s"%(tick,)
-                self.client.reply(prefix,nick,target,reply)
+                irc_msg.reply(reply)
                 return 1
                                   
             res=self.cursor.dictfetchall()
@@ -157,6 +157,6 @@ class unbook(loadable.loadable):
                     prev.append("(%s %s)" % (r['tick'],owner))
                 reply+=" "+string.join(prev,', ')
                 
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         return 1
     

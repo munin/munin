@@ -39,14 +39,14 @@ class gangbang(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
         curtick=self.current_tick()
 
 
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         # assign param variables
 
@@ -57,13 +57,13 @@ class gangbang(loadable.loadable):
 
         a=loadable.alliance(name=subject)
         if not a.load_most_recent(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"'%s' is not a valid alliance."%(subject,))
+            irc_msg.reply("'%s' is not a valid alliance."%(subject,))
             return 1
 
         if when and when < 80:
             tick=curtick+when
         elif when and when < curtick:
-            self.client.reply(prefix,nick,target,"Can not check status on the past. You wanted tick %s, but current tick is %s. (If you really need to know, poke %s.)"%(when,curtick, self.config.get('Auth', 'owner_nick')))
+            irc_msg.reply("Can not check status on the past. You wanted tick %s, but current tick is %s. (If you really need to know, poke %s.)"%(when,curtick, self.config.get('Auth', 'owner_nick')))
             return 1
         elif when:
             tick=when
@@ -91,7 +91,7 @@ class gangbang(loadable.loadable):
             reply="No active bookings matching alliance %s" %(a.name)
             if when:
                 reply+=" for tick %s"%(tick,)
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
             return 1
 
         ticks={}
@@ -117,7 +117,7 @@ class gangbang(loadable.loadable):
 
 
             reply+=" "+string.join(prev,', ')
-            self.client.reply(prefix,nick,target,reply.strip())
+            irc_msg.reply(reply.strip())
             reply=""
         return 1
 

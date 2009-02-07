@@ -38,11 +38,11 @@ class addquote(loadable.loadable):
         m=self.paramre.search(m.group(1))
 
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         params=m.group(1)        
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         params=self.striptimestamps(params)
@@ -51,9 +51,9 @@ class addquote(loadable.loadable):
         query="INSERT INTO quote (quote) VALUES (%s)"
         self.cursor.execute(query,args)
         #reply="Added your shitty quote"    
-        #self.client.reply(prefix,nick,target,reply)
+        #irc_msg.reply(reply)
         
-        self.client.reply(prefix,nick,target,"Added your shitty quote: "+params)
+        irc_msg.reply("Added your shitty quote: "+params)
         # do stuff here
         
         return 1

@@ -40,11 +40,11 @@ class addslogan(loadable.loadable):
         m=self.paramre.search(m.group(1))
 
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         params=m.group(1)        
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         args=(params,)
@@ -55,7 +55,7 @@ class addslogan(loadable.loadable):
         reply="Added your shitty slogan"    
         
                 
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         
 
         # do stuff here

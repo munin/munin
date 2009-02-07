@@ -47,12 +47,12 @@ class f(loadable.loadable):
         if not m:
             return 0
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
         
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         # assign param variables 
         fleet_id=m.group(1)
@@ -62,28 +62,28 @@ class f(loadable.loadable):
         # do stuff here
         f=loadable.fleet(fleet_id)
         if not f.load_most_recent(self.conn,self.client,self.cursor):
-            self.client.reply(prefix,nick,target,"No fleet matching id %s found" %(fleet_id,))
+            irc_msg.reply("No fleet matching id %s found" %(fleet_id,))
             return 0
         
         if not s_command:
-            self.client.reply(prefix,nick,target,str(f))
+            irc_msg.reply(str(f))
             return 1
         elif "eta".startswith(s_command) or "land".startswith(s_command):
             new_eta = self.extract_eta(sub_params or "")
             if not new_eta:
-                self.client.reply(prefix,nick,target,"Usage: %s"%(self.usage_eta,))
+                irc_msg.reply("Usage: %s"%(self.usage_eta,))
                 return 0
             self.cmd_eta(nick,username,host,target,prefix,f,new_eta)
         elif "oeta".startswith(s_command) or "launch".startswith(s_command):
             new_orig_eta = self.extract_eta(sub_params or "")
             if not new_orig_eta:
-                self.client.reply(prefix,nick,target,"Usage: %s"%(self.usage_oeta,))
+                irc_msg.reply("Usage: %s"%(self.usage_oeta,))
                 return 0
             self.cmd_orig_eta(nick,username,host,target,prefix,f,new_orig_eta)
         elif "delete".startswith(s_command):
             return self.cmd_delete(nick,username,host,target,prefix,f)
         else:
-            self.client.reply(prefix,nick,target,"s_command %s"%(s_command,))
+            irc_msg.reply("s_command %s"%(s_command,))
         return 1
     
     def extract_eta(self,sub_params):
@@ -108,9 +108,9 @@ class f(loadable.loadable):
         args=(tick,f.id)
         self.cursor.execute(query,args)
         if self.cursor.rowcount < 1:
-            self.client.reply(prefix,nick,target,"Could not update ETA for fleet with id %s, no matching fleets found"%(f.id,))
+            irc_msg.reply("Could not update ETA for fleet with id %s, no matching fleets found"%(f.id,))
         else:
-            self.client.reply(prefix,nick,target,"Updated landing tick for fleet id %s from %s to %s (new eta is %s)"%(f.id,f.landing_tick,tick,eta))
+            irc_msg.reply("Updated landing tick for fleet id %s from %s to %s (new eta is %s)"%(f.id,f.landing_tick,tick,eta))
         return 1
 
     
@@ -129,9 +129,9 @@ class f(loadable.loadable):
         args=(tick,f.id)
         self.cursor.execute(query,args)
         if self.cursor.rowcount < 1:
-            self.client.reply(prefix,nick,target,"Could not update original ETA for fleet with id %s, no matching fleets found"%(f.id,))
+            irc_msg.reply("Could not update original ETA for fleet with id %s, no matching fleets found"%(f.id,))
         else:
-            self.client.reply(prefix,nick,target,"Updated launch tick for fleet id %s from %s to %s (new original eta is %s)"%(f.id,f.launch_tick,tick,eta))
+            irc_msg.reply("Updated launch tick for fleet id %s from %s to %s (new original eta is %s)"%(f.id,f.launch_tick,tick,eta))
         return 1
     
     def cmd_delete(self,nick,username,host,target,prefix,f):
@@ -140,12 +140,12 @@ class f(loadable.loadable):
         self.cursor.execute(query,(f.id,))
         
         if self.cursor.rowcount < 1:
-            self.client.reply(prefix,nick,target,"Couldn't delete fleet matching id %s, weird.")
+            irc_msg.reply("Couldn't delete fleet matching id %s, weird.")
             return 0
         
         reply="Deleted %s"%(str(f),)
         
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         
         return 1
         
@@ -153,16 +153,16 @@ class f(loadable.loadable):
         self.cursor.execute(query,(s_command+'%',))
         s=self.cursor.dictfetchone()
         if not s:
-            self.client.reply(prefix,nick,target,"%s is not a valid defcall status, defcall was not modified"%(s_command,))
+            irc_msg.reply("%s is not a valid defcall status, defcall was not modified"%(s_command,))
             return 0
         
         query="UPDATE defcalls SET status = %s,claimed_by=%s WHERE id = %s"
         
         self.cursor.execute(query,(s['id'],u.id,d.id))
         if self.cursor.rowcount < 1:
-            self.client.reply(prefix,nick,target,"Something went wrong. Old status was %s, new status was %s, defcall id was %s"%(old_status,s['status'],d.id))
+            irc_msg.reply("Something went wrong. Old status was %s, new status was %s, defcall id was %s"%(old_status,s['status'],d.id))
         else:
-            self.client.reply(prefix,nick,target,
+            irc_msg.reply(
                               "Updated defcall %s on %s:%s:%s landing pt %s from status '%s' to '%s'"%(d.id,p.x,p.y,p.z,d.landing_tick,d.actual_status,s['status']))
         
         return 1

@@ -40,11 +40,11 @@ class remquote(loadable.loadable):
         m=self.paramre.search(m.group(1))
 
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         params=m.group(1)        
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         args=(params,)
@@ -57,7 +57,7 @@ class remquote(loadable.loadable):
             query="DELETE FROM quote WHERE quote=%s"
             self.cursor.execute(query,args)
             reply="Removed: '%s'" % (slogan,)
-            self.client.reply(prefix,nick,target,reply)                                                            
+            irc_msg.reply(reply)                                                            
             return 1
 
         args=("%"+params+"%",)
@@ -81,7 +81,7 @@ class remquote(loadable.loadable):
             reply="Removed: '%s'" % (slogan,)
         
                 
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
 
         # do stuff here
         

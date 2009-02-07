@@ -38,12 +38,12 @@ class spam(loadable.loadable):
             return 0
 
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
         
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         
         # assign param variables
@@ -62,7 +62,7 @@ class spam(loadable.loadable):
         planets=self.cursor.dictfetchall()
         if not len(planets):
             reply="No planets in intel matching alliance: %s"%(params,)
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
             return 1
 
         printable=map(lambda d: "%s:%s:%s" % (d['x'],d['y'],d['z']),planets)
@@ -72,7 +72,7 @@ class spam(loadable.loadable):
             batch=printable[:10]
             printable=printable[10:]
             reply+=str.join(' | ',batch)
-            self.client.reply(prefix,nick,target,reply)
+            irc_msg.reply(reply)
             reply=""
 
         return 1

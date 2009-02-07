@@ -40,12 +40,12 @@ class galpenis(loadable.loadable):
             return 0
         
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         m=self.coordre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,self.usage)
+            irc_msg.reply(self.usage)
             return 0
         x=m.group(1)
         x=m.group(1)
@@ -110,7 +110,7 @@ class galpenis(loadable.loadable):
             person=res['name'] or res['x'] + res['y']
             reply ="galpenis for '%s' is %s score long. This makes %s:%s rank: %s for galpenis in the universe!" % (person,res['activity'],x,y,res['activity_rank'])
 
-        self.client.reply(prefix,nick,target,reply)
+        irc_msg.reply(reply)
         
         return 1
 

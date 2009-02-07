@@ -40,9 +40,9 @@ class stop(loadable.loadable):
         m=self.paramre.search(params)
         if not m:
             if re.search("\s+hammertime",params,re.I):
-                self.client.reply(prefix,nick,target,"Can't touch this!")
+                irc_msg.reply("Can't touch this!")
                 return 1
-            self.client.reply(prefix,nick,target,"Usage: %s" % (self.usage,))
+            irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         ship_number=m.group(1)
@@ -71,7 +71,7 @@ class stop(loadable.loadable):
             efficiency = .3
             
         if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to use this command")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         query="SELECT * FROM ship WHERE name ILIKE %s ORDER BY id"
@@ -84,7 +84,7 @@ class stop(loadable.loadable):
             elif "structures".rfind(bogey) > -1:
                 ship={'name':'Structure','class':'Struct','armor':500,'total_cost':150000}
             else:
-                self.client.reply(prefix,nick,target,"%s is not a ship" % (bogey))
+                irc_msg.reply("%s is not a ship" % (bogey))
                 return 0
         total_armor=ship['armor']*ship_number
 
@@ -114,7 +114,7 @@ class stop(loadable.loadable):
                 reply+="%s: %s (%s) " % (a['name'],needed,self.format_value(a['total_cost']*needed))
         
             
-        self.client.reply(prefix,nick,target,reply.strip())
+        irc_msg.reply(reply.strip())
             
         return 1
 

@@ -27,8 +27,8 @@ Loadable.Loadable subclass
 # qebab, 22/06/08
 
 class book(loadable.loadable):
-    def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,50)
+    def __init__(self,conn,cursor):
+        loadable.loadable.__init__(self,conn,cursor,50)
         self.paramre=re.compile(r"^\s+(\d+)[. :-](\d+)[. :-](\d+)\s+(\d+)(\s+(yes))?")
         self.usage=self.__class__.__name__ + " <x:y:z> (<eta>|<landing tick>)"
 

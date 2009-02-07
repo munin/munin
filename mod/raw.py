@@ -27,8 +27,8 @@ Loadable subclass
 # qebab, 24/6/08.
 
 class raw(loadable.loadable):
-    def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,1000)
+    def __init__(self,conn,cursor):
+        loadable.loadable.__init__(self,conn,cursor,1000)
         self.paramre=re.compile(r"^\s+(.*)")
         self.usage=self.__class__.__name__ + ""
 

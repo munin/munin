@@ -30,8 +30,7 @@ import psycopg
 from mx import DateTime
 
 class loadable:
-    def __init__(self,client,conn,cursor,level,irc_msg):
-        self.client=client
+    def __init__(self,conn,cursor,level,irc_msg):
         self.conn=conn
         self.cursor=cursor
         self.level=level

@@ -233,7 +233,7 @@ class parser:
                 return None
             filename=os.path.join(self.mod_dir,mod_name+'.py')
             execfile(filename)
-            self.ctrl_list[mod_name] = locals().get(mod_name)(self.client,self.conn,self.cursor)
+            self.ctrl_list[mod_name] = locals().get(mod_name)(self.conn,self.cursor)
         except Exception, e:
             traceback.print_exc()
             return e.__str__()

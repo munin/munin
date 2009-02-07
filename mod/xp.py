@@ -27,8 +27,8 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 class xp(loadable.loadable):
-    def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,1)
+    def __init__(self,conn,cursor):
+        loadable.loadable.__init__(self,conn,cursor,1)
         self.paramre=re.compile(r"^\s+(.*)")
         #self.firstcountre=re.compile(r"^(\d+)\s+(.*)")
         self.countre=re.compile(r"^(\d+)(\.|-|:|\s*)(.*)")        

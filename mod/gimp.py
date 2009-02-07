@@ -27,8 +27,8 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 class gimp(loadable.loadable):
-    def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,1000)
+    def __init__(self,conn,cursor):
+        loadable.loadable.__init__(self,conn,cursor,1000)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^(\s+(\S+))?")
         self.usage=self.__class__.__name__ + " <gimp's pnick>"

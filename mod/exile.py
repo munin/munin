@@ -27,8 +27,8 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 class exile(loadable.loadable):
-    def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,1)
+    def __init__(self,conn,cursor):
+        loadable.loadable.__init__(self,conn,cursor,1)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^(.*)")
         self.usage=self.__class__.__name__ + ""

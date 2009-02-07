@@ -28,8 +28,8 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 class status(loadable.loadable):
-    def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,100)
+    def __init__(self,conn,cursor):
+        loadable.loadable.__init__(self,conn,cursor,100)
         self.paramre=re.compile(r"^(\s+(.*))?")
         self.coordre=re.compile(r"^(\d+)[ .:-](\d+)([ .:-](\d+))?([ .:-](\d+))?")
         self.nickre=re.compile(r"^(\D\S*)?(\s*(\d+))?$")

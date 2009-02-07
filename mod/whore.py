@@ -27,8 +27,8 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 class whore(loadable.loadable):
-    def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,50)
+    def __init__(self,conn,cursor):
+        loadable.loadable.__init__(self,conn,cursor,50)
         self.paramre=re.compile("\s+(.*)")
 #        re.compile(r"(\s+(\S+))?(\s+(ter|cat|xan|zik))(\s+(<|>)?(\d+))?(\s+(<|>)?(\d+))?",re.I)
         self.alliancere=re.compile(r"^(\S+)$")

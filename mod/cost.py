@@ -27,8 +27,8 @@ Loadable subclass
 # qebab, 22/06/08
 
 class cost(loadable.loadable):
-    def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,1)
+    def __init__(self,conn,cursor):
+        loadable.loadable.__init__(self,conn,cursor,1)
         self.paramre=re.compile(r"^\s+(\d+[mk]?)\s+(\S+)")
         self.usage=self.__class__.__name__ + " <number> <shipname>"
 

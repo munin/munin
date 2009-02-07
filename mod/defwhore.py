@@ -32,8 +32,8 @@ class defwhore(loadable.loadable):
     """ 
     foo 
     """ 
-    def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,1000)
+    def __init__(self,conn,cursor):
+        loadable.loadable.__init__(self,conn,cursor,1000)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(.*)")
         self.usage=self.__class__.__name__ + " [<[x:y[:z]]|[alliancename]>]"

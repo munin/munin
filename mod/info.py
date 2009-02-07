@@ -27,8 +27,8 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 class info(loadable.loadable):
-    def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,50)
+    def __init__(self,conn,cursor):
+        loadable.loadable.__init__(self,conn,cursor,50)
         self.paramre=re.compile(r"^\s+(\S+)")
         self.usage=self.__class__.__name__ + " [alliance] (All information taken from intel, for tag information use the lookup command)"
         

@@ -175,7 +175,6 @@ class parser:
                 if m:
                     return self.help(irc_msg,m.group(2))
                 return self.run_commands(irc_msg)
-                #do stuff!
         return None
 
     def scan(self, rand_id,nick,pnick, group_id):
@@ -194,7 +193,8 @@ class parser:
 
             try:
                 if ctrl.execute(irc_msg.nick,irc_msg.username,irc_msg.host,irc_msg.target,
-                                irc_msg.prefix_numeric(),irc_msg.command,irc_msg.user,irc_msg.access):
+                                irc_msg.prefix_numeric(),irc_msg.command,irc_msg.user,
+                                irc_msg.access,irc_msg):
                     return "Successfully executed command '%s' with key '%s'" % (ctrl.__class__.__name__,k)
             except Exception, e:
                 del self.ctrl_list[k]

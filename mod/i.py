@@ -40,7 +40,7 @@ class i(loadable.loadable):
         self.usage=self.__class__.__name__ + " <id> "
         self.helptext=["Show the fleets on a defence call. Remember that this information might be dodgy, so remember to check scans or galstatus to confirm ETAs."]
 
-    def execute(self,nick,username,host,target,prefix,command,user,access):
+    def execute(self,nick,username,host,target,prefix,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0

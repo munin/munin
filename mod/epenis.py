@@ -32,7 +32,7 @@ class epenis(loadable.loadable):
         self.paramre=re.compile(r"^(\s+(\S+))?")
         self.usage=self.__class__.__name__ + ""
         
-    def execute(self,nick,username,host,target,prefix,command,user,access):
+    def execute(self,nick,username,host,target,prefix,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0

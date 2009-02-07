@@ -53,3 +53,5 @@ class message:
             return self.client.PRIVATE_PREFIX
         return -1
 
+    def reply(self,text):
+        self.client.reply(prefix_numeric(),nick,target,text)

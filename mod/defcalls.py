@@ -41,7 +41,7 @@ class defcalls(loadable.loadable):
         self.helptext=["Show defense calls",
                        "Valid statuses include covered, uncovered, recheck, impossible, invalid, semicovered, recall and fake."]
 
-    def execute(self,nick,username,host,target,prefix,command,user,access):
+    def execute(self,nick,username,host,target,prefix,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0

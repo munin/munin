@@ -41,7 +41,7 @@ class intel(loadable.loadable):
         self.false = ["0","no","n","false","f"]
         self.helptext=["Valid options: %s" % (string.join(self.options,', '))]
 
-    def execute(self,nick,username,host,target,prefix,command,user,access):
+    def execute(self,nick,username,host,target,prefix,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0

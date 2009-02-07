@@ -30,7 +30,7 @@ import psycopg
 from mx import DateTime
 
 class loadable:
-    def __init__(self,client,conn,cursor,level):
+    def __init__(self,client,conn,cursor,level,irc_msg):
         self.client=client
         self.conn=conn
         self.cursor=cursor
@@ -44,7 +44,7 @@ class loadable:
         if not self.config.read('muninrc'):
             raise ValueError('Failed to read ./muninrc. Can not run without configuration')
 
-    def execute(self,nick,username,host,target,prefix,command,user,access):
+    def execute(self,nick,username,host,target,prefix,command,user,access,irc_msg):
         print "Loadable execute"
         pass
 

@@ -33,7 +33,7 @@ class galchan(loadable.loadable):
         self.usage=self.__class__.__name__ + " <chan> "
         self.helptext=["This command adds Munin to the designated channel as a galchannel. The access of commands is limited to 1 in that channel (so you don't accidentally do !intel or something 'important'. You must make sure to add Munin to the channel _before_ you perform this command. If you fuck up and add the wrong channel, fuck you because then an HC has to manually remove it for you."]
     
-    def execute(self,nick,username,host,target,prefix,command,user,access):
+    def execute(self,nick,username,host,target,prefix,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0

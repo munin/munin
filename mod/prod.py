@@ -22,7 +22,7 @@ class prod(loadable.loadable):
                          " it will take to prod <n>"
                          " <ship> with <factories>."]
 
-    def execute(self, nick, username, host, target, prefix,
+    def execute(self, nick, username, host, target, prefix,,irc_msg
                 command, user, access):
 
         match = self.commandre.search(command)

@@ -42,7 +42,7 @@ class f(loadable.loadable):
         self.usage_oeta=self.__class__.__name__+" <id> <oeta|launch> <original_eta|launch_tick>"
         self.helptext=["Show or modify the status of a fleet. Possible modifications include eta/land to modify landing tick, oeta/launch to modify original eta/launch tick or delete to delete the fleet."]
 
-    def execute(self,nick,username,host,target,prefix,command,user,access):
+    def execute(self,nick,username,host,target,prefix,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0

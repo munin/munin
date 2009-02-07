@@ -37,7 +37,7 @@ class phone(loadable.loadable):
         self.usage=self.__class__.__name__ + " <list|allow|deny|show> <nick>"
 	self.helptext=None
 
-    def execute(self,nick,username,host,target,prefix,command,user,access):
+    def execute(self,nick,username,host,target,prefix,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0

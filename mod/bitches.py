@@ -27,8 +27,8 @@ Loadable.Loadable subclass
 # qebab, 22/06/08
 
 class bitches(loadable.loadable):
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,100)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,100)
         self.paramre=re.compile(r"^\s+(\d+)")
         self.usage=self.__class__.__name__ + " [minimum eta]"
 

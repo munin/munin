@@ -27,8 +27,8 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 class planet(loadable.loadable):
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,50)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,50)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(.*)")
         self.usage=self.__class__.__name__ + ""
@@ -59,7 +59,7 @@ class planet(loadable.loadable):
             z=m.group(3)
             
             p=loadable.planet(x=x,y=y,z=z)
-            if not p.load_most_recent(self.conn,irc_msg.client,self.cursor):
+            if not p.load_most_recent(irc_msg.client,self.cursor):
                 irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
                 return 1
 

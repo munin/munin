@@ -28,8 +28,8 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 class status(loadable.loadable):
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,100)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,100)
         self.paramre=re.compile(r"^(\s+(.*))?")
         self.coordre=re.compile(r"^(\d+)[ .:-](\d+)([ .:-](\d+))?([ .:-](\d+))?")
         self.nickre=re.compile(r"^(\D\S*)?(\s*(\d+))?$")
@@ -87,7 +87,7 @@ class status(loadable.loadable):
 
             if z:
                 p=loadable.planet(x=x,y=y,z=z)
-                if not p.load_most_recent(self.conn,irc_msg.client,self.cursor):
+                if not p.load_most_recent(irc_msg.client,self.cursor):
                     irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
                     return 1                    
                 query+=" AND t3.z=%s"

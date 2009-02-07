@@ -27,8 +27,8 @@ Loadable subclass
 # qebab, 22/06/08
 
 class addchan(loadable.loadable):
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,500)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,500)
         self.paramre=re.compile(r"^\s+(#\S+)\s+(\d+)")
         self.usage=self.__class__.__name__ + " <chan> <level>"
 

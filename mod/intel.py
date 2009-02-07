@@ -29,8 +29,8 @@ Loadable.Loadable subclass
 import string
 
 class intel(loadable.loadable):
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,50)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,50)
         self.paramre=re.compile(r"^\s+(.*)")
         self.usage=self.__class__.__name__ + " <x:y:z> [option=value]+"
         self.planet_coordre=re.compile(r"(\d+)[. :-](\d+)[. :-](\d+)(.*)")
@@ -70,26 +70,26 @@ class intel(loadable.loadable):
 
         params=m.group(4)
         
-        if not p.load_most_recent(self.conn,irc_msg.client,self.cursor):
+        if not p.load_most_recent(irc_msg.client,self.cursor):
             irc_msg.reply("No planet matching '%s:%s:%s' found"%(p.x,p.y,p.z,))
             return 1
 
         i=loadable.intel(pid=p.id)
-        if not i.load_from_db(self.conn,irc_msg.client,self.cursor):
+        if not i.load_from_db(irc_msg.client,self.cursor):
             pass
 
         opts=self.split_opts(params)
         opts['pid']=p.id
         a=loadable.alliance(name=i.alliance)
         if i.alliance:
-            a.load_most_recent(self.conn,irc_msg.client,self.cursor)
+            a.load_most_recent(irc_msg.client,self.cursor)
         for opt, val in opts.items():
             if opt == "alliance":
                 if val in self.nulls:
                     a=loadable.alliance(id=None)
                     continue
                 a=loadable.alliance(name=val)
-                if not a.load_most_recent(self.conn,irc_msg.client,self.cursor):
+                if not a.load_most_recent(irc_msg.client,self.cursor):
                     irc_msg.reply("'%s' is not a valid alliance, your information was not added."%(val,))
                     return 1
                 else:

@@ -32,8 +32,8 @@ class whois(loadable.loadable):
     """ 
     foo 
     """ 
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,100)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(\S+)")
         self.usage=self.__class__.__name__ + ""
@@ -79,7 +79,7 @@ class whois(loadable.loadable):
             reply+="No members matching '%s'"%(search,)
         else:
             u=loadable.user(pnick=r['pnick'])
-            u.load_from_db(self.conn, irc_msg.client, self.cursor)
+            u.load_from_db( irc_msg.client, self.cursor)
             if r['pnick'] == user:
                 reply+="You are %s. Your sponsor is %s. Your Munin number is %s. You have %d %s."
             else:
@@ -90,7 +90,7 @@ class whois(loadable.loadable):
         
         return 1
     def munin_number_to_output(self,u):
-        number=u.munin_number(self.conn, irc_msg.client, self.cursor, self.config)
+        number=u.munin_number( irc_msg.client, self.cursor, self.config)
         if number:
             return number
         else:

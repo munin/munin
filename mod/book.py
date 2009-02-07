@@ -27,8 +27,8 @@ Loadable.Loadable subclass
 # qebab, 22/06/08
 
 class book(loadable.loadable):
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,50)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,50)
         self.paramre=re.compile(r"^\s+(\d+)[. :-](\d+)[. :-](\d+)\s+(\d+)(\s+(yes))?")
         self.usage=self.__class__.__name__ + " <x:y:z> (<eta>|<landing tick>)"
 
@@ -58,12 +58,12 @@ class book(loadable.loadable):
 
 
         p=loadable.planet(x=x,y=y,z=z)
-        if not p.load_most_recent(self.conn,irc_msg.client,self.cursor):
+        if not p.load_most_recent(irc_msg.client,self.cursor):
             irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
             return 1
         else:
             i=loadable.intel(pid=p.id)
-            if not i.load_from_db(self.conn,irc_msg.client,self.cursor):
+            if not i.load_from_db(irc_msg.client,self.cursor):
                 pass
             else:
                 if i and i.alliance and i.alliance.lower()== self.config.get("Auth", "alliance").lower():
@@ -114,7 +114,7 @@ class book(loadable.loadable):
         uid=None
         if user:
             u=loadable.user(pnick=user)
-            if u.load_from_db(self.conn,irc_msg.client,self.cursor):
+            if u.load_from_db(irc_msg.client,self.cursor):
                 uid=u.id
 
         query="INSERT INTO target (nick,pid,tick,uid) VALUES (%s,%s,%s,%s)"

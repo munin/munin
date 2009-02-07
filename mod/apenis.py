@@ -27,8 +27,8 @@ Loadable.Loadable subclass
 # qebab, 22/06/08
 
 class apenis(loadable.loadable):
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,1)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,1)
         self.paramre=re.compile(r"^(\s+(\S+))?")
         self.usage=self.__class__.__name__ + " <alliance>"
         
@@ -51,19 +51,19 @@ class apenis(loadable.loadable):
         u=loadable.user(pnick=user)
         if search is not None:
             a=loadable.alliance(name=search)
-            if not a.load_most_recent(self.conn,irc_msg.client,self.cursor):
+            if not a.load_most_recent(irc_msg.client,self.cursor):
                 reply="No alliances match %s" % (search,)
                 irc_msg.reply(reply)
                 return 1
-        elif u.load_from_db(self.conn,irc_msg.client,self.cursor) and u.userlevel >= 100:
+        elif u.load_from_db(irc_msg.client,self.cursor) and u.userlevel >= 100:
             a=loadable.alliance(name=self.config.get('Auth', 'alliance'))
-            if not a.load_most_recent(self.conn,irc_msg.client,self.cursor):
+            if not a.load_most_recent(irc_msg.client,self.cursor):
                 reply="No alliances match %s" % (search,)
                 irc_msg.reply(reply)
                 return 1
         elif u.id > -1 and u.planet is not None:
             i=loadable.intel(pid=p.id)
-            if (not i.load_from_db(self.conn,irc_msg.client,self.cursor)) or i.alliance is None:
+            if (not i.load_from_db(irc_msg.client,self.cursor)) or i.alliance is None:
                 reply="Make sure you've set your planet with !pref and alliance with !intel"
                 irc_msg.reply(reply)
                 return 1

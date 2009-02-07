@@ -27,8 +27,8 @@ Loadable.Loadable subclass
 # qebab, 24/6/08. 
 
 class idler(loadable.loadable):
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,50)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,50)
         self.paramre=re.compile("\s+(.*)")
 #        re.compile(r"(\s+(\S+))?(\s+(ter|cat|xan|zik))(\s+(<|>)?(\d+))?(\s+(<|>)?(\d+))?",re.I)
         self.alliancere=re.compile(r"^(\S+)$")
@@ -101,7 +101,7 @@ class idler(loadable.loadable):
             
             
             u=loadable.user(pnick=user)
-            if not u.load_from_db(self.conn,irc_msg.client,self.cursor):
+            if not u.load_from_db(irc_msg.client,self.cursor):
                 irc_msg.reply("Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))" % (self.usage,))
                 return 1
             if u.planet_id:

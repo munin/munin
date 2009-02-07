@@ -27,8 +27,8 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 class unbook(loadable.loadable):
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,50)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,50)
         self.paramre=re.compile(r"^\s+(\d+)[. :-](\d+)[. :-](\d+)(\s+(\d+))?(\s+(yes))?")
         self.usage=self.__class__.__name__ + " <x:y:z> [<eta>|<landing tick>] [yes]"
         
@@ -59,12 +59,12 @@ class unbook(loadable.loadable):
         tick=-1
 
         p=loadable.planet(x=x,y=y,z=z)
-        if not p.load_most_recent(self.conn,irc_msg.client,self.cursor):
+        if not p.load_most_recent(irc_msg.client,self.cursor):
             irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
             return 1
 
         u=loadable.user(pnick=user)
-        if not u.load_from_db(self.conn,irc_msg.client,self.cursor):
+        if not u.load_from_db(irc_msg.client,self.cursor):
             u=None
 
         

@@ -24,8 +24,8 @@ Loadable.Loadable subclass
 # owners.
 
 class addquote(loadable.loadable):
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,100)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,100)
         self.paramre=re.compile(r"^\s+(.*)$")
         self.timestampre=re.compile(r"\s*\[?\s*\d+:\d+(:\d+)?\s*\]?\s*")
         self.usage=self.__class__.__name__ + " <quote goes here>"

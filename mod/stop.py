@@ -27,8 +27,8 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 class stop(loadable.loadable):
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,1)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,1)
         self.paramre=re.compile(r"^\s+(\d+[mk]?)\s+(\S+)(\s+(t1|t2|t3))?")
         self.usage=self.__class__.__name__ + " <number> <ship to stop>"
 

@@ -27,8 +27,8 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 class slogan(loadable.loadable):
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,1)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,1)
         self.paramre=re.compile(r"^\s+(.*)$")
         self.usage=self.__class__.__name__ + ""
 

@@ -32,8 +32,8 @@ class c(loadable.loadable):
     """ 
     foo 
     """ 
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,100)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"\s+(.*)")
         self.paramre=re.compile(r"^(\d+)(\s+(.+))?")
         
@@ -49,7 +49,7 @@ class c(loadable.loadable):
             return 0
 
         u=loadable.user(pnick=user)
-        if not u.load_from_db(self.conn,irc_msg.client,self.cursor):
+        if not u.load_from_db(irc_msg.client,self.cursor):
             irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
             return 1
 
@@ -64,7 +64,7 @@ class c(loadable.loadable):
         
         # do stuff here
         d=loadable.defcall(call_id)
-        if not d.load_most_recent(self.conn,irc_msg.client,self.cursor):
+        if not d.load_most_recent(irc_msg.client,self.cursor):
             irc_msg.reply("No defcall matching id %s found" %(call_id,))
             return 0
         

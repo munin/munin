@@ -32,8 +32,8 @@ class f(loadable.loadable):
     """ 
     foo 
     """ 
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,100)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"\s+(.*)")
         self.paramre=re.compile(r"^(\d+)(\s+(\S+))?(\s+(.*))?")
         self.etare=re.compile(r"(\d+)")
@@ -61,7 +61,7 @@ class f(loadable.loadable):
         
         # do stuff here
         f=loadable.fleet(fleet_id)
-        if not f.load_most_recent(self.conn,irc_msg.client,self.cursor):
+        if not f.load_most_recent(irc_msg.client,self.cursor):
             irc_msg.reply("No fleet matching id %s found" %(fleet_id,))
             return 0
         

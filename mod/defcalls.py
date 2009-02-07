@@ -32,8 +32,8 @@ class defcalls(loadable.loadable):
     """ 
     foo 
     """ 
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,100)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^(\s+(\S+))?")
         

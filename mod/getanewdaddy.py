@@ -32,8 +32,8 @@ class getanewdaddy(loadable.loadable):
     """ 
     foo 
     """ 
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,100)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(\S+)")
         self.usage=self.__class__.__name__ + " <pnick>"
@@ -58,13 +58,13 @@ class getanewdaddy(loadable.loadable):
         # assign param variables
         
         voter=loadable.user(pnick=user)
-        if not voter.load_from_db(self.conn,irc_msg.client,self.cursor):
+        if not voter.load_from_db(irc_msg.client,self.cursor):
             irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
             return 1
 
 
         idiot=loadable.user(pnick=m.group(1))
-        if not idiot.load_from_db(self.conn,irc_msg.client,self.cursor):
+        if not idiot.load_from_db(irc_msg.client,self.cursor):
             irc_msg.reply("That idiot doesn't exist")
             return 1
 

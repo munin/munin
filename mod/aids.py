@@ -31,8 +31,8 @@ class aids(loadable.loadable):
     """ 
     foo 
     """ 
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,100)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(\S+)")
         self.usage=self.__class__.__name__ + ""
@@ -63,7 +63,7 @@ class aids(loadable.loadable):
             return 1
         
         u=loadable.user(pnick=search)
-        if not u.load_from_db(self.conn,irc_msg.client,self.cursor):
+        if not u.load_from_db(irc_msg.client,self.cursor):
             irc_msg.reply("No users matching '%s'"%(search,))
             return 1
         if u.userlevel < 100:

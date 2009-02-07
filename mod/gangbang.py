@@ -28,8 +28,8 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 class gangbang(loadable.loadable):
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,100)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,100)
         self.paramre=re.compile(r"^\s+(\D\S*)(\s+(\d+))?")
         self.usage=self.__class__.__name__ + " [alliance] [tick]"
         
@@ -56,7 +56,7 @@ class gangbang(loadable.loadable):
         if subject: subject=subject.strip()
 
         a=loadable.alliance(name=subject)
-        if not a.load_most_recent(self.conn,irc_msg.client,self.cursor):
+        if not a.load_most_recent(irc_msg.client,self.cursor):
             irc_msg.reply("'%s' is not a valid alliance."%(subject,))
             return 1
 

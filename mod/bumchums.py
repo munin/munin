@@ -34,8 +34,8 @@ class bumchums(loadable.loadable):
     """ 
     foo 
     """ 
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,50)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,50)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(\S+)\s+(\d+)")
         self.usage=self.__class__.__name__ + " <alliance> <number>"
@@ -62,7 +62,7 @@ class bumchums(loadable.loadable):
 
         a=loadable.alliance(name=alliance)
            
-        if not a.load_most_recent(self.conn,irc_msg.client,self.cursor):
+        if not a.load_most_recent(irc_msg.client,self.cursor):
             irc_msg.reply("No alliance matching '%s' found" % (alliance,))
             return 1
 

@@ -27,8 +27,8 @@ Loadable subclass
 # qebab, 24/6/08.
 
 class maxcap(loadable.loadable):
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,1)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,1)
         self.paramre=re.compile(r"^\s+(\d+)")
         self.usage=self.__class__.__name__ + " (<total roids>|<x:y:z>)"
 
@@ -41,7 +41,7 @@ class maxcap(loadable.loadable):
         m=self.planet_coordre.search(params)
         if m:
             victim = loadable.planet(x=m.group(1),y=m.group(2),z=m.group(3))
-            if not victim.load_most_recent(self.conn,irc_msg.client,self.cursor):
+            if not victim.load_most_recent(irc_msg.client,self.cursor):
                 irc_msg.reply("%s:%s:%s is not a valid planet" % (victim.x,victim.y,victim.z))
                 return 1
             total_roids=victim.size

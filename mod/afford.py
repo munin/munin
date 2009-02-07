@@ -27,8 +27,8 @@ Loadable.Loadable subclass
 # qebab, 22/06/08
 
 class afford(loadable.loadable):
-    def __init__(self,conn,cursor):
-        loadable.loadable.__init__(self,conn,cursor,1)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,1)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(\d+)[. :-](\d+)[. :-](\d+)\s+(\S+)")
         self.usage=self.__class__.__name__ + " <x:y:z> <shipname>"
@@ -56,7 +56,7 @@ class afford(loadable.loadable):
         ship_name=m.group(4)
         
         p=loadable.planet(x=x,y=y,z=z)
-        if not p.load_most_recent(self.conn,irc_msg.client,self.cursor):
+        if not p.load_most_recent(irc_msg.client,self.cursor):
             irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
             return 1
         

@@ -84,7 +84,7 @@ class gangbang(loadable.loadable):
             query+=" t1.tick > (SELECT MAX(tick) FROM updates)"
 
         query+=" AND t3.tick = (SELECT MAX(tick) FROM updates)"
-        query+=" AND t4.alliance_id = %s"
+        query+=" AND t4.alliance_id "+("=" if a.id else "IS")+" %s"
         query+=" ORDER BY tick, x, y, z"
         self.cursor.execute(query,args+(a.id,))
 

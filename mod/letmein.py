@@ -42,8 +42,6 @@ class letmein(loadable.loadable):
         m=self.commandre.search(command)
         if not m:
             return 0
-
-        
         
         public=re.match(r"(#\S+)",target,re.I)
         if public:

@@ -14,7 +14,7 @@ class prod(loadable.loadable):
     def __init__(self, client, conn, cursor):
 
         loadable.loadable.__init__(self, client, conn, cursor, 1)
-        self.paramre = re.compile(r"^\s+(\d+[mk]?)\s+(\S+)\s+(\d+)")
+        self.paramre = re.compile(r"^\s+(\d+(?:.\d+)?[mk]?)\s+(\S+)\s+(\d+)")
         self.usage = (self.__class__.__name__ +
                       " <number> <shipname> <factories>")
         
@@ -44,11 +44,12 @@ class prod(loadable.loadable):
         factories = match.group(3)
         
         if number[-1].lower() == 'k':
-            number = int(number[:-1]) * 1000
+            number = float(number[:-1]) * 1000
         elif number[-1].lower() == 'm':
-            number = int(number[:-1]) * (10 ** 6)
+            number = float(number[:-1]) * (10 ** 6)
         else:
-            number = int(number)
+            number = float(number)
+        number=int(number)
 
         factories = int(factories)
 

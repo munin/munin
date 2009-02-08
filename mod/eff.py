@@ -29,7 +29,7 @@ Loadable subclass
 class eff(loadable.loadable):
     def __init__(self,cursor):
         loadable.loadable.__init__(self,cursor,1)
-        self.paramre=re.compile(r"^\s+(\d+[mk]?)\s+(\S+)(\s+(t1|t2|t3))?")
+        self.paramre=re.compile(r"^\s+(\d+(?:.\d+)?[mk]?)\s+(\S+)(\s+(t1|t2|t3))?")
         self.usage=self.__class__.__name__ + " <number> <shipname> [t1|t2|t3]"
 
     def execute(self,nick,target,command,user,access,irc_msg):
@@ -58,11 +58,12 @@ class eff(loadable.loadable):
             efficiency = .3
         # assign param variables
         if ship_number[-1].lower()=='k':
-            ship_number=1000*int(ship_number[:-1])
+            ship_number=1000*float(ship_number[:-1])
         elif ship_number[-1].lower()=='m':
-            ship_number=1000000*int(ship_number[:-1])
+            ship_number=1000000*float(ship_number[:-1])
         else:
-            ship_number=int(ship_number)        
+            ship_number=float(ship_number)        
+        ship_number=int(ship_number)
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")

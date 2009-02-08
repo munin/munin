@@ -61,7 +61,7 @@ class rprod(loadable.loadable):
         output = (4000 * facs) ** 0.98
         return self.newton(self.rpu(ticks * output - 10000 * facs, math), 10)
 
-    def execute(self,target,user,access,irc_msg):
+    def execute(self,user,access,irc_msg):
 
         match = self.commandre.search(command)
 

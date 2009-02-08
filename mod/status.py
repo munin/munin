@@ -35,7 +35,7 @@ class status(loadable.loadable):
         self.nickre=re.compile(r"^(\D\S*)?(\s*(\d+))?$")
         self.usage=self.__class__.__name__ + " [<nick|user>|<x:y[:z]>] [tick]"
         
-    def execute(self,target,user,access,irc_msg):
+    def execute(self,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
         if not m:
             return 0

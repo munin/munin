@@ -37,7 +37,7 @@ class phone(loadable.loadable):
         self.usage=self.__class__.__name__ + " <list|allow|deny|show> <nick>"
 	self.helptext=None
 
-    def execute(self,target,user,access,irc_msg):
+    def execute(self,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
         if not m:
             return 0
@@ -125,7 +125,7 @@ class phone(loadable.loadable):
                 irc_msg.reply(reply)
                 return 1
 
-            m=re.match(r"(#\S+)",target,re.I)
+            m=re.match(r"(#\S+)",irc_msg.target,re.I)
             if m and irc_msg.prefix==irc_msg.client.PUBLIC_PREFIX:
                 irc_msg.reply("Don't look up phone numbers in public, Alki might see them")
                 return 1

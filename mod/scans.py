@@ -34,7 +34,7 @@ class scans(loadable.loadable):
         self.usage=self.__class__.__name__ + " <x:y:z>"
         self.helptext=None
 
-    def execute(self,target,user,access,irc_msg):
+    def execute(self,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
         if not m:
             return 0

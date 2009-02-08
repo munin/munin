@@ -40,7 +40,7 @@ class s(loadable.loadable):
         self.usage=self.__class__.__name__ + " <id> [status]"
         self.helptext=["Show or set the status of a defence call. Valid statuses include covered, uncovered, recheck, impossible, invalid, semicovered, recall and fake."]
 
-    def execute(self,target,user,access,irc_msg):
+    def execute(self,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
         if not m:
             return 0

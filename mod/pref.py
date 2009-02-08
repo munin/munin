@@ -32,7 +32,7 @@ class pref(loadable.loadable):
         self.paramre=re.compile(r"^\s+(.*)")
         self.usage=self.__class__.__name__ + " [option=value]+"
         self.helptext=['Options: planet=x.y.z | password=OnlyWorksInPM | phone=+1-800-HOT-BIRD | pubphone=T|F']
-    def execute(self,target,user,access,irc_msg):
+    def execute(self,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
         if not m:
             return 0
@@ -165,7 +165,7 @@ class pref(loadable.loadable):
         query="UPDATE user_list SET passwd = MD5(MD5(salt) || MD5(%s))"
         query+=" WHERE id = %s"
 
-        m=re.match(r"(#\S+)",target,re.I)
+        m=re.match(r"(#\S+)",irc_msg.target,re.I)
         if m:
             irc_msg.reply("Don't set your password in public you shit")
         else:

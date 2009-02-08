@@ -38,12 +38,12 @@ class letmein(loadable.loadable):
         self.usage=self.__class__.__name__ + " <pnick> <password>"
 	self.helptext=["Give your pnick and password in PM to get invited into #%s. This command is for when P is down."%(self.config.get('Auth','home'),)]
 
-    def execute(self,target,user,access,irc_msg):
+    def execute(self,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
         if not m:
             return 0
         
-        public=re.match(r"(#\S+)",target,re.I)
+        public=re.match(r"(#\S+)",re.I)
         if public:
             irc_msg.reply("Don't use this command in public you shit")
         

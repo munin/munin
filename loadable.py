@@ -42,7 +42,7 @@ class loadable:
         if not self.config.read('muninrc'):
             raise ValueError('Failed to read ./muninrc. Can not run without configuration')
 
-    def execute(self,nick,target,prefix,command,user,access,irc_msg):
+    def execute(self,nick,target,command,user,access,irc_msg):
         print "Loadable execute"
         pass
 

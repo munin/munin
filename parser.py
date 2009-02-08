@@ -246,7 +246,7 @@ class parser:
                 if access >= self.ctrl_list[param].level:
                     try:
                         #self.client.reply(prefix,nick,target,param+": "+self.ctrl_list[param].help())
-                        self.ctrl_list[param].help(irc_msg.nick,irc_msg.target,irc_msg.user,irc_msg.access)
+                        self.ctrl_list[param].help(irc_msg.nick,irc_msg.target,irc_msg.user,irc_msg.access,irc_msg)
                         return "Successfully executed help for '%s' with key '%s'" % (self.ctrl_list[param].__class__.__name__,param)
                     except Exception, e:
                         ctrl=self.ctrl_list[param]

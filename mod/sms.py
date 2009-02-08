@@ -55,7 +55,7 @@ class sms(loadable.loadable):
         text = m.group(2) + ' - %s' % user
         receiver=self.load_user_from_pnick(rec)
         if not receiver:
-            self.client.reply(prefix,nick,target,"No user matching %s does not exist!" % (reciever,))
+            self.client.reply(prefix,nick,target,"Who exactly is %s?" % (rec,))
             return 1
 
         results=self.phone_query_builder(nick,username,host,target,prefix,command,receiver,access,"AND t1.friend_id=%s",(u.id,))

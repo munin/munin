@@ -41,7 +41,7 @@ class epenis(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        search=user or nick
+        search=irc_msg.user_or_nick()
         m=self.paramre.search(m.group(1))
 
         if m:

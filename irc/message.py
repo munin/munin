@@ -58,3 +58,5 @@ class message:
 
     def match_command(self,regexp):
         return regexp.search(command)
+    def user_or_nick(self):
+        return user or nick

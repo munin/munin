@@ -31,14 +31,14 @@ class NAMEHERE(loadable.loadable):
     """ 
     foo 
     """ 
-    def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,ACCESSLEVELHERE)
+    def __init__(self,cursor):
+        loadable.loadable.__init__(self,cursor,ACCESSLEVELHERE)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(STUFFGOESHERE)")
         self.usage=self.__class__.__name__ + ""
 	self.helptext=None
 
-    def execute(self,nick,username,host,target,prefix,command,user,access,irc_msg):
+    def execute(self,nick,target,command,user,access,irc_msg):
         m=self.commandre.search(command)
         if not m:
             return 0

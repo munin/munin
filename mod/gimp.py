@@ -33,8 +33,8 @@ class gimp(loadable.loadable):
         self.paramre=re.compile(r"^(\s+(\S+))?")
         self.usage=self.__class__.__name__ + " <gimp's pnick>"
         
-    def execute(self,nick,target,command,user,access,irc_msg):
-        m=self.commandre.search(command)
+    def execute(self,nick,target,user,access,irc_msg):
+        m=irc_msg.match_command(self.commandre)
         if not m:
             return 0
 

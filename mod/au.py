@@ -34,8 +34,8 @@ class au(loadable.loadable):
         self.usage=self.__class__.__name__ + ""
         self.helptext=None
         
-    def execute(self,nick,target,command,user,access,irc_msg):
-        m=self.commandre.search(command)
+    def execute(self,nick,target,user,access,irc_msg):
+        m=irc_msg.match_command(self.commandre)
         if not m:
             return 0
         

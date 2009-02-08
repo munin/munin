@@ -40,8 +40,8 @@ class cookie(loadable.loadable):
         self.usage=self.__class__.__name__ + " [howmany] <receiver> <reason> | [stat]"
 	self.helptext=["Cookies are used to give out carebears. Carebears are rewards for carefaces. Give cookies to people when you think they've done something beneficial for you or for the alliance in general."]
 
-    def execute(self,nick,target,command,user,access,irc_msg):
-        m=self.commandre.search(command)
+    def execute(self,nick,target,user,access,irc_msg):
+        m=irc_msg.match_command(self.commandre)
         if not m:
             return 0
 

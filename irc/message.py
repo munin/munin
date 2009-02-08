@@ -55,3 +55,6 @@ class message:
 
     def reply(self,text):
         self.client.reply(prefix_numeric(),nick,target,text)
+
+    def match_command(self,regexp):
+        return regexp.search(command)

@@ -35,8 +35,8 @@ class status(loadable.loadable):
         self.nickre=re.compile(r"^(\D\S*)?(\s*(\d+))?$")
         self.usage=self.__class__.__name__ + " [<nick|user>|<x:y[:z]>] [tick]"
         
-    def execute(self,nick,target,command,user,access,irc_msg):
-        m=self.commandre.search(command)
+    def execute(self,nick,target,user,access,irc_msg):
+        m=irc_msg.match_command(self.commandre)
         if not m:
             return 0
 
@@ -50,7 +50,7 @@ class status(loadable.loadable):
 
         if access < self.level:
             if access >= 50:
-                self.hacky_stupid_half_member_status(nick,target,command,user,access)
+                self.hacky_stupid_half_member_status(nick,target,user,access)
                 return 1
             irc_msg.reply("You do not have enough access to use this command")
             return 0
@@ -225,7 +225,7 @@ class status(loadable.loadable):
             
         return 1
 
-    def hacky_stupid_half_member_status(self,nick,target,command,user,access):
+    def hacky_stupid_half_member_status(self,nick,target,user,access):
         if not user:
             irc_msg.reply("You must set mode +x to check your own status.")
             return

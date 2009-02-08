@@ -32,7 +32,7 @@ class unbook(loadable.loadable):
         self.paramre=re.compile(r"^\s+(\d+)[. :-](\d+)[. :-](\d+)(\s+(\d+))?(\s+(yes))?")
         self.usage=self.__class__.__name__ + " <x:y:z> [<eta>|<landing tick>] [yes]"
         
-    def execute(self,nick,target,user,access,irc_msg):
+    def execute(self,target,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
         if not m:
             return 0
@@ -91,7 +91,7 @@ class unbook(loadable.loadable):
                 args+=(u.id,)
             else:
                 query+=" AND nick ILIKE %s"
-                args+=(nick,)
+                args+=(irc_msg.nick,)
 
             self.cursor.execute(query,args)
             if self.cursor.rowcount == 0:

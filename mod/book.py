@@ -32,7 +32,7 @@ class book(loadable.loadable):
         self.paramre=re.compile(r"^\s+(\d+)[. :-](\d+)[. :-](\d+)\s+(\d+)(\s+(yes))?")
         self.usage=self.__class__.__name__ + " <x:y:z> (<eta>|<landing tick>)"
 
-    def execute(self,nick,target,user,access,irc_msg):
+    def execute(self,target,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
         if not m:
             return 0
@@ -52,7 +52,7 @@ class book(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        if access < 100 and not user:
+        if access < 100 and not irc_msg.user:
             irc_msg.reply("I don't trust you. You have to set mode +x to book a target.")
             return 0
 
@@ -112,18 +112,18 @@ class book(loadable.loadable):
             return 1
         
         uid=None
-        if user:
+        if irc_msg.user:
             u=loadable.user(pnick=user)
             if u.load_from_db(irc_msg.client,self.cursor):
                 uid=u.id
 
         query="INSERT INTO target (nick,pid,tick,uid) VALUES (%s,%s,%s,%s)"
         try:
-            self.cursor.execute(query,(nick,p.id,tick,uid))
+            self.cursor.execute(query,(irc_msg.nick,p.id,tick,uid))
             if uid:
-                reply="Booked landing on %s:%s:%s tick %s for user %s" % (p.x,p.y,p.z,tick,user)
+                reply="Booked landing on %s:%s:%s tick %s for user %s" % (p.x,p.y,p.z,tick,irc_msg.user)
             else:
-                reply="Booked landing on %s:%s:%s tick %s for nick %s" % (p.x,p.y,p.z,tick,nick)
+                reply="Booked landing on %s:%s:%s tick %s for nick %s" % (p.x,p.y,p.z,tick,irc_msg.nick)
         except psycopg.IntegrityError:
             query="SELECT t1.id AS id, t1.nick AS nick, t1.pid AS pid, t1.tick AS tick, t1.uid AS uid, t2.pnick AS pnick, t2.userlevel AS userlevel "
             query+=" FROM target AS t1 LEFT JOIN user_list AS t2 ON t1.uid=t2.id "

@@ -38,7 +38,7 @@ class letmein(loadable.loadable):
         self.usage=self.__class__.__name__ + " <pnick> <password>"
 	self.helptext=["Give your pnick and password in PM to get invited into #%s. This command is for when P is down."%(self.config.get('Auth','home'),)]
 
-    def execute(self,nick,target,user,access,irc_msg):
+    def execute(self,target,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
         if not m:
             return 0
@@ -64,7 +64,7 @@ class letmein(loadable.loadable):
         if self.cursor.rowcount == 1:
             r=self.cursor.dictfetchone()
             if r['userlevel'] >= 100:
-                irc_msg.client.wline("INVITE %s #%s"%(nick,self.config.get('Auth','home')))
+                irc_msg.client.wline("INVITE %s #%s"%(irc_msg.nick,self.config.get('Auth','home')))
                 irc_msg.reply("Now get in, bitch")
         else:
             irc_msg.reply( "No.")

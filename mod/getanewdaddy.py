@@ -41,7 +41,7 @@ class getanewdaddy(loadable.loadable):
                        "Anyone is free to sponsor the person back under the usual conditions. This isn't a kick and it's not final."]
         #self.helptext=['This command is used to vote someone out of the alliance. Your vote is logged and everyone can see what a cunt you are.']
 
-    def execute(self,nick,target,user,access,irc_msg):
+    def execute(self,target,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
         if not m:
             return 0

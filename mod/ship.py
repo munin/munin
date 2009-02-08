@@ -39,7 +39,7 @@ class ship(loadable.loadable):
         self.usage=self.__class__.__name__ + " <shipname>"
         self.helptext=['Shows stats for a ship.']
 
-    def execute(self,nick,target,user,access,irc_msg):
+    def execute(self,target,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
         if not m:
             return 0

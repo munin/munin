@@ -34,7 +34,7 @@ class jgp(loadable.loadable):
         self.usage=self.__class__.__name__ + ""
         self.helptext=None
         
-    def execute(self,nick,target,user,access,irc_msg):
+    def execute(self,target,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
         if not m:
             return 0
@@ -63,7 +63,6 @@ class jgp(loadable.loadable):
                 irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
                 return 1
 
-            #query="SELECT t1.tick AS tick,t1.nick,t1.scantype,t1.rand_id,t3.name,t2.amount"
             query="SELECT t3.x,t3.y,t3.z,t1.tick AS tick,t1.nick,t1.scantype,t1.rand_id,t2.mission,t2.fleet_size,t2.fleet_name,t2.landing_tick-t1.tick AS eta"
             query+=" FROM scan AS t1"
             query+=" INNER JOIN fleet AS t2 ON t1.id=t2.scan_id"
@@ -71,11 +70,10 @@ class jgp(loadable.loadable):
             query+=" WHERE t1.pid=%s AND t3.tick=(SELECT max_tick())"
             query+=" AND t1.id=(SELECT id FROM scan WHERE pid=t1.pid AND scantype='jgp'"
             query+=" ORDER BY tick DESC, id DESC LIMIT 1) ORDER BY eta ASC"
-            #query+=" ORDER BY tick DESC LIMIT 1) ORDER BY eta ASC"
             self.cursor.execute(query,(p.id,))
 
             if self.cursor.rowcount < 1:
-                if self.fallback(nick,target,p,None):
+                if self.fallback(irc_msg,p,None):
                     return 1
                 else:
                     reply+="No JGP scans available on %s:%s:%s" % (p.x,p.y,p.z)
@@ -109,7 +107,7 @@ class jgp(loadable.loadable):
             self.cursor.execute(query,(rand_id,))
 
             if self.cursor.rowcount < 1:
-                if self.fallback(nick,target,None,rand_id):
+                if self.fallback(irc_msg,None,rand_id):
                     return 1
                 else:
                     reply+="No JGP scans matching ID %s" % (rand_id,)
@@ -130,7 +128,7 @@ class jgp(loadable.loadable):
         return 1
                     
                
-    def fallback(self,nick,target,planet,rand_id):
+    def fallback(self,irc_msg,planet,rand_id):
         query="SELECT rand_id FROM scan AS t1 "
         query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
         query+=" WHERE t3.tick = (SELECT max_tick())"

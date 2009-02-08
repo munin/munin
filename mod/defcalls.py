@@ -41,7 +41,7 @@ class defcalls(loadable.loadable):
         self.helptext=["Show defense calls",
                        "Valid statuses include covered, uncovered, recheck, impossible, invalid, semicovered, recall and fake."]
 
-    def execute(self,nick,target,user,access,irc_msg):
+    def execute(self,target,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
         if not m:
             return 0
@@ -62,7 +62,7 @@ class defcalls(loadable.loadable):
         else:
             return self.reply_typed_defcalls(nick,target,defcall_type,user,access)
     
-    def reply_typed_defcalls(self,nick,target,defcall_type,user,access):
+    def reply_typed_defcalls(self,target,defcall_type,user,access):
         query="SELECT t2.status,count(*) AS count FROM defcalls AS t1"
         query+=" INNER JOIN defcall_status AS t2"
         query+=" ON t1.status=t2.id"
@@ -106,7 +106,7 @@ class defcalls(loadable.loadable):
         return 1
         
 
-    def reply_all_defcalls(self,nick,target,user,access):
+    def reply_all_defcalls(self,target,user,access):
         query="SELECT t2.status,count(*) AS count FROM defcalls AS t1"
         query+=" INNER JOIN defcall_status AS t2"
         query+=" ON t1.status=t2.id"

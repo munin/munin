@@ -34,7 +34,7 @@ class news(loadable.loadable):
         self.usage=self.__class__.__name__ + " <x:y:z>" 
         self.helptext=["Looks up recent news scan IDs on a planet"]
 
-    def execute(self,nick,target,user,access,irc_msg):
+    def execute(self,target,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
         if not m:
             return 0

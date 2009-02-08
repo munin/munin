@@ -35,7 +35,7 @@ class status(loadable.loadable):
         self.nickre=re.compile(r"^(\D\S*)?(\s*(\d+))?$")
         self.usage=self.__class__.__name__ + " [<nick|user>|<x:y[:z]>] [tick]"
         
-    def execute(self,nick,target,user,access,irc_msg):
+    def execute(self,target,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
         if not m:
             return 0
@@ -50,7 +50,7 @@ class status(loadable.loadable):
 
         if access < self.level:
             if access >= 50:
-                self.hacky_stupid_half_member_status(nick,target,user,access)
+                self.hacky_stupid_half_member_status(irc_msg)
                 return 1
             irc_msg.reply("You do not have enough access to use this command")
             return 0
@@ -171,11 +171,8 @@ class status(loadable.loadable):
                 tick=when
 
             if not subject:
-                if user:
-                    subject=user
-                else:
-                    subject=nick
-                    
+                subject=irc_msg.user_or_nick()
+
             args=()
             query="SELECT t1.id AS id, t1.nick AS nick, t1.pid AS pid, t1.tick AS tick, t1.uid AS uid, t2.pnick AS pnick, t2.userlevel AS userlevel, t3.x AS x, t3.y AS y, t3.z AS z"
             query+=" FROM target AS t1"
@@ -225,8 +222,8 @@ class status(loadable.loadable):
             
         return 1
 
-    def hacky_stupid_half_member_status(self,nick,target,user,access):
-        if not user:
+    def hacky_stupid_half_member_status(self,irc_msg):
+        if not irc_msg.user:
             irc_msg.reply("You must set mode +x to check your own status.")
             return
         curtick=self.current_tick()
@@ -239,9 +236,9 @@ class status(loadable.loadable):
         query+=" WHERE"
         query+=" t1.tick > (SELECT MAX(tick) FROM updates)"
         query+=" AND t3.tick = (SELECT MAX(tick) FROM updates) AND t2.pnick ILIKE %s"
-        self.cursor.execute(query,args+(user,))
+        self.cursor.execute(query,args+(irc_msg.user,))
         if self.cursor.rowcount < 1:
-            reply="No active bookings matching user %s" %(user,)
+            reply="No active bookings matching user %s" %(irc_msg.user,)
             irc_msg.reply(reply)
             return 1
         prev=[]

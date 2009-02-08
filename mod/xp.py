@@ -34,7 +34,7 @@ class xp(loadable.loadable):
         self.countre=re.compile(r"^(\d+)(\.|-|:|\s*)(.*)")        
         self.usage=self.__class__.__name__ + " <x:y:z> <a:b:c>"
 
-    def execute(self,nick,target,user,access,irc_msg):
+    def execute(self,target,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
         if not m:
             return 0

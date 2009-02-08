@@ -52,13 +52,13 @@ class sms(loadable.loadable):
         if not u: return 1
 
         rec = m.group(1)
-        text = m.group(2) + ' - %s' % user
+        text = m.group(2) + ' - %s' % user,
         receiver=self.load_user_from_pnick(rec)
         if not receiver:
             irc_msg.reply("No user matching %s does not exist!" % (reciever,))
             return 1
 
-        results=self.phone_query_builder(nick,target,command,receiver,access,"AND t1.friend_id=%s",(u.id,))
+        results=self.phone_query_builder(receiver,"AND t1.friend_id=%s",(u.id,))
 
         if not (receiver.pubphone or len(results)>0):
             irc_msg.reply("%s's phone number is private or they have not chosen to share their number with you. Supersecret message not sent." % (receiver.pnick,))

@@ -57,9 +57,9 @@ class phone(loadable.loadable):
             return 0
 
         # assign param variables
-        command=m.group(1)
+        cmd=m.group(1)
 
-        if "list".find(command) > -1:
+        if "list".find(cmd) > -1:
             args=(u.id,)
             query="SELECT pnick "
             query+=" FROM phone AS t1"
@@ -92,8 +92,8 @@ class phone(loadable.loadable):
              irc_msg.reply("%s is not a valid user."%(trustee,))
              return 0
 
-        if "allow".find(command) > -1:
-            results=self.phone_query_builder(irc_msg,command,u,access,"AND t1.friend_id=%s",(t_user.id,))
+        if "allow".find(cmd) > -1:
+            results=self.phone_query_builder(u,"AND t1.friend_id=%s",(t_user.id,))
             if len(results) > 0:
                 reply="%s can already access your phone number."%(t_user.pnick,)
             else:
@@ -103,7 +103,7 @@ class phone(loadable.loadable):
                 reply="Added %s to the list of people able to view your phone number."%(t_user.pnick,)
             irc_msg.reply( reply)
             return 1
-        elif "deny".find(command) > -1:
+        elif "deny".find(cmd) > -1:
             query="DELETE FROM phone WHERE user_id=%s and friend_id=%s"
             args=(u.id,t_user.id)
             self.cursor.execute(query,args)
@@ -115,7 +115,7 @@ class phone(loadable.loadable):
                 reply="Removed %s from the list of people allowed to see your phone number." % (t_user.pnick,)
             irc_msg.reply(reply)
             return 1
-        elif "show".find(command) > -1:
+        elif "show".find(cmd) > -1:
             if u.id == t_user.id:
                 if u.phone:
                     reply="Your phone number is %s."%(u.phone,)
@@ -132,7 +132,7 @@ class phone(loadable.loadable):
             if t_user.pubphone and u.userlevel >= 100:
                 reply="%s says his phone number is %s"%(t_user.pnick,t_user.phone)
             else:
-                results=self.phone_query_builder(irc_msg,command,t_user,access,"AND t1.friend_id=%s",(u.id,))
+                results=self.phone_query_builder(t_user,"AND t1.friend_id=%s",(u.id,))
                 if len(results) < 1:
                     reply="%s won't let you see their phone number. That paranoid cunt just doesn't trust you I guess."%(t_user.pnick,)
                 else:

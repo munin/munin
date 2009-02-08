@@ -120,7 +120,7 @@ class loadable:
             return True
         False
 
-    def phone_query_builder(self,irc_msg,command,u,access,query_filter=None,query_args=None):
+    def phone_query_builder(self,u,query_filter=None,query_args=None):
         args=(u.id,)
         query="SELECT pnick "
         query+=" FROM phone AS t1"

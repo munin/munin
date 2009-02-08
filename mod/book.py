@@ -113,7 +113,7 @@ class book(loadable.loadable):
         
         uid=None
         if irc_msg.user:
-            u=loadable.user(pnick=user)
+            u=loadable.user(pnick=irc_msg.user)
             if u.load_from_db(irc_msg.client,self.cursor):
                 uid=u.id
 

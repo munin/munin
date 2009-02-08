@@ -51,7 +51,7 @@ class surprisesex(loadable.loadable):
 
         m=self.paramre.search(m.group(1))
         if not m or not m.group(1):
-            u=loadable.user(pnick=user)
+            u=loadable.user(pnick=irc_msg.user)
             if not u.load_from_db(irc_msg.client,self.cursor):
                 irc_msg.reply("Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
                 return 1

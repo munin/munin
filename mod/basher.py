@@ -26,7 +26,7 @@ class basher(loadable.loadable):
         m=self.paramre.search(param)
 
         if not m or not m.group(1):
-            u=loadable.user(pnick=user)
+            u=loadable.user(pnick=irc_msg.user)
             if not u.load_from_db(irc_msg.client,self.cursor):
                 irc_msg.reply("You must be registered to use the automatic "+self.__class__.__name__+" command (log in with P and set mode +x, then make sure you've set your planet with the pref command)")
                 #

@@ -48,7 +48,7 @@ class s(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        u=loadable.user(pnick=user)
+        u=loadable.user(pnick=irc_msg.user)
         if not u.load_from_db(irc_msg.client,self.cursor):
             irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
             return 1

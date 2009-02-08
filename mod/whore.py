@@ -30,11 +30,9 @@ class whore(loadable.loadable):
     def __init__(self,cursor):
         loadable.loadable.__init__(self,cursor,50)
         self.paramre=re.compile("\s+(.*)")
-#        re.compile(r"(\s+(\S+))?(\s+(ter|cat|xan|zik))(\s+(<|>)?(\d+))?(\s+(<|>)?(\d+))?",re.I)
         self.alliancere=re.compile(r"^(\S+)$")
         self.racere=re.compile(r"^(ter|cat|xan|zik|eit|etd)$",re.I)
         self.rangere=re.compile(r"^(<|>)?(\d+)$")
-        #self.bashre=re.compile(r"^(bash)$",re.I)
         self.clusterre=re.compile(r"^c(\d+)$",re.I)
         self.usage=self.__class__.__name__ + " [alliance] [race] [<|>][size] [<|>][value] [bash]" + " (must include at least one search criteria, order doesn't matter)"
         
@@ -55,7 +53,7 @@ class whore(loadable.loadable):
 
 
         attacker=None
-        u=loadable.user(pnick=user)
+        u=loadable.user(pnick=irc_msg.user)
         if not u.load_from_db(irc_msg.client,self.cursor):
             irc_msg.reply("Usage: %s (you must set your planet in preferences to use this command (!pref planet=x:y:z))" % (self.usage,))
             return 1
@@ -82,10 +80,6 @@ class whore(loadable.loadable):
         params=param.split()
 
         for p in params:
-            #m=self.bashre.search(p)
-            #if m and not bash:
-            #    bash=True
-            #    continue
             m=self.clusterre.search(p)
             if m and not cluster:
                 cluster=int(m.group(1))
@@ -108,24 +102,6 @@ class whore(loadable.loadable):
             if m and not alliance and not self.clusterre.search(p):
                 alliance=m.group(1) 
                 continue
-
-
-
-        #if bash:
-        #    if not user:
-        #        irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command's bash option (log in with P and set mode +x)")
-        #        return 1
-        #    u=loadable.user(pnick=user)
-        #    if not u.load_from_db(irc_msg.client,self.cursor):
-        #        irc_msg.reply("Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))" % (self.usage,))
-        #        return 1
-        #    if u.planet_id:
-        #        attacker = u.planet
-        #    else:
-        #        irc_msg.reply("Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))" % (self.usage,))
-        #        return 1
-                                                                                                                                                                      
-
 
         
         victims=self.victim(alliance,race,size_mod,size,value_mod,value,attacker,True,cluster)
@@ -161,7 +137,6 @@ class whore(loadable.loadable):
         
         return 1
     
-#    def victim(self,alliance=None,race=None,size_mod='>',size=None,value_mod='<',value=None,att_score=1,att_value=1,bash=None,cluster=None):
     def victim(self,alliance=None,race=None,size_mod='>',size=None,value_mod='<',value=None,attacker=None,bash=True,cluster=None):
         #args=(att_score,att_value)
         args=(attacker.score,attacker.value)

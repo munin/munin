@@ -42,7 +42,7 @@ class pref(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        u=loadable.user(pnick=user)
+        u=loadable.user(pnick=irc_msg.user)
         if not u.load_from_db(irc_msg.client,self.cursor):
             irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
             #irc_msg.reply("You must be registered to use the pref command")

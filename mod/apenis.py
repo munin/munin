@@ -48,7 +48,7 @@ class apenis(loadable.loadable):
             return 0
 
         search=m.group(2)
-        u=loadable.user(pnick=user)
+        u=loadable.user(pnick=irc_msg.user)
         if search is not None:
             a=loadable.alliance(name=search)
             if not a.load_most_recent(irc_msg.client,self.cursor):

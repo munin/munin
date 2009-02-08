@@ -63,7 +63,7 @@ class unbook(loadable.loadable):
             irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
             return 1
 
-        u=loadable.user(pnick=user)
+        u=loadable.user(pnick=irc_msg.user)
         if not u.load_from_db(irc_msg.client,self.cursor):
             u=None
 

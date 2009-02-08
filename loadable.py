@@ -46,7 +46,7 @@ class loadable:
         print "Loadable execute"
         pass
 
-    def help(self,nick,target,prefix,user,access):
+    def help(self,nick,target,user,access):
         irc_msg.reply(self.usage)
         if self.helptext:
             for h in self.helptext:

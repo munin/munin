@@ -62,7 +62,7 @@ class apenis(loadable.loadable):
                 self.client.reply(prefix,nick,target,reply)
                 return 1
         elif u.id > -1 and u.planet is not None:
-            i=loadable.intel(pid=p.id)
+            i=loadable.intel(pid=u.planet.id)
             if (not i.load_from_db(self.conn,self.client,self.cursor)) or i.alliance is None:
                 reply="Make sure you've set your planet with !pref and alliance with !intel"
                 self.client.reply(prefix,nick,target,reply)

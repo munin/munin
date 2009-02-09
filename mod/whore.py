@@ -138,7 +138,6 @@ class whore(loadable.loadable):
         return 1
     
     def victim(self,alliance=None,race=None,size_mod='>',size=None,value_mod='<',value=None,attacker=None,bash=True,cluster=None):
-        #args=(att_score,att_value)
         args=(attacker.score,attacker.value)
         
         query="SELECT t1.x AS x,t1.y AS y,t1.z AS z,t1.size AS size,t1.size_rank AS size_rank,t1.value AS value,t1.value_rank AS value_rank,t1.race AS race,t6.name AS alliance,t2.nick AS nick"

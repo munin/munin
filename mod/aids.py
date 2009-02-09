@@ -80,7 +80,7 @@ class aids(loadable.loadable):
         reply=""
 
 
-        if u.pnick == user:
+        if u.pnick == irc_msg.user:
             reply+="You are %s." % (u.pnick,)
             if self.cursor.rowcount < 1:
                 reply+=" You have greedily kept your aids all to yourself."

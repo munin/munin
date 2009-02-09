@@ -341,7 +341,7 @@ class prop(loadable.loadable):
         if not prop:
             self.client.reply(prefix,nick,target,"No proposition number %d exists (idiot)."%(prop_id,))
             return
-        if u.pnick.lower() != prop['proposer']:
+        if u.pnick.lower() != prop['proposer'].lower():
             self.client.reply(prefix,nick,target,"Only %s may expire proposition %d."%(prop['proposer'],prop['id']))
             return
 

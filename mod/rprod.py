@@ -62,9 +62,7 @@ class rprod(loadable.loadable):
         return self.newton(self.rpu(ticks * output - 10000 * facs, math), 10)
 
     def execute(self,user,access,irc_msg):
-
-        match = self.commandre.search(command)
-
+        match=irc_msg.match_command(self.commandre)
         if not match:
             return 0
         

@@ -42,7 +42,7 @@ class loadable:
         if not self.config.read('muninrc'):
             raise ValueError('Failed to read ./muninrc. Can not run without configuration')
 
-    def execute(self,nick,target,command,user,access,irc_msg):
+    def execute(self,user,access,irc_msg):
         print "Loadable execute"
         pass
 
@@ -83,7 +83,7 @@ class loadable:
         self.cursor.execute("SELECT MAX(tick) FROM updates")
         return self.cursor.fetchone()[0]
 
-    def load_user(self,irc_msg,target):
+    def load_user(self,pnick,irc_msg):
         if not pnick:
             irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")        
             return None
@@ -115,7 +115,7 @@ class loadable:
             irc_msg.reply("Usage: %s" %(self.usage,))
         return m
     def command_not_used_in_home(self,irc_msg,command_name):
-        if target.lower() != "#"+self.config.get("Auth","home").lower():
+        if irc_msg.target.lower() != "#"+self.config.get("Auth","home").lower():
             irc_msg.reply("The %s command may only be used in #%s."%(command_name,self.config.get("Auth","home"),))
             return True
         False

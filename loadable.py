@@ -30,7 +30,7 @@ import psycopg
 from mx import DateTime
 
 class loadable:
-    def __init__(self,cursor,level,irc_msg):
+    def __init__(self,cursor,level):
         self.cursor=cursor
         self.level=level
         self.coordre=re.compile(r"(\d+)[. :-](\d+)([. :-](\d+))?")

@@ -41,7 +41,7 @@ class galstatus:
 
     def report_incoming(self,target,owner,message,reporter,source,landing_tick):
         i=loadable.intel(pid=target.id)
-        if not i.load_from_db(self.conn,self.client,self.cursor):
+        if not i.load_from_db(self.cursor):
             print "planet %s:%s:%s not in intel"%(target.x,target.y,target.z)
             return
         reply="%s reports: " % (reporter,)
@@ -95,11 +95,11 @@ class galstatus:
         print "%s:%s:%s %s:%s:%s '%s' %s m:%s e:%s"%(owner_x,owner_y,owner_z,target_x,target_y,target_z,fleetname,fleetsize,mission,eta)
 
         target=loadable.planet(target_x,target_y,target_z)
-        if not target.load_most_recent(self.conn, 0 ,self.cursor):
+        if not target.load_most_recent(self.cursor):
             return
 
         owner=loadable.planet(owner_x,owner_y,owner_z)
-        if not owner.load_most_recent(self.conn, 0 ,self.cursor):
+        if not owner.load_most_recent(self.cursor):
             return
         
         self.cursor.execute("SELECT max_tick() AS max_tick")

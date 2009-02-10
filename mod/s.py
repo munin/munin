@@ -49,7 +49,7 @@ class s(loadable.loadable):
             return 0
 
         u=loadable.user(pnick=irc_msg.user)
-        if not u.load_from_db(irc_msg.client,self.cursor):
+        if not u.load_from_db(self.cursor):
             irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
             return 1
 
@@ -64,7 +64,7 @@ class s(loadable.loadable):
         
         # do stuff here
         d=loadable.defcall(call_id)
-        if not d.load_most_recent(irc_msg.client,self.cursor):
+        if not d.load_most_recent(self.cursor):
             irc_msg.reply("No defcall matching id %s found" %(call_id,))
             return 0
         

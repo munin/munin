@@ -59,12 +59,12 @@ class unbook(loadable.loadable):
         tick=-1
 
         p=loadable.planet(x=x,y=y,z=z)
-        if not p.load_most_recent(irc_msg.client,self.cursor):
+        if not p.load_most_recent(self.cursor):
             irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
             return 1
 
         u=loadable.user(pnick=irc_msg.user)
-        if not u.load_from_db(irc_msg.client,self.cursor):
+        if not u.load_from_db(self.cursor):
             u=None
 
         

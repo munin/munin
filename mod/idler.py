@@ -101,7 +101,7 @@ class idler(loadable.loadable):
             
             
             u=loadable.user(pnick=irc_msg.user)
-            if not u.load_from_db(irc_msg.client,self.cursor):
+            if not u.load_from_db(self.cursor):
                 irc_msg.reply("Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))" % (self.usage,))
                 return 1
             if u.planet_id:

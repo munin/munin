@@ -74,7 +74,7 @@ class scan(threading.Thread):
         
         #check to see if we have already added this scan to the database
         p=loadable.planet(x, y, z)
-        if p.load_most_recent(self.conn, 0 ,self.cursor): #really, this should never, ever fail.
+        if p.load_most_recent(self.cursor): #really, this should never, ever fail.
             #quickly insert the scan incase someone else pastes it :o
             next_id=-1
             nxt_query= "SELECT nextval('scan_id_seq')"
@@ -129,7 +129,7 @@ class scan(threading.Thread):
         tick = m.group(4)
 
         p=loadable.planet(x, y, z)
-        if not p.load_most_recent(self.conn, 0 ,self.cursor): #really, this should never, ever fail.
+        if not p.load_most_recent(self.cursor): #really, this should never, ever fail.
             return
     #incoming fleets
     #<td class=left valign=top>Incoming</td><td valign=top>851</td><td class=left valign=top>We have detected an open jumpgate from Tertiary, located at 18:5:11. The fleet will approach our system in tick 855 and appears to have roughly 95 ships.</td>
@@ -143,7 +143,7 @@ class scan(threading.Thread):
             numships = m.group(7)
 
             owner=loadable.planet(originx,originy,originz)
-            if not owner.load_most_recent(self.conn, 0 ,self.cursor):
+            if not owner.load_most_recent(self.cursor):
                 continue
             query="INSERT INTO fleet (scan_id,owner_id,target,fleet_size,fleet_name,launch_tick,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,%s,'unknown')"
             try:
@@ -166,7 +166,7 @@ class scan(threading.Thread):
             arrivaltick = m.group(6)
 
             target=loadable.planet(originx,originy,originz)
-            if not target.load_most_recent(self.conn, 0 ,self.cursor):
+            if not target.load_most_recent(self.cursor):
                 continue
             query="INSERT INTO fleet (scan_id,owner_id,target,fleet_name,launch_tick,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,'attack')"
             
@@ -190,7 +190,7 @@ class scan(threading.Thread):
             arrivaltick = m.group(6)
 
             target=loadable.planet(originx,originy,originz)
-            if not target.load_most_recent(self.conn, 0 ,self.cursor):
+            if not target.load_most_recent(self.cursor):
                 continue
             query="INSERT INTO fleet (scan_id,owner_id,target,fleet_name,launch_tick,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,'defend')"
             
@@ -222,7 +222,7 @@ class scan(threading.Thread):
             originz = m.group(5)
 
             covopper=loadable.planet(originx,originy,originz)
-            if not covopper.load_most_recent(self.conn, 0 ,self.cursor):
+            if not covopper.load_most_recent(self.cursor):
                 continue
             
             query="INSERT INTO covop (scan_id,covopper,target) VALUES (%s,%s,%s)"
@@ -425,7 +425,7 @@ class scan(threading.Thread):
 
         
         p=loadable.planet(x, y, z)
-        if not p.load_most_recent(self.conn, 0 ,self.cursor): #really, this should never, ever fail, but exiles might bork it
+        if not p.load_most_recent(self.cursor): #really, this should never, ever fail, but exiles might bork it
             return
 
         #                     <td class="left">15:7:11            </td><td class="left">Defend </td><td>Ad infinitum</td><td>9</td><td>0</td>
@@ -446,7 +446,7 @@ class scan(threading.Thread):
             print "JGP fleet "
             
             attacker=loadable.planet(originx,originy,originz)
-            if not attacker.load_most_recent(self.conn, 0 ,self.cursor):
+            if not attacker.load_most_recent(self.cursor):
                 print "Can't find attacker in db: %s:%s:%s"%(originx,originy,originz) 
                 continue
             query="INSERT INTO fleet (scan_id,owner_id,target,fleet_size,fleet_name,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,%s)"

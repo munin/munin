@@ -52,7 +52,7 @@ class topcunts(loadable.loadable):
         m=self.paramre.search(m.group(1))
         if not m or not m.group(1):
             u=loadable.user(pnick=irc_msg.user)
-            if not u.load_from_db(irc_msg.client,self.cursor):
+            if not u.load_from_db(self.cursor):
                 irc_msg.reply("Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
                 return 1
             if u.planet:
@@ -72,7 +72,7 @@ class topcunts(loadable.loadable):
 
             if z:
                 p=loadable.planet(x=x,y=y,z=z)
-                if not p.load_most_recent(irc_msg.client,self.cursor):
+                if not p.load_most_recent(self.cursor):
                     irc_msg.reply("No planet matching '%s' found"%(param,))
                     return 1
                 reply=self.surprise(x=p.x,y=p.y,z=p.z)
@@ -81,7 +81,7 @@ class topcunts(loadable.loadable):
                 return 1
             else:
                 g=loadable.galaxy(x=x,y=y)
-                if not g.load_most_recent(irc_msg.client,self.cursor):
+                if not g.load_most_recent(self.cursor):
                     irc_msg.reply("No galaxy matching '%s' found"%(param,))
                     return 1
                 reply=self.surprise(x=g.x,y=g.y)
@@ -89,7 +89,7 @@ class topcunts(loadable.loadable):
                 return 1
         
         a=loadable.alliance(name=param.strip())
-        if not a.load_most_recent(irc_msg.client,self.cursor):
+        if not a.load_most_recent(self.cursor):
             irc_msg.reply("No alliance matching '%s' found" % (param,))
             return 1
         reply=self.surprise(alliance=a.name)
@@ -156,7 +156,7 @@ class topcunts(loadable.loadable):
                     i+=1
                 
                 p=loadable.planet(id=a['attacker'])
-                if not p.load_most_recent(irc_msg.client,self.cursor):
+                if not p.load_most_recent(self.cursor):
                     i-=1
                     pass
                 prev.append("%s:%s:%s - %s"%(p.x,p.y,p.z,a['attacks']))

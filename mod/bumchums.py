@@ -62,7 +62,7 @@ class bumchums(loadable.loadable):
 
         a=loadable.alliance(name=alliance)
            
-        if not a.load_most_recent(irc_msg.client,self.cursor):
+        if not a.load_most_recent(self.cursor):
             irc_msg.reply("No alliance matching '%s' found" % (alliance,))
             return 1
 

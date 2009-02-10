@@ -46,7 +46,7 @@ class loadable:
         print "Loadable execute"
         pass
 
-    def help(self,nick,target,user,access):
+    def help(self,user,access,irc_msg):
         irc_msg.reply(self.usage)
         if self.helptext:
             for h in self.helptext:
@@ -95,7 +95,7 @@ class loadable:
     
     def load_user_from_pnick(self,username):
         u=user(pnick=username)
-        if u.load_from_db(self.client,self.cursor):
+        if u.load_from_db(self.cursor):
             return u
         else:
             return None
@@ -165,7 +165,7 @@ class defcall:
         ret_str+=" comment."
         return ret_str
 
-    def load_most_recent(self,client,cursor):
+    def load_most_recent(self,cursor):
         #for now, always load from ID
         query="SELECT id,bcalc,status,claimed_by,comment,target,landing_tick"
         query+=" FROM defcalls WHERE id=%s"
@@ -181,12 +181,12 @@ class defcall:
         self.target=d['target']
         self.landing_tick=d['landing_tick']
         p=planet(id=self.target)
-        if not p.load_most_recent(client,cursor):
+        if not p.load_most_recent(cursor):
             raise Exception("Defcall with id %s has no valid planet information. Oops...")
         self.actual_target=p
 
         u=user(id=self.claimed_by)
-        if not u.load_from_db(client,cursor):
+        if not u.load_from_db(cursor):
             self.actual_owner=None
         self.actual_owner=u
 
@@ -233,7 +233,7 @@ class fleet:
         return reply
 
 
-    def load_most_recent(self,client,cursor):
+    def load_most_recent(self,cursor):
         #for now, always load from ID
         query="SELECT id,scan_id,owner_id,target,fleet_size,fleet_name"
         query+=",launch_tick,landing_tick, (landing_tick-(SELECT max_tick())) AS eta,mission"
@@ -255,12 +255,12 @@ class fleet:
         self.eta=d['eta']
 
         p=planet(id=self.target_id)
-        if not p.load_most_recent(client,cursor):
+        if not p.load_most_recent(cursor):
             raise Exception("Defcall with id %s has no valid target information. Oops..."%(self.id,))
         self.actual_target=p
 
         p=planet(id=self.owner_id)
-        if not p.load_most_recent(client,cursor):
+        if not p.load_most_recent(cursor):
             raise Exception("Defcall with id %s has no valid owner information. Oops..."%(self.id,))
         self.actual_owner=p
 
@@ -275,7 +275,7 @@ class fleet:
         s=cursor.dictfetchone()
         if s:
             defc=defcall(id=s['id'])
-            if defc.load_most_recent(client,cursor):
+            if defc.load_most_recent(cursor):
                 self.defcall=defc
         return 1
 
@@ -309,7 +309,7 @@ class planet:
         return retstr
         pass
 
-    def load_most_recent(self,client,cursor):
+    def load_most_recent(self,cursor):
         p={}
         if self.x > -1 and self.y > -1 and self.z > -1:
             #load from coords
@@ -383,7 +383,7 @@ class galaxy:
         return retstr
         pass
 
-    def load_most_recent(self,client,cursor):
+    def load_most_recent(self,cursor):
         g={}
         if self.x > 0 and self.y > 0:
             #load from coords
@@ -433,7 +433,7 @@ class alliance:
         return retstr
         pass
 
-    def load_most_recent(self,client,cursor):
+    def load_most_recent(self,cursor):
         a={}
         if self.name:
             #load from exact name
@@ -487,7 +487,7 @@ class user:
         query+=" FROM user_list AS t1 WHERE"
         return query
     
-    def load_from_db(self,client,cursor):
+    def load_from_db(self,cursor):
         query=self.lookup_query()
         if self.pnick:
             query+=" t1.pnick ILIKE %s"
@@ -514,7 +514,7 @@ class user:
             self.pubphone=u['pubphone']
             if u['planet_id']:
                 self.planet=planet(id=self.planet_id)
-                self.planet.load_most_recent(client,cursor)
+                self.planet.load_most_recent(cursor)
             else:
                 self.planet=None
             self.stay=u['stay']
@@ -526,12 +526,12 @@ class user:
             return 1
         return None
 
-    def munin_number(self,client,cursor,config):
+    def munin_number(self,cursor,config):
         if self.sponsor.lower() == config.get("Connection","nick").lower():
             return 1
         u=user(pnick=self.sponsor)
-        if u.load_from_db(client,cursor) and u.userlevel >= 100 and u.pnick.lower() != u.sponsor.lower():
-            parent_number = u.munin_number(client,cursor,config )
+        if u.load_from_db(cursor) and u.userlevel >= 100 and u.pnick.lower() != u.sponsor.lower():
+            parent_number = u.munin_number(cursor,config )
             if parent_number:
                 return parent_number + 1
             else:
@@ -539,7 +539,7 @@ class user:
         else:
             return None # dead subtree, get rid of these.
     
-    def check_available_cookies(self,client,cursor,config):
+    def check_available_cookies(self,cursor,config):
         now = DateTime.now()
         if not self.last_cookie_date or DateTime.Age(now,self.last_cookie_date).days > 6:
             self.available_cookies = int(config.get("Alliance","cookies_per_week"))
@@ -567,7 +567,7 @@ class intel:
         self.distwhore=distwhore
         self.comment=comment
 
-    def load_from_db(self,client,cursor):
+    def load_from_db(self,cursor):
         query="SELECT t2.id AS id,pid,nick,defwhore,gov,covop,bg,fakenick,relay,reportchan,scanner,distwhore,comment,t1.name AS alliance"
         query+=" FROM intel AS t2"
         query+=" LEFT JOIN alliance_canon AS t1 ON t2.alliance_id=t1.id "
@@ -735,7 +735,7 @@ class booking:
         self.pid=pid
         self.uid=uid
 
-    def load_from_db(self,client,cursor):
+    def load_from_db(self,cursor):
         query="SELECT t1.id AS id, t1.nick AS nick, t1.pid AS pid, t1.tick AS tick, t1.uid AS uid FROM target AS t1 WHERE "
 
         if tick and pid:

@@ -56,7 +56,7 @@ class afford(loadable.loadable):
         ship_name=m.group(4)
         
         p=loadable.planet(x=x,y=y,z=z)
-        if not p.load_most_recent(irc_msg.client,self.cursor):
+        if not p.load_most_recent(self.cursor):
             irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
             return 1
         

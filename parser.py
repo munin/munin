@@ -97,8 +97,8 @@ class parser:
         i=irc_message.irc_message()
         m=self.welcomre.search(line)
         if m:
-            self.client.wline("PRIVMSG P@cservice.netgamers.org :auth %s" % (self.config.get("IRC", "auth")))
-            self.client.wline("MODE %s +%s" % (self.munin.nick, self.config.get("IRC", "modes")))
+            if self.config.has_option("IRC","auth"): self.client.wline("PRIVMSG P@cservice.netgamers.org :auth %s" % (self.config.get("IRC", "auth"))) 
+            if self.config.has_option("IRC", "modes"): self.client.wline("MODE %s +%s" % (self.munin.nick, self.config.get("IRC", "modes")))
             return None
         m=self.pinvitere.search(line)
         if m:

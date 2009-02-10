@@ -8,9 +8,9 @@ class rprod(loadable.loadable):
     """Find out how much you can spend with n factories
     in m ticks."""
 
-    def __init__(self, client, conn, cursor):
+    def __init__(self,cursor):
         
-        loadable.loadable.__init__(self, client, conn, cursor, 1)
+        loadable.loadable.__init__(self,cursor,1)
         self.paramre = re.compile(r"^\s+(\S+)\s+(\d+)\s+(\d+)")
         self.usage = (self.__class__.__name__ +
                       " <ship> <ticks> <factories>.")

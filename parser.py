@@ -23,7 +23,7 @@ Parser class
 # are included in this collective work with permission of the copyright
 # owners.
 
-import irc
+import irc_message
 import re
 import psycopg
 import sys
@@ -41,20 +41,18 @@ from mx import DateTime
 from clickatell import Clickatell
 
 
-
-
 DEBUG = 1
 
 # This is such a beast...
 
 class parser:
-    def __init__(self, config, client, irc):
+    def __init__(self, config, client, munin):
         # Private variables
         self.notprefix=r"~|-|\."
         self.pubprefix=r"!"
         self.privprefix='@'
         self.client=client
-        self.irc=irc
+        self.munin=munin
         self.ctrl_list={}
         self.config = config
 
@@ -96,10 +94,11 @@ class parser:
         self.scanre=re.compile("http://[^/]+/showscan.pl\?scan_id=([0-9a-zA-Z]+)")
         self.scangrpre=re.compile("http://[^/]+/showscan.pl\?scan_grp=([0-9a-zA-Z]+)")
     def parse(self,line):
+        i=irc_message.irc_message()
         m=self.welcomre.search(line)
         if m:
             self.client.wline("PRIVMSG P@cservice.netgamers.org :auth %s" % (self.config.get("IRC", "auth")))
-            self.client.wline("MODE %s +%s" % (self.irc.nick, self.config.get("IRC", "modes")))
+            self.client.wline("MODE %s +%s" % (self.munin.nick, self.config.get("IRC", "modes")))
             return None
         m=self.pinvitere.search(line)
         if m:
@@ -167,9 +166,9 @@ class parser:
                         self.client.reply(self.prefix_to_numeric(prefix),nick,target,"Successfully loaded module '%s'" % (mod_name,))
                     return "Successfully loaded module '%s'" % (mod_name,)
 
-                irc_msg=irc.message(client=client,nick=nick,username=username,host=host,
-                                    target=target,message=message,prefix=prefix,command=command,
-                                    user=user,access=access)
+                irc_msg=irc_message.irc_message(client=self.client,nick=nick,username=username,host=host,
+                                target=target,message=message,prefix=prefix,command=command,
+                                user=user,access=access)
 
                 m=self.helpre.search(command)
                 if m:
@@ -192,14 +191,12 @@ class parser:
             #print "Trying key %s with obj of class '%s'" % (k,ctrl.__class__.__name__)
 
             try:
-                if ctrl.execute(irc_msg.nick,irc_msg.target,
-                                irc_msg.command,irc_msg.user,
-                                irc_msg.access,irc_msg):
+                if ctrl.execute(irc_msg.user,irc_msg.access,irc_msg):
                     return "Successfully executed command '%s' with key '%s'" % (ctrl.__class__.__name__,k)
             except Exception, e:
                 del self.ctrl_list[k]
                 print "Exception in "+ ctrl.__class__.__name__ +" module dumped"
-                self.client.reply(irc_msg.prefix_numeric(),nick,target,"Error in module '"+ ctrl.__class__.__name__ +"'. Please report the command you used to jester as soon as possible.")
+                irc_msg.reply("Error in module '"+ ctrl.__class__.__name__ +"'. Please report the command you used to jester as soon as possible.")
                 print e.__str__()
                 traceback.print_exc()
                 if DEBUG:
@@ -246,13 +243,13 @@ class parser:
                 if access >= self.ctrl_list[param].level:
                     try:
                         #self.client.reply(prefix,nick,target,param+": "+self.ctrl_list[param].help())
-                        self.ctrl_list[param].help(irc_msg.nick,irc_msg.target,irc_msg.user,irc_msg.access,irc_msg)
+                        self.ctrl_list[param].help(irc_msg.user,irc_msg.access,irc_msg)
                         return "Successfully executed help for '%s' with key '%s'" % (self.ctrl_list[param].__class__.__name__,param)
                     except Exception, e:
                         ctrl=self.ctrl_list[param]
                         del self.ctrl_list[param]
                         print "Exception in "+ ctrl.__class__.__name__ +" module dumped"
-                        self.client.reply(prefix,nick,target,"Error in module '"+ ctrl.__class__.__name__ +"'. Please report the command you used to jester as soon as possible.")
+                        irc_msg.reply("Error in module '"+ ctrl.__class__.__name__ +"'. Please report the command you used to jester as soon as possible.")
                         print e.__str__()
                         traceback.print_exc()
                         if DEBUG:
@@ -267,13 +264,13 @@ class parser:
                             print "access: '%s'" % (irc_msg.access,)
                             err_msg=self.load_mod(param)
                             if err_msg:
-                                self.client.reply(prefix,nick,target,"Unable to reload module '%s', this may seriously impede further use" % (k,))
+                                irc_msg.reply("Unable to reload module '%s', this may seriously impede further use" % (k,))
                                 print err_msg
                         return
-        irc_msg.reply("Munin help. For more information use: <"+self.notprefix.replace("|","")+self.pubprefix.replace("|","")+self.privprefix.replace("|","")+">help <command>. Built-in commands: help" + (bool(access>=1000) and ", loadmod" or ""))
+        irc_msg.reply("Munin help. For more information use: <"+self.notprefix.replace("|","")+self.pubprefix.replace("|","")+self.privprefix.replace("|","")+">help <command>. Built-in commands: help" + (bool(irc_msg.access>=1000) and ", loadmod" or ""))
         command_list=[]
         for ctrl in self.ctrl_list.values():
-            if access >= ctrl.level:
+            if irc_msg.access >= ctrl.level:
                 command_list.append(ctrl.__class__.__name__)
         command_list.sort()
         irc_msg.reply("Loaded modules: "+ ", ".join(command_list))

@@ -19,9 +19,9 @@
 # are included in this collective work with permission of the copyright
 # owners.
 
-class message:
+class irc_message:
     
-    def __init__(self,client=None,nick=None,username=None,host=None,target=None,message=None,prefix_numeric=None,command=None,user=None,access=None,client=None):
+    def __init__(self,client=None,nick=None,username=None,host=None,target=None,message=None,prefix=None,command=None,user=None,access=None):
         self.notprefix=r"~|-|\."
         self.pubprefix=r"!"
         self.privprefix='@'
@@ -33,7 +33,7 @@ class message:
         self.host=host
         self.target=target
         self.message=message
-        self.prefix_numeric=prefix_numeric
+        self.prefix=prefix
         self.command=command
         self.user=user
         self.access=access
@@ -54,9 +54,9 @@ class message:
         return -1
 
     def reply(self,text):
-        self.client.reply(prefix_numeric(),nick,target,text)
+        self.client.reply(self.prefix_numeric(),self.nick,self.target,text)
 
     def match_command(self,regexp):
-        return regexp.search(command)
+        return regexp.search(self.command)
     def user_or_nick(self):
-        return user or nick
+        return self.user or self.nick

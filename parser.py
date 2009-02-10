@@ -294,6 +294,7 @@ class parser:
                 if source != "__init__":
                     filename=os.path.join(self.mod_dir, source+'.py')
                     execfile(filename)
+                    if DEBUG: print "Loading %s\n" % source,  
                     self.ctrl_list[source] = locals().get(source)(self.cursor)
 
     def prefix_to_numeric(self,prefix):

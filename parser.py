@@ -240,7 +240,7 @@ class parser:
     def help(self,irc_msg,param):
         if param:
             if self.ctrl_list.has_key(param):
-                if access >= self.ctrl_list[param].level:
+                if irc_msg.access >= self.ctrl_list[param].level:
                     try:
                         #self.client.reply(prefix,nick,target,param+": "+self.ctrl_list[param].help())
                         self.ctrl_list[param].help(irc_msg.user,irc_msg.access,irc_msg)

@@ -56,9 +56,10 @@ class gangbang(loadable.loadable):
         if subject: subject=subject.strip()
 
         a=loadable.alliance(name=subject)
-        if not a.load_most_recent(self.cursor):
-            irc_msg.reply("'%s' is not a valid alliance."%(subject,))
-            return 1
+        if a.name.lower() != "unknown":
+            if not a.load_most_recent(self.cursor):            
+                self.client.reply(prefix,nick,target,"'%s' is not a valid alliance."%(subject,))
+                return 1
 
         if when and when < 80:
             tick=curtick+when
@@ -73,7 +74,7 @@ class gangbang(loadable.loadable):
         query+=" FROM target AS t1"
         query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
         query+=" LEFT JOIN user_list AS t2 ON t1.uid=t2.id"
-        query+=" INNER JOIN intel AS t4 ON t1.pid=t4.pid"
+        query+=(" INNER" if a.id else " LEFT")+" JOIN intel AS t4 ON t1.pid=t4.pid"
         query+=" WHERE"
 
         if when:
@@ -83,7 +84,7 @@ class gangbang(loadable.loadable):
             query+=" t1.tick > (SELECT MAX(tick) FROM updates)"
 
         query+=" AND t3.tick = (SELECT MAX(tick) FROM updates)"
-        query+=" AND t4.alliance_id = %s"
+        query+=" AND t4.alliance_id "+("=" if a.id else "IS")+" %s"
         query+=" ORDER BY tick, x, y, z"
         self.cursor.execute(query,args+(a.id,))
 

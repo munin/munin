@@ -71,7 +71,7 @@ class ship(loadable.loadable):
             self.client.reply(prefix,nick,target,"%s is not a ship" % (ship_name))
             return 0
 
-        reply="%s is class %s | Target 1: %s |"%(s['name'],s['class'],s['target_1'])
+        reply="%s (%s) is class %s | Target 1: %s |"%(s['name'],s['race'][:3],s['class'],s['target_1'])
         if s['target_2'] != "NULL":
             reply+=" Target 2: %s |"%(s['target_2'],)
         if s['target_3'] != "NULL":

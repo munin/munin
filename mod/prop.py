@@ -182,7 +182,7 @@ class prop(loadable.loadable):
             reply+=" This prop expired %d days ago."%(DateTime.Age(DateTime.now(),r['closed']).days,)
         elif r['padding'] > 0:
             reply+=" Due to previous failures I'm voting no on this prop with %d %s"%(r['padding'],self.pluralize(r['padding'],'carebear'))
-        if target[0] != "#" or irc_msg.prefix == irc_msg.client.NOTICE_PREFIX or irc_msg.prefix == irc_msg.client.PRIVATE_PREFIX:
+        if irc_msg.target[0] != "#" or irc_msg.prefix == irc_msg.client.NOTICE_PREFIX or irc_msg.prefix == irc_msg.client.PRIVATE_PREFIX:
             query="SELECT vote,carebears FROM prop_vote"
             query+=" WHERE prop_id=%d AND voter_id=%d"
             self.cursor.execute(query,(prop_id,u.id))

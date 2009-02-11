@@ -22,7 +22,7 @@
 # owners.
 
 import sys
-import psycopg
+from psycopg2 import psycopg1 as psycopg
 
 
 class migrator:

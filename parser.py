@@ -25,7 +25,7 @@ Parser class
 
 import irc_message
 import re
-import psycopg
+from psycopg2 import psycopg1 as psycopg
 import sys
 sys.path.insert(0, "custom")
 import os
@@ -67,8 +67,8 @@ class parser:
             self.dsn += ' host=%s' % config.get("Database", "host")
         # database connection and cursor
         self.conn=psycopg.connect(self.dsn)
-        self.conn.serialize()
-        self.conn.autocommit()
+        self.conn.set_isolation_level(0)
+
         self.cursor=self.conn.cursor()
 
         self.galstatus=galstatus.galstatus(self.client,self.conn,self.cursor,config)

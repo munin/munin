@@ -20,7 +20,7 @@
 # owners.
 
 import loadable
-import psycopg
+from psycopg2 import psycopg1 as psycopg
 import re
 import threading
 import traceback

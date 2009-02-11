@@ -26,7 +26,7 @@ Loadable class
 import re
 import string
 import ConfigParser
-import psycopg
+from psycopg2 import psycopg1 as psycopg
 from mx import DateTime
 
 class loadable:

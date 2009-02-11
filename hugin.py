@@ -25,7 +25,7 @@ import time
 
 import ConfigParser
 import os
-import psycopg
+from psycopg2 import psycopg1 as psycopg
 import re
 import traceback
 import urllib2

@@ -36,7 +36,7 @@ class racism(loadable.loadable):
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(\S+)")
         self.usage=self.__class__.__name__ + " [alliance] (All information taken from intel, for tag information use the lookup command)"
-        self.help=['Shows averages for each race matching a given alliance in intel.']
+        self.helptext=['Shows averages for each race matching a given alliance in intel.']
 
     def execute(self,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)

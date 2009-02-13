@@ -292,10 +292,9 @@ class prop(loadable.loadable):
             query="UPDATE user_list SET carebears = carebears + %d"
             query+=" WHERE id=%d"
             modifier=[prop['padding'],0][yes>no]
-            total_mod=[0,prop['padding']][yes>no]
             r=((losing_total-modifier)*int(l['carebears']))/losing_total
             if yes>no and prop['padding']>0:
-                r+=(prop['padding']*int(l['carebears']))/prop['padding']
+                r+=(prop['padding']*int(l['carebears']))/(losing_total-prop['padding'])
             print "Paying out %d with %d carebears (orig %d) for w: %d and l: %d"%(l['voter_id'],l['carebears']+r,l['carebears'],winning_total,losing_total)
             self.add_return([voters['yes'],voters['no']][yes>no],l['voter_id'],l['carebears']+r)
             self.cursor.execute(query,(l['carebears']+r, l['voter_id']))

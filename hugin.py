@@ -180,10 +180,10 @@ while True:
         print "Copied dumps in %.3f seconds" % (t2,)
         t1=time.time()
 
-        query="SELECT store_update(%d::smallint,%s,%s,%s)"
+        query="SELECT store_update(%s::smallint,%s::text,%s::text,%s::text)"
         cursor.execute(query,(planet_tick,ptmp,gtmp,atmp))
 
-        query="SELECT store_planets(%d::smallint)"
+        query="SELECT store_planets(%s::smallint)"
         cursor.execute(query,(planet_tick,))
         t2=time.time()-t1
         print "Processed and inserted planet dumps in %.3f seconds" % (t2,)
@@ -195,13 +195,13 @@ while True:
         #for result in cursor.dictfetchall():
         #    print result
 
-        query="SELECT store_galaxies(%d::smallint)"
+        query="SELECT store_galaxies(%s::smallint)"
         cursor.execute(query,(galaxy_tick,))
         t2=time.time()-t1
         print "Processed and inserted galaxy dumps in %.3f seconds" % (t2,)
         t1=time.time()
 
-        query="SELECT store_alliances(%d::smallint)"
+        query="SELECT store_alliances(%s::smallint)"
         cursor.execute(query,(alliance_tick,))    
         t2=time.time()-t1
         print "Processed and inserted alliance dumps in %.3f seconds" % (t2,)

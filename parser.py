@@ -130,7 +130,7 @@ class parser:
             command=m.group(2)
 
 
-            query="SELECT * FROM access_level(%s,%s,%d)"
+            query="SELECT * FROM access_level(%s::text,%s::text,%s::int)"
             self.cursor.execute(query,(user,target,self.prefix_to_numeric(prefix) == self.client.NOTICE_PREFIX or self.prefix_to_numeric(prefix) == self.client.PRIVATE_PREFIX))
             access=self.cursor.dictfetchone()['access_level'] or 0
             print "access: %d, user: %s, #channel: %s"%(access,user,target)

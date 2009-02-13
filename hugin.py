@@ -55,7 +55,7 @@ while True:
         conn=psycopg.connect(DSN)
         cursor=conn.cursor()
 
-        cursor.execute("SELECT MAX(tick) FROM updates")
+        cursor.execute("SELECT max_tick()")
         last_tick=int(cursor.fetchone()[0])
         if not last_tick:
             last_tick = -1

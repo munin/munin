@@ -116,7 +116,7 @@ class details(loadable.loadable):
         query+=" FROM target AS t1"
         query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
         query+=" LEFT JOIN user_list AS t2 ON t1.uid=t2.id"
-        query+=" WHERE t1.tick > (SELECT MAX(tick) FROM updates) AND t3.tick = (SELECT MAX(tick) FROM updates) AND t3.x=%s AND t3.y=%s AND t3.z=%s"
+        query+=" WHERE t1.tick > (SELECT max_tick()) AND t3.tick = (SELECT max_tick()) AND t3.x=%s AND t3.y=%s AND t3.z=%s"
         
         self.cursor.execute(query,(p.x,p.y,p.z))
         if self.cursor.rowcount < 1:

@@ -82,8 +82,8 @@ class status(loadable.loadable):
                 query+=" t1.tick = %s"
                 args+=(tick,)
             else:
-                query+=" t1.tick > (SELECT MAX(tick) FROM updates)"
-            query+=" AND t3.tick = (SELECT MAX(tick) FROM updates) AND t3.x=%s AND t3.y=%s"
+                query+=" t1.tick > (SELECT max_tick())"
+            query+=" AND t3.tick = (SELECT max_tick()) AND t3.x=%s AND t3.y=%s"
 
             if z:
                 p=loadable.planet(x=x,y=y,z=z)
@@ -184,9 +184,9 @@ class status(loadable.loadable):
                 query+=" t1.tick = %s"
                 args+=(tick,)
             else:
-                query+=" t1.tick > (SELECT MAX(tick) FROM updates)"
+                query+=" t1.tick > (SELECT max_tick())"
                 
-            query+=" AND t3.tick = (SELECT MAX(tick) FROM updates) AND (t1.nick ILIKE %s OR t2.pnick ILIKE %s)"
+            query+=" AND t3.tick = (SELECT max_tick()) AND (t1.nick ILIKE %s OR t2.pnick ILIKE %s)"
             self.cursor.execute(query,args+('%'+subject+'%','%'+subject+'%'))
             if self.cursor.rowcount < 1:
                 reply="No active bookings matching nick/user %s" %(subject)
@@ -234,8 +234,8 @@ class status(loadable.loadable):
         query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
         query+=" LEFT JOIN user_list AS t2 ON t1.uid=t2.id"
         query+=" WHERE"
-        query+=" t1.tick > (SELECT MAX(tick) FROM updates)"
-        query+=" AND t3.tick = (SELECT MAX(tick) FROM updates) AND t2.pnick ILIKE %s"
+        query+=" t1.tick > (SELECT max_tick())"
+        query+=" AND t3.tick = (SELECT max_tick()) AND t2.pnick ILIKE %s"
         self.cursor.execute(query,args+(irc_msg.user,))
         if self.cursor.rowcount < 1:
             reply="No active bookings matching user %s" %(irc_msg.user,)

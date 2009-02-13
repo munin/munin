@@ -56,7 +56,7 @@ class spam(loadable.loadable):
         query+=" FROM planet_dump AS t1 INNER JOIN planet_canon AS t3 ON t1.id=t3.id"
         query+=" INNER JOIN intel AS t2 ON t3.id=t2.pid"
         query+=" LEFT JOIN alliance_canon AS t6 ON t2.alliance_id=t6.id"
-        query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates) AND (t6.name ILIKE %s) ORDER BY x,y,z"
+        query+=" WHERE t1.tick=(SELECT max_tick()) AND (t6.name ILIKE %s) ORDER BY x,y,z"
         self.cursor.execute(query,args)
 
         planets=self.cursor.dictfetchall()

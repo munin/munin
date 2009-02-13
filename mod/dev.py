@@ -125,7 +125,7 @@ class dev(loadable.loadable):
             query+="+metal_refinery+crystal_refinery+eonium_refinery+research_lab+finance_centre+security_centre"
             query+=" FROM scan AS t1 INNER JOIN development AS t2 ON t1.id=t2.scan_id"
             query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
-            query+=" WHERE t3.tick=(SELECT MAX(tick) FROM updates) AND t1.rand_id=%s ORDER BY t1.tick DESC"
+            query+=" WHERE t3.tick=(SELECT max_tick()) AND t1.rand_id=%s ORDER BY t1.tick DESC"
             self.cursor.execute(query,(rand_id,))
         
             if self.cursor.rowcount < 1:

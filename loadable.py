@@ -80,7 +80,7 @@ class loadable:
         return param_dict
 
     def current_tick(self):
-        self.cursor.execute("SELECT MAX(tick) FROM updates")
+        self.cursor.execute("SELECT max_tick()")
         return self.cursor.fetchone()[0]
 
     def load_user(self,pnick,irc_msg):
@@ -313,15 +313,15 @@ class planet:
         p={}
         if self.x > -1 and self.y > -1 and self.z > -1:
             #load from coords
-            query="SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id FROM planet_dump WHERE x=%s AND y=%s AND z=%s AND tick=(SELECT MAX(tick) FROM updates)"
+            query="SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id FROM planet_dump WHERE x=%s AND y=%s AND z=%s AND tick=(SELECT max_tick())"
             cursor.execute(query,(self.x,self.y,self.z))
             pass
         elif self.planetname and self.rulername:
-            query="SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id FROM planet_dump WHERE planetname=%s AND rulername=%s AND tick=(SELECT MAX(tick) FROM updates)"
+            query="SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id FROM planet_dump WHERE planetname=%s AND rulername=%s AND tick=(SELECT max_tick())"
             cursor.execute(query,(self.planetname,self.rulername))
             pass
         elif self.id > 0:
-            query="SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id FROM planet_dump WHERE id=%s AND tick=(SELECT MAX(tick) FROM updates)"
+            query="SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id FROM planet_dump WHERE id=%s AND tick=(SELECT max_tick())"
             cursor.execute(query,(self.id,))
         else:
             raise Exception("Tried to load planet with no unique identifiers")
@@ -387,7 +387,7 @@ class galaxy:
         g={}
         if self.x > 0 and self.y > 0:
             #load from coords
-            query="SELECT x,y,name,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,id FROM galaxy_dump WHERE x=%s AND y=%s AND tick=(SELECT MAX(tick) FROM updates)"
+            query="SELECT x,y,name,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,id FROM galaxy_dump WHERE x=%s AND y=%s AND tick=(SELECT max_tick())"
             cursor.execute(query,(self.x,self.y))
             pass
         else:
@@ -437,12 +437,12 @@ class alliance:
         a={}
         if self.name:
             #load from exact name
-            query="SELECT name,size,members,score,size_rank,members_rank,score_rank,score_avg,size_avg,score_avg_rank,size_avg_rank,id FROM alliance_dump WHERE name ILIKE %s AND tick=(SELECT MAX(tick) FROM updates)"
+            query="SELECT name,size,members,score,size_rank,members_rank,score_rank,score_avg,size_avg,score_avg_rank,size_avg_rank,id FROM alliance_dump WHERE name ILIKE %s AND tick=(SELECT max_tick())"
             cursor.execute(query,(self.name,))
 
             #if that doesn't work, load from fuzzy name
             if cursor.rowcount < 1:
-                query="SELECT name,size,members,score,size_rank,members_rank,score_rank,score_avg,size_avg,score_avg_rank,size_avg_rank,id FROM alliance_dump WHERE name ILIKE %s AND tick=(SELECT MAX(tick) FROM updates)"
+                query="SELECT name,size,members,score,size_rank,members_rank,score_rank,score_avg,size_avg,score_avg_rank,size_avg_rank,id FROM alliance_dump WHERE name ILIKE %s AND tick=(SELECT max_tick())"
                 cursor.execute(query,("%"+self.name+"%",))
             pass
         else:

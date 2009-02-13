@@ -55,7 +55,7 @@ class info(loadable.loadable):
         query+=" FROM planet_dump AS t1"
         query+=" INNER JOIN intel AS t2 ON t1.id=t2.pid"
         query+=" LEFT JOIN alliance_canon t3 ON t2.alliance_id=t3.id"
-        query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates) AND t3.name ILIKE %s"
+        query+=" WHERE t1.tick=(SELECT max_tick()) AND t3.name ILIKE %s"
         query+=" GROUP BY t3.name ILIKE %s"
 
         self.cursor.execute(query,('%'+alliance+'%','%'+alliance+'%'))

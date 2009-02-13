@@ -68,7 +68,6 @@ class phone(loadable.loadable):
             query+=" WHERE t1.user_id=%s"
             self.cursor.execute(query,args)
             results=self.cursor.dictfetchall()
-
             reply=""
 
             if len(results) < 1:
@@ -86,6 +85,9 @@ class phone(loadable.loadable):
 
 
         trustee=m.group(3)
+        if not trustee:
+            irc_msg.reply("Usage: %s" % (self.usage,))
+            return 1
         t_user=loadable.user(pnick=trustee)
 
         if not t_user.load_from_db(self.cursor):

@@ -162,7 +162,6 @@ class f(loadable.loadable):
         if self.cursor.rowcount < 1:
             irc_msg.reply("Something went wrong. Old status was %s, new status was %s, defcall id was %s"%(old_status,s['status'],d.id))
         else:
-            irc_msg.reply(
-                              "Updated defcall %s on %s:%s:%s landing pt %s from status '%s' to '%s'"%(d.id,p.x,p.y,p.z,d.landing_tick,d.actual_status,s['status']))
+            irc_msg.reply("Updated defcall %s on %s:%s:%s landing pt %s from status '%s' to '%s'"%(d.id,p.x,p.y,p.z,d.landing_tick,d.actual_status,s['status']))
         
         return 1

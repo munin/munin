@@ -94,12 +94,11 @@ class rprod(loadable.loadable):
         ships = int(res / ship['total_cost'])
         feud_ships = int(res / ((ship['total_cost'] * (1-float(self.config.get('Planetarion', 'feudalism')))) / 1.2))
         
-        irc_msg.reply(
-        "You can build %s %s (%s) in %d ticks, or \
+        irc_msg.reply("You can build %s %s (%s) in %d ticks, or \
 %s %s in (%s) %d ticks with feudalism." % (self.format_value(ships * 100),
-                                      ship['name'], self.format_value(ships * ship['total_cost']),
-                                      ticks, self.format_value(feud_ships * 100),
-                                      ship['name'], self.format_value(feud_ships * ship['total_cost']),
-                                      ticks))
+                                           ship['name'], self.format_value(ships * ship['total_cost']),
+                                           ticks, self.format_value(feud_ships * 100),
+                                           ship['name'], self.format_value(feud_ships * ship['total_cost']),
+                                           ticks))
     
         return 1

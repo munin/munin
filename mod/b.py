@@ -88,7 +88,6 @@ class b(loadable.loadable):
             irc_msg.reply("Something went wrong. Defcall id was %s and new bcalc was '%s'"%(d.id,new_bcalc))
         else:
             p=d.actual_target
-            irc_msg.reply(
-                              "Updated defcall %s on %s:%s:%s landing pt %s with bcalc '%s'"%(d.id,p.x,p.y,p.z,d.landing_tick,new_bcalc))
+            irc_msg.reply("Updated defcall %s on %s:%s:%s landing pt %s with bcalc '%s'"%(d.id,p.x,p.y,p.z,d.landing_tick,new_bcalc))
         
         return 1

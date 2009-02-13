@@ -146,8 +146,7 @@ class pref(loadable.loadable):
 
     def save_pubphone(self,irc_msg,u,status,access):
         if access < 100:
-            irc_msg.reply(
-                              "Only %s members can allow all members of %s to view their phone"%(self.config.get('Auth','alliance'),
+            irc_msg.reply("Only %s members can allow all members of %s to view their phone"%(self.config.get('Auth','alliance'),
                                                                                                  self.config.get('Auth','alliance')))
             return 0
         query=""

@@ -38,7 +38,7 @@ class intel(loadable.loadable):
         self.options = ['alliance', 'nick', 'fakenick', 'defwhore', 'covop', 'scanner', 'distwhore', 'bg', 'gov', 'relay', 'reportchan', 'comment']
         self.nulls = ["<>",".","-","?"]
         self.true = ["1","yes","y","true","t"]
-        self.false = ["0","no","n","false","f"]
+        self.false = ["0","no","n","false","f",""]
         self.helptext=["Valid options: %s" % (string.join(self.options,', '))]
 
     def execute(self,user,access,irc_msg):

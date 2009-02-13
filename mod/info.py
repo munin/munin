@@ -49,14 +49,7 @@ class info(loadable.loadable):
         
         alliance=m.group(1)
 
-        
-        
-        query="SELECT count(*) AS members,sum(t1.value) AS tot_value, sum(t1.score) AS tot_score, sum(t1.size) AS tot_size, sum(t1.xp) AS tot_xp"
-        query+=" FROM planet_dump AS t1"
-        query+=" INNER JOIN intel AS t2 ON t1.id=t2.pid"
-        query+=" LEFT JOIN alliance_canon t3 ON t2.alliance_id=t3.id"
-        query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates) AND t3.name ILIKE %s"
-        query+=" GROUP BY t3.name ILIKE %s"
+        query = self.query_for_info()
 
         self.cursor.execute(query,('%'+alliance+'%','%'+alliance+'%'))
         reply=""
@@ -64,11 +57,34 @@ class info(loadable.loadable):
             reply="Nothing in intel matches your search '%s'" % (alliance,)
         else:
             res=self.cursor.dictfetchone()
-        
-            reply="%s Members: %s, Value: %s, Avg: %s," % (alliance,res['members'],res['tot_value'],res['tot_value']/res['members'])
-            reply+=" Score: %s, Avg: %s," % (res['tot_score'],res['tot_score']/res['members']) 
-            reply+=" Size: %s, Avg: %s, XP: %s, Avg: %s" % (res['tot_size'],res['tot_size']/res['members'],res['tot_xp'],res['tot_xp']/res['members'])
+            if res['members'] > 60:
+                query=self.query_for_info_limit_60()
+                self.cursor.execute(query)
+                ts=self.cursor.dictfetchone()
+                reply+="%s Members: %s (%s)" % (alliance,res['members'],ts['members'])
+                reply+=", Value: %s (%s), Avg: %s (%s)" % (res['tot_value'],ts['tot_value'],res['tot_value']/res['members'],ts['tot_value']/ts['members'])
+                reply+=", Score: %s (%s), Avg: %s (%s)" % (res['tot_score'],ts['tot_score'],res['tot_score']/res['members'],ts['tot_score']/ts['members'])
+                reply+=", Size: %s (%s), Avg: %s (%s)" % (res['tot_size'],ts['tot_size'],res['tot_size']/res['members'],ts['tot_size']/ts['members'])
+                reply+=", XP: %s (%s), Avg: %s (%s)" % (res['tot_xp'],ts['tot_xp'],res['tot_xp']/res['members'],ts['tot_xp']/ts['members'])
+            else:
+                reply+="%s Members: %s, Value: %s, Avg: %s," % (alliance,res['members'],res['tot_value'],res['tot_value']/res['members'])
+                reply+=" Score: %s, Avg: %s," % (res['tot_score'],res['tot_score']/res['members']) 
+                reply+=" Size: %s, Avg: %s, XP: %s, Avg: %s" % (res['tot_size'],res['tot_size']/res['members'],res['tot_xp'],res['tot_xp']/res['members'])
         irc_msg.reply(reply)
         
         return 1
-                                                                                                                                            
+
+    def query_for_info_limit_60(self):
+        query=self.query_for_info();
+        query+=" ORDER BY score"
+        query+=" LIMIT 60"
+        return query
+    
+    def query_for_info(self):
+        query="SELECT count(*) AS members,sum(t1.value) AS tot_value, sum(t1.score) AS tot_score, sum(t1.size) AS tot_size, sum(t1.xp) AS tot_xp"
+        query+=" FROM planet_dump AS t1"
+        query+=" INNER JOIN intel AS t2 ON t1.id=t2.pid"
+        query+=" LEFT JOIN alliance_canon t3 ON t2.alliance_id=t3.id"
+        query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates) AND t3.name ILIKE %s"
+        query+=" GROUP BY t3.name ILIKE %s"
+        return query

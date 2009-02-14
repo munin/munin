@@ -31,8 +31,7 @@ class prod(loadable.loadable):
         match = self.paramre.search(match.group(1))
         
         if not match:
-            irc_msg.reply("Usage: %s, production time of n ships with n factories."
-                          % self.usage)
+            irc_msg.reply("Usage: %s, production time of n ships with n factories." % self.usage)
             return 0
 
         if access < self.level:
@@ -65,7 +64,6 @@ class prod(loadable.loadable):
 
         def ln(n):
             """Natural logarithm."""
-
             return math.log(n, math.e)
 
         cost = number * ship['total_cost']

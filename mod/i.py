@@ -78,7 +78,7 @@ class i(loadable.loadable):
         query+=" INNER JOIN defcalls AS t4"
         query+=" ON t1.target=t4.target AND t1.landing_tick=t4.landing_tick"
         query+=" WHERE t2.tick = (SELECT max_tick()) AND t3.tick = (SELECT max_tick())"
-        query+=" AND t4.id=%d"
+        query+=" AND t4.id=%s"
         
         self.cursor.execute(query,(int(d.id),))
         

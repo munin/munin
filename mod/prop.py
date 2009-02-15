@@ -184,7 +184,7 @@ class prop(loadable.loadable):
             reply+=" Due to previous failures I'm voting no on this prop with %d %s"%(r['padding'],self.pluralize(r['padding'],'carebear'))
         if irc_msg.target[0] != "#" or irc_msg.prefix == irc_msg.client.NOTICE_PREFIX or irc_msg.prefix == irc_msg.client.PRIVATE_PREFIX:
             query="SELECT vote,carebears FROM prop_vote"
-            query+=" WHERE prop_id=%d AND voter_id=%d"
+            query+=" WHERE prop_id=%s AND voter_id=%s"
             self.cursor.execute(query,(prop_id,u.id))
             s=self.cursor.dictfetchone()
             if s:
@@ -238,7 +238,7 @@ class prop(loadable.loadable):
             return
         
         query="SELECT id,vote,carebears, prop_id FROM prop_vote"
-        query+=" WHERE prop_id=%d AND voter_id=%d"
+        query+=" WHERE prop_id=%s AND voter_id=%s"
         self.cursor.execute(query,(prop_id,u.id))
         old_vote=self.cursor.dictfetchone()
         cost=0
@@ -251,13 +251,13 @@ class prop(loadable.loadable):
             irc_msg.reply("You don't have enough carebears to cover that vote. Your vote would have required %d, but you only have %d carebears."%(cost,u.carebears))
             return
 
-        query="UPDATE user_list SET carebears = carebears - %d WHERE id = %d"
+        query="UPDATE user_list SET carebears = carebears - %s WHERE id = %s"
         self.cursor.execute(query,(cost,u.id))
         if old_vote:
-            query="DELETE FROM prop_vote WHERE id=%d AND voter_id=%d"
+            query="DELETE FROM prop_vote WHERE id=%s AND voter_id=%s"
             self.cursor.execute(query,(old_vote['id'],u.id))
 
-        query="INSERT INTO prop_vote (vote,carebears,prop_id,voter_id) VALUES (%s,%d,%d,%d)"
+        query="INSERT INTO prop_vote (vote,carebears,prop_id,voter_id) VALUES (%s,%s,%s,%s)"
         self.cursor.execute(query,(vote,carebears,prop['id'],u.id))
         if old_vote:
             reply="Changed your vote on proposition %d from %s"%(prop['id'],old_vote['vote'])
@@ -289,8 +289,8 @@ class prop(loadable.loadable):
         (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(voters,yes,no)
 
         for l in losers:
-            query="UPDATE user_list SET carebears = carebears + %d"
-            query+=" WHERE id=%d"
+            query="UPDATE user_list SET carebears = carebears + %s"
+            query+=" WHERE id=%s"
             modifier=[prop['padding'],0][yes>no]
             total_mod=[0,prop['padding']][yes>no]
             r=((losing_total-modifier)*int(l['carebears']))/losing_total
@@ -301,8 +301,8 @@ class prop(loadable.loadable):
             self.cursor.execute(query,(l['carebears']+r, l['voter_id']))
 
         for w in winners:
-            query="UPDATE user_list SET carebears = carebears + %d"
-            query+=" WHERE id=%d"
+            query="UPDATE user_list SET carebears = carebears + %s"
+            query+=" WHERE id=%s"
             modifier=[prop['padding'],0][yes>no]
             r=((winning_total-losing_total)*int(w['carebears']))/(winning_total-modifier)
             print "Reimbursing %d with %d carebears (orig %d) for w: %d and l: %d"%(w['voter_id'],r,w['carebears'],winning_total,losing_total)
@@ -332,8 +332,8 @@ class prop(loadable.loadable):
             self.do_invite(irc_msg,prop)
 
         query="UPDATE %s_proposal SET active = FALSE, closed = NOW()" % (prop['prop_type'],)
-        query+=", vote_result=%s,compensation=%d"
-        query+=" WHERE id=%d"
+        query+=", vote_result=%s,compensation=%s"
+        query+=" WHERE id=%s"
         self.cursor.execute(query,(['no','yes'][yes>no],losing_total,prop['id']))
 
     def process_cancel_proposal(self, irc_msg, u, prop_id):
@@ -352,14 +352,14 @@ class prop(loadable.loadable):
         all_voters.extend(voters['yes'])
         all_voters.extend(voters['no'])
         for v in all_voters:
-            query="UPDATE user_list SET carebears = carebears + %d WHERE id=%d"
+            query="UPDATE user_list SET carebears = carebears + %s WHERE id=%s"
             self.cursor.execute(query,(v['carebears'],v['voter_id']))
 
-        query="DELETE FROM prop_vote WHERE prop_id=%d"
+        query="DELETE FROM prop_vote WHERE prop_id=%s"
         self.cursor.execute(query,(prop['id'],))
 
         query="DELETE FROM %s_proposal " %(prop['prop_type'],)
-        query+=" WHERE id=%d"
+        query+=" WHERE id=%s"
         self.cursor.execute(query,(prop['id'],))
 
         reply="Cancelled proposal %d to %s %s. Reimbursing voters in favor (" %(prop['id'],prop['prop_type'],prop['person'])
@@ -419,7 +419,7 @@ class prop(loadable.loadable):
         query+=", t1.prop_id AS prop_idd,t1.voter_id AS voter_id,t2.pnick AS pnick"
         query+=" FROM prop_vote AS t1"
         query+=" INNER JOIN user_list AS t2 ON t1.voter_id=t2.id"
-        query+=" WHERE prop_id=%d"
+        query+=" WHERE prop_id=%s"
         self.cursor.execute(query,(prop_id,))
         voters={}
         voters['yes']=[]
@@ -482,7 +482,7 @@ class prop(loadable.loadable):
         query+=" t3.comment_text AS comment_text, t3.active AS active, t3.closed AS closed"
         query+=" FROM kick_proposal AS t3"
         query+=" INNER JOIN user_list AS t4 ON t3.proposer_id=t4.id"
-        query+=" INNER JOIN user_list AS t5 ON t3.person_id=t5.id)) AS t6 WHERE t6.id=%d"
+        query+=" INNER JOIN user_list AS t5 ON t3.person_id=t5.id)) AS t6 WHERE t6.id=%s"
         
         self.cursor.execute(query,(prop_id,))
         return self.cursor.dictfetchone()
@@ -509,7 +509,7 @@ class prop(loadable.loadable):
         query="INSERT INTO invite_proposal (proposer_id, person, comment_text, padding)"
         query+=" VALUES (%s, %s, %s, %s)"
         self.cursor.execute(query,(user.id,person,comment,padding))
-        query="SELECT id FROM invite_proposal WHERE proposer_id = %d AND person = %s AND active ORDER BY created DESC"
+        query="SELECT id FROM invite_proposal WHERE proposer_id = %s AND person = %s AND active ORDER BY created DESC"
         self.cursor.execute(query,(user.id,person))
         return self.cursor.dictfetchone()['id']
 
@@ -517,12 +517,12 @@ class prop(loadable.loadable):
         query="INSERT INTO kick_proposal (proposer_id, person_id, comment_text, padding)"
         query+=" VALUES (%s, %s, %s, %s)"
         self.cursor.execute(query,(user.id,person.id,comment,padding))
-        query="SELECT id FROM kick_proposal WHERE proposer_id = %d AND person_id = %d AND active ORDER BY created DESC"
+        query="SELECT id FROM kick_proposal WHERE proposer_id = %s AND person_id = %s AND active ORDER BY created DESC"
         self.cursor.execute(query,(user.id,person.id))
         return self.cursor.dictfetchone()['id']
         
     def is_already_proposed_kick(self,person_id):
-        query="SELECT id FROM kick_proposal WHERE person_id = %d AND active" 
+        query="SELECT id FROM kick_proposal WHERE person_id = %s AND active" 
         self.cursor.execute(query,(person_id,))
         return self.cursor.rowcount > 0
 

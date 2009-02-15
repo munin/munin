@@ -94,9 +94,9 @@ class cookie(loadable.loadable):
             irc_msg.reply("Fuck you, %s. You can't have your cookies and eat them, you selfish dicksuck."%(u.pnick,))
             return 1
         
-        query="UPDATE user_list SET carebears = carebears + %d WHERE id = %s"
+        query="UPDATE user_list SET carebears = carebears + %s WHERE id = %s"
         self.cursor.execute(query,(howmany,rec.id))
-        query="UPDATE user_list SET available_cookies = available_cookies - %d WHERE id = %s"
+        query="UPDATE user_list SET available_cookies = available_cookies - %s WHERE id = %s"
         self.cursor.execute(query,(howmany,u.id))
         irc_msg.reply("%s said '%s' and gave %d %s to %s, who stuffed their face and now has %d carebears"%(u.pnick,
                                                                                                             reason,

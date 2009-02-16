@@ -43,7 +43,7 @@ class letmein(loadable.loadable):
         if not m:
             return 0
         
-        public=re.match(r"(#\S+)",re.I)
+        public=re.match(r"(#\S+)",irc_msg.target,re.I)
         if public:
             irc_msg.reply("Don't use this command in public you shit")
         

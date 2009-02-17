@@ -63,7 +63,7 @@ class dev(loadable.loadable):
             
             p=loadable.planet(x=x,y=y,z=z)
             if not p.load_most_recent(self.cursor):
-                irc_msg.reply("No planet matching '%s' found"%(param,))
+                irc_msg.reply("No planet matching '%s' found"%(params,))
                 return 1
             
             query="SELECT t2.id AS id,t1.tick,nick,scantype,rand_id,travel,infrastructure,hulls,waves,core,covert_op,mining"

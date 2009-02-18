@@ -27,14 +27,14 @@ import irc_message
 import re
 import psycopg
 import sys
-sys.path.insert(0, "custom")
+#sys.path.insert(0, "custom")
 import os
 import traceback
 import string
 import math
 import loadable
-import scan
-import galstatus
+from custom import scan
+from custom import galstatus
 import datetime
 import md5
 from mx import DateTime

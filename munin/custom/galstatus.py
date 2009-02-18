@@ -19,7 +19,8 @@
 # are included in this collective work with permission of the copyright
 # owners.
 
-import loadable
+
+from munin.loadable import loadable
 import re
 import traceback
 

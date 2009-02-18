@@ -19,7 +19,9 @@
 # are included in this collective work with permission of the copyright
 # owners.
 
-import loadable
+import sys
+
+from munin.loadable import loadable
 import psycopg
 import re
 import threading

@@ -32,33 +32,23 @@ class munin:
         config = ConfigParser.ConfigParser()
         if not config.read('muninrc'):
             raise ValueError("Expected configuration in muninrc, not found.")
-        self.nick = config.get("Connection", "nick")
-        self.user = config.get("Connection", "user")
-        self.ircname = config.get("Connection", "name")
 
         self.client = connection(config)
         self.handler = parser(config, self.client,self)
-        self.client.connect()
-        self.run()
-        
-    def run(self):
-        self.client.wline("NICK %s" % self.nick)
-        self.client.wline("USER %s 0 * : %s" % (self.user,self.ircname))
-        
-        while 1:
-            line = self.client.rline()
-            if not line:
-                break
-            debug=self.handler.parse(line)
-            if debug:
-                print debug
 
+        while True:
+            try:
+                self.reboot()
+            except Exception, e:
+                print "Exception during command: " + e.__str__()
 
+    def reboot(self):
+        self.ircu_router=irc_router(self.client,self.config,self.reboot)
+        self.irc_router.run()
 
 ofile=file("pid.munin", "w")
 ofile.write("%s" % (os.getpid(),))
 ofile.close()
-
     
 munin()
 

@@ -21,29 +21,34 @@
 
 class irc_message:
     
-    def __init__(self,client=None,nick=None,username=None,host=None,target=None,message=None,prefix=None,command=None,user=None,access=None):
+    def __init__(self,client=None,nick=None,username=None,host=None,target=None,message=None,prefix=None,command=None):
+
         self.notprefix=r"~|-|\."
         self.pubprefix=r"!"
         self.privprefix='@'
 
+        self.privmsgre=re.compile(r"^:(\S+)!(\S+)@(\S+)\s+PRIVMSG\s+(\S+)\s+:(\s*(%s|%s|%s)(.*?)\s*)$" %(self.notprefix,self.pubprefix,self.privprefix))
+        self.pnickre=re.compile(r"(\S{2,15})\.users\.netgamers\.org")
+
         self.client=client
 
-        self.nick=nick
-        self.username=username
-        self.host=host
-        self.target=target
-        self.message=message
-        self.prefix=prefix
-        self.command=command
-        self.user=user
-        self.access=access
-        self.client=client
+        self.command=None
+
+        m=self.privmsgre.search(line)
+        if m:
+            self.nick=m.group(1)
+            self.username=m.group(2)
+            self.host=m.group(3)
+            self.target=m.group(4)
+            self.message=m.group(5)
+            self.prefix=m.group(6)
+            self.command=m.group(7)
+            self.user=self.getpnick(host)
+            self.access=self.getaccess(user) if user else 0
 
     def reply(self,message):
         self.client.reply(prefix,nick,target,message)
 
-    
-        
     def prefix_numeric(self):
         if self.notprefix.replace("|","").find(self.prefix) > -1:
             return self.client.NOTICE_PREFIX
@@ -60,3 +65,10 @@ class irc_message:
         return regexp.search(self.command)
     def user_or_nick(self):
         return self.user or self.nick
+
+    def getpnick(self,host):
+        m=self.pnickre.search(host)
+        if m:
+            return m.group(1)
+        else:
+            return None

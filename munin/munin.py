@@ -25,7 +25,9 @@ import os
 import ConfigParser
 
 from connection import connection
-from parser import parser
+#from parser import parser
+from ircu_router import ircu_router
+import traceback
 
 class munin:
     def __init__(self):
@@ -34,17 +36,25 @@ class munin:
             raise ValueError("Expected configuration in muninrc, not found.")
 
         self.client = connection(config)
-        self.handler = parser(config, self.client,self)
+        self.client.connect()
+        self.client.wline("NICK %s" % config.get("Connection", "nick"))
+        self.client.wline("USER %s 0 * : %s" % (config.get("Connection", "user"),
+                                                config.get("Connection", "name")))
+
+        self.config = config
+        #self.handler = parser(config, self.client,self)
 
         while True:
             try:
                 self.reboot()
             except Exception, e:
                 print "Exception during command: " + e.__str__()
+                traceback.print_exc()
+                self.config = config
 
     def reboot(self):
-        self.ircu_router=irc_router(self.client,self.config,self.reboot)
-        self.irc_router.run()
+        self.ircu_router=ircu_router(self.client,self.config,self.reboot)
+        self.ircu_router.run()
 
 def run():
     ofile=file("pid.munin", "w")

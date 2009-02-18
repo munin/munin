@@ -19,9 +19,11 @@
 # are included in this collective work with permission of the copyright
 # owners.
 
+import re
+
 class irc_message:
 
-    def __init__(self,client=None,nick=None,username=None,host=None,target=None,message=None,prefix=None,command=None):
+    def __init__(self,client=None,line=None,nick=None,username=None,host=None,target=None,message=None,prefix=None,command=None):
 
         self.notprefix=r"~|-|\."
         self.pubprefix=r"!"
@@ -43,8 +45,8 @@ class irc_message:
             self.message=m.group(5)
             self.prefix=m.group(6)
             self.command=m.group(7)
-            self.user=self.getpnick(host)
-            self.access=self.getaccess(user) if user else 0
+            self.user=self.getpnick(self.host)
+            self.access=self.getaccess(self.user) if self.user else 0
 
     def reply(self,message):
         self.client.reply(prefix,nick,target,message)

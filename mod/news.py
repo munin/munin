@@ -66,12 +66,13 @@ class news(loadable.loadable):
 
         query="SELECT tick,nick,scantype,rand_id,tick"
         query+=" FROM scan AS t1"
-        query+=" WHERE t1.pid=%s AND scantype='news' ORDER BY tick DESC"
+        query+=" WHERE t1.pid=%s AND scantype='news' ORDER BY tick DESC LIMIT 10"
         self.cursor.execute(query,(p.id,))
 
-        s=self.cursor.dictfetchone()
-        if s:        
-            reply="Latest news scan on %s:%s:%s - http://game.planetarion.com/showscan.pl?scan_id=%s"%(x,y,z,s['rand_id'])
+
+        if self.cursor.rowcount > 0:
+            s=self.cursor.dictfetchall()
+            reply="Latest news scan on %s:%s:%s - http://game.planetarion.com/showscan.pl?scan_id=%s"%(x,y,z,", ".join(map(lambda x: "%s (pt %s)"%(x['rand_id'],x['tick']),s)))
         else:
             reply="No news available on %s:%s:%s"%(x,y,z)
         irc_msg.reply(reply)

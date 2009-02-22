@@ -1,8 +1,9 @@
 import irc_message
 
 class ircu_router:
-    def __init__(self,client,config,reboot):
+    def __init__(self,client,cursor,config,reboot):
         self.client=client
+        self.cursor=cursor
         self.config=config
         self.reboot=reboot
         self.listeners={}
@@ -20,6 +21,7 @@ class ircu_router:
 
     def run_command(self,line):
          irc_msg = irc_message.irc_message(client = self.client,
+                                           cursor = self.cursor,
                                            line   = line)
 
 
@@ -27,4 +29,3 @@ class ircu_router:
         for r in self.listeners.keys():
             if r.search(line):
                 self.listeners[r].message(line)
-

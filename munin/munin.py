@@ -23,17 +23,21 @@
 
 import os
 import ConfigParser
+import psycopg
 
 from connection import connection
 #from parser import parser
-from ircu_router import ircu_router
+from loader import Loader
 import traceback
-
 class munin:
+    IRCU_ROUTER = 'munin.ircu_router'
     def __init__(self):
         config = ConfigParser.ConfigParser()
         if not config.read('muninrc'):
             raise ValueError("Expected configuration in muninrc, not found.")
+
+        self.loader = Loader()
+        self.ircu_router = self.loader.get_module(self.IRCU_ROUTER)
 
         self.client = connection(config)
         self.client.connect()
@@ -41,8 +45,18 @@ class munin:
         self.client.wline("USER %s 0 * : %s" % (config.get("Connection", "user"),
                                                 config.get("Connection", "name")))
 
+        dsn = 'user=%s dbname=%s' % (config.get("Database", "user"), config.get("Database", "dbname"))
+        if config.has_option("Database", "password"):
+            dsn += ' password=%s' % config.get("Database", "password")
+        if config.has_option("Database", "host"):
+            dsn += ' host=%s' % config.get("Database", "host")
+
+        conn=psycopg.connect(dsn)
+        conn.serialize()
+        conn.autocommit()
+        self.cursor=conn.cursor()
+
         self.config = config
-        #self.handler = parser(config, self.client,self)
 
         while True:
             try:
@@ -53,8 +67,13 @@ class munin:
                 self.config = config
 
     def reboot(self):
-        self.ircu_router=ircu_router(self.client,self.config,self.reboot)
-        self.ircu_router.run()
+        print "Rebooting Munin."
+        self.loader.populate('munin')
+        self.loader.get_module('munin.irc_message')
+        self.loader.refresh()
+        self.ircu_router = self.loader.get_module(self.IRCU_ROUTER)
+        router=self.ircu_router.ircu_router(self.client,self.cursor,self.config,self.reboot)
+        router.run()
 
 def run():
     ofile=file("pid.munin", "w")

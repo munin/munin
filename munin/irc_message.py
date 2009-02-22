@@ -23,7 +23,7 @@ import re
 
 class irc_message:
 
-    def __init__(self,client=None,line=None,nick=None,username=None,host=None,target=None,message=None,prefix=None,command=None):
+    def __init__(self,client=None,cursor=None,line=None,nick=None,username=None,host=None,target=None,message=None,prefix=None,command=None):
 
         self.notprefix=r"~|-|\."
         self.pubprefix=r"!"
@@ -33,7 +33,7 @@ class irc_message:
         self.pnickre=re.compile(r"(\S{2,15})\.users\.netgamers\.org")
 
         self.client=client
-
+        self.cursor=cursor
         self.command=None
 
         m=self.privmsgre.search(line)
@@ -46,7 +46,7 @@ class irc_message:
             self.prefix=m.group(6)
             self.command=m.group(7)
             self.user=self.getpnick(self.host)
-            self.access=self.getaccess(self.user) if self.user else 0
+            self.access=self.getaccess(self.user,target)
 
     def reply(self,message):
         self.client.reply(prefix,nick,target,message)
@@ -59,6 +59,13 @@ class irc_message:
         if self.privprefix.replace("|","").find(self.prefix) > -1:
             return self.client.PRIVATE_PREFIX
         return -1
+
+    def prefix_notice(self):
+        return self.notprefix.replace("|","").find(self.prefix) > -1
+
+    def prefix_private(self):
+        return self.privprefix.replace("|","").find(self.prefix) > -1
+
 
     def reply(self,text):
         self.client.reply(self.prefix_numeric(),self.nick,self.target,text)
@@ -74,3 +81,10 @@ class irc_message:
             return m.group(1)
         else:
             return None
+
+    def getaccess(self,user,target):
+        query="SELECT * FROM access_level(%s,%s,%d)"
+        self.cursor.execute(query,(user,target,self.prefix_notice() or self.prefix_private()))
+        access=self.cursor.dictfetchone()['access_level'] or 0
+        print "access: %d, user: %s, #channel: %s"%(access,user,target)
+        return access

@@ -4,6 +4,7 @@ of them in a dictionary.
 """
 
 import sys
+import os
 
 import traceback
 
@@ -128,3 +129,18 @@ class Loader(object):
             traceback.print_exc(None, sys.stderr)
             return result
         return "Module %s successfully reloaded." % (name,)
+
+    def refresh(self):
+        for name in self.loaded:
+            self.reload(name)
+
+    def populate(self,basedir):
+        os.path.walk(basedir,self.add_directory,None)
+
+    def add_directory(self,arg,directory,files):
+        base_module = '.'.join(directory.split(os.sep))
+        module_files = [x for x in files if x[-3:].lower() == '.py' and len(x) > 3]
+        for m in module_files:
+            module = base_module + "." + m[:-3]
+            self.get_module(module)
+

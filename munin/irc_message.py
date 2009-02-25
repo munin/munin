@@ -21,17 +21,13 @@
 
 import re
 
-class irc_message:
-
+class irc_message(object):
     def __init__(self,client=None,cursor=None,line=None,nick=None,username=None,host=None,target=None,message=None,prefix=None,command=None):
-
         self.notprefix=r"~|-|\."
         self.pubprefix=r"!"
         self.privprefix='@'
-
         self.privmsgre=re.compile(r"^:(\S+)!(\S+)@(\S+)\s+PRIVMSG\s+(\S+)\s+:(\s*(%s|%s|%s)(.*?)\s*)$" %(self.notprefix,self.pubprefix,self.privprefix))
         self.pnickre=re.compile(r"(\S{2,15})\.users\.netgamers\.org")
-
         self.client=client
         self.cursor=cursor
         self.command=None
@@ -86,5 +82,4 @@ class irc_message:
         query="SELECT * FROM access_level(%s,%s,%d)"
         self.cursor.execute(query,(user,target,self.prefix_notice() or self.prefix_private()))
         access=self.cursor.dictfetchone()['access_level'] or 0
-        print "access: %d, user: %s, #channel: %s"%(access,user,target)
         return access

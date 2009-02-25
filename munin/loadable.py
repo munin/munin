@@ -29,7 +29,7 @@ import ConfigParser
 import psycopg
 from mx import DateTime
 
-class loadable:
+class loadable(object):
     def __init__(self,cursor,level):
         self.cursor=cursor
         self.level=level
@@ -134,8 +134,7 @@ class loadable:
         self.cursor.execute(query,args)
         return self.cursor.dictfetchall()
 
-
-class defcall:
+class defcall(object):
     def __init__(self,id=-1,bcalc=None,status=-1,claimed_by=None,comment=None,target=None,landing_tick=-1):
         self.id=id
         self.bcalc=bcalc
@@ -199,7 +198,7 @@ class defcall:
 
         return 1
 
-class fleet:
+class fleet(object):
     def __init__(self,id=-1,scan_id=-1,owner_id=-1,target_id=None,fleet_size=-1,fleet_name=None,launch_tick=-1,landing_tick=-1,mission=None,defcall=None):
         self.id=id
         self.scan_id=scan_id
@@ -280,7 +279,7 @@ class fleet:
         return 1
 
 
-class planet:
+class planet(object):
     def __init__(self,x=-1,y=-1,z=-1,planetname=None,rulername=None,race=None,size=-1,score=-1,value=-1,id=-1,idle=-1):
         self.x=int(x)
         self.y=int(y)
@@ -353,7 +352,7 @@ class planet:
 
 
 
-class galaxy:
+class galaxy(object):
     def __init__(self,x=-1,y=-1,name=None,size=-1,score=-1,value=-1,id=-1):
         self.x=int(x)
         self.y=int(y)
@@ -410,7 +409,7 @@ class galaxy:
         return 1
 
 
-class alliance:
+class alliance(object):
     def __init__(self,score_rank=-1,name=None,size=-1,members=-1,score=-1,id=None):
         self.score_rank=int(score_rank)
         self.name=name
@@ -464,7 +463,7 @@ class alliance:
         self.id=a['id']
         return 1
 
-class user:
+class user(object):
     def __init__(self,id=-1,pnick=None,sponsor=None,userlevel=-1,planet_id=-1,phone=None,pubphone=False,stay=False,invites=-1,available_cookies=-1,last_cookie_date=None,carebears=-1):
         self.id=id
         self.pnick=pnick
@@ -548,9 +547,8 @@ class user:
             cursor.execute(query,(self.available_cookies,psycopg.TimestampFromMx(last_monday), self.id))
 
         return self.available_cookies
-
-
-class intel:
+    
+class intel(object):
     def __init__(self,id=None,pid=-1,nick=None,gov=None,bg=None,covop=False,defwhore=False,fakenick=None,alliance=None,reportchan=None,scanner=False,distwhore=False,relay=False,comment=None):
         self.id=id
         self.pid=pid
@@ -726,7 +724,7 @@ class intel:
 
 
 
-class booking:
+class booking(object):
     def __init__(self,id=-1,pnick=None,nick=None,tick=-1,pid=-1,uid=-1):
         self.id=id
         self.pnick=pnick

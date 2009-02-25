@@ -98,7 +98,6 @@ class Loader(object):
 
         if failure:
             print result
-
             traceback.print_exc(None, sys.stderr)
             return False
         return True
@@ -142,7 +141,6 @@ class Loader(object):
         module_files = [x for x in files if x[-3:].lower() == '.py' and len(x) > 3 and x != "__init__.py"]
         for m in module_files:
             module = base_module + "." + m[:-3]
-            print "Importing %s\n" % module,
             if not self.imp(module):
                 raise
 

@@ -32,7 +32,7 @@ from munin import loadable
 
 class gangbang(loadable.loadable):
     def __init__(self,cursor):
-        loadable.loadable.__init__(self,cursor,100)
+        super(self.__class__,self).__init__(cursor,100)
         self.paramre=re.compile(r"^\s+(\D\S*)(\s+(\d+))?")
         self.usage=self.__class__.__name__ + " [alliance] [tick]"
 

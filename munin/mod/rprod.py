@@ -10,8 +10,7 @@ class rprod(loadable.loadable):
     in m ticks."""
 
     def __init__(self,cursor):
-
-        loadable.loadable.__init__(self,cursor,1)
+        super(self.__class__,self).__init__(cursor,1)
         self.paramre = re.compile(r"^\s+(\S+)\s+(\d+)\s+(\d+)")
         self.usage = (self.__class__.__name__ +
                       " <ship> <ticks> <factories>.")

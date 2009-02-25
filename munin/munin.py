@@ -30,7 +30,7 @@ from connection import connection
 #from parser import parser
 from loader import Loader
 import traceback
-class munin:
+class munin(object):
     IRCU_ROUTER = 'munin.ircu_router'
     def __init__(self):
         config = ConfigParser.ConfigParser()
@@ -41,16 +41,13 @@ class munin:
         self.loader.populate('munin')
         self.ircu_router = self.loader.get_module(self.IRCU_ROUTER)
 
-
         self.client = connection(config)
-        self.client = None
         self.client.connect()
         self.client.wline("NICK %s" % config.get("Connection", "nick"))
         self.client.wline("USER %s 0 * : %s" % (config.get("Connection", "user"),
                                                 config.get("Connection", "name")))
-
-        self.cursor = self.create_cursor(config)
-        self.cursor = None
+        self.conn = self.create_db_connection(config)
+        self.cursor = self.conn.cursor()
         self.config = config
         router=self.ircu_router.ircu_router(self.client,self.cursor,self.config,self.loader,self.reboot)
         while True:
@@ -68,7 +65,7 @@ class munin:
         router=self.ircu_router.ircu_router(self.client,self.cursor,self.config,self.loader,self.reboot)
         router.run()
 
-    def create_cursor(self,config):
+    def create_db_connection(self,config):
         dsn = 'user=%s dbname=%s' % (config.get("Database", "user"), config.get("Database", "dbname"))
         if config.has_option("Database", "password"):
             dsn += ' password=%s' % config.get("Database", "password")
@@ -78,8 +75,8 @@ class munin:
         conn=psycopg.connect(dsn)
         conn.serialize()
         conn.autocommit()
-        return conn.cursor()
-
+        return conn
+    
 def run():
     ofile=file("pid.munin", "w")
     ofile.write("%s" % (os.getpid(),))

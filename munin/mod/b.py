@@ -37,7 +37,7 @@ class b(loadable.loadable):
     foo
     """
     def __init__(self,cursor):
-        loadable.loadable.__init__(self,cursor,100)
+        super(self.__class__,self).__init__(cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"\s+(.*)")
         self.paramre=re.compile(r"^(\d+)(\s+(http.+))?")
 

@@ -34,7 +34,7 @@ class phone(loadable.loadable):
     foo
     """
     def __init__(self,cursor):
-        loadable.loadable.__init__(self,cursor,1)
+        super(self.__class__,self).__init__(cursor,1)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(\S+)(\s+(\S+))?")
         self.usage=self.__class__.__name__ + " <list|allow|deny|show> <nick>"

@@ -31,7 +31,7 @@ from munin import loadable
 
 class roidsave(loadable.loadable):
     def __init__(self,cursor):
-        loadable.loadable.__init__(self,cursor,1)
+        super(self.__class__,self).__init__(cursor,1)
         self.paramre=re.compile(r"^\s+(\d+)\s+(\d+)",re.I)
         self.usage=self.__class__.__name__ + " <roids> <ticks>"
         self.helptext=['Tells you how much value will be mined by a number of roids in that many ticks. M=Max, F=Feudalism, D=Democracy.']

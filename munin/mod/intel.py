@@ -33,7 +33,7 @@ from munin import loadable
 
 class intel(loadable.loadable):
     def __init__(self,cursor):
-        loadable.loadable.__init__(self,cursor,50)
+        super(self.__class__,self).__init__(cursor,50)
         self.paramre=re.compile(r"^\s+(.*)")
         self.usage=self.__class__.__name__ + " <x:y:z> [option=value]+"
         self.planet_coordre=re.compile(r"(\d+)[. :-](\d+)[. :-](\d+)(.*)")

@@ -28,14 +28,14 @@ Loadable.Loadable subclass
 
 
 import re
-from munin import loadable
+import munin.loadable as loadable
 
 class letmein(loadable.loadable):
     """
     foo
     """
     def __init__(self,cursor):
-        loadable.loadable.__init__(self,cursor,0)
+        super(self.__class__,self).__init__(cursor,0)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(\S+)\s+(\S+)")
         self.usage=self.__class__.__name__ + " <pnick> <password>"

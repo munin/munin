@@ -1,15 +1,18 @@
 import irc_message
 from listener import command
+from listener import reloader
 import mod
 
-class ircu_router:
+class ircu_router(object):
     def __init__(self,client,cursor,config,loader,reboot):
+
+
         self.client=client
         self.cursor=cursor
         self.config=config
         self.reboot=reboot
         self.listeners=[
-            command.command(client,cursor,mod,loader)
+            command.command(client,cursor,mod,loader,reboot)
             ]
 
     def run(self):

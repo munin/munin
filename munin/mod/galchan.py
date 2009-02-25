@@ -31,7 +31,7 @@ from munin import loadable
 
 class galchan(loadable.loadable):
     def __init__(self,cursor):
-        loadable.loadable.__init__(self,cursor,100)
+        super(self.__class__,self).__init__(cursor,100)
         self.paramre=re.compile(r"^\s+(#\S+)")
         self.usage=self.__class__.__name__ + " <chan> "
         self.helptext=["This command adds Munin to the designated channel as a galchannel. The access of commands is limited to 1 in that channel (so you don't accidentally do !intel or something 'important'. You must make sure to add Munin to the channel _before_ you perform this command. If you fuck up and add the wrong channel, fuck you because then an HC has to manually remove it for you."]

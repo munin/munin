@@ -28,6 +28,8 @@ Loadable.Loadable subclass
 # There's a comment which has ilike %asc%, but that's it.
 # qebab, 24/6/08.
 
+from munin import loadable
+
 class galpenis(loadable.loadable):
     def __init__(self,cursor):
         loadable.loadable.__init__(self,cursor,1)

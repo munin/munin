@@ -26,6 +26,8 @@ Loadable.Loadable subclass
 # I think I removed the ascendancy specific from this module.
 # qebab - 24/6/08
 
+from munin import loadable
+
 class cunts(loadable.loadable):
     def __init__(self,cursor):
         loadable.loadable.__init__(self,cursor,100)

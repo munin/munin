@@ -27,6 +27,8 @@ Loadable.Loadable subclass
 # Shouldn't be anything jester/ascendancy dependent left
 # qebab, 24/6/08.
 
+from munin import loadable
+
 class gangbang(loadable.loadable):
     def __init__(self,cursor):
         loadable.loadable.__init__(self,cursor,100)

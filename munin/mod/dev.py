@@ -26,6 +26,8 @@ Loadable.Loadable subclass
 # Nothing ascendancy/jester specific (aside from infrajerome.)
 # qebab, 24/6/08.
 
+from munin import loadable
+
 class dev(loadable.loadable):
     """
     foo

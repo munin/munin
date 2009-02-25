@@ -24,6 +24,7 @@
 import os
 import ConfigParser
 import psycopg
+import time
 
 from connection import connection
 #from parser import parser
@@ -38,7 +39,9 @@ class munin:
 
         self.loader = Loader()
         self.ircu_router = self.loader.get_module(self.IRCU_ROUTER)
+        self.loader.populate('munin')
 
+        time.sleep(10)
         self.client = connection(config)
         self.client.connect()
         self.client.wline("NICK %s" % config.get("Connection", "nick"))

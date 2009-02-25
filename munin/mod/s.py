@@ -28,6 +28,8 @@ Loadable.Loadable subclass
 # Nothing alliance specific found in this module.
 # qebab, 24/6/08.
 
+from munin import loadable
+
 class s(loadable.loadable):
     """
     foo

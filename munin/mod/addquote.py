@@ -23,6 +23,8 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright
 # owners.
 
+from munin import loadable
+
 class addquote(loadable.loadable):
     def __init__(self,cursor):
         loadable.loadable.__init__(self,cursor,100)

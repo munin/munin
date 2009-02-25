@@ -5,6 +5,8 @@ Loadable.Loadable subclass
 # This module doesn't have anything alliance specific as fas as I can tell.
 # qebab, 24/6/08.
 
+from munin import loadable
+
 class quitter(loadable.loadable):
     def __init__(self,cursor):
         loadable.loadable.__init__(self,cursor,1)

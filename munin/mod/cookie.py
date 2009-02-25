@@ -28,6 +28,8 @@ Loadable.Loadable subclass
 
 
 
+from munin import loadable
+
 class cookie(loadable.loadable):
     """
     foo

@@ -28,6 +28,8 @@ Loadable.Loadable subclass
 # Nothing alliance specific in this module.
 # qebab, 24/6/08.
 
+from munin import loadable
+
 class ship(loadable.loadable):
     """
     foo

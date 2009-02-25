@@ -26,6 +26,8 @@ Loadable.Loadable subclass
 # Nothing alliance specific found in this module.
 # qebab, 24/6/08.
 
+from munin import loadable
+
 class jgp(loadable.loadable):
     def __init__(self,cursor):
         loadable.loadable.__init__(self,cursor,50)

@@ -88,7 +88,7 @@ class Loader(object):
         try:
             if "." in name:
                 self.loaded[name] = getattr(__import__(name),
-                                        "".join(name.split(".")[1:]))
+                                        "".join(name.split(".")[-1:]))
             else:
                 self.loaded[name] = __import__(name)
             failure = False
@@ -142,5 +142,6 @@ class Loader(object):
         module_files = [x for x in files if x[-3:].lower() == '.py' and len(x) > 3]
         for m in module_files:
             module = base_module + "." + m[:-3]
+            print "Importing %s\n" % module,
             self.get_module(module)
 

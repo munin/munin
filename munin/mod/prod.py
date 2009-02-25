@@ -8,6 +8,8 @@ import re
 # This module doesn't have anything alliance specific.
 # qebab, 24/6/08.
 
+from munin import loadable
+
 class prod(loadable.loadable):
     """Mod for calculating the production time of a spend."""
 

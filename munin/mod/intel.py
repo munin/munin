@@ -28,6 +28,8 @@ Loadable.Loadable subclass
 
 import string
 
+from munin import loadable
+
 class intel(loadable.loadable):
     def __init__(self,cursor):
         loadable.loadable.__init__(self,cursor,50)

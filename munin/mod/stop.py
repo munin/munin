@@ -26,6 +26,8 @@ Loadable.Loadable subclass
 # Nothing ascendancy specific in this module.
 # qebab, 24/6/08.
 
+from munin import loadable
+
 class stop(loadable.loadable):
     def __init__(self,cursor):
         loadable.loadable.__init__(self,cursor,1)

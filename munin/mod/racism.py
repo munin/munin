@@ -27,6 +27,8 @@ Loadable.Loadable subclass
 
 
 
+from munin import loadable
+
 class racism(loadable.loadable):
     """
     foo

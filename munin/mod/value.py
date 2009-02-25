@@ -26,6 +26,8 @@ Loadable.Loadable subclass
 # Nothing ascendancy/jester specific found here.
 # qebab, 24/6/08.
 
+from munin import loadable
+
 class value(loadable.loadable):
     def __init__(self,cursor):
         loadable.loadable.__init__(self,cursor,1)

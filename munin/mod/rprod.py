@@ -1,8 +1,10 @@
-import loadable
+from munin import loadable
 import re
 
 # Nothing alliance specific in here.
 # qebab, 24/6/08.
+
+from munin import loadable
 
 class rprod(loadable.loadable):
     """Find out how much you can spend with n factories

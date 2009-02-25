@@ -27,6 +27,8 @@ Loadable.Loadable subclass
 
 
 
+from munin import loadable
+
 class bcalc(loadable.loadable):
     """
     foo

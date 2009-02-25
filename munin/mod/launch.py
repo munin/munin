@@ -26,6 +26,8 @@ Loadable.Loadable subclass
 # owners.
 
 
+from munin import loadable
+
 class launch(loadable.loadable):
     def __init__(self,cursor):
         loadable.loadable.__init__(self,cursor,1)

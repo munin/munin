@@ -28,6 +28,8 @@ Loadable.Loadable subclass
 # This module doesn't have anything alliance specific as far as I can tell.
 # qebab, 24/6/08.
 
+from munin import loadable
+
 class defcalls(loadable.loadable):
     """
     foo

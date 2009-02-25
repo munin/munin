@@ -26,6 +26,8 @@ Loadable.Loadable subclass
 # Nothing alliance specific in here as far as I can tell.
 # qebab, 24/6/08.
 
+from munin import loadable
+
 class gimp(loadable.loadable):
     def __init__(self,cursor):
         loadable.loadable.__init__(self,cursor,1000)

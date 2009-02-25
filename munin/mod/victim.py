@@ -26,6 +26,8 @@ Loadable.Loadable subclass
 # Nothing alliance specific found here.
 # qebab, 24/6/08.
 
+from munin import loadable
+
 class victim(loadable.loadable):
     def __init__(self,cursor):
         loadable.loadable.__init__(self,cursor,50)

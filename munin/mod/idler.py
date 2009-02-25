@@ -26,6 +26,8 @@ Loadable.Loadable subclass
 # No alliance specific things in this module as far as I can tell.
 # qebab, 24/6/08.
 
+from munin import loadable
+
 class idler(loadable.loadable):
     def __init__(self,cursor):
         loadable.loadable.__init__(self,cursor,50)

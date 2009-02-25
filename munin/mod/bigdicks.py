@@ -28,6 +28,8 @@ Loadable.Loadable subclass
 # I lied. Removed alliance specific things.
 # qebab, 24/6/08.
 
+from munin import loadable
+
 class bigdicks(loadable.loadable):
     def __init__(self,cursor):
         loadable.loadable.__init__(self,cursor,100)

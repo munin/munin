@@ -26,6 +26,8 @@ Loadable.Loadable subclass
 # Removed ascendancy specific things. I think.
 # qebab, 22/06/08
 
+from munin import loadable
+
 class book(loadable.loadable):
     def __init__(self,cursor):
         loadable.loadable.__init__(self,cursor,50)

@@ -28,6 +28,8 @@ Loadable.Loadable subclass
 # This file has no alliance specific stuff as far as I can tell.
 # qebab, 22/06/08
 
+from munin import loadable
+
 class c(loadable.loadable):
     """
     foo

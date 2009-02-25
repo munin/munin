@@ -28,6 +28,8 @@ Loadable.Loadable subclass
 # Nothing ascendancy/jester specific found here.
 # qebab, 24/6/08.
 
+from munin import loadable
+
 class whois(loadable.loadable):
     """
     foo

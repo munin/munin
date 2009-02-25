@@ -26,6 +26,8 @@ Loadable.Loadable subclass
 
 
 
+from munin import loadable
+
 class phone(loadable.loadable):
     """
     foo

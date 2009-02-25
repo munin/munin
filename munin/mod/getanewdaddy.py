@@ -28,6 +28,8 @@ Loadable.Loadable subclass
 # I have removed everything alliance specific that I could find in this module.
 # qebab, 24/6/08.
 
+from munin import loadable
+
 class getanewdaddy(loadable.loadable):
     """
     foo

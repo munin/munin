@@ -30,6 +30,8 @@ Loadable.Loadable subclass
 
 
 
+from munin import loadable
+
 class bumchums(loadable.loadable):
     """
     foo

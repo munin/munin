@@ -30,6 +30,7 @@ Loadable.Loadable subclass
 
 
 
+import re
 from munin import loadable
 
 class bumchums(loadable.loadable):

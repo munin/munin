@@ -28,6 +28,7 @@ Loadable.Loadable subclass
 # I lied. Removed alliance specific things.
 # qebab, 24/6/08.
 
+import re
 from munin import loadable
 
 class bigdicks(loadable.loadable):

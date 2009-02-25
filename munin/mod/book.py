@@ -26,6 +26,7 @@ Loadable.Loadable subclass
 # Removed ascendancy specific things. I think.
 # qebab, 22/06/08
 
+import re
 from munin import loadable
 
 class book(loadable.loadable):

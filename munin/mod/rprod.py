@@ -1,9 +1,8 @@
-from munin import loadable
-import re
 
 # Nothing alliance specific in here.
 # qebab, 24/6/08.
 
+import re
 from munin import loadable
 
 class rprod(loadable.loadable):

@@ -26,6 +26,7 @@ Loadable.Loadable subclass
 # I think I removed the ascendancy specific from this module.
 # qebab - 24/6/08
 
+import re
 from munin import loadable
 
 class cunts(loadable.loadable):

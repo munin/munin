@@ -26,6 +26,7 @@ Loadable.Loadable subclass
 # Nothing hardcoded found here.
 # qebab, 24/6/08.
 
+import re
 from munin import loadable
 
 class whore(loadable.loadable):

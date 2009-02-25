@@ -38,29 +38,21 @@ class munin:
             raise ValueError("Expected configuration in muninrc, not found.")
 
         self.loader = Loader()
-        self.ircu_router = self.loader.get_module(self.IRCU_ROUTER)
         self.loader.populate('munin')
+        self.ircu_router = self.loader.get_module(self.IRCU_ROUTER)
 
-        time.sleep(10)
+
         self.client = connection(config)
+        self.client = None
         self.client.connect()
         self.client.wline("NICK %s" % config.get("Connection", "nick"))
         self.client.wline("USER %s 0 * : %s" % (config.get("Connection", "user"),
                                                 config.get("Connection", "name")))
 
-        dsn = 'user=%s dbname=%s' % (config.get("Database", "user"), config.get("Database", "dbname"))
-        if config.has_option("Database", "password"):
-            dsn += ' password=%s' % config.get("Database", "password")
-        if config.has_option("Database", "host"):
-            dsn += ' host=%s' % config.get("Database", "host")
-
-        conn=psycopg.connect(dsn)
-        conn.serialize()
-        conn.autocommit()
-        self.cursor=conn.cursor()
-
+        self.cursor = self.create_cursor(config)
+        self.cursor = None
         self.config = config
-
+        router=self.ircu_router.ircu_router(self.client,self.cursor,self.config,self.loader,self.reboot)
         while True:
             try:
                 self.reboot()
@@ -71,12 +63,22 @@ class munin:
 
     def reboot(self):
         print "Rebooting Munin."
-        self.loader.populate('munin')
-        self.loader.get_module('munin.irc_message')
         self.loader.refresh()
         self.ircu_router = self.loader.get_module(self.IRCU_ROUTER)
-        router=self.ircu_router.ircu_router(self.client,self.cursor,self.config,self.reboot)
+        router=self.ircu_router.ircu_router(self.client,self.cursor,self.config,self.loader,self.reboot)
         router.run()
+
+    def create_cursor(self,config):
+        dsn = 'user=%s dbname=%s' % (config.get("Database", "user"), config.get("Database", "dbname"))
+        if config.has_option("Database", "password"):
+            dsn += ' password=%s' % config.get("Database", "password")
+        if config.has_option("Database", "host"):
+            dsn += ' host=%s' % config.get("Database", "host")
+
+        conn=psycopg.connect(dsn)
+        conn.serialize()
+        conn.autocommit()
+        return conn.cursor()
 
 def run():
     ofile=file("pid.munin", "w")

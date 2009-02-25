@@ -26,6 +26,7 @@ Loadable.Loadable subclass
 # owners.
 
 
+import re
 from munin import loadable
 
 class launch(loadable.loadable):

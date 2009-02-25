@@ -27,6 +27,7 @@ Loadable.Loadable subclass
 # Shouldn't be anything jester/ascendancy dependent left
 # qebab, 24/6/08.
 
+import re
 from munin import loadable
 
 class gangbang(loadable.loadable):

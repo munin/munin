@@ -70,7 +70,8 @@ class Loader(object):
         try:
             return self.loaded[name]
         except KeyError:
-            return "Module not present and could not be loaded."
+            print self.loaded.keys()
+            return "Module %s not present and could not be loaded."%(name,)
 
     def add_module(self, name, module):
         """Add a module named name to the loaded modules."""
@@ -86,11 +87,7 @@ class Loader(object):
         failure = True
 
         try:
-            if "." in name:
-                self.loaded[name] = getattr(__import__(name),
-                                        "".join(name.split(".")[-1:]))
-            else:
-                self.loaded[name] = __import__(name)
+            self.loaded[name] = __import__(name,fromlist=name.split('.')[-1])
             failure = False
         except SyntaxError, e:
             result = "You have a SyntaxError in the module you're trying to load: %s" % (e,)
@@ -100,9 +97,11 @@ class Loader(object):
             result = "Exception: %s when loading module." % (e,)
 
         if failure:
+            print result
+
             traceback.print_exc(None, sys.stderr)
-            return result
-        return "Module %s successfully imported." % (name,)
+            return False
+        return True
 
     def reload(self, name):
         """Tries to reload the module named name. It is an
@@ -136,12 +135,21 @@ class Loader(object):
 
     def populate(self,basedir):
         os.path.walk(basedir,self.add_directory,None)
+        print self.loaded.keys()
 
     def add_directory(self,arg,directory,files):
         base_module = '.'.join(directory.split(os.sep))
-        module_files = [x for x in files if x[-3:].lower() == '.py' and len(x) > 3]
+        module_files = [x for x in files if x[-3:].lower() == '.py' and len(x) > 3 and x != "__init__.py"]
         for m in module_files:
             module = base_module + "." + m[:-3]
             print "Importing %s\n" % module,
-            self.get_module(module)
+            if not self.imp(module):
+                raise
 
+    def get_submodules(self,name):
+        name_len=len(name)
+        result=[]
+        for k in self.loaded.keys():
+            if k[:name_len] == name:
+                result.append(self.loaded[k])
+        return result

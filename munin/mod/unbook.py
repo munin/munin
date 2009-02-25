@@ -26,6 +26,7 @@ Loadable.Loadable subclass
 # Nothing ascendancy/jester specific found in this module.
 # qebab, 24/6/08.
 
+import re
 from munin import loadable
 
 class unbook(loadable.loadable):

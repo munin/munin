@@ -26,6 +26,7 @@ Loadable.Loadable subclass
 # This file has no alliance specific stuff as far as I can tell.
 # qebab, 22/06/08
 
+import re
 from munin import loadable
 
 class bitches(loadable.loadable):

@@ -29,6 +29,7 @@ Loadable.Loadable subclass
 # qebab, 22/06/08
 
 
+import re
 from munin import loadable
 
 class b(loadable.loadable):

@@ -28,6 +28,7 @@ Loadable.Loadable subclass
 # There's a comment which has ilike %asc%, but that's it.
 # qebab, 24/6/08.
 
+import re
 from munin import loadable
 
 class galpenis(loadable.loadable):

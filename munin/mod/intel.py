@@ -28,6 +28,7 @@ Loadable.Loadable subclass
 
 import string
 
+import re
 from munin import loadable
 
 class intel(loadable.loadable):

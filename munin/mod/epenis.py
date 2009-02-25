@@ -26,6 +26,7 @@ Loadable.Loadable subclass
 # Removed alliance specific things from this module.
 # qebab 24/6/08.
 
+import re
 from munin import loadable
 
 class epenis(loadable.loadable):

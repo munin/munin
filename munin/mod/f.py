@@ -28,6 +28,7 @@ Loadable.Loadable subclass
 # This module has no alliance specific things as far as I can tell.
 # qebab, 24/6/08.
 
+import re
 from munin import loadable
 
 class f(loadable.loadable):

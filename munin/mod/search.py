@@ -26,6 +26,7 @@ Loadable.Loadable subclass
 # Nothing alliance specific in this module as far as I can tell.
 # qebab, 24/6/08.
 
+import re
 from munin import loadable
 
 class search(loadable.loadable):

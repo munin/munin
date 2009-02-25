@@ -28,7 +28,7 @@ Loadable subclass
 
 class talk(loadable.loadable):
     def __init__(self,cursor):
-        loadable.loadable.__init__(self,cursor,101)
+        loadable.loadable.__init__(self,cursor,100)
         self.paramre=re.compile(r"^\s+(\S+)\s+(.*)")
         self.usage=self.__class__.__name__ + " <target> <stuff>"
 

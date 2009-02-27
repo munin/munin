@@ -135,6 +135,9 @@ class pref(loadable.loadable):
 
     def save_phone(self,irc_msg,u,passwd):
         print "trying to set phone for %s"%(u.pnick,)
+        if len(passwd) > 32:
+            irc_msg.reply("Your phone number may not be longer than 32 characters (if you need more than 32 characters poke %s)."%(self.config.get('Auth','owner_nick')))
+            return
         query="UPDATE user_list SET phone = %s"
         query+=" WHERE id = %s"
 

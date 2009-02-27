@@ -123,7 +123,7 @@
 	stay BOOLEAN DEFAULT FALSE,
 	invites smallint NOT NULL DEFAULT 0 CHECK (invites >= 0),
 	quit smallint NOT NULL DEFAULT 0,
-	phone VARCHAR(32),
+	phone VARCHAR(48),
 	pubphone BOOLEAN NOT NULL DEFAULT FALSE, 
         available_cookies smallint NOT NULL DEFAULT 0,
         carebears integer NOT NULL DEFAULT 0,

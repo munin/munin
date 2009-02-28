@@ -20,14 +20,13 @@
 # owners.
 
 
-from munin.loadable import loadable
+import munin.loadable as loadable
 import re
 import traceback
 
 class galstatus:
-    def __init__(self,client,conn,cursor,config):
+    def __init__(self,client,cursor,config):
         self.client=client
-        self.conn=conn
         self.cursor=cursor
         self.statusre=re.compile(r"(\d+):(\d+):(\d+)\*?\s+(\d+):(\d+):(\d+)\s+(.*?)\s+((Xan|Ter|Cat|Zik|Etd)\s+)?(\d+)\s+(Return|Attack|Defend)\s+(\d+)")
         self.config = config

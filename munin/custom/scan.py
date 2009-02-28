@@ -21,7 +21,7 @@
 
 import sys
 
-from munin.loadable import loadable
+import munin.loadable as loadable
 import psycopg
 import re
 import threading
@@ -29,10 +29,9 @@ import traceback
 import urllib2
 
 class scan(threading.Thread):
-    def __init__(self, rand_id,client,conn,cursor,nick,pnick,group_id): # random scan ID, and client for debug ONLY
+    def __init__(self, rand_id,client,cursor,nick,pnick,group_id): # random scan ID, and client for debug ONLY
         self.rand_id=rand_id
         self.client=client
-        self.conn=conn
         self.cursor=cursor
         self.nick=nick
         self.pnick=pnick

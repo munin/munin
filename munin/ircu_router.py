@@ -1,6 +1,6 @@
 import irc_message
 from listener import command
-from listener import reloader
+from listener import custom_runner
 import mod
 
 class ircu_router(object):
@@ -12,7 +12,8 @@ class ircu_router(object):
         self.config=config
         self.reboot=reboot
         self.listeners=[
-            command.command(client,cursor,mod,loader,reboot)
+            command.command(client,cursor,mod,loader,reboot),
+            custom_runner.custom_runner(client,cursor,config)
             ]
 
     def run(self):

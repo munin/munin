@@ -21,10 +21,9 @@ class command(object):
         irc_msg = irc_message.irc_message(client = self.client,
                                           cursor = self.cursor,
                                           line   = line)
-        print irc_msg.command
         if irc_msg.command:
             key = "munin.mod."+irc_msg.command.split()[0]
             if self.control.has_key(key):
                 self.control[key].execute(irc_msg.user,irc_msg.access,irc_msg)
-            elif key == 'munin.mod.reboot' and irc_msg.access >= 1000::
+            elif key == 'munin.mod.reboot' and irc_msg.access >= 1000:
                 self.reboot()

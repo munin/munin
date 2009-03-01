@@ -28,6 +28,7 @@ Loadable.Loadable subclass
 
 import re
 import string
+import psycopg
 from munin import loadable
 
 class book(loadable.loadable):

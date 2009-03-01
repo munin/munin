@@ -56,8 +56,6 @@ class command(object):
             else:
                 irc_msg.reply("No command matching '%s'"%irc_msg.command_parameters)
         else:
-            irc_msg.reply("Foo")
-
             irc_msg.reply("Munin help. For more information use: <"+irc_msg.notprefix.replace("|","")+irc_msg.pubprefix.replace("|","")+irc_msg.privprefix.replace("|","")+">help <command>. Built-in commands: help")
             command_list = map(lambda x: x.__class__.__name__,self.control.values())
             command_list.sort()

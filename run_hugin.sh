@@ -1,7 +1,7 @@
 #!/bin/sh
 
 
-botexe="/home/munin/odin/hugin.py"
+botexe="/home/munin/odin/utils/hugin.py"
 botname="/home/munin/odin/pid.hugin"
 botdir="/home/munin/odin"
 

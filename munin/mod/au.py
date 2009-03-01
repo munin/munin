@@ -27,6 +27,7 @@ Loadable.Loadable subclass
 # qebab, 22/06/08
 
 import re
+import string
 from munin import loadable
 
 class au(loadable.loadable):

@@ -19,8 +19,6 @@
 # are included in this collective work with permission of the copyright
 # owners.
 
-import sys
-
 import munin.loadable as loadable
 import psycopg
 import re

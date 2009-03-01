@@ -27,6 +27,7 @@ Loadable.Loadable subclass
 
 
 import re
+import datetime
 from munin import loadable
 
 class launch(loadable.loadable):

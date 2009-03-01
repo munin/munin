@@ -24,7 +24,10 @@ Loadable.Loadable subclass
 # owners.
 
 import re
+import md5
 from munin import loadable
+from clickatell import Clickatell
+
 
 class sms(loadable.loadable):
     """

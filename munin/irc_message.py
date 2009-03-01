@@ -41,6 +41,11 @@ class irc_message(object):
             self.message=m.group(5)
             self.prefix=m.group(6)
             self.command=m.group(7)
+            com_parts = self.command.split(' ',1)
+            self.command_name = com_parts[0]
+            self.command_parameters = None
+            if len(com_parts) > 1:
+                self.command_parameters = com_parts[1]
             self.user=self.getpnick(self.host)
             self.access=self.getaccess(self.user,target)
 

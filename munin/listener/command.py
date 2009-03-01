@@ -22,10 +22,12 @@ class command(object):
                                           cursor = self.cursor,
                                           line   = line)
         if irc_msg.command:
-            key = "munin.mod."+irc_msg.command.split()[0]
+            key = "munin.mod."+irc_msg.command_name
             if self.control.has_key(key):
                 self.control[key].execute(irc_msg.user,irc_msg.access,irc_msg)
                 self.log_command(irc_msg)
+            elif key == 'munin.mod.help':
+                self.help(irc_msg)
             elif key == 'munin.mod.reboot' and irc_msg.access >= 1000:
                 self.reboot()
 
@@ -36,18 +38,30 @@ class command(object):
         query="INSERT INTO command_log (command_prefix,command,command_parameters,nick,pnick,username,hostname,target)"
         query+=" VALUES"
         query+=" (%s,%s,%s,%s,%s,%s,%s,%s)"
-        command_list = irc_msg.command.split(' ',1)
-        command_command = command_list[0]
-        command_parameters = None
-        if len(command_list) > 1:
-            command_parameters = command_list[1]
 
         self.cursor.execute(query,(irc_msg.prefix,
-                                   command_command,
-                                   command_parameters,
+                                   irc_msg.command_name,
+                                   irc_msg.command_parameters,
                                    irc_msg.nick,
                                    irc_msg.user,
                                    irc_msg.username,
                                    irc_msg.host,
                                    irc_msg.target))
+
+    def help(self,irc_msg):
+        if irc_msg.command_parameters:
+            key = 'munin.mod.'+irc_msg.command_parameters
+            if self.control.has_key(key):
+                self.control[key].help(irc_msg.user,irc_msg.access,irc_msg)
+            else:
+                irc_msg.reply("No command matching '%s'"%irc_msg.command_parameters)
+        else:
+            irc_msg.reply("Foo")
+
+            irc_msg.reply("Munin help. For more information use: <"+irc_msg.notprefix.replace("|","")+irc_msg.pubprefix.replace("|","")+irc_msg.privprefix.replace("|","")+">help <command>. Built-in commands: help")
+            command_list = map(lambda x: x.__class__.__name__,self.control.values())
+            command_list.sort()
+            command_list = ", ".join(command_list)
+            irc_msg.reply(command_list)
+        pass
 

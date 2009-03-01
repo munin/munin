@@ -48,7 +48,7 @@ class loadable(object):
 
     def help(self,user,access,irc_msg):
         irc_msg.reply(self.usage)
-        if self.helptext:
+        if hasattr(self, 'helptext') and self.helptext:
             for h in self.helptext:
                 irc_msg.reply(h)
 

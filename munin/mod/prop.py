@@ -30,6 +30,7 @@ Loadable.Loadable subclass
 import re
 import string
 from munin import loadable
+from mx import DateTime
 
 class prop(loadable.loadable):
     """

@@ -28,6 +28,7 @@ Loadable.Loadable subclass
 
 
 import re
+import string
 from munin import loadable
 
 class prop(loadable.loadable):

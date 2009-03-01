@@ -11,7 +11,7 @@ import traceback
 class Loader(object):
     """Loader class for modules."""
 
-    def __init__(self, logfile=sys.stderr, loaded=None):
+    def __init__(self, logfile=sys.stdout, loaded=None):
         """Takes a logfile parameter that defaults to
         sys.stderr, and loaded which has to be a dictionary
         if provided. Raises TypeError if loaded is provided,

@@ -1,7 +1,6 @@
-import irc_message
+from listener import auth
 from listener import command
 from listener import custom_runner
-from listener import auth
 import mod
 
 class ircu_router(object):

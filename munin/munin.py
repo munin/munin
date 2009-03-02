@@ -56,7 +56,6 @@ class munin(object):
             except Exception, e:
                 print "Exception during command: " + e.__str__()
                 traceback.print_exc()
-                self.config = config
 
     def reboot(self):
         print "Rebooting Munin."

@@ -1,12 +1,12 @@
 import munin.irc_message as irc_message
 import os
+from munin.reboot import reboot
 
 class command(object):
-    def __init__(self,client,cursor,module,loader,reboot):
+    def __init__(self,client,cursor,module,loader):
         self.client=client
         self.cursor=cursor
         self.module=module
-        self.reboot=reboot
         self.control=self.register_control(module,loader)
 
     def register_control(self,module,loader):
@@ -33,7 +33,7 @@ class command(object):
             elif key == 'munin.mod.help':
                 self.help(irc_msg)
             elif key == 'munin.mod.reboot' and irc_msg.access >= 1000:
-                self.reboot()
+                raise reboot(irc_msg)
 
 
     def log_command(self,irc_msg):

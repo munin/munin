@@ -30,6 +30,7 @@ from connection import connection
 #from parser import parser
 from loader import Loader
 import traceback
+import reboot
 class munin(object):
     IRCU_ROUTER = 'munin.ircu_router'
     def __init__(self):
@@ -49,10 +50,12 @@ class munin(object):
         self.conn = self.create_db_connection(config)
         self.cursor = self.conn.cursor()
         self.config = config
-        router=self.ircu_router.ircu_router(self.client,self.cursor,self.config,self.loader,self.reboot)
+        router=self.ircu_router.ircu_router(self.client,self.cursor,self.config,self.loader)
         while True:
             try:
                 self.reboot()
+            except reboot.reboot, r:
+                r.irc_msg.reply("rebooting")
             except Exception, e:
                 print "Exception during command: " + e.__str__()
                 traceback.print_exc()
@@ -61,7 +64,7 @@ class munin(object):
         print "Rebooting Munin."
         self.loader.refresh()
         self.ircu_router = self.loader.get_module(self.IRCU_ROUTER)
-        router=self.ircu_router.ircu_router(self.client,self.cursor,self.config,self.loader,self.reboot)
+        router=self.ircu_router.ircu_router(self.client,self.cursor,self.config,self.loader)
         router.run()
 
     def create_db_connection(self,config):

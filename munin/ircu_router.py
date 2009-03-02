@@ -4,15 +4,14 @@ from listener import custom_runner
 import mod
 
 class ircu_router(object):
-    def __init__(self,client,cursor,config,loader,reboot):
+    def __init__(self,client,cursor,config,loader):
 
 
         self.client=client
         self.cursor=cursor
         self.config=config
-        self.reboot=reboot
         self.listeners=[
-            command.command(client,cursor,mod,loader,reboot),
+            command.command(client,cursor,mod,loader),
             custom_runner.custom_runner(client,cursor,config),
             auth.auth(client,config)
             ]

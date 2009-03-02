@@ -47,7 +47,7 @@ class irc_message(object):
             if len(com_parts) > 1:
                 self.command_parameters = com_parts[1]
             self.user=self.getpnick(self.host)
-            self.access=self.getaccess(self.user,target)
+            self.access=self.getaccess(self.user,self.target)
 
     def reply(self,message):
         self.client.reply(prefix,nick,target,message)
@@ -83,8 +83,30 @@ class irc_message(object):
         else:
             return None
 
+    def get_userlevel(self,user):
+        query="SELECT userlevel FROM user_list WHERE pnick ilike %s"
+        self.cursor.execute(query,(user,))
+        if self.cursor.rowcount > 0:
+            return int(self.cursor.dictfetchone()['userlevel'])
+        else:
+            return 0
+    
+    def get_chanlevel(self,target):
+        query="SELECT userlevel, maxlevel FROM channel_list WHERE chan ilike %s"
+        self.cursor.execute(query,(target,))
+        chanlevel = 0
+        maxlevel = userlevel
+        if self.cursor.rowcount > 0:
+            res = self.cursor.dictfetchone()
+            chanlevel = int(res['userlevel'])
+            maxlevel = int(res['maxlevel'])
+        return (chanlevel,maxlevel)
+    
     def getaccess(self,user,target):
-        query="SELECT * FROM access_level(%s,%s,%d)"
-        self.cursor.execute(query,(user,target,self.prefix_notice() or self.prefix_private()))
-        access=self.cursor.dictfetchone()['access_level'] or 0
-        return access
+        userlevel = self.get_userlevel(user)
+        (chanlevel,maxlevel) = self.get_chanlevel(target)
+        access = max(userlevel,chanlevel)
+        if self.prefix_notice() or self.prefix_private():
+            return access
+        else:
+            return min(access,maxlevel)

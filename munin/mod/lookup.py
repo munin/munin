@@ -28,6 +28,7 @@ Loadable subclass
 
 import re
 from munin import loadable
+from pprint import pprint
 
 class lookup(loadable.loadable):
     def __init__(self,cursor):
@@ -39,6 +40,7 @@ class lookup(loadable.loadable):
         m=irc_msg.match_command(self.commandre)
         if not m:
             return 0
+        print access, irc_msg.access, irc_msg.target
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0

@@ -327,24 +327,6 @@ CREATE TRIGGER fleet_updates_defcalls
 
 -- BEGIN MUNIN RELATED FUNCTIONS
 
-DROP FUNCTION access_level(text,text,INT);
-CREATE FUNCTION access_level(username text,target text,private INT) RETURNS int AS $PROC$
-DECLARE
-        chanrec RECORD;
-	uslvl INT;
-	access INT;
-BEGIN
-SELECT INTO chanrec userlevel,maxlevel FROM channel_list WHERE chan ILIKE target;
-SELECT INTO uslvl COALESCE((SELECT userlevel FROM user_list WHERE pnick ILIKE username),0);
-SELECT INTO access CASE WHEN chanrec.userlevel > uslvl THEN chanrec.userlevel ELSE uslvl END;
---RAISE EXCEPTION 'access: %, chanrec: %, userrec: %',access, chanrec, uslvl;
-SELECT INTO access CASE WHEN access > chanrec.maxlevel THEN chanrec.maxlevel ELSE access END;
-SELECT INTO access CASE WHEN private > 0 AND uslvl > access THEN uslvl ELSE access END;
-RETURN access;
-END
-$PROC$ LANGUAGE plpgsql;
-
-
 DROP FUNCTION max_tick();
 CREATE FUNCTION max_tick() RETURNS int AS $PROC$
 BEGIN

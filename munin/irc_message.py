@@ -91,7 +91,7 @@ class irc_message(object):
         else:
             return 0
     
-    def get_chanlevel(self,target):
+    def get_chanlevel(self,target,userlevel):
         query="SELECT userlevel, maxlevel FROM channel_list WHERE chan ilike %s"
         self.cursor.execute(query,(target,))
         chanlevel = 0
@@ -104,7 +104,7 @@ class irc_message(object):
     
     def getaccess(self,user,target):
         userlevel = self.get_userlevel(user)
-        (chanlevel,maxlevel) = self.get_chanlevel(target)
+        (chanlevel,maxlevel) = self.get_chanlevel(target,userlevel)
         access = max(userlevel,chanlevel)
         if self.prefix_notice() or self.prefix_private():
             return access

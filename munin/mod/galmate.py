@@ -27,6 +27,7 @@ Loadable subclass
 # qebab, 24/6/08.
 
 import re
+import psycopg
 from munin import loadable
 
 class galmate(loadable.loadable):

@@ -170,7 +170,7 @@ class intel(loadable.loadable):
                 elif i.nick:
                     r+=i.nick
                 elif i.alliance:
-                    r+=i.alliance[:3]
+                    r+="["+i.alliance[:3]+"]"
                 repls.append(r)
 
         if not replied_to_request:

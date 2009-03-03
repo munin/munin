@@ -153,6 +153,8 @@ class intel(loadable.loadable):
         self.cursor.execute(query,(x,y))
 
         replied_to_request = False
+
+        repls=[]
         for d in self.cursor.dictfetchall():
             x=d['x']
             y=d['y']
@@ -160,12 +162,20 @@ class intel(loadable.loadable):
             i=loadable.intel(pid=d['pid'],nick=d['nick'],fakenick=d['fakenick'],defwhore=d['defwhore'],gov=d['gov'],bg=d['bg'],
                              covop=d['covop'],alliance=d['alliance'],relay=d['relay'],reportchan=d['reportchan'],
                              scanner=d['scanner'],distwhore=d['distwhore'],comment=d['comment'])
-            if not i.is_empty():
+            if i.nick or i.alliance:
                 replied_to_request = True
-                reply="Information stored for %s:%s:%s - "% (x,y,z)
-                reply+=i.__str__()
-                irc_msg.reply(reply)
+                r="%d ("%(z,)
+                if i.nick and i.alliance:
+                    r+="%s/%s"%(i.nick,i.alliance)
+                else:
+                    r+="%s"%([i.nick,i.alliance][bool(i.alliance)],)
+                r+=")"
+                repls.append(r)
 
         if not replied_to_request:
             irc_msg.reply("No information stored for galaxy %s:%s" % (x,y))
+        else:
+            reply="Information stored for %d:%d - "%(x,y)
+            reply+=" | ".join(repls)
+            irc_msg.reply(reply)
         return 1

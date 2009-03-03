@@ -26,7 +26,6 @@ Loadable.Loadable subclass
 # owners.
 
 
-import md5
 import re
 import munin.loadable as loadable
 

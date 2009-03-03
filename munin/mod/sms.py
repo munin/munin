@@ -24,7 +24,7 @@ Loadable.Loadable subclass
 # owners.
 
 import re
-import md5
+from hashlib import md5
 from munin import loadable
 from clickatell import Clickatell
 
@@ -89,7 +89,7 @@ class sms(loadable.loadable):
             irc_msg.reply("Could not authenticate with server. Super secret message not sent.")
             return 1
 
-        hasher = md5.new()
+        hasher = md5()
         hasher.update(phone)
         hasher.update(text)
         msg_id = hasher.hexdigest()

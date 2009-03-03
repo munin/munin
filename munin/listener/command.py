@@ -32,7 +32,8 @@ class command(object):
                 self.log_command(irc_msg)
             elif key == 'munin.mod.help':
                 self.help(irc_msg)
-            elif key == 'munin.mod.reboot' and irc_msg.access >= 1000:
+            elif key == 'munin.mod.reincarnate' and irc_msg.access >= 1000:
+                irc_msg.reply("ARISING FROM THE DEAD")
                 raise reboot(irc_msg)
 
 

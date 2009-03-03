@@ -54,7 +54,7 @@ class munin(object):
             try:
                 self.reboot()
             except reboot.reboot, r:
-                r.irc_msg.reply("Rebooting")
+                continue
             except socket.error, s:
                 raise s
             except Exception, e:

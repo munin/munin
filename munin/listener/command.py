@@ -28,7 +28,7 @@ class command(object):
                     self.control[key].execute(irc_msg.user,irc_msg.access,irc_msg)
                 except Exception, e:
                     irc_msg.reply("Error in module '%s'. Please report the command you used to the bot owner as soon as possible."%(irc_msg.command_name,))
-                    raise e
+                    raise
                 self.log_command(irc_msg)
             elif key == 'munin.mod.help':
                 self.help(irc_msg)

@@ -23,7 +23,6 @@
 
 import os
 import ConfigParser
-import psycopg
 import time
 
 from connection import connection
@@ -31,6 +30,8 @@ from connection import connection
 from loader import Loader
 import traceback
 import reboot
+import socket
+
 class munin(object):
     IRCU_ROUTER = 'munin.ircu_router'
     def __init__(self):
@@ -47,15 +48,15 @@ class munin(object):
         self.client.wline("NICK %s" % config.get("Connection", "nick"))
         self.client.wline("USER %s 0 * : %s" % (config.get("Connection", "user"),
                                                 config.get("Connection", "name")))
-        self.conn = self.create_db_connection(config)
-        self.cursor = self.conn.cursor()
         self.config = config
-        router=self.ircu_router.ircu_router(self.client,self.cursor,self.config,self.loader)
+        router=self.ircu_router.ircu_router(self.client,self.config,self.loader)
         while True:
             try:
                 self.reboot()
             except reboot.reboot, r:
-                r.irc_msg.reply("rebooting")
+                r.irc_msg.reply("Rebooting")
+            except socket.error, s:
+                raise s
             except Exception, e:
                 print "Exception during command: " + e.__str__()
                 traceback.print_exc()
@@ -64,20 +65,9 @@ class munin(object):
         print "Rebooting Munin."
         self.loader.refresh()
         self.ircu_router = self.loader.get_module(self.IRCU_ROUTER)
-        router=self.ircu_router.ircu_router(self.client,self.cursor,self.config,self.loader)
+        router=self.ircu_router.ircu_router(self.client,self.config,self.loader)
         router.run()
 
-    def create_db_connection(self,config):
-        dsn = 'user=%s dbname=%s' % (config.get("Database", "user"), config.get("Database", "dbname"))
-        if config.has_option("Database", "password"):
-            dsn += ' password=%s' % config.get("Database", "password")
-        if config.has_option("Database", "host"):
-            dsn += ' host=%s' % config.get("Database", "host")
-
-        conn=psycopg.connect(dsn)
-        conn.serialize()
-        conn.autocommit()
-        return conn
     
 def run():
     ofile=file("pid.munin", "w")

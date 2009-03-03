@@ -2,17 +2,20 @@ from listener import auth
 from listener import command
 from listener import custom_runner
 import mod
+import psycopg
 
 class ircu_router(object):
-    def __init__(self,client,cursor,config,loader):
+    def __init__(self,client,config,loader):
 
 
         self.client=client
-        self.cursor=cursor
         self.config=config
+        self.conn = self.create_db_connection(config)
+        self.cursor = self.conn.cursor()
+
         self.listeners=[
-            command.command(client,cursor,mod,loader),
-            custom_runner.custom_runner(client,cursor,config),
+            command.command(client,self.cursor,mod,loader),
+            custom_runner.custom_runner(client,self.cursor,config),
             auth.auth(client,config)
             ]
 
@@ -26,3 +29,15 @@ class ircu_router(object):
     def trigger_listeners(self,line):
         for l in self.listeners:
             l.message(line)
+
+    def create_db_connection(self,config):
+        dsn = 'user=%s dbname=%s' % (config.get("Database", "user"), config.get("Database", "dbname"))
+        if config.has_option("Database", "password"):
+            dsn += ' password=%s' % config.get("Database", "password")
+        if config.has_option("Database", "host"):
+            dsn += ' host=%s' % config.get("Database", "host")
+
+        conn=psycopg.connect(dsn)
+        conn.serialize()
+        conn.autocommit()
+        return conn

@@ -25,7 +25,8 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright
 # owners.
 
-
+import re
+import munin.loadable as loadable
 
 class NAMEHERE(loadable.loadable):
     """
@@ -38,8 +39,8 @@ class NAMEHERE(loadable.loadable):
         self.usage=self.__class__.__name__ + ""
 	self.helptext=None
 
-    def execute(self,nick,target,command,user,access,irc_msg):
-        m=self.commandre.search(command)
+    def execute(self,user,access,irc_msg):
+        m=self.commandre.search(irc_msg.command)
         if not m:
             return 0
 

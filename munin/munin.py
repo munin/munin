@@ -63,6 +63,7 @@ class munin(object):
 
     def reboot(self):
         print "Rebooting Munin."
+        self.loader.populate('munin')
         self.loader.refresh()
         self.ircu_router = self.loader.get_module(self.IRCU_ROUTER)
         router=self.ircu_router.ircu_router(self.client,self.config,self.loader)

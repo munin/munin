@@ -176,7 +176,14 @@ class intel(loadable.loadable):
         if not replied_to_request:
             irc_msg.reply("No information stored for galaxy %s:%s" % (x,y))
         else:
-            reply="Information stored for %d:%d - "%(x,y)
+            reply="Intel %d:%d - "%(x,y)
+            reply+=self.gal_info(x,y)
+            reply+=" - "
             reply+=" - ".join(repls)
             irc_msg.reply(reply)
         return 1
+
+    def gal_info(self,x,y):
+        g=loadable.galaxy(x=x,y=y)
+        g.load_most_recent(self.cursor)
+        return "Score (%d) Value (%d) Size (%d)"%(g.score_rank,g.value_rank,g.size_rank)

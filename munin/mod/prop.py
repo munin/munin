@@ -203,6 +203,7 @@ class prop(loadable.loadable):
         irc_msg.reply(reply)
         if not bool(r['active']):
             reply=""
+            prop=self.find_single_prop_by_id(prop_id)
             (voters, yes, no) = self.get_voters_for_prop(prop_id)
             (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(voters,yes,no)
             reply+="The prop"

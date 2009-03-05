@@ -63,7 +63,7 @@ class mydef(loadable.loadable):
 
         (ships, comment) = self.parse_garbage(garbage)
         comment=self.reset_ships_and_comment(u,ships,fleetcount,comment)
-        self.reset_ships_and_comment(u,ships,fleetcount,comment):
+        self.reset_ships_and_comment(u,ships,fleetcount,comment)
         irc_msg.reply("Updated your def info to: fleetcount %s, ships: %s and comment: %s"%(fleetcount,", ".join(map(lambda x:"%s %s" %(self.format_real_value(ships[x]),x),ships.keys())),comment))
 
         return 1

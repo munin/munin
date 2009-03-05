@@ -35,11 +35,12 @@ class mydef(loadable.loadable):
     def __init__(self,cursor):
         loadable.loadable.__init__(self,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
-        self.paramre=re.compile(r"^\s*(\d)\s*x\s+(.*)")
+        self.paramre=re.compile(r"^\s*(\d)\s*x\s*(.*)")
         self.countre=re.compile(r"(\d+(?:.\d+)?[mk]?)")
         self.shipre=re.compile(r"(\w+),?")
-        self.usage=self.__class__.__name__ + ""
-	self.helptext=None
+        self.nulls = ["<>",".","-","?"]
+        self.usage=self.__class__.__name__ + "[fleets] x <[ship count] [ship name]>+ [comment]"
+	self.helptext=["Add your fleets for defense listing. Ship can be a shipclass. For example !"+self.__class__.__name__+" 2x 20k Barghest 30k Harpy 20k BS Call me any time for hot shipsex."]
 
     def execute(self,user,access,irc_msg):
         m=self.commandre.search(irc_msg.command)
@@ -61,19 +62,15 @@ class mydef(loadable.loadable):
         # assign param variables
 
         (ships, comment) = self.parse_garbage(garbage)
-        if self.reset_ships_and_comment(u,ships,fleetcount,comment):
-            irc_msg.reply("Updated your def info to: fleetcount %s, comment: %s and ships: %s"%(fleetcount,comment,", ".join(map(lambda x:"%s %s" %(self.format_real_value(ships[x]),x),ships.keys()))))
-        else:
-            irc_msg.reply("Bork")
-        
+        comment=self.reset_ships_and_comment(u,ships,fleetcount,comment)
+        irc_msg.reply("Updated your def info to: fleetcount %s, ships: %s and comment: %s"%(fleetcount,", ".join(map(lambda x:"%s %s" %(self.format_real_value(ships[x]),x),ships.keys())),comment))
+
         return 1
 
     def reset_ships_and_comment(self,user,ships,fleetcount,comment):
-        if not self.update_comment_and_fleetcount(user.pnick,fleetcount,comment):
-            return False
-        if not self.update_fleets(user,ships):
-            return False
-        return True
+        comment=self.update_comment_and_fleetcount(user,fleetcount,comment)
+        self.update_fleets(user,ships)
+        return comment
         
     def update_fleets(self,user,ships):
         query="DELETE FROM user_fleet WHERE user_id = %s"
@@ -84,16 +81,21 @@ class mydef(loadable.loadable):
             query+=" VALUES (%s,%s,%s)"
             args=(user.id,k,ships[k])
             self.cursor.execute(query,args)
-        return True
     
     def update_comment_and_fleetcount(self,user,fleetcount,comment):
-        query="UPDATE user_list SET fleetcount=%s, fleetcomment=%s WHERE pnick ilike %s"
-        args=(fleetcount,comment,user)
+        query="UPDATE user_list SET fleetcount=%s"
+        args=(fleetcount,)
+        if comment != "":
+            if comment in self.nulls:
+                comment=""
+            args+=(comment,)
+            query+=", fleetcomment=%s"
+        query+=" WHERE id = %s"
+        args+=(user.id,)
         self.cursor.execute(query,args)
-        if self.cursor.rowcount < 1:
-            return False
-        return True
-
+        query="SELECT fleetcomment FROM user_list WHERE id = %s"
+        self.cursor.execute(query,(user.id,))
+        return self.cursor.dictfetchone()['fleetcomment']
 
     def parse_garbage(self,garbage):
         parts=garbage.split()
@@ -112,9 +114,9 @@ class mydef(loadable.loadable):
 
             self.cursor.execute(query,("%"+ship+"%",))
             s=self.cursor.dictfetchone()
-            if s:
+            if ship.lower() not in ['fi','co','fr','de','cr','bs'] and s:
                 ship=s['name']                
-            elif ship.lower() not in ['fi','co','fr','de','cr','bs']:
+            else:
                 break
 
             ships[ship]=count

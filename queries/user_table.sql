@@ -128,8 +128,18 @@
         available_cookies smallint NOT NULL DEFAULT 0,
         carebears integer NOT NULL DEFAULT 0,
         last_cookie_date TIMESTAMP DEFAULT NULL,
+        fleetcount integer NOT NULL DEFAULT 0,
+        fleetcomment VARCHAR(512) NOT NULL DEFAULT '',
 	salt varchar(4) NOT NULL DEFAULT SUBSTRING(CAST(RANDOM() AS VARCHAR) FROM 3 FOR 4)
 );
+
+CREATE TABLE user_fleet (
+       id SERIAL PRIMARY KEY,
+       user_id integer REFERENCES user_list(id),
+       ship varchar(30) NOT NULL,
+       ship_count integer
+);
+
 
 CREATE UNIQUE INDEX user_list_pnick_case_insensitive_index ON user_list(LOWER(pnick));
 --INSERT INTO user_list (pnick,sponsor,userlevel) VALUES ('jester','Munin',1000);

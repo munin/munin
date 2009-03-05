@@ -79,6 +79,16 @@ class loadable(object):
             param_dict[a[0].lower()]=a[1]
         return param_dict
 
+    def human_readable_number_to_integer(self,number):
+        if number[-1].lower()=='k':
+            number=1000*float(number[:-1])
+        elif number[-1].lower()=='m':
+            number=1000000*float(number[:-1])
+        else:
+            number=float(number)
+        number=int(number)
+        return number
+    
     def current_tick(self):
         self.cursor.execute("SELECT MAX(tick) FROM updates")
         return self.cursor.fetchone()[0]

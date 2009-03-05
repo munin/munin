@@ -206,6 +206,7 @@ class prop(loadable.loadable):
             (voters, yes, no) = self.get_voters_for_prop(prop_id)
             (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(voters,yes,no)
             reply+="The prop"
+            no+=prop['padding']
             if yes > no:
                 reply+=" passed by a vote of %d to %d"%(yes,no)
             else:

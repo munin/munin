@@ -164,18 +164,26 @@ class intel(loadable.loadable):
                              scanner=d['scanner'],distwhore=d['distwhore'],comment=d['comment'])
             if i.nick or i.alliance:
                 replied_to_request = True
-                r="%d ("%(z,)
+                r="#%d "%(z,)
                 if i.nick and i.alliance:
-                    r+="%s/%s"%(i.nick,i.alliance)
-                else:
-                    r+="%s"%([i.nick,i.alliance][bool(i.alliance)],)
-                r+=")"
+                    r+="%s [%s]"%(i.nick,i.alliance[:3])
+                elif i.nick:
+                    r+=i.nick
+                elif i.alliance:
+                    r+="["+i.alliance[:3]+"]"
                 repls.append(r)
 
         if not replied_to_request:
             irc_msg.reply("No information stored for galaxy %s:%s" % (x,y))
         else:
-            reply="Information stored for %d:%d - "%(x,y)
-            reply+=" | ".join(repls)
+            reply="Intel %d:%d - "%(x,y)
+            reply+=self.gal_info(x,y)
+            reply+=" - "
+            reply+=" - ".join(repls)
             irc_msg.reply(reply)
         return 1
+
+    def gal_info(self,x,y):
+        g=loadable.galaxy(x=x,y=y)
+        g.load_most_recent(self.cursor)
+        return "Score (%d) Value (%d) Size (%d)"%(g.score_rank,g.value_rank,g.size_rank)

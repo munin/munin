@@ -33,13 +33,14 @@ class mydef(loadable.loadable):
     foo
     """
     def __init__(self,cursor):
-        loadable.loadable.__init__(self,cursor,100)
+        super(self.__class__,self).__init__(cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s*(\d)\s*x\s*(.*)")
         self.countre=re.compile(r"(\d+(?:.\d+)?[mk]?)")
         self.shipre=re.compile(r"(\w+),?")
         self.nulls = ["<>",".","-","?"]
-        self.usage=self.__class__.__name__ + "[fleets] x <[ship count] [ship name]>+ [comment]"
+        self.ship_classes = ['fi','co','fr','de','cr','bs']
+        self.usage=self.__class__.__name__ + " [fleets] x <[ship count] [ship name]>+ [comment]"
 	self.helptext=["Add your fleets for defense listing. Ship can be a shipclass. For example !"+self.__class__.__name__+" 2x 20k Barghest 30k Harpy 20k BS Call me any time for hot shipsex."]
 
     def execute(self,user,access,irc_msg):
@@ -115,9 +116,9 @@ class mydef(loadable.loadable):
 
             self.cursor.execute(query,("%"+ship+"%",))
             s=self.cursor.dictfetchone()
-            if ship.lower() not in ['fi','co','fr','de','cr','bs'] and s:
+            if ship.lower() not in self.ship_classes and s:
                 ship=s['name']                
-            else:
+            elif ship.lower() not in self.ship_classes:
                 break
 
             ships[ship]=count

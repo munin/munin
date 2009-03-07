@@ -117,6 +117,9 @@ class loadable(object):
             return text+"s"
         elif text.lower() == "day" and number != 1:
             return text+"s"
+        elif text.lower() == "match" and number != 1:
+            return text+"es"
+        
         return text
 
     def match_or_usage(self, irc_msg, needle, haystack):
@@ -474,7 +477,7 @@ class alliance(object):
         return 1
 
 class user(object):
-    def __init__(self,id=-1,pnick=None,sponsor=None,userlevel=-1,planet_id=-1,phone=None,pubphone=False,stay=False,invites=-1,available_cookies=-1,last_cookie_date=None,carebears=-1):
+    def __init__(self,id=-1,pnick=None,sponsor=None,userlevel=-1,planet_id=-1,phone=None,pubphone=False,stay=False,invites=-1,available_cookies=-1,last_cookie_date=None,carebears=-1,fleetcount=-1,fleetcomment=None):
         self.id=id
         self.pnick=pnick
         self.sponsor=sponsor
@@ -489,10 +492,12 @@ class user(object):
         self.last_cookie_date=None
         self.invites=-1
         self.carebears=carebears
+        self.fleetcount=fleetcount
+        self.fleetcomment=fleetcomment
 
     def lookup_query(self):
         query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.phone AS phone, t1.pubphone AS pubphone,"
-        query+=" t1.stay AS stay, t1.invites AS invites, t1.available_cookies AS available_cookies, t1.last_cookie_date AS last_cookie_date, t1.carebears AS carebears "
+        query+=" t1.stay AS stay, t1.invites AS invites, t1.available_cookies AS available_cookies, t1.last_cookie_date AS last_cookie_date, t1.carebears AS carebears, t1.fleetcount AS fleetcount,t1.fleetcomment AS fleetcomment "
         query+=" FROM user_list AS t1 WHERE"
         return query
 
@@ -532,6 +537,8 @@ class user(object):
             self.available_cookies=u['available_cookies']
             self.last_cookie_date=u['last_cookie_date']
             self.carebears=u['carebears']
+            self.fleetcount=u['fleetcount']
+            self.fleetcomment=u['fleetcomment']
             return 1
         return None
 

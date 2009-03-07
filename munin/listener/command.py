@@ -13,7 +13,11 @@ class command(object):
         modules=loader.get_submodules(module.__name__)
         result={}
         for m in modules:
-            result[m.__name__]=getattr(m,m.__name__.split('.')[-1])(self.cursor)
+            modname=m.__name__.split('.')[-1]
+            if not hasattr(m,modname):
+                print "Warning: Unable to find '%s' in module %s"%(modname,m.__name__)
+            else:
+                result[m.__name__]=getattr(m,modname)(self.cursor)
         return result
 
 

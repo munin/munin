@@ -26,7 +26,7 @@ import ConfigParser
 import time
 
 from connection import connection
-#from parser import parser
+
 from loader import Loader
 import traceback
 import reboot
@@ -53,13 +53,16 @@ class munin(object):
         while True:
             try:
                 self.reboot()
+            except socket.error, s:
+                print "Exception during command: " + e.__str__()
+                traceback.print_exc()
+                raise
             except reboot.reboot, r:
                 continue
-            except socket.error, s:
-                raise s
             except Exception, e:
                 print "Exception during command: " + e.__str__()
                 traceback.print_exc()
+                raise
 
     def reboot(self):
         print "Rebooting Munin."

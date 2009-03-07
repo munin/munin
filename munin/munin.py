@@ -57,12 +57,16 @@ class munin(object):
                 print "Exception during command: " + e.__str__()
                 traceback.print_exc()
                 raise
+            except socket.timeout, s:
+                print "Exception during command: " + e.__str__()
+                traceback.print_exc()
+                raise
             except reboot.reboot, r:
                 continue
             except Exception, e:
                 print "Exception during command: " + e.__str__()
                 traceback.print_exc()
-                raise
+                continue
 
     def reboot(self):
         print "Rebooting Munin."

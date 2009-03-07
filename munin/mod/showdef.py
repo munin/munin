@@ -60,17 +60,14 @@ class showdef(loadable.loadable):
             irc_msg.reply("No members matching %s found"%(name,))
             return
 
-        query="SELECT t1.ship, t1.ship_count"
-        query+=" FROM user_fleet AS t1 "
-        query+=" WHERE t1.user_id=%s"
-        self.cursor.execute(query,(u.id,))
-
         if self.cursor.rowcount < 1:
             irc_msg.reply("%s is either a lazy pile of shit that hasn't entered any ships for def, or a popular whore who's already turned their tricks."%(u.pnick,))
             return
+        
+        ships=u.get_fleets(self.cursor)
 
         reply="%s def info: fleetcount %s, updated: %s (%s), ships: " %(u.pnick,u.fleetcount,u.fleetupdated,u.fleetupdated-self.current_tick())
-        reply+=", ".join(map(lambda x: "%s %s"%(self.format_real_value(x['ship_count']),x['ship']),self.cursor.dictfetchall()))
+        reply+=", ".join(map(lambda x: "%s %s"%(self.format_real_value(x['ship_count']),x['ship']),ships))
         reply+=" comment: %s"%(u.fleetcomment,)
         irc_msg.reply(reply)
         return 1

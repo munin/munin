@@ -558,6 +558,13 @@ class user(object):
         else:
             return None # dead subtree, get rid of these.
 
+    def get_fleets(self,cursor):
+        query="SELECT t1.ship, t1.ship_count"
+        query+=" FROM user_fleet AS t1 "
+        query+=" WHERE t1.user_id=%s"
+        cursor.execute(query,(self.id,))
+        return cursor.dictfetchall()        
+
     def check_available_cookies(self,cursor,config):
         now = DateTime.now()
         if not self.last_cookie_date or DateTime.Age(now,self.last_cookie_date).days > 6:

@@ -61,18 +61,26 @@ class mydef(loadable.loadable):
         fleetcount=m.group(1)
         garbage=m.group(2)
         # assign param variables
+        reset_ships=False
+        ships={}
+        comment=""
+        if garbage in self.nulls:
+            reset_ships=True
+        else:
+            (ships, comment)=self.parse_garbage(garbage)
 
-        (ships, comment) = self.parse_garbage(garbage)
-        comment=self.reset_ships_and_comment(u,ships,fleetcount,comment)
-        self.reset_ships_and_comment(u,ships,fleetcount,comment)
-        irc_msg.reply("Updated your def info to: fleetcount %s, updated: pt%s ships: %s and comment: %s"%(fleetcount,self.current_tick(),", ".join(map(lambda x:"%s %s" %(self.format_real_value(ships[x]),x),ships.keys())),comment))
+        (ships,comment)=self.reset_ships_and_comment(u,ships,fleetcount,comment,reset_ships)
+
+        irc_msg.reply("Updated your def info to: fleetcount %s, updated: pt%s ships: %s and comment: %s"%(fleetcount,self.current_tick(),", ".join(map(lambda x:"%s %s" %(self.format_real_value(x['ship_count']),x['ship']),ships)),comment))
 
         return 1
 
-    def reset_ships_and_comment(self,user,ships,fleetcount,comment):
+    def reset_ships_and_comment(self,user,ships,fleetcount,comment,reset_ships):
         comment=self.update_comment_and_fleetcount(user,fleetcount,comment)
-        self.update_fleets(user,ships)
-        return comment
+        if len(ships) > 0 or reset_ships:
+            self.update_fleets(user,ships)
+        ships=user.get_fleets(self.cursor)
+        return (ships,comment)
         
     def update_fleets(self,user,ships):
         query="DELETE FROM user_fleet WHERE user_id = %s"
@@ -103,7 +111,6 @@ class mydef(loadable.loadable):
 
     def parse_garbage(self,garbage):
         parts=garbage.split()
-        print parts
         ships={}
         while len(parts) > 1:
             mc=self.countre.match(parts[0])

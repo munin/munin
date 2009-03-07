@@ -134,7 +134,6 @@ class Loader(object):
 
     def populate(self,basedir):
         os.path.walk(basedir,self.add_directory,None)
-        print self.loaded.keys()
 
     def add_directory(self,arg,directory,files):
         base_module = '.'.join(directory.split(os.sep))

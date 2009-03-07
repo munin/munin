@@ -69,7 +69,7 @@ class showdef(loadable.loadable):
             irc_msg.reply("%s is either a lazy pile of shit that hasn't entered any ships for def, or a popular whore who's already turned their tricks."%(u.pnick,))
             return
 
-        reply="%s def info: fleetcount %s, updated: %s (-%s), ships: " %(u.pnick,u.fleetcount,u.fleetupdated,u.fleetupdated-self.current_tick())
+        reply="%s def info: fleetcount %s, updated: %s (%s), ships: " %(u.pnick,u.fleetcount,u.fleetupdated,u.fleetupdated-self.current_tick())
         reply+=", ".join(map(lambda x: "%s %s"%(self.format_real_value(x['ship_count']),x['ship']),self.cursor.dictfetchall()))
         reply+=" comment: %s"%(u.fleetcomment,)
         irc_msg.reply(reply)

@@ -130,6 +130,7 @@
         last_cookie_date TIMESTAMP DEFAULT NULL,
         fleetcount integer NOT NULL DEFAULT 0,
         fleetcomment VARCHAR(512) NOT NULL DEFAULT '',
+        fleetupdated integer NOT NULL DEFAULT 0,
 	salt varchar(4) NOT NULL DEFAULT SUBSTRING(CAST(RANDOM() AS VARCHAR) FROM 3 FOR 4)
 );
 

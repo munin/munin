@@ -65,7 +65,7 @@ class mydef(loadable.loadable):
         (ships, comment) = self.parse_garbage(garbage)
         comment=self.reset_ships_and_comment(u,ships,fleetcount,comment)
         self.reset_ships_and_comment(u,ships,fleetcount,comment)
-        irc_msg.reply("Updated your def info to: fleetcount %s, ships: %s and comment: %s"%(fleetcount,", ".join(map(lambda x:"%s %s" %(self.format_real_value(ships[x]),x),ships.keys())),comment))
+        irc_msg.reply("Updated your def info to: fleetcount %s, updated: pt%s ships: %s and comment: %s"%(fleetcount,self.current_tick(),", ".join(map(lambda x:"%s %s" %(self.format_real_value(ships[x]),x),ships.keys())),comment))
 
         return 1
 
@@ -92,6 +92,8 @@ class mydef(loadable.loadable):
                 comment=""
             args+=(comment,)
             query+=", fleetcomment=%s"
+        query+=",fleetupdated=%s"
+        args+=(self.current_tick(),)
         query+=" WHERE id = %s"
         args+=(user.id,)
         self.cursor.execute(query,args)

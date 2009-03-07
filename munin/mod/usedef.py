@@ -53,6 +53,9 @@ class usedef(loadable.loadable):
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
+        taker=self.load_user(user,irc_msg)
+        if not taker:
+            return
 
         # assign param variables
         name=m.group(1)
@@ -67,25 +70,36 @@ class usedef(loadable.loadable):
             query+=" WHERE id=%s"
             self.cursor.execute(query,(u.id,))
 
-        removed = self.drop_ships(u,ships)
+        removed = self.drop_ships(u,taker,ships)
         reply=""
         if u.fleetcount == 0:
             reply+="%s's fleetcount was already 0, please ensure that they actually had a fleet free to launch."%(u.pnick,)
         else:
             reply+="Removed a fleet for %s, they now have %s fleets left."%(u.pnick,u.fleetcount - 1)
         reply+=" Used the following ships: "
-        reply+=", ".join(map(lambda x:"%s (%s %s)"%(x,removed[x],self.pluralize(removed[x],"match")),removed.keys()))
+        reply+=", ".join(map(lambda x:"%s %s"%(self.format_real_value(removed[x]),x),removed.keys()))
         irc_msg.reply(reply)
         return 1
-    def drop_ships(self,user,ships):
-        query="DELETE FROM user_fleet WHERE ship ilike %s and user_id = %s"
+
+    def drop_ships(self,user,taker,ships):
+        ship_query="SELECT ship, ship_count FROM user_fleet WHERE ship ilike %s and user_id = %s"
         removed={}
         for ship in ships.split():
             if ship not in self.ship_classes:
                 ship_lookup="%"+ship+"%"
             else:
                 ship_lookup=ship
-            self.cursor.execute(query,(ship_lookup,user.id))
-            removed[ship]=self.cursor.rowcount
-            
+            self.cursor.execute(ship_query,(ship_lookup,user.id))
+            for result in self.cursor.dictfetchall():
+                s=result['ship']
+                c=result['ship_count']
+                removed[s]=c
+                self.delete_ships(user,taker,s,c)
         return removed
+
+    def delete_ships(self,user,taker,ship,count):
+        delete_query="DELETE FROM user_fleet WHERE ship ilike %s and user_id = %s"
+        self.cursor.execute(delete_query,(ship,user.id))
+        log_query="INSERT INTO fleet_log (taker_id,user_id,ship,ship_count)"
+        log_query+=" VALUES (%s,%s,%s,%s)"
+        self.cursor.execute(log_query,(taker.id,user.id,ship,count))

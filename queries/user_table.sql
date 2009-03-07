@@ -141,6 +141,14 @@ CREATE TABLE user_fleet (
        ship_count integer
 );
 
+CREATE TABLE fleet_log (
+       id SERIAL PRIMARY KEY,
+       taker_id integer REFERENCES user_list(id),
+       user_id integer REFERENCES user_list(id),
+       ship varchar(30) NOT NULL,
+       ship_count integer
+);
+
 
 CREATE UNIQUE INDEX user_list_pnick_case_insensitive_index ON user_list(LOWER(pnick));
 --INSERT INTO user_list (pnick,sponsor,userlevel) VALUES ('jester','Munin',1000);

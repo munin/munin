@@ -37,7 +37,7 @@ class searchdef(loadable.loadable):
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s*(\d+(?:.\d+)?[mk]?)\s+(\S+)")
         self.ship_classes = ['fi','co','fr','de','cr','bs']
-        self.usage=self.__class__.__name__ + ""
+        self.usage=self.__class__.__name__ + " <number> <ship>"
 	self.helptext=None
 
     def execute(self,user,access,irc_msg):

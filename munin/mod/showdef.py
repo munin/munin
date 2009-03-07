@@ -36,7 +36,7 @@ class showdef(loadable.loadable):
         loadable.loadable.__init__(self,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s*(\S+)?")
-        self.usage=self.__class__.__name__ + ""
+        self.usage=self.__class__.__name__ + " <pnick>"
 	self.helptext=None
 
     def execute(self,user,access,irc_msg):

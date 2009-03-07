@@ -35,7 +35,7 @@ class showdef(loadable.loadable):
     def __init__(self,cursor):
         loadable.loadable.__init__(self,cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
-        self.paramre=re.compile(r"^\s*(\S+)")
+        self.paramre=re.compile(r"^\s*(\S+)?")
         self.usage=self.__class__.__name__ + ""
 	self.helptext=None
 
@@ -54,8 +54,10 @@ class showdef(loadable.loadable):
             return 0
 
         name=m.group(1)
-
-        u=self.load_user_from_pnick(name)
+        if name:
+            u=self.load_user_from_pnick(name)
+        else:
+            u=self.load_user_from_pnick(irc_msg.user)
         if not u or u.userlevel < 100:
             irc_msg.reply("No members matching %s found"%(name,))
             return

@@ -64,7 +64,7 @@ class searchdef(loadable.loadable):
         else:
             ship_lookup = ship
 
-        query="SELECT t2.pnick, t2.fleetcount AS fleetcount, t2.fleetcomment, t1.ship, t1.ship_count"
+        query="SELECT t2.pnick, t2.fleetcount AS fleetcount, t2.fleetcomment, t2.fleetupdated, t1.ship, t1.ship_count"
         query+=" FROM user_fleet AS t1 "
         query+=" INNER JOIN user_list AS t2"
         query+=" ON t1.user_id=t2.id"
@@ -80,7 +80,7 @@ class searchdef(loadable.loadable):
             return
 
         reply="Fleets matching query: "
-        reply+=", ".join(map(lambda x: "%s %s: %s %s"%(x['pnick'],x['fleetcount'],self.format_real_value(x['ship_count']),x['ship']),self.cursor.dictfetchall()))
+        reply+=", ".join(map(lambda x: "%s(%s) %s: %s %s"%(x['pnick'],x['fleetupdated']-self.current_tick(),x['fleetcount'],self.format_real_value(x['ship_count']),x['ship']),self.cursor.dictfetchall()))
         
         irc_msg.reply(reply)
             

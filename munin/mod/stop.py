@@ -108,6 +108,8 @@ class stop(loadable.loadable):
                 reply+="Capturing "
             elif ship['class'].lower() == "struct":
                 reply+="Destroying "
+            elif ship['type'] == 'Emp':
+                reply+="Hugging "
             else:
                 reply+="Stopping "
             reply+="%s %s (%s) as %s requires " % (ship_number,ship['name'],self.format_value(ship_number*ship['total_cost']),user_target)

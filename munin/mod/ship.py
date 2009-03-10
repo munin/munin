@@ -82,7 +82,7 @@ class ship(loadable.loadable):
         reply+=" Type: %s | Init: %s |"%(s['type'],s['init'])
         reply+=" EMPres: %s |"%(s['empres'],)
         if s['type']=='Emp':
-            reply+=" Guns: %s |" %(s['gun'],)
+            reply+=" Hugs: %s |" %(s['gun'],)
         else:
             reply+=" D/C: %s |"%((s['damage']*10000)/s['total_cost'],)
 

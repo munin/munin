@@ -100,7 +100,7 @@ class eff(loadable.loadable):
                 if ship['type'].lower() == "norm" or ship['type'].lower() == 'cloak':
                     reply+="destroy "
                 elif ship['type'].lower() == "emp":
-                    reply+="freeze "
+                    reply+="hug "
                 elif ship['type'].lower() == "steal":
                     reply+="steal "
                 else:

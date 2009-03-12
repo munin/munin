@@ -111,15 +111,16 @@ class loadable(object):
             return None
 
     def pluralize(self,number,text):
-        if text.lower() == "cookie" and number != 1:
+        if number == 1:
+            return text
+        if text.lower() == "cookie":
             return text+"s"
-        elif text.lower() == "carebear" and number != 1:
+        elif text.lower() == "carebear":
             return text+"s"
-        elif text.lower() == "day" and number != 1:
+        elif text.lower() == "day":
             return text+"s"
-        elif text.lower() == "match" and number != 1:
+        elif text.lower() == "match":
             return text+"es"
-        
         return text
 
     def match_or_usage(self, irc_msg, needle, haystack):

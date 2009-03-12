@@ -36,7 +36,7 @@ class galpenis(loadable.loadable):
         super(self.__class__,self).__init__(cursor,1)
         self.paramre=re.compile(r"^\s+(.*)")
         self.usage=self.__class__.__name__ + " <x:y>"
-
+        self.helptext=["Shows the galaxy's scoregain over the last 72 ticks."]
     def execute(self,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
         if not m:

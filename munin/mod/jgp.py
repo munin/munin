@@ -126,8 +126,11 @@ class jgp(loadable.loadable):
                     y=s['targ_y']
                     z=s['targ_z']
 
-                reply+="%s:%s:%s (id: %s, pt: %s) " % (x,y,z,rand_id,tick)
+                reply+=
                 reply+=string.join(prev,' | ')
+                if len(reply) > 450:
+                    reply=" Newest JGP scan on %s:%s:%s (pt: %s) " % (x,y,z,tick)
+                    reply+="http://game.planetarion.com/showscan.pl?scan_id=%s"%(rand_id,)
         irc_msg.reply(reply)
         return 1
 

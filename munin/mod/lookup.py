@@ -83,11 +83,19 @@ class lookup(loadable.loadable):
 
         #check if this is an alliance
         a=loadable.alliance(name=param.strip())
-        if not a.load_most_recent(self.cursor):
-            irc_msg.reply("No alliance matching '%s' found" % (param,))
-            return 1
-        irc_msg.reply(str(a))
+        if a.load_most_recent(self.cursor):
+            irc_msg.reply(str(a))
+        u=self.load_user_from_pnick(param.strip())
+        if u:
+            if u.planet:
+                irc_msg.reply(str(u.planet))
+            else:
+                irc_msg.reply("User %s has not entered their planet details" % (u.pnick,))
+            return 
+        irc_msg.reply("No alliance or user matching '%s' found" % (param,))
+        return
+        
 
         # do stuff here
 
-        return 1
+        return

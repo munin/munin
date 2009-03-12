@@ -38,6 +38,7 @@ class cookie(loadable.loadable):
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
+        self.altparamre=re.compile(r"^\s+(\S+)\s+((\d+)\s+)?(\S.+)")
         self.paramre=re.compile(r"^\s+((\d+)\s+)?(\S+)\s+(\S.+)")
         self.statre=re.compile(r"^\s+statu?s?")
         self.usage=self.__class__.__name__ + " [howmany] <receiver> <reason> | [stat]"
@@ -56,12 +57,12 @@ class cookie(loadable.loadable):
         if not u: return 0
 
         s=self.statre.search(m.group(1))
+        m1=self.altparamre.search(m.group(1))
+        m2=self.paramre.search(m.group(1))
 
-        m=self.paramre.search(m.group(1))
-
-        if not (m or s):
+        if not (m1 or m2 or s):
             print s
-            print m
+            print m2
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         if s:
@@ -71,14 +72,19 @@ class cookie(loadable.loadable):
             return 1
         if self.command_not_used_in_home(irc_msg,self.__class__.__name__):
             return 1
-        # assign param variables
-        howmany=m.group(2)
+        if m1:
+            receiver=m1.group(2)            
+            howmany=m1.group(3)
+            reason=m1.group(4)
+        else:
+            howmany=m2.group(2)
+            receiver=m2.group(3)
+            reason=m2.group(4)
         if howmany:
             howmany=int(howmany)
         else:
             howmany=1
-        receiver=m.group(3)
-        reason=m.group(4)
+        
 
         if not self.can_give_cookies(irc_msg,u,howmany):
             return 0

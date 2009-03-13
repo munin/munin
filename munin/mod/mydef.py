@@ -40,7 +40,7 @@ class mydef(loadable.loadable):
         self.shipre=re.compile(r"(\w+),?")
         self.nulls = ["<>",".","-","?"]
         self.ship_classes = ['fi','co','fr','de','cr','bs']
-        self.usage=self.__class__.__name__ + " [fleets] x <[ship count] [ship name]>+ [comment]"
+        self.usage=self.__class__.__name__ + " [fleets] x <[ship count] [ship name]> [comment]"
 	self.helptext=["Add your fleets for defense listing. Ship can be a shipclass. For example !"+self.__class__.__name__+" 2x 20k Barghest 30k Harpy 20k BS Call me any time for hot shipsex."]
 
     def execute(self,user,access,irc_msg):

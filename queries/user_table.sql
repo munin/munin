@@ -146,7 +146,8 @@ CREATE TABLE fleet_log (
        taker_id integer REFERENCES user_list(id),
        user_id integer REFERENCES user_list(id),
        ship varchar(30) NOT NULL,
-       ship_count integer
+       ship_count integer,
+       tick integer REFERENCES updates(tick) DEFAULT max_tick()
 );
 
 
@@ -314,8 +315,8 @@ CREATE TABLE planet (
 	res_crystal integer NOT NULL,
 	res_eonium integer NOT NULL,
 	factory_usage_light VARCHAR(7) NOT NULL CHECK(factory_usage_light IN ('None','Low', 'Medium', 'High')),
-	factory_usage_medium VARCHAR(7) NOT NULL CHECK(factory_usage_light IN ('None','Low', 'Medium', 'High')),
-	factory_usage_heavy VARCHAR(7) NOT NULL CHECK(factory_usage_light IN ('None','Low', 'Medium', 'High')),
+	factory_usage_medium VARCHAR(7) NOT NULL CHECK(factory_usage_medium IN ('None','Low', 'Medium', 'High')),
+	factory_usage_heavy VARCHAR(7) NOT NULL CHECK(factory_usage_high IN ('None','Low', 'Medium', 'High')),
 	prod_res integer NOT NULL,
 	agents integer NOT NULL,
 	guards integer NOT NULL

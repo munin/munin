@@ -125,8 +125,7 @@ class jgp(loadable.loadable):
                     x=s['targ_x']
                     y=s['targ_y']
                     z=s['targ_z']
-
-                reply+=
+                reply+="%s:%s:%s (id: %s, pt: %s) " % (x,y,z,rand_id,tick)
                 reply+=string.join(prev,' | ')
                 if len(reply) > 450:
                     reply=" Newest JGP scan on %s:%s:%s (pt: %s) " % (x,y,z,tick)

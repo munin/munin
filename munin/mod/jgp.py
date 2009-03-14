@@ -123,7 +123,7 @@ class jgp(loadable.loadable):
 
                 prev=[]
                 for s in self.cursor.dictfetchall():
-                    prev.append("(%s:%s:%s %s size: %s eta: %s)" % (s['x'],s['y'],s['z'],s['fleet_name'],s['fleet_size'],s['eta']))
+                    prev.append("(%s:%s:%s %s | %s %s %s)" % (s['x'],s['y'],s['z'],s['fleet_name'],s['fleet_size'],s['mission'],s['eta']))
                     tick=s['tick']
                     x=s['targ_x']
                     y=s['targ_y']

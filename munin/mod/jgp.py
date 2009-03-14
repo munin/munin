@@ -104,7 +104,7 @@ class jgp(loadable.loadable):
 
             rand_id=m.group(1)
 
-            query="SELECT t4.x AS targ_x,t4.y AS targ_y,t4.z AS targ_z,t1.tick,t1.nick,t1.scantype,t1.rand_id,t2.fleet_size,t2.fleet_name,t2.landing_tick-t1.tick AS eta"
+            query="SELECT t4.x AS targ_x,t4.y AS targ_y,t4.z AS targ_z,t1.tick,t1.nick,t1.scantype,t1.rand_id,t2.mission,t2.fleet_size,t2.fleet_name,t2.landing_tick-t1.tick AS eta"
             query+= ",t5.x AS x,t5.y AS y,t5.z AS z"
             query+=" FROM scan AS t1"
             query+=" INNER JOIN fleet AS t2 ON t1.id=t2.scan_id"

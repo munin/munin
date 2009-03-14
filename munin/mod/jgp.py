@@ -93,6 +93,9 @@ class jgp(loadable.loadable):
 
                 reply+=" (id: %s, pt: %s) " % (rand_id,tick)
                 reply+=string.join(prev,' | ')
+                if len(reply) > 450:
+                    reply=" Newest JGP scan on %s:%s:%s (pt: %s) " % (x,y,z,tick)
+                    reply+="http://game.planetarion.com/showscan.pl?scan_id=%s"%(rand_id,)
         else:
             m=self.idre.search(params)
             if not m:
@@ -127,9 +130,6 @@ class jgp(loadable.loadable):
                     z=s['targ_z']
                 reply+="%s:%s:%s (id: %s, pt: %s) " % (x,y,z,rand_id,tick)
                 reply+=string.join(prev,' | ')
-                if len(reply) > 450:
-                    reply=" Newest JGP scan on %s:%s:%s (pt: %s) " % (x,y,z,tick)
-                    reply+="http://game.planetarion.com/showscan.pl?scan_id=%s"%(rand_id,)
         irc_msg.reply(reply)
         return 1
 

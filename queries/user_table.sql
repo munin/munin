@@ -134,6 +134,17 @@
 	salt varchar(4) NOT NULL DEFAULT SUBSTRING(CAST(RANDOM() AS VARCHAR) FROM 3 FOR 4)
 );
 
+CREATE TABLE cookie_log (
+       id SERIAL PRIMARY KEY,
+       log_time TIMESTAMP NOT NULL DEFAULT NOW(),
+       year_number smallint NOT NULL,
+       week_number smallint NOT NULL,
+       howmany integer NOT NULL,
+       giver integer REFERENCES user_list(id),
+       receiver integer REFERENCES user_list(id)
+);
+       
+
 CREATE TABLE user_fleet (
        id SERIAL PRIMARY KEY,
        user_id integer REFERENCES user_list(id),

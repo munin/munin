@@ -78,10 +78,14 @@ class exile(loadable.loadable):
 	    for r in res:
 		bracket-=r['count']
 		if bracket < 0:
+                    rest_gals=bracket+r['count']
+                    total_rest_gals=r['count']
+                    rest_planets=r['planets']
 		    break
 		max_planets=r['planets']
 
 	    reply="Total galaxies: %s Maximum planets to guarantee a galaxy is in the exile bracket: %s" % (gals,max_planets)
+            reply+=" %s of %s galaxies with %s planets will also be in the bracket."%(rest_gals,total_rest_gals,rest_planets)
 
 	irc_msg.reply(reply)
 

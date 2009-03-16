@@ -45,7 +45,6 @@ class slogan(loadable.loadable):
         if m:
             params=m.group(1)
 
-
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
@@ -70,9 +69,6 @@ class slogan(loadable.loadable):
                 reply+=" (%d more slogans match this search)" % (self.cursor.rowcount - 1)
 
         irc_msg.reply(reply)
-
-
-        # do stuff here
 
         return 1
 

@@ -117,11 +117,4 @@ class value(loadable.loadable):
                 print info
                 reply+=str.join(' | ',info)
             irc_msg.reply(reply)
-
-
-        # assign param variables
-
-
-        # do stuff here
-
         return 1

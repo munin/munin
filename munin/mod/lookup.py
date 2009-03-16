@@ -85,6 +85,7 @@ class lookup(loadable.loadable):
         a=loadable.alliance(name=param.strip())
         if a.load_most_recent(self.cursor):
             irc_msg.reply(str(a))
+            return
         u=self.load_user_from_pnick(param.strip())
         if u:
             if u.planet:

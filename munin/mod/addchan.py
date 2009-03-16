@@ -32,10 +32,10 @@ from munin import loadable
 
 class addchan(loadable.loadable):
     def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,500)
+        super(self.__class__,self).__init__(cursor,100)
         self.paramre=re.compile(r"^\s+(#\S+)\s+(\d+)")
         self.usage=self.__class__.__name__ + " <chan> <level>"
-
+        self.helptext=['Adds a channel with the given level with maxlevel equal to your own access level.']
 
     def execute(self,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
@@ -60,10 +60,10 @@ class addchan(loadable.loadable):
         query="INSERT INTO channel_list (chan,userlevel,maxlevel) VALUES (%s,%s,%s)"
 
         try:
-            self.cursor.execute(query,(chan,access_lvl,access_lvl))
+            self.cursor.execute(query,(chan,access_lvl,irc_msg.access))
             if self.cursor.rowcount>0:
                 irc_msg.reply("Added chan %s at level %s" % (chan,access_lvl))
-                irc_msg.client.privmsg('P',"set %s autoinvite on" %(chan,));
+                irc_msg.client.privmsg('P',"set %s autoinvite on" %(chan,x));
                 irc_msg.client.privmsg('P',"invite %s" %(chan,));
 
         except psycopg.IntegrityError:

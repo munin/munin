@@ -73,14 +73,7 @@ class launch(loadable.loadable):
                 irc_msg.reply("Usage: %s" % (self.usage,))
                 return 0
 
-        query="SELECT max_tick()"
-        try:
-            self.cursor.execute(query)
-            current_tick = self.cursor.dictfetchone()
-        except psycopg.IntegrityError:
-            irc_msg.reply("Could not fetch current tick.")
-            return 0
-        current_tick = current_tick['max_tick']
+        current_tick=self.current_tick()
 
         current_time = datetime.datetime.utcnow()
         launch_tick = land_tick - eta

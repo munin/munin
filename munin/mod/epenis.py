@@ -77,7 +77,6 @@ class epenis(loadable.loadable):
         query+=" FROM (SELECT t2.nick, t4.pnick ,t1.xp-t5.xp AS xp_gain, t1.score-t5.score AS activity, t1.value-t5.value AS value_diff"
         query+=" FROM planet_dump AS t1"
         query+=" INNER JOIN intel AS t2 ON t1.id=t2.pid"
-#        query+=" LEFT JOIN user_pref AS t3 ON t2.pid=t3.planet_id"
         query+=" LEFT JOIN user_list AS t4 ON t1.id=t4.planet_id"
         query+=" INNER JOIN planet_dump AS t5"
         query+=" ON t1.id=t5.id AND t1.tick - 72 = t5.tick"

@@ -56,7 +56,7 @@ class roidsave(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        mining = mining *(float(bonus+100)/100)
+        mining = int(mining *(float(bonus+100)/100))
         cost=self.format_value(ticks*roids*mining)
 
         cost_m=self.format_value(int(ticks*roids*mining*1.9529))

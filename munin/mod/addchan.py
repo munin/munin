@@ -63,7 +63,7 @@ class addchan(loadable.loadable):
             self.cursor.execute(query,(chan,access_lvl,irc_msg.access))
             if self.cursor.rowcount>0:
                 irc_msg.reply("Added chan %s at level %s" % (chan,access_lvl))
-                irc_msg.client.privmsg('P',"set %s autoinvite on" %(chan,x));
+                irc_msg.client.privmsg('P',"set %s autoinvite on" %(chan,));
                 irc_msg.client.privmsg('P',"invite %s" %(chan,));
 
         except psycopg.IntegrityError:

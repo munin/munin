@@ -32,8 +32,8 @@ from munin import loadable
 class roidsave(loadable.loadable):
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,1)
-        self.paramre=re.compile(r"^\s+(\d+)\s+(\d+)",re.I)
-        self.usage=self.__class__.__name__ + " <roids> <ticks>"
+        self.paramre=re.compile(r"^\s+(\d+)\s+(\d+)(\s+(\d+))?",re.I)
+        self.usage=self.__class__.__name__ + " <roids> <ticks> [mining_bonus]"
         self.helptext=['Tells you how much value will be mined by a number of roids in that many ticks. M=Max, F=Feudalism, D=Democracy.']
     def execute(self,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
@@ -48,20 +48,22 @@ class roidsave(loadable.loadable):
         # assign param variables
         roids=int(m.group(1))
         ticks=int(m.group(2))
+        bonus=m.group(4) or 0
+        bonus=int(bonus)
         mining=250
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
+        mining = int(mining *(float(bonus+100)/100))
         cost=self.format_value(ticks*roids*mining)
 
         cost_m=self.format_value(int(ticks*roids*mining*1.9529))
         cost_f=self.format_value(int(ticks*roids*mining*(1/(1-float(self.config.get('Planetarion', 'feudalism'))))))
         cost_d=self.format_value(int(ticks*roids*mining*.9524))
 
-        reply="%s roids will mine %s value (M: %s/F: %s/D: %s) in %s ticks (%s days)" % (roids,cost,cost_m,cost_f,cost_d,ticks,ticks/24)
-
+        reply="%s roids with %s%% bonus will mine %s value (M: %s/F: %s/D: %s) in %s ticks (%s days)" % (roids,bonus,cost,cost_m,cost_f,cost_d,ticks,ticks/24)
 
         irc_msg.reply(reply)
 

@@ -77,19 +77,6 @@ class roidcost(loadable.loadable):
         repay = int((cost*100)/(roids*mining*(1/(1-float(self.config.get('Planetarion', 'feudalism'))))))
         reply+=" Feudalism: %s ticks (%s days)" % (repay,repay/24)
 
-        #repay=(cost*100)/(roids*mining)
-        #repay_eng=(cost*100)/(roids*mining*1.15)
-        #
-        #reply="Capping %s roids at %s value will repay in %s ticks (%s days)" % (roids,self.format_value(cost*100),repay,repay/24)
-        #
-        #repay=int((cost*100)/(roids*mining*1.9529))
-        #reply+=" | Max: %s ticks (%s days)" %(repay,repay/24)
-        #repay=int((cost*100)/(roids*mining*1.1765))
-        #reply+=" | Feudalism: %s ticks (%s days)" %(repay,repay/24)
-        #
-        #repay=int((cost*100)/(roids*mining*.9524))
-        #reply+=" | Dictatorship: %s ticks (%s days)" %(repay,repay/24)
-
         irc_msg.reply(reply)
 
         return 1

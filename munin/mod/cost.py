@@ -77,9 +77,6 @@ class cost(loadable.loadable):
         reply+=" Feudalism: %s metal, %s crystal and %s eonium."%(int(ship['metal'] * feudalism) * ship_number,int(ship['crystal'] * feudalism)* ship_number,
                                                                   int(ship['eonium'] * feudalism) * ship_number)
 
-#        reply+=" Dictatorship: %s metal, %s crystal and %s eonium."%(int(ship['metal'] * 1.05)*ship_number,int(ship['crystal'] *1.05) *ship_number,
-#                                                                  int(ship['eonium'] * 1.05)*ship_number)
-
         reply+=" It will add %s value"%((ship['total_cost'] * ship_number)/100,)
 
 
@@ -87,20 +84,3 @@ class cost(loadable.loadable):
 
         return 1
 
-"""
-        if not ship:
-            if "asteroids".rfind(bogey) > -1:
-                irc_msg.reply("Buying %s %s will cost %s metal, %s crystal and %s eonium. It will add %s value" %(ship_number,ship['name'],
-                                                                                                                                         ship['metal'] * ship_number,
-                                                                                                                                         ship['crystal'] * ship_number,
-                                                                                                                                         ship['eonium'] * ship_number,
-                                                                                                                                         (ship['total_cost'] * ship_number)/100))
-
-                ship={'name':'Asteroid','class':'Roids','armor':50,'total_cost':20000}
-            elif "structures".rfind(bogey) > -1:
-
-                ship={'name':'Structure','class':'Struct','armor':500,'total_cost':150000}
-            else:
-                irc_msg.reply("%s is not a ship" % (bogey))
-                return 0
-"""

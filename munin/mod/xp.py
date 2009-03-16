@@ -33,7 +33,6 @@ class xp(loadable.loadable):
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,1)
         self.paramre=re.compile(r"^\s+(.*)")
-        #self.firstcountre=re.compile(r"^(\d+)\s+(.*)")
         self.countre=re.compile(r"^(\d+)(\.|-|:|\s*)(.*)")
         self.usage=self.__class__.__name__ + " <x:y:z> <a:b:c>"
 
@@ -57,11 +56,6 @@ class xp(loadable.loadable):
 
         victim = None
         attacker = None
-
-        #m=self.countre.search(params)
-        #if m and not ':.-'.rfind(m.group(2))>-1:
-        #    roid_count=int(m.group(1))
-        #    params=m.group(3)
 
         m=self.planet_coordre.search(params)
         if m:
@@ -87,7 +81,6 @@ class xp(loadable.loadable):
             u=loadable.user(pnick=irc_msg.user)
             if not u.load_from_db(self.cursor):
 		irc_msg.reply("You must be registered to use the automatic "+self.__class__.__name__+" command (log in with P and set mode +x, then make sure your planet is set with the pref command)")
-                #irc_msg.reply("Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
                 return 1
             if u.planet_id:
                 attacker = u.planet
@@ -107,16 +100,10 @@ class xp(loadable.loadable):
             reply+="will earn %s:%s:%s (%s|%s) "%(attacker.x,attacker.y,attacker.z,
                                                self.format_value(attacker_val*100),self.format_value(attacker_score*100))
 
-            #bravery = max(0,min(30,10*(min(2,float(victim_val)/attacker_val)  + min(2,float(victim_score)/attacker_score) - 1)))
-            #bravery = min(20,5*(float(victim_val)/attacker_val)*(float(victim_score)/attacker_score))
-
             bravery = max(0,(min(2,float(victim_val)/attacker_val)-0.1 ) * (min(2,float(victim_score)/attacker_score)-0.2))
             bravery *= 10
             xp=int(bravery*roid_count)
 
-            #xp=int(roid_count*10
-            #reply+="XP: %s, Score: %s "%(xp, xp*5)
-            #(Bravery: %.2f)" % (xp,xp*50,bravery)
             reply+="XP: %s, Score: %s (Bravery: %.2f)" % (xp,xp*60,bravery)
             irc_msg.reply(reply)
         else:
@@ -131,12 +118,6 @@ class xp(loadable.loadable):
             reply+="| Attacker %s:%s:%s (%s|%s) "%(attacker.x,attacker.y,attacker.z,
                                                 self.format_value(attacker_val*100),self.format_value(attacker_score*100))
             total_roids = victim.size
-
-            #bravery = min(20,10*(float(victim_val)/attacker_val))
-            #bravery = max(0,min(30,10*(min(2,float(victim_val)/attacker_val) ) + (min(2,float(victim_score)/attacker_score))) - 1)
-            #*(float(victim_val)/attacker_val)*(float(victim_score)/attacker_score))
-            #bravery = max(0,min(30,10*(min(2,float(victim_val)/attacker_val)  + min(2,float(victim_score)/attacker_score) - 1)))
-
 
             bravery = max(0,(min(2,float(victim_val)/attacker_val)-0.1 ) * (min(2,float(victim_score)/attacker_score)-0.2))
             bravery *= 10

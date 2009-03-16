@@ -55,10 +55,7 @@ class addslogan(loadable.loadable):
 
         self.cursor.execute(query,args)
 
-        reply="Added your shitty slogan"
-
-
-        irc_msg.reply(reply)
+        irc_msg.reply("Added your shitty slogan")
 
 
         # do stuff here

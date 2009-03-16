@@ -54,7 +54,6 @@ class remslogan(loadable.loadable):
         query="SELECT slogan FROM slogan WHERE slogan = %s"
         self.cursor.execute(query,args)
         if self.cursor.rowcount == 1:
-            print "EXACT MATCH"
             slogan=self.cursor.dictfetchone()['slogan']
             args=(params,)
             query="DELETE FROM slogan WHERE slogan=%s"
@@ -70,12 +69,10 @@ class remslogan(loadable.loadable):
 
 
         if results > 1:
-            print "FUZZY MATCH"
             reply="There were %d slogans matching your search, I can only be bothered to delete one slogan at a time you demanding fuckwit" % (results,)
         elif results == 0:
             reply="No slogans matching '%s'" %(params,)
         else:
-            print "FUZZY MATCH"
             slogan=self.cursor.dictfetchone()['slogan']
             args=(slogan,)
             query="DELETE FROM slogan WHERE slogan = %s"

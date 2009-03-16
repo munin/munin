@@ -30,7 +30,7 @@ class addquote(loadable.loadable):
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,100)
         self.paramre=re.compile(r"^\s+(.*)$")
-        self.timestampre=re.compile(r"\s*\[?\s*\d+:\d+(:\d+)?\s*\]?\s*")
+        self.timestampre=re.compile(r"\s*\[?\s*\d{2}:\d{2}(:\d{2})?\s*\]?\s*")
         self.usage=self.__class__.__name__ + " <quote goes here>"
 
     def execute(self,user,access,irc_msg):

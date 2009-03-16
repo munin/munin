@@ -49,12 +49,9 @@ class details(loadable.loadable):
 
         u=None
         if user:
-            #irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
             u=loadable.user(pnick=irc_msg.user)
             if not u.load_from_db(self.cursor):
                 pass
-                #irc_msg.reply("Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
-                #return 1
 
         m=self.paramre.search(m.group(1))
         if not m:

@@ -33,7 +33,6 @@ class cunts(loadable.loadable):
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,100)
         self.paramre=re.compile("\s+(.*)")
-#        re.compile(r"(\s+(\S+))?(\s+(ter|cat|xan|zik))(\s+(<|>)?(\d+))?(\s+(<|>)?(\d+))?",re.I)
         self.alliancere=re.compile(r"^(\S+)$")
         self.racere=re.compile(r"^(ter|cat|xan|zik|eit|etd)$",re.I)
         self.rangere=re.compile(r"^(<|>)?(\d+)$")

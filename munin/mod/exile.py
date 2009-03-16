@@ -85,7 +85,7 @@ class exile(loadable.loadable):
 		max_planets=r['planets']
 
 	    reply="Total galaxies: %s Maximum planets to guarantee a galaxy is in the exile bracket: %s" % (gals,max_planets)
-            reply+=" %s of %s galaxies with %s planets will also be in the bracket."%(rest_gals,total_rest_gals,rest_planets)
+            reply+=" | Also in the bracket: %s of %s galaxies with %s planets."%(rest_gals,total_rest_gals,rest_planets)
 
 	irc_msg.reply(reply)
 

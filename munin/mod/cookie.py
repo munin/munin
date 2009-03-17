@@ -30,6 +30,7 @@ Loadable.Loadable subclass
 
 import re
 from munin import loadable
+from mx import DateTime
 
 class cookie(loadable.loadable):
     """
@@ -101,6 +102,7 @@ class cookie(loadable.loadable):
         self.cursor.execute(query,(howmany,rec.id))
         query="UPDATE user_list SET available_cookies = available_cookies - %d WHERE id = %s"
         self.cursor.execute(query,(howmany,u.id))
+        self.log_cookie(howmany,u,rec)
         irc_msg.reply("%s said '%s' and gave %d %s to %s, who stuffed their face and now has %d carebears"%(u.pnick,
                                                                                                             reason,
                                                                                                             howmany,
@@ -108,6 +110,13 @@ class cookie(loadable.loadable):
                                                                                                             rec.pnick,
                                                                                                             rec.carebears+howmany))
         return 1
+    def log_cookie(self,howmany,giver,receiver):
+        query="INSERT INTO cookie_log (year_number,week_number,howmany,giver,receiver)"
+        query+=" VALUES (%s,%s,%s,%s,%s)"
+        now=DateTime.now()
+        week_number=now.week_number#fixme
+        year=now.year
+        self.cursor.execute(query,(year,week_number,howmany,giver.id,receiver.id))
 
     def can_give_cookies(self,irc_msg,u,howmany):
         available_cookies = u.check_available_cookies(self.cursor,self.config)

@@ -26,7 +26,7 @@ class command(object):
                                           cursor = self.cursor,
                                           line   = line)
         if irc_msg.command:
-            key = "munin.mod."+irc_msg.command_name
+            key = "munin.mod."+irc_msg.command_name.lower()
             try:
                 if self.control.has_key(key):
                     self.control[key].execute(irc_msg.user,irc_msg.access,irc_msg)

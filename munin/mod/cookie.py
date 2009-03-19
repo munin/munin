@@ -114,8 +114,9 @@ class cookie(loadable.loadable):
         query="INSERT INTO cookie_log (year_number,week_number,howmany,giver,receiver)"
         query+=" VALUES (%s,%s,%s,%s,%s)"
         now=DateTime.now()
-        week_number=now.week_number#fixme
-        year=now.year
+        year=now.iso_week[0]
+        week_number=now.iso_week[1]
+
         self.cursor.execute(query,(year,week_number,howmany,giver.id,receiver.id))
 
     def can_give_cookies(self,irc_msg,u,howmany):

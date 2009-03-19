@@ -35,7 +35,7 @@ class gac(loadable.loadable):
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
-        self.paramre=re.compile(r"^\s*(STUFFGOESHERE)")
+        self.paramre=re.compile(r"^\s*(.*)")
         self.usage=self.__class__.__name__ + ""
 	self.helptext=['Displays stats about the Gross Alliance Cookies. Similar to the Gross Domestic Product, GAC covers how many %s cookies changed hands in a given week.'%(self.config.get('Auth','alliance'),)]
 
@@ -59,15 +59,15 @@ class gac(loadable.loadable):
         min_gac=self.get_min_gac()
         reply="Gross Alliance Cookies for %s for last 5 weeks (current first): %s"%(self.config.get('Auth','alliance'),
                                                                                     ', '.join(last_5_gac))
-        reply+="| Highest ever GAC: %s in week %s/%s."%(max_gac['gac'],max_gac['week_number'],max_gac['year_number'])
-        reply+=" Lowest ever GAC: %s in week %s/%s."%(min_gac['gac'],min_gac['week_number'],min_gac['year_number'])
+        reply+=" | Highest ever GAC: %s in week %s/%s."%(max_gac['gac'],max_gac['week_number'],max_gac['year_number'])
+        reply+=" | Lowest ever GAC: %s in week %s/%s."%(min_gac['gac'],min_gac['week_number'],min_gac['year_number'])
         irc_msg.reply(reply)
         return 1
 
     def get_max_gac(self):
         return self.get_minmax_gac(max=True)
     def get_min_gac(self):
-        return self.get_minmin_gac(min=True)
+        return self.get_minmax_gac(min=True)
     
     def get_minmax_gac(self,max=True,min=False):
         if min:
@@ -79,6 +79,8 @@ class gac(loadable.loadable):
         query+=" GROUP BY year_number, week_number"
         query+=" ORDER BY sum(howmany) %s"%(order,)
         query+=" LIMIT 1"
+        self.cursor.execute(query)
+        print self.cursor.rowcount
         return self.cursor.dictfetchone()
 
     def get_last_5_gac(self):
@@ -88,5 +90,5 @@ class gac(loadable.loadable):
         query+=" ORDER BY year_number DESC, week_number DESC"
         query+=" LIMIT 5"
         self.cursor.execute(query)
-        return map(lambda x: x['gac'],self.cursor.dictfetchall())
+        return map(lambda x: str(x['gac']),self.cursor.dictfetchall())
     

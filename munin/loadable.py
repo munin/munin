@@ -568,7 +568,8 @@ class user(object):
 
     def check_available_cookies(self,cursor,config):
         now = DateTime.now()
-        if not self.last_cookie_date or (now.day_of_week == 0 and DateTime.Age(now,self.last_cookie_date).days > 4):
+        age = DateTime.Age(now,self.last_cookie_date).days
+        if not self.last_cookie_date or (now.day_of_week == 0 and  age > 1) or age > 6:
             self.available_cookies = int(config.get("Alliance","cookies_per_week"))
             query="UPDATE user_list SET available_cookies = %s,last_cookie_date = %s WHERE id = %s"
             last_monday=now - DateTime.RelativeDateTime(days=(now.day_of_week))

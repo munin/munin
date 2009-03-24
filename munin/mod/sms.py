@@ -58,7 +58,8 @@ class sms(loadable.loadable):
         if not u: return 1
 
         rec = m.group(1)
-        text = m.group(2) + ' - %s (%s)' % user,u.phone
+        public_text = m.group(2) + ' - %s' % (user,)
+        text = public_text + '/%s' %(u.phone,)
         receiver=self.load_user_from_pnick(rec)
         if not receiver:
             irc_msg.reply("Who exactly is %s?" % (rec,))
@@ -106,8 +107,11 @@ class sms(loadable.loadable):
         if not ret[0]:
             irc_msg.reply("That wasn't supposed to happen. I don't really know what wrong. Maybe your mother dropped you.")
             return 1
-
-        irc_msg.reply("Successfully processed To: %s Message: %s" % (receiver.pnick,text))
+        reply="Successfully processed To: %s Message: %s"
+        if irc_msg.chan_reply():
+            irc_msg.reply(reply % (receiver.pnick,public_text))
+        else:
+            irc_msg.reply(reply % (receiver.pnick,text))
         return 0
 
     def prepare_phone_number(self,text):

@@ -130,8 +130,7 @@ class phone(loadable.loadable):
                 irc_msg.reply(reply)
                 return 1
 
-            m=re.match(r"(#\S+)",irc_msg.target,re.I)
-            if m and irc_msg.prefix_numeric()==irc_msg.client.PUBLIC_PREFIX:
+            if irc_msg.chan_reply():
                 irc_msg.reply("Don't look up phone numbers in public, Alki might see them")
                 return 1
             if t_user.pubphone and u.userlevel >= 100:

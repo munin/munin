@@ -76,6 +76,12 @@ class irc_message(object):
     def user_or_nick(self):
         return self.user or self.nick
 
+    def chan_reply(self):
+        m=re.match(r"(#\S+)",self.target,re.I)
+        if m and self.prefix_numeric()==self.client.PUBLIC_PREFIX:
+            return True
+        else:
+            return False
     def getpnick(self,host):
         m=self.pnickre.search(host)
         if m:

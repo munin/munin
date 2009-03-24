@@ -58,7 +58,7 @@ class sms(loadable.loadable):
         if not u: return 1
 
         rec = m.group(1)
-        text = m.group(2) + ' - %s' % user
+        text = m.group(2) + ' - %s (%s)' % user,u.phone
         receiver=self.load_user_from_pnick(rec)
         if not receiver:
             irc_msg.reply("Who exactly is %s?" % (rec,))

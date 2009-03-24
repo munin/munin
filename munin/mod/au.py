@@ -86,7 +86,7 @@ class au(loadable.loadable):
                     tick=s['tick']
                     rand_id=s['rand_id']
 
-                reply+=" (id: %s, pt: %s) " % (rand_id,tick)
+                reply+=" (id: %s, age: %s, value diff: %s) " % (rand_id,self.current_tick()-tick,p.vdiff(self.cursor,tick))
                 reply+=string.join(prev,' | ')
         else:
             m=self.idre.search(params)
@@ -96,11 +96,12 @@ class au(loadable.loadable):
 
             rand_id=m.group(1)
 
-            query="SELECT x,y,z,t1.tick,t1.nick,t1.scantype,t1.rand_id,t3.name,t2.amount"
+            query="SELECT t4.x,t4.y,t4.z,t1.tick,t1.nick,t1.scantype,t1.rand_id,t3.name,t2.amount,t4.value-t5.value AS vdiff"
             query+=" FROM scan AS t1"
             query+=" INNER JOIN au AS t2 ON t1.id=t2.scan_id"
             query+=" INNER JOIN ship AS t3 ON t2.ship_id=t3.id"
             query+=" INNER JOIN planet_dump AS t4 ON t1.pid=t4.id"
+            query+=" INNER JOIN planet_dump AS t5 ON t1.pid=t5.id AND t1.tick=t5.tick"
             query+=" WHERE t4.tick=(SELECT max_tick()) AND t1.rand_id=%s"
             self.cursor.execute(query,(rand_id,))
 
@@ -116,8 +117,9 @@ class au(loadable.loadable):
                     x=s['x']
                     y=s['y']
                     z=s['z']
+                    vdiff=s['vdiff']
 
-                reply+="%s:%s:%s (id: %s, pt: %s) " % (x,y,z,rand_id,tick)
+                reply+="%s:%s:%s (id: %s, age: %s, value diff: %s) " % (x,y,z,rand_id,self.current_tick()-tick,vdiff)
                 reply+=string.join(prev,' | ')
         irc_msg.reply(reply)
         return 1

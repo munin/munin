@@ -363,7 +363,17 @@ class planet(object):
         bravery = max(0,(min(2,float(victim.value)/self.value)-0.1 ) * (min(2,float(victim.score)/self.score)-0.2))
         bravery *= 10
         return int(bravery*int(victim.size*0.25))
-
+    def vdiff(self,cursor,tick):
+        print tick
+        query="SELECT value FROM planet_dump AS t1 WHERE tick=%s AND id=%s"
+        cursor.execute(query,(tick,self.id))
+        if cursor.rowcount > 0:
+            print self.value
+            old_value = cursor.dictfetchone()['value']
+            print old_value
+            return self.value - old_value
+        else:
+            return None
 
 
 class galaxy(object):

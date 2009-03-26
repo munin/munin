@@ -64,6 +64,9 @@ class sms(loadable.loadable):
         if not receiver:
             irc_msg.reply("Who exactly is %s?" % (rec,))
             return 1
+        if receiver.pnick.lower() == 'valle':
+            irc_msg.reply("I refuse to talk to that Swedish clown. Use !phone show Valle and send it using your own phone.")
+            return 
 
         results=self.phone_query_builder(receiver,"AND t1.friend_id=%s",(u.id,))
 

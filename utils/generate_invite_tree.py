@@ -1,3 +1,4 @@
+
 #!/usr/bin/python
 
 # This file is part of Munin.
@@ -67,8 +68,8 @@ if config.has_option('Database', 'host'):
 conn=psycopg.connect(DSN)
 cursor=conn.cursor()
 
-query='SELECT pnick, spnosor FROM user_list'
+query='SELECT pnick, sponsor FROM user_list'
 query+=" WHERE userlevel >= 100"
-self.cursor.execute(query)
-
-print ",\n".join(map(lambda x: "%s => %s"%(x['pnick'],x['sponsor']),self.cursor.dictfetchall()))
+cursor.execute(query)
+  
+print "\n".join(map(lambda x: '"%s" -> "%s";'%(x['sponsor'],x['pnick']),cursor.dictfetchall()))

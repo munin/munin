@@ -41,12 +41,9 @@ class prop(loadable.loadable):
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(invite|kick|list|show|vote|expire|cancel|recent|search)(.*)")
         self.invite_kickre=re.compile(r"^\s+(\S+)(\s+(\S.*))")
-        self.votere=re.compile(r"^\s+(\d+)\s+(yes|no|abstain)(\s+(\d+))?")
-        self.usage=self.__class__.__name__ + " [<invite|kick> <pnick> <comment>] | [list] | [vote <number> <yes|no|abstain> [carebears]] | [expire <number>] | [show <number>] | [cancel <number>] | [recent] | [search <pnick>]"
-        self.MIN_WAIT=7
-        self.helptext=["A proposition is a vote to do something. For now, you can raise propositions to invite or kick someone. Once raised the proposition will stand until you expire it.  Make sure you give everyone time to have their say.",
-                       "Votes for and against a proposition are made using carebears. You must have at least 1 carebear to vote. You can bid as many carebears as you want, and if you lose, you'll be compensated this many carebears for being outvoted. If you win, you'll get some back, but I'll take enough to compensate the losers."]
-
+        self.votere=re.compile(r"^\s+(\d+)\s+(yes|no|abstain)")
+        self.usage=self.__class__.__name__ + " [<invite|kick> <pnick> <comment>] | [list] | [vote <number> <yes|no|abstain>] | [expire <number>] | [show <number>] | [cancel <number>] | [recent] | [search <pnick>]"
+        self.helptext=["A proposition is a vote to do something. For now, you can raise propositions to invite or kick someone. Once raised the proposition will stand until you expire it.  Make sure you give everyone time to have their say. Votes for and against a proposition are weighted by carebears. You must have at least 1 carebear to vote."]
 
     def execute(self,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
@@ -94,20 +91,18 @@ class prop(loadable.loadable):
             if not m: return 1
             prop_id=int(m.group(1))
             self.process_show_proposal(irc_msg,u,prop_id)
+            
         elif prop_type.lower() == 'vote':
             m=self.match_or_usage(irc_msg,self.votere,m.group(2))
             if not m: return 1
-
             prop_id=int(m.group(1))
             vote=m.group(2)
-            carebears=m.group(3)
-            if carebears: carebears=int(carebears)
-            self.process_vote_proposal(irc_msg,u,prop_id,vote,carebears)
+            self.process_vote_proposal(irc_msg,u,prop_id,vote)
+            
         elif prop_type.lower() == 'expire':
             m=self.match_or_usage(irc_msg,re.compile(r"\s*(\d+)"),m.group(2))
             if not m: return 1
             if self.command_not_used_in_home(irc_msg,self.__class__.__name__ + " expire"): return 1
-
             prop_id=int(m.group(1))
             self.process_expire_proposal(irc_msg,u,prop_id)
 
@@ -115,17 +110,17 @@ class prop(loadable.loadable):
             m=self.match_or_usage(irc_msg,re.compile(r"\s*(\d+)"),m.group(2))
             if not m: return 1
             if self.command_not_used_in_home(irc_msg, self.__class__.__name__ + " cancel"): return 1
-
             prop_id=int(m.group(1))
             self.process_cancel_proposal(irc_msg, u, prop_id)
+            
         elif prop_type.lower() == 'recent':
             self.process_recent_proposal(irc_msg,u)
-            pass
 
         elif prop_type.lower() == 'search':
             m=self.match_or_usage(irc_msg,re.compile(r"\s*(\S+)"),m.group(2))
             if not m: return 1
             self.process_search_proposal(irc_msg,u,m.group(1))
+            
         return 1
 
     def process_invite_proposal(self,irc_msg,user,person,comment):
@@ -222,16 +217,10 @@ class prop(loadable.loadable):
                 reply+=", Munin (%d)"%(r['padding'],)
             reply+=")"
             irc_msg.reply(reply)
-            pass
 
-
-    def process_vote_proposal(self,irc_msg,u,prop_id,vote,carebears):
+    def process_vote_proposal(self,irc_msg,u,prop_id,vote):
         # todo ensure prop is active
-        if not carebears:
-            if vote == 'abstain':
-                carebears=0
-            else:
-                carebears=1
+        carebears=u.carebears
         prop=self.find_single_prop_by_id(prop_id)
         if not prop:
             irc_msg.reply("No proposition number %d exists (idiot)."%(prop_id,))
@@ -249,18 +238,7 @@ class prop(loadable.loadable):
         query+=" WHERE prop_id=%d AND voter_id=%d"
         self.cursor.execute(query,(prop_id,u.id))
         old_vote=self.cursor.dictfetchone()
-        cost=0
-        if old_vote:
-            cost=carebears-old_vote['carebears']
-        else:
-            cost=carebears
 
-        if cost > u.carebears:
-            irc_msg.reply("You don't have enough carebears to cover that vote. Your vote would have required %d, but you only have %d carebears."%(cost,u.carebears))
-            return
-
-        query="UPDATE user_list SET carebears = carebears - %d WHERE id = %d"
-        self.cursor.execute(query,(cost,u.id))
         if old_vote:
             query="DELETE FROM prop_vote WHERE id=%d AND voter_id=%d"
             self.cursor.execute(query,(old_vote['id'],u.id))
@@ -296,26 +274,6 @@ class prop(loadable.loadable):
             no+=prop['padding']
         (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(voters,yes,no)
 
-        for l in losers:
-            query="UPDATE user_list SET carebears = carebears + %d"
-            query+=" WHERE id=%d"
-            modifier=[prop['padding'],0][yes>no]
-            r=((losing_total-modifier)*int(l['carebears']))/losing_total
-            if yes>no and prop['padding']>0:
-                r+=(prop['padding']*int(l['carebears']))/(losing_total-prop['padding'])
-            print "Paying out %d with %d carebears (orig %d) for w: %d and l: %d"%(l['voter_id'],l['carebears']+r,l['carebears'],winning_total,losing_total)
-            self.add_return([voters['yes'],voters['no']][yes>no],l['voter_id'],l['carebears']+r)
-            self.cursor.execute(query,(l['carebears']+r, l['voter_id']))
-
-        for w in winners:
-            query="UPDATE user_list SET carebears = carebears + %d"
-            query+=" WHERE id=%d"
-            modifier=[prop['padding'],0][yes>no]
-            r=((winning_total-losing_total)*int(w['carebears']))/(winning_total-modifier)
-            print "Reimbursing %d with %d carebears (orig %d) for w: %d and l: %d"%(w['voter_id'],r,w['carebears'],winning_total,losing_total)
-            self.add_return([voters['no'],voters['yes']][yes>no],w['voter_id'],r)
-            self.cursor.execute(query,(r, w['voter_id']))
-
         age=DateTime.Age(DateTime.now(),prop['created']).days
         reply="The proposition raised by %s %d %s ago to %s %s has"%(prop['proposer'],age,self.pluralize(age,"day"),prop['prop_type'],prop['person'])
         if yes > no:
@@ -325,7 +283,7 @@ class prop(loadable.loadable):
         reply+=" with %d carebears for and %d against."%(yes,no)
         reply+=" In favor: "
 
-        pretty_print=lambda x:"%s (%d->%d)"%(x['pnick'],x['carebears'],x['return'])
+        pretty_print=lambda x:"%s (%d)"%(x['pnick'],x['carebears'])
         reply+=string.join(map(pretty_print,voters['yes']),', ')
         reply+=" Against: "
         reply+=string.join(map(pretty_print,voters['no']),', ')
@@ -355,13 +313,6 @@ class prop(loadable.loadable):
 
         (voters, yes, no)=self.get_voters_for_prop(prop_id)
 
-        all_voters=[]
-        all_voters.extend(voters['yes'])
-        all_voters.extend(voters['no'])
-        for v in all_voters:
-            query="UPDATE user_list SET carebears = carebears + %d WHERE id=%d"
-            self.cursor.execute(query,(v['carebears'],v['voter_id']))
-
         query="DELETE FROM prop_vote WHERE prop_id=%d"
         self.cursor.execute(query,(prop['id'],))
 
@@ -369,7 +320,7 @@ class prop(loadable.loadable):
         query+=" WHERE id=%d"
         self.cursor.execute(query,(prop['id'],))
 
-        reply="Cancelled proposal %d to %s %s. Reimbursing voters in favor (" %(prop['id'],prop['prop_type'],prop['person'])
+        reply="Cancelled proposal %d to %s %s. Voters in favor (" %(prop['id'],prop['prop_type'],prop['person'])
 
         pretty_print=lambda x:"%s (%d)"%(x['pnick'],x['carebears'])
         reply+=string.join(map(pretty_print,voters['yes']),', ')
@@ -377,7 +328,6 @@ class prop(loadable.loadable):
         reply+=string.join(map(pretty_print,voters['no']),', ')
         reply+=")"
         irc_msg.client.privmsg("#%s"%(self.config.get('Auth','home'),),reply)
-        pass
 
     def process_recent_proposal(self,irc_msg,u):
         query="SELECT t1.id AS id, t1.person AS person, 'invite' AS prop_type, t1.vote_result AS vote_result FROM invite_proposal AS t1 WHERE NOT t1.active UNION ("
@@ -389,8 +339,6 @@ class prop(loadable.loadable):
             a.append("%d: %s %s %s"%(r['id'],r['prop_type'],r['person'],r['vote_result'][0].upper() if r['vote_result'] else ""))
         reply="Recently expired propositions: %s"%(string.join(a, ", "),)
         irc_msg.reply(reply)
-
-        pass
 
     def process_search_proposal(self,irc_msg,u,search):
         query="SELECT id, prop_type, person, vote_result FROM ("
@@ -405,8 +353,6 @@ class prop(loadable.loadable):
             a.append("%d: %s %s %s"%(r['id'],r['prop_type'],r['person'],r['vote_result'][0].upper() if r['vote_result'] else "",))
         reply="Propositions matching '%s': %s"%(search,string.join(a, ", "),)
         irc_msg.reply(reply)
-
-        pass
 
     def get_winners_and_losers(self,voters,yes,no):
         if yes > no:
@@ -454,7 +400,6 @@ class prop(loadable.loadable):
 
         irc_msg.client.privmsg('p',"note send %s A proposition to kick you from %s has been raised by %s with reason '%s' and passed by a vote of %d to %d."%(idiot.pnick,self.config.get('Auth','alliance'),prop['proposer'],prop['comment_text'],yes,no))
 
-
         reply="%s has been reduced to level 1 and removed from #%s."%(idiot.pnick,self.config.get('Auth','home'))
         irc_msg.client.privmsg('#%s'%(self.config.get('Auth','home')),reply)
 
@@ -468,17 +413,8 @@ class prop(loadable.loadable):
         irc_msg.client.privmsg('P',"adduser #%s %s 399" %(self.config.get('Auth', 'home'), prop['person'],));
         irc_msg.client.privmsg('P',"modinfo #%s automode %s op" %(self.config.get('Auth', 'home'), prop['person'],));
 
-
         reply="%s has been added to #%s and given level 100 access to me."%(prop['person'],self.config.get('Auth','home'))
         irc_msg.client.privmsg('#%s'%(self.config.get('Auth','home')),reply)
-
-    def add_return(self,voter_list,voter_id,ret_sum):
-        for v in voter_list:
-            if v['voter_id'] == voter_id:
-                v['return'] = ret_sum
-                return
-        raise Exception("%d does not match any voters in list '%s'"%(voter_id,map(lambda x: "%d"%(x['voter_id'],),voter_list)))
-
 
     def find_single_prop_by_id(self,prop_id):
         query="SELECT id, prop_type, proposer, person, created, padding, comment_text, active, closed FROM ("
@@ -493,6 +429,7 @@ class prop(loadable.loadable):
 
         self.cursor.execute(query,(prop_id,))
         return self.cursor.dictfetchone()
+
     def is_member(self,person):
         query="SELECT id FROM user_list WHERE pnick ilike %s AND userlevel >= 100"
         self.cursor.execute(query,(person,))
@@ -511,7 +448,7 @@ class prop(loadable.loadable):
         if r and r['vote_result'] != 'yes':
             return r['compensation']
         return 0
-
+    
     def create_invite_proposal(self,user,person,comment,padding):
         query="INSERT INTO invite_proposal (proposer_id, person, comment_text, padding)"
         query+=" VALUES (%s, %s, %s, %s)"

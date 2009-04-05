@@ -578,16 +578,13 @@ class user(object):
 
     def check_available_cookies(self,cursor,config):
         now = DateTime.now()
+        now = DateTime.Date(now.year,now.month,now.day)
         if self.last_cookie_date:
-            age = DateTime.Age(now,self.last_cookie_date).days
-        else:
-            age = 0
-        if not self.last_cookie_date or (now.day_of_week == 0 and  age > 1) or age > 6:
-            self.available_cookies = int(config.get("Alliance","cookies_per_week"))
+            age = DateTime.Age(now,self.last_cookie_date).hours
+        if not self.last_cookie_date or DateTime.Age(now,self.last_cookie_date).hours:
+            self.available_cookies = int(config.get("Alliance","cookies_per_day"))
             query="UPDATE user_list SET available_cookies = %s,last_cookie_date = %s WHERE id = %s"
-            last_monday=now - DateTime.RelativeDateTime(days=(now.day_of_week))
-            cursor.execute(query,(self.available_cookies,psycopg.TimestampFromMx(last_monday), self.id))
-
+            cursor.execute(query,(self.available_cookies,psycopg.TimestampFromMx(now), self.id))
         return self.available_cookies
     
 class intel(object):

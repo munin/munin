@@ -37,8 +37,8 @@ user: MrPresident
 #host: whitehouse.gov
 [Alliance]
 # This section determines alliance policy stuff.
-# cookies_per_week: how many cookies should the bot give out every Monday?
-cookies_per_week: 10000000
+# cookies_per_day: how many cookies should the bot give out every day?
+cookies_per_day: 10000000
 
 [Url]
 # Don't change these unless they actually change in reality.

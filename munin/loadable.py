@@ -578,7 +578,7 @@ class user(object):
         now = DateTime.Date(now.year,now.month,now.day)
         if self.last_cookie_date:
             age = DateTime.Age(now,self.last_cookie_date).hours
-        if not self.last_cookie_date or DateTime.Age(now,self.last_cookie_date).hours:
+        if not self.last_cookie_date or DateTime.Age(now,self.last_cookie_date).days > 0:
             self.available_cookies = int(config.get("Alliance","cookies_per_day"))
             query="UPDATE user_list SET available_cookies = %s,last_cookie_date = %s WHERE id = %s"
             cursor.execute(query,(self.available_cookies,psycopg.TimestampFromMx(now), self.id))

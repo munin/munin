@@ -123,7 +123,7 @@ class cookie(loadable.loadable):
         available_cookies = u.check_available_cookies(self.cursor,self.config)
 
         if howmany > available_cookies:
-            reply="Silly, %s. You currently only have %s cookies to give out, but are trying to give out %s cookies. I'll bake you some new cookies on Monday morning." % (u.pnick, u.available_cookies, howmany)
+            reply="Silly, %s. You currently only have %s cookies to give out, but are trying to give out %s cookies. I'll bake you some new cookies tomorrow morning." % (u.pnick, u.available_cookies, howmany)
             irc_msg.reply(reply)
             return False
         return True

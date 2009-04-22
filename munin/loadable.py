@@ -485,7 +485,7 @@ class alliance(object):
         return 1
 
 class user(object):
-    def __init__(self,id=-1,pnick=None,sponsor=None,userlevel=-1,planet_id=-1,phone=None,pubphone=False,stay=False,invites=-1,available_cookies=-1,last_cookie_date=None,carebears=-1,fleetcount=-1,fleetcomment=None,fleetupdated=-1):
+    def __init__(self,id=-1,pnick=None,sponsor=None,userlevel=-1,planet_id=-1,phone=None,pubphone=False,stay=False,invites=-1,available_cookies=-1,last_cookie_date=None,carebears=-1,fleetcount=-1,fleetcomment=None,fleetupdated=-1,alias_nick=None):
         self.id=id
         self.pnick=pnick
         self.sponsor=sponsor
@@ -503,10 +503,11 @@ class user(object):
         self.fleetcount=fleetcount
         self.fleetcomment=fleetcomment
         self.fleetupdated=fleetupdated
+        self.alias_nick=alias_nick
 
     def lookup_query(self):
         query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.phone AS phone, t1.pubphone AS pubphone,"
-        query+=" t1.stay AS stay, t1.invites AS invites, t1.available_cookies AS available_cookies, t1.last_cookie_date AS last_cookie_date, t1.carebears AS carebears"
+        query+=" t1.stay AS stay, t1.invites AS invites, t1.available_cookies AS available_cookies, t1.last_cookie_date AS last_cookie_date, t1.carebears AS carebears, t1.alias_nick AS alias_nick"
         query+=", t1.fleetcount AS fleetcount,t1.fleetcomment AS fleetcomment,t1.fleetupdated AS fleetupdated "
         query+=" FROM user_list AS t1 WHERE"
         return query
@@ -514,8 +515,8 @@ class user(object):
     def load_from_db(self,cursor):
         query=self.lookup_query()
         if self.pnick:
-            query+=" t1.pnick ILIKE %s"
-            cursor.execute(query,(self.pnick,))
+            query+=" t1.pnick ILIKE %s OR t1.alias_nick ILIKE %s"
+            cursor.execute(query,(self.pnick,self.pnick))
         elif self.id > 0:
             query+=" t1.id=%s"
             cursor.execute(query,(self.id,))
@@ -550,6 +551,7 @@ class user(object):
             self.fleetcount=u['fleetcount']
             self.fleetcomment=u['fleetcomment']
             self.fleetupdated=u['fleetupdated']
+            self.alias_nick=u['alias_nick']
             return 1
         return None
 

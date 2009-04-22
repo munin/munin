@@ -54,11 +54,11 @@ class munin(object):
             try:
                 self.reboot()
             except socket.error, s:
-                print "Exception during command: " + s.__str__()
+                print "Exception during command at %s: %s" %(time.asctime(),s.__str__())
                 traceback.print_exc()
                 raise
             except socket.timeout, s:
-                print "Exception during command: " + s.__str__()
+                print "Exception during command at %s: %s" %(time.asctime(),s.__str__())
                 traceback.print_exc()
                 raise
             except reboot.reboot, r:

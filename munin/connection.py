@@ -1,4 +1,4 @@
-
+3
 # This file is part of Munin.
 
 # Munin is free software; you can redistribute it and/or modify
@@ -38,7 +38,7 @@ class connection:
   def __init__ (self, config):
     "Connect to an IRC hub"
     self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    self.sock.settimeout(300)
+    self.sock.settimeout(330)
     self.host=config.get("Connection", "server")
     self.port = int(config.get("Connection", "port"))
     self.config=config
@@ -53,12 +53,13 @@ class connection:
 
   def wline(self, line):
     "Send a line to the hub"
+    if DEBUG:
+      print time.asctime(), ">>>", line;
+
     m=self.pongre.search(line)
     if m:
       self.sock.send(line + CRLF)
     else:
-      if DEBUG:
-        print ">>>", line;
       while self.lastcommand + 2 >= time.time():
         time.sleep(0.1)
       self.sock.send(line+CRLF)
@@ -73,13 +74,14 @@ class connection:
       line = line[:-2]
     if line[-1:] in CRLF:
       line = line[:-1]
+
+    if DEBUG:
+      print time.asctime(), "<<<", line;
     m=self.pingre.search(line)
     if m:
       self.wline("PONG :%s" % m.group(1))
       return line
 
-    if DEBUG:
-      print "<<<", line;
     return line
 
   def privmsg(self,target,text):
@@ -107,12 +109,10 @@ class connection:
       m=re.match(r"(#\S+)",target,re.I)
       if m:
         self.privmsg(target,text)
-        #self.wline("PRIVMSG %s :%s" % (target, text))
       else:
         prefix = self.PRIVATE_PREFIX
     if prefix == self.PRIVATE_PREFIX:
       self.privmsg(nick,text)
-      #self.wline("PRIVMSG %s :%s" % (nick, text))
 
 
 

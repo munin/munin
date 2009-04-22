@@ -400,6 +400,15 @@ CREATE TABLE phone (
        friend_id integer NOT NULL REFERENCES user_list(id)
 );
 
+CREATE TABLE sms_log (
+       id SERIAL PRIMARY KEY,
+       sender_id integer REFERENCES user_list(id),
+       receiver_id integer REFERENCES user_list(id),
+       phone VARCHAR(48),
+       sms_text varchar(160) NOT NULL
+);
+       
+
 CREATE SEQUENCE proposal_id_seq;
 
 CREATE TABLE invite_proposal (

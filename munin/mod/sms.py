@@ -115,6 +115,8 @@ class sms(loadable.loadable):
             irc_msg.reply(reply % (receiver.pnick,public_text))
         else:
             irc_msg.reply(reply % (receiver.pnick,text))
+
+        self.log_message(self,u.id,receiver.id,phone, public_text)
         return 0
 
     def prepare_phone_number(self,text):
@@ -122,3 +124,8 @@ class sms(loadable.loadable):
             return text
         s = "".join([c for c in text if c.isdigit()])
         return s.lstrip("00")
+
+    def log_message(self,sender_id,receiver_id,phone,text):
+        query="INSERT INTO sms_log (sender_id,receiver_id,phone,sms_text)"
+        query+=" VALUES (%s,%s,%s,%s)"
+        self.cursor.execute(query,(sender_id,receiver_id,phone,text)

@@ -42,11 +42,20 @@ old_curs=old_conn.cursor()
 
 new_curs=new_conn.cursor()
 
-old_curs.execute("SELECT t1.id AS id, t1.pnick AS pnick,t1.userlevel AS userlevel,t1.sponsor AS sponsor, t1.invites AS invites, t1.phone AS phone, t1.pubphone AS pubphone, t1.passwd AS passwd, t1.salt AS salt  FROM user_list AS t1")
+old_curs.execute("SELECT t1.id, t1.pnick,t1.userlevel,t1.sponsor, t1.phone, t1.pubphone, t1.passwd, t1.salt, t1.carebears, t1.available_cookies, t1.last_cookie_date  FROM user_list AS t1")
 
 for u in old_curs.dictfetchall():
-    new_curs.execute("INSERT INTO user_list (id,pnick,userlevel,sponsor,invites,phone,pubphone,passwd,salt) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",(u['id'],u['pnick'],u['userlevel'],u['sponsor'],u['invites'],u['phone'],['Y','N'][int(u['pubphone'])],u['passwd'],u['salt']))
+    if u['last_cookie_date']:
+        last_cookie_date = psycopg.TimestampFromMx(u['last_cookie_date'])
+    else:
+        last_cookie_date = None
+    new_curs.execute("INSERT INTO user_list (id,pnick,userlevel,sponsor,phone,pubphone,passwd,salt,carebears,available_cookies,last_cookie_date) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(u['id'],u['pnick'],u['userlevel'],u['sponsor'],u['phone'],[False,True][int(u['pubphone'])],u['passwd'],u['salt'],u['carebears'],u['available_cookies'],last_cookie_date))
 
+old_curs.execute("SELECT user_id, friend_id FROM phone")
+
+for u in old_curs.dictfetchall():
+    new_curs.execute("INSERT INTO phone (user_id,friend_id) VALUES (%s,%s)",(u['user_id'],u['friend_id']))
+    
 old_curs.execute("SELECT t1.quote AS quote FROM quote AS t1")
 
 for u in old_curs.dictfetchall():
@@ -57,13 +66,35 @@ old_curs.execute("SELECT t1.slogan AS slogan FROM slogan AS t1")
 for u in old_curs.dictfetchall():
     new_curs.execute("INSERT INTO slogan (slogan) VALUES (%s)",(u['slogan'],))
 
-old_curs.execute("SELECT t1.sponsor_id AS sponsor_id, t1.pnick AS pnick, t1.comment AS comment, t1.timestamp AS timestamp FROM sponsor AS t1");
-
-for u in old_curs.dictfetchall():
-    new_curs.execute("INSERT INTO sponsor (sponsor_id,pnick,comment,timestamp) VALUES (%s,%s,%s,%s)",(u['sponsor_id'],u['pnick'],u['comment'],"'%s'"%(u['timestamp'],)))
-
 new_curs.execute("INSERT INTO channel_list (chan,userlevel,maxlevel) VALUES (%s,%s,%s)", ("#ascendancy",100,1000))
 
 new_curs.execute("SELECT setval('user_list_id_seq',(select max(id) from user_list))")
+
+old_curs.execute("SELECT id,active,proposer_id,person,created,closed,comment_text,vote_result,compensation,padding FROM invite_proposal")
+
+for u in old_curs.dictfetchall():
+    if u['closed']:
+        closed = psycopg.TimestampFromMx(u['closed'])
+    else:
+        closed = None
+    new_curs.execute("INSERT INTO invite_proposal (id,active,proposer_id,person,created,closed,comment_text,vote_result,compensation,padding) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                     (u['id'],[False,True][int(u['active'])],u['proposer_id'],u['person'],psycopg.TimestampFromMx(u['created']),closed,u['comment_text'],u['vote_result'],u['compensation'],u['padding']))
+
+old_curs.execute("SELECT id,active,proposer_id,person_id,created,closed,comment_text,vote_result,compensation,padding FROM kick_proposal")
+
+for u in old_curs.dictfetchall():
+    if u['closed']:
+        closed = psycopg.TimestampFromMx(u['closed'])
+    else:
+        closed = None
+    new_curs.execute("INSERT INTO kick_proposal (id,active,proposer_id,person_id,created,closed,comment_text,vote_result,compensation,padding) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                     (u['id'],[False,True][int(u['active'])],u['proposer_id'],u['person_id'],psycopg.TimestampFromMx(u['created']),closed,u['comment_text'],u['vote_result'],u['compensation'],u['padding']))
+
+new_curs.execute("SELECT setval('proposal_id_seq',(select max(id) from (select id from invite_proposal union select id from kick_proposal) t1))")
+
+old_curs.execute("SELECT vote,carebears,prop_id,voter_id FROM prop_vote")
+
+for u in old_curs.dictfetchall():
+    new_curs.execute("INSERT INTO prop_vote (vote,carebears,prop_id,voter_id) VALUES (%s,%s,%s,%s)", (u['vote'],u['carebears'],u['prop_id'],u['voter_id']))
 
 new_conn.commit()

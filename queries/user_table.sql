@@ -98,8 +98,10 @@
     );
 
     CREATE INDEX planet_dump_tick_index ON planet_dump(tick);
-
     CREATE INDEX planet_dump_id_index ON planet_dump(id);
+    CREATE INDEX planet_dump_rn_index ON planet_dump(rulername);
+    CREATE INDEX planet_dump_pn_index ON planet_dump(planetname);
+
 
     CREATE INDEX galaxy_dump_tick_index ON galaxy_dump(tick);
 
@@ -114,6 +116,7 @@
     CREATE TABLE user_list (
         id SERIAL PRIMARY KEY,
         pnick VARCHAR(15) NOT NULL,
+        alias_nick VARCHAR(15),
         sponsor VARCHAR(15),
         passwd CHAR(32),
         userlevel INTEGER NOT NULL,
@@ -163,14 +166,9 @@ CREATE TABLE fleet_log (
 
 
 CREATE UNIQUE INDEX user_list_pnick_case_insensitive_index ON user_list(LOWER(pnick));
---INSERT INTO user_list (pnick,sponsor,userlevel) VALUES ('jester','Munin',1000);
 
-CREATE TABLE kickvote (
-	id SERIAL PRIMARY KEY,
-	voter integer REFERENCES user_list(id) ON DELETE CASCADE,
-	moron integer REFERENCES user_list(id) ON DELETE CASCADE,
-	UNIQUE(voter,moron)
-);
+-- UNCOMMENT THIS IF YOU WANT TO INSERT A SUPERUSER ON DB CREATION
+--INSERT INTO user_list (pnick,sponsor,userlevel) VALUES ('jester','Munin',1000);
 
 CREATE TABLE channel_list (
 	id SERIAL PRIMARY KEY,
@@ -181,41 +179,6 @@ CREATE TABLE channel_list (
         negflags VARCHAR(30)
 );
 
---DROP TRIGGER chan_max_level ON channel_list;
---DROP FUNCTION chan_max_level();
-/*
-IT WOULD BE NICE IF THIS WORKED, REALLY IT WOULD
-CREATE FUNCTION chan_max_level() RETURNS trigger AS $PROC$
-BEGIN
-	NEW.maxlevel := NEW.userlevel;
-	RETURN NEW;
-END
-$PROC$ LANGUAGE plpgsql;
-
-CREATE TRIGGER chan_max_level BEFORE INSERT ON channel_list FOR EACH ROW EXECUTE PROCEDURE chan_max_level();*/
-
-CREATE TABLE sponsor (
-	id SERIAL PRIMARY KEY,
-	sponsor_id integer REFERENCES user_list(id) ON DELETE CASCADE,
-	pnick VARCHAR(15) NOT NULL UNIQUE,--CHECK (pnick NOT IN (SELECT pnick FROM user_list)),
-	comment VARCHAR(512),
-	timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT now()
-);
-
-/*
-CREATE FUNCTION recruit_not_member() RETURNS trigger AS $PROC$
-BEGIN
-	IF NEW.pnick IN (SELECT pnick FROM user_list) THEN
-		RAISE EXCEPTION '% is already a member', NEW.pnick;
-	END IF;
-        RETURN NEW;
-END
-$PROC$ LANGUAGE plpgsql;
-
-CREATE TRIGGER recruit_not_member BEFORE INSERT ON sponsor FOR EACH ROW EXECUTE PROCEDURE recruit_not_member();
-*/
-
-
 CREATE TABLE target (
 	id serial PRIMARY KEY,
 	nick VARCHAR(20) NOT NULL,
@@ -223,14 +186,6 @@ CREATE TABLE target (
 	tick smallint NOT NULL,
 	uid integer REFERENCES user_list(id),
 	UNIQUE(pid,tick)
-);
-
-
-CREATE TABLE alliance_tags
-(
- id SERIAL PRIMARY KEY,
- alliance_id integer REFERENCES alliance_canon(id) NOT NULL,
- tag varchar(20) NOT NULL
 );
 
 CREATE TABLE intel (
@@ -278,15 +233,6 @@ CREATE TABLE ship (
 	total_cost integer NOT NULL CHECK(total_cost = metal+crystal+eonium)
 );
 
-CREATE TABLE tag (
-	id serial PRIMARY KEY,
-	pid integer NOT NULL REFERENCES planet_canon(id),
-	tick smallint NOT NULL REFERENCES updates(tick),
-	aid integer NOT NULL REFERENCES alliance_canon(id),
-	quality smallint NOT NULL DEFAULT 0 CHECK(quality > -1 AND quality < 101),
-	UNIQUE(pid,tick)
-);
-
 CREATE TABLE slogan (
 	id serial PRIMARY KEY,
 	slogan VARCHAR(512) NOT NULL
@@ -309,10 +255,6 @@ CREATE TABLE scan (
 	scantype VARCHAR(11) NOT NULL CHECK(scantype in ('unknown','planet','development','unit','news','jgp','fleet','au')),
 	UNIQUE(rand_id,tick)
 );
-
---CREATE INDEX scan_pid_index ON scan(pid);
-
---CREATE INDEX  ON alliance_dump(id);
 
 
 CREATE TABLE planet (
@@ -371,17 +313,6 @@ CREATE TABLE au (
     amount integer NOT NULL
 );
 
-
-/*CREATE VIEW unit_ranges AS --broken
-	SELECT t2.pid AS pid,t3.name,max(amount::float)/1.2 AS min_amount,min(t1.amount::float)*.8 AS max_amount
-	FROM unit AS t1
-	INNER JOIN ship AS t3
-	ON t1.ship_id=t3.id
-	INNER JOIN scan AS t2
-	ON t1.scan_id=t2.id
-	GROUP BY t2.tick,t2.pid,t3.name
-	HAVING t2.tick=max(t2.tick)
-;*/
 
 CREATE TABLE fleet (
 	id serial PRIMARY KEY,

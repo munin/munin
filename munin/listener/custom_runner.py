@@ -30,7 +30,7 @@ class custom_runner(object):
 
     def scan(self, rand_id,nick,pnick, group_id):
         s = scan.scan(rand_id,self.client,self.cursor,nick,pnick, group_id)
-        s.run()
+        s.start()
 
     def getpnick(self,host):
         m=self.pnickre.search(host)

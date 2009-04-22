@@ -27,6 +27,7 @@ Loadable.Loadable subclass
 
 import re
 import munin.loadable as loadable
+from clickatell import Clickatell
 
 class showmethemoney(loadable.loadable):
     """
@@ -35,7 +36,6 @@ class showmethemoney(loadable.loadable):
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
-        self.paramre=re.compile(r"^\s*(STUFFGOESHERE)")
         self.usage=self.__class__.__name__ + ""
 	self.helptext=None
 
@@ -47,13 +47,6 @@ class showmethemoney(loadable.loadable):
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
-
-        m=self.paramre.search(m.group(1))
-        if not m:
-            irc_msg.reply("Usage: %s" % (self.usage,))
-            return 0
-
-        # assign param variables
 
         username = self.config.get("clickatell", "user")
         password = self.config.get("clickatell", "pass")

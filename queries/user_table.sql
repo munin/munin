@@ -269,7 +269,7 @@ CREATE TABLE planet (
 	res_eonium integer NOT NULL,
 	factory_usage_light VARCHAR(7) NOT NULL CHECK(factory_usage_light IN ('None','Low', 'Medium', 'High')),
 	factory_usage_medium VARCHAR(7) NOT NULL CHECK(factory_usage_medium IN ('None','Low', 'Medium', 'High')),
-	factory_usage_heavy VARCHAR(7) NOT NULL CHECK(factory_usage_high IN ('None','Low', 'Medium', 'High')),
+	factory_usage_heavy VARCHAR(7) NOT NULL CHECK(factory_usage_heavy IN ('None','Low', 'Medium', 'High')),
 	prod_res integer NOT NULL,
 	agents integer NOT NULL,
 	guards integer NOT NULL

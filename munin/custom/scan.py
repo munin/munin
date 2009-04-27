@@ -34,6 +34,7 @@ class scan(threading.Thread):
         self.nick=nick
         self.pnick=pnick
         self.group_id=group_id
+        threading.Thread.__init__(self)
 
     def run(self):
         try:

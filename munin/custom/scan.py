@@ -27,15 +27,28 @@ import traceback
 import urllib2
 
 class scan(threading.Thread):
-    def __init__(self, rand_id,client,cursor,nick,pnick,group_id): # random scan ID, and client for debug ONLY
+    def __init__(self, rand_id,client,config,nick,pnick,group_id): # random scan ID, and client for debug ONLY
         self.rand_id=rand_id
         self.client=client
-        self.cursor=cursor
+        self.connection=self.create_conn(config)
+        self.cursor=self.connection.cursor()
         self.nick=nick
         self.pnick=pnick
         self.group_id=group_id
         threading.Thread.__init__(self)
 
+    def create_conn(self,config):
+        dsn = 'user=%s dbname=%s' % (config.get("Database", "user"), config.get("Database", "dbname"))
+        if config.has_option("Database", "password"):
+            dsn += ' password=%s' % config.get("Database", "password")
+        if config.has_option("Database", "host"):
+            dsn += ' host=%s' % config.get("Database", "host")
+
+        conn=psycopg.connect(dsn)
+        conn.serialize()
+        conn.autocommit()
+        return conn
+        
     def run(self):
         try:
             self.unsafe_method()

@@ -29,7 +29,7 @@ class custom_runner(object):
             self.galstatus.parse(message,nick,user,target)
 
     def scan(self, rand_id,nick,pnick, group_id):
-        s = scan.scan(rand_id,self.client,self.cursor,nick,pnick, group_id)
+        s = scan.scan(rand_id,self.client,self.config,nick,pnick, group_id)
         s.start()
 
     def getpnick(self,host):

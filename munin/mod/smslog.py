@@ -56,7 +56,7 @@ class smslog(loadable.loadable):
         id=m.group(1)
 
         if id:
-            self.show_sms(1,irc_msg)
+            self.show_sms(id,irc_msg)
         else:
             self.show_all(irc_msg)
 

@@ -28,7 +28,6 @@ Loadable subclass
 
 import re
 from munin import loadable
-from pprint import pprint
 
 class lookup(loadable.loadable):
     def __init__(self,cursor):
@@ -86,7 +85,7 @@ class lookup(loadable.loadable):
             irc_msg.reply(str(a))
             return
         u=self.load_user_from_pnick(param.strip())
-        if u:
+        if u and irc_msg.access >= 100:
             if u.planet:
                 irc_msg.reply(str(u.planet))
             else:

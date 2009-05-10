@@ -27,7 +27,7 @@ Loadable subclass
 # qebab, 22/06/08
 
 import re
-import psycopg
+from psycopg2 import psycopg1 as psycopg
 from munin import loadable
 
 class addchan(loadable.loadable):

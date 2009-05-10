@@ -2,7 +2,7 @@ from listener import auth
 from listener import command
 from listener import custom_runner
 import mod
-import psycopg
+from psycopg2 import psycopg1 as psycopg
 
 class ircu_router(object):
     def __init__(self,client,config,loader):

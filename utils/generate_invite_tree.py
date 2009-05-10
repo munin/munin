@@ -24,7 +24,7 @@
 
 import sys
 
-import psycopg
+from psycopg2 import psycopg1 as psycopg
 #!/usr/bin/python
 
 # This file is part of Munin.
@@ -50,7 +50,7 @@ import psycopg
 
 import sys
 import ConfigParser
-import psycopg
+from psycopg2 import psycopg1 as psycopg
 
 config = ConfigParser.ConfigParser()
 if not config.read("muninrc"):

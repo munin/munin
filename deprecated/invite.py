@@ -64,7 +64,7 @@ class invite(loadable.loadable):
         if sponsor_munin_number:
             invites=self.max_invites-sponsor_munin_number
 
-        query="SELECT * FROM invite(%s,%s,%d::smallint)"# AS t1(success BOOLEAN, retmessage TEXT)"
+        query="SELECT * FROM invite(%s,%s,%s::smallint)"# AS t1(success BOOLEAN, retmessage TEXT)"
         self.cursor.execute(query,(u.pnick,gimp,invites))
         
         res=self.cursor.dictfetchone()

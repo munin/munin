@@ -54,16 +54,16 @@ class handout(loadable.loadable):
 
         reply=""
         if to_nick:
-            query="UPDATE user_list SET invites = invites + %d WHERE userlevel >= 100 AND pnick=%s"
+            query="UPDATE user_list SET invites = invites + %s WHERE userlevel >= 100 AND pnick=%s"
             self.cursor.execute(query,(num_invites,to_nick))
             if self.cursor.rowcount < 1:
                 reply+="Could not find any users with userlevel 100 or higher matching pnick '%s'" % (to_nick,)
             else:
-                reply+="Added %d invites to user '%s'" %(num_invites,to_nick)
+                reply+="Added %s invites to user '%s'" %(num_invites,to_nick)
         else:
-            query="UPDATE user_list SET invites = invites + %d WHERE userlevel >= 100" %(num_invites,)
+            query="UPDATE user_list SET invites = invites + %s WHERE userlevel >= 100" %(num_invites,)
             self.cursor.execute(query,(num_invites,to_nick))
-            reply+="Added %d invites to all users with userlevel 100 or higher" %(num_invites,)
+            reply+="Added %s invites to all users with userlevel 100 or higher" %(num_invites,)
 
         self.client.reply(prefix,nick,target,reply)
 

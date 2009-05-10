@@ -22,7 +22,7 @@
 # owners.
 
 import sys
-import psycopg
+from psycopg2 import psycopg1 as psycopg
 
 
 class migrator:
@@ -38,8 +38,8 @@ class migrator:
             (voters, yes, no) = self.get_voters_for_prop(prop['id'])
             (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(voters,yes,no)
             query="UPDATE %s_proposal SET "%(prop['prop_type'],)
-            query+=" vote_result=%s,compensation=%d"
-            query+=" WHERE id=%d"
+            query+=" vote_result=%s,compensation=%s"
+            query+=" WHERE id=%s"
             args=(['no','yes'][yes>no],losing_total,prop['id'])
             print query%args
             self.cursor.execute(query,args)
@@ -56,8 +56,8 @@ class migrator:
         query+=" t3.comment_text AS comment_text, t3.active AS active, t3.closed AS closed"
         query+=" FROM kick_proposal AS t3"
         query+=" INNER JOIN user_list AS t4 ON t3.proposer_id=t4.id"
-        query+=" INNER JOIN user_list AS t5 ON t3.person_id=t5.id)) AS t6 WHERE t6.id=%d"
-
+        query+=" INNER JOIN user_list AS t5 ON t3.person_id=t5.id)) AS t6 WHERE t6.id=%s"
+        
         self.cursor.execute(query,(prop_id,))
         return self.cursor.dictfetchone()
 
@@ -80,7 +80,7 @@ class migrator:
         query+=", t1.prop_id AS prop_idd,t1.voter_id AS voter_id,t2.pnick AS pnick"
         query+=" FROM prop_vote AS t1"
         query+=" INNER JOIN user_list AS t2 ON t1.voter_id=t2.id"
-        query+=" WHERE prop_id=%d"
+        query+=" WHERE prop_id=%s"
         self.cursor.execute(query,(prop_id,))
         voters={}
         voters['yes']=[]

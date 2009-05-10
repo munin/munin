@@ -58,7 +58,7 @@ class search(loadable.loadable):
         query+=" FROM planet_dump AS t1 INNER JOIN planet_canon AS t3 ON t1.id=t3.id"
         query+=" INNER JOIN intel AS t2 ON t3.id=t2.pid"
         query+=" LEFT JOIN alliance_canon AS t4 ON t2.alliance_id=t4.id"
-        query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates) AND (t4.name ILIKE %s OR t2.nick ILIKE %s)"
+        query+=" WHERE t1.tick=(SELECT max_tick()) AND (t4.name ILIKE %s OR t2.nick ILIKE %s)"
         self.cursor.execute(query,args)
 
         i=0

@@ -4,7 +4,7 @@ import sys
 import time
 
 import os
-import psycopg
+from psycopg2 import psycopg1 as psycopg
 import traceback
 
 sys.path.insert(0, "custom")

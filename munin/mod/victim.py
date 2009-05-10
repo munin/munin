@@ -152,7 +152,7 @@ class victim(loadable.loadable):
         query+=" FROM planet_dump AS t1 INNER JOIN planet_canon AS t3 ON t1.id=t3.id"
         query+=" LEFT JOIN intel AS t2 ON t3.id=t2.pid"
         query+=" LEFT JOIN alliance_canon AS t6 ON t2.alliance_id=t6.id"
-        query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates)"
+        query+=" WHERE t1.tick=(SELECT max_tick())"
 
         if alliance:
             query+=" AND t6.name ILIKE %s"

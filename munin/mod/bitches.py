@@ -56,11 +56,11 @@ class bitches(loadable.loadable):
         tick=None
         if m:
             tick=m.group(1)
-            query+=" WHERE t1.tick >= ((SELECT MAX(tick) FROM updates)+%s)"
+            query+=" WHERE t1.tick >= ((SELECT max_tick())+%s)"
             args+=(m.group(1),)
         else:
-            query+=" WHERE t1.tick > (SELECT MAX(tick) FROM updates)"
-        query+="  AND t3.tick = (SELECT MAX(tick) FROM updates)"
+            query+=" WHERE t1.tick > (SELECT max_tick())"
+        query+="  AND t3.tick = (SELECT max_tick())"
         query+=" GROUP BY x, y ORDER BY x, y"
 
 
@@ -89,11 +89,11 @@ class bitches(loadable.loadable):
         query+=" LEFT JOIN intel AS t2 ON t3.id=t2.pid"
         query+=" LEFT JOIN alliance_canon AS t6 ON t2.alliance_id=t6.id"
         if tick:
-            query+=" WHERE t1.tick >= ((SELECT MAX(tick) FROM updates)+%s)"
+            query+=" WHERE t1.tick >= ((SELECT max_tick())+%s)"
             args+=(tick,)
         else:
-            query+=" WHERE t1.tick > (SELECT MAX(tick) FROM updates)"
-        query+="  AND t3.tick = (SELECT MAX(tick) FROM updates)"
+            query+=" WHERE t1.tick > (SELECT max_tick())"
+        query+="  AND t3.tick = (SELECT max_tick())"
         query+=" GROUP BY lower(t6.name) ORDER BY lower(t6.name)"
         self.cursor.execute(query,args)
 

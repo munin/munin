@@ -4,7 +4,7 @@ Put the ships from url into our database.
 """
 
 import ConfigParser
-import psycopg
+from psycopg2 import psycopg1 as psycopg
 import urllib2
 import re
 import sys

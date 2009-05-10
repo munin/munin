@@ -98,7 +98,7 @@ class book(loadable.loadable):
         query+=" LEFT JOIN user_list AS t2 ON t1.uid=t2.id"
         query+=" WHERE"
         query+=" t1.tick > %s"
-        query+=" AND t3.tick = (SELECT MAX(tick) FROM updates) AND t3.x=%s AND t3.y=%s"
+        query+=" AND t3.tick = (SELECT max_tick()) AND t3.x=%s AND t3.y=%s"
         query+=" AND t3.z=%s"
 
         self.cursor.execute(query,(tick,x,y,z))

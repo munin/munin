@@ -51,7 +51,6 @@ class info(loadable.loadable):
             return 0
 
         alliance=m.group(1)
-
         query = self.query_for_info()
         args=('%'+alliance+'%','%'+alliance+'%')
         self.cursor.execute(query,args)

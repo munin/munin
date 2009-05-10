@@ -102,7 +102,7 @@ class planet(loadable.loadable):
             query+=", prod_res,agents,guards"
             query+=" FROM scan AS t1 INNER JOIN planet AS t2 ON t1.id=t2.scan_id"
             query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
-            query+=" WHERE t3.tick=(SELECT MAX(tick) FROM updates) AND t1.rand_id=%s ORDER BY timestamp DESC"
+            query+=" WHERE t3.tick=(SELECT max_tick()) AND t1.rand_id=%s ORDER BY timestamp DESC"
             self.cursor.execute(query,(rand_id,))
 
             if self.cursor.rowcount < 1:

@@ -367,10 +367,6 @@ CREATE TABLE covop (
 	target integer NOT NULL REFERENCES planet_canon(id)
 );
 
-CREATE TABLE scanparser_queue(
-    id serial PRIMARY KEY,
-    rand_id bigint
-);
 
 CREATE TABLE command_log (
     id serial PRIMARY KEY,

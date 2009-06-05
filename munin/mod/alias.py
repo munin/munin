@@ -61,12 +61,15 @@ class alias(loadable.loadable):
             irc_msg.reply("You are %s, your alias is %s"%(u.pnick,u.alias_nick))
         else:
             self.update_alias(u,alias,irc_msg)
-
         return 1
+
     def update_alias(self,u,alias,irc_msg):
-        query="UPDATE user_list SET alias_nick = %s WHERE pnick ilike %s"
-        self.cursor.execute(query,(alias,u.pnick))
-        if self.cursor.rowcount > 0:
-            irc_msg.reply("Update alias for %s (that's you) to %s"%(u.pnick,alias))
-        else:
-            irc_msg.reply("If you see this message you are a winner. Fuck you.")
+        try:
+            query="UPDATE user_list SET alias_nick = %s WHERE pnick ilike %s"
+            self.cursor.execute(query,(alias,u.pnick))
+            if self.cursor.rowcount > 0:
+                irc_msg.reply("Update alias for %s (that's you) to %s"%(u.pnick,alias))
+            else:
+                irc_msg.reply("If you see this message you are a winner. Fuck you.")
+        except:
+            irc_msg.reply("Your alias is already in use or is someone else's pnick (not allowed). Tough noogies.")

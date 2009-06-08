@@ -1,4 +1,3 @@
-3
 # This file is part of Munin.
 
 # Munin is free software; you can redistribute it and/or modify

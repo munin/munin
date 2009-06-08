@@ -45,8 +45,7 @@ class scan(threading.Thread):
             dsn += ' host=%s' % config.get("Database", "host")
 
         conn=psycopg.connect(dsn)
-        conn.serialize()
-        conn.autocommit()
+        conn.autocommit(1)
         return conn
         
     def run(self):

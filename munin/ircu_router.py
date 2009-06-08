@@ -38,6 +38,5 @@ class ircu_router(object):
             dsn += ' host=%s' % config.get("Database", "host")
 
         conn=psycopg.connect(dsn)
-        conn.serialize()
-        conn.autocommit()
+        conn.autocommit(1)
         return conn

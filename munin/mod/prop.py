@@ -132,10 +132,8 @@ class prop(loadable.loadable):
             return 1
         last_comp=self.was_recently_proposed('invite',person)
         prop_id=self.create_invite_proposal(user,person,comment,last_comp)
-        reply="%s created a new proposition (nr. %s) to invite %s." %(user.pnick,prop_id,person)
-        reply+=" When people have been given a fair shot at voting you can call a count using !prop expire %s."%(prop_id,)
-        if last_comp > 0:
-            reply+=" Due to previous failures I'm voting no with %s %s on this vote."%(last_comp,self.pluralize(last_comp,'carebear'))
+        reply="%s created a new proposition (nr. %d) to invite %s." %(user.pnick,prop_id,person)
+        reply+=" When people have been given a fair shot at voting you can call a count using !prop expire %d."%(prop_id,)
         irc_msg.reply(reply)
 
     def process_kick_proposal(self,irc_msg,user,person,comment):
@@ -151,10 +149,8 @@ class prop(loadable.loadable):
             return 1
         last_comp=self.was_recently_proposed('kick',p.id)
         prop_id=self.create_kick_proposal(user,p,comment,last_comp)
-        reply="%s created a new proposition (nr. %s) to kick %s."%(user.pnick,prop_id,p.pnick)
-        reply+=" When people have had a fair shot at voting you can call a count using !prop expire %s."%(prop_id,)
-        if last_comp > 0:
-            reply+=" Due to previous failures I'm voting no with %s %s on this vote."%(last_comp,self.pluralize(last_comp,'carebear'))
+        reply="%s created a new proposition (nr. %d) to kick %s."%(user.pnick,prop_id,p.pnick)
+        reply+=" When people have had a fair shot at voting you can call a count using !prop expire %d."%(prop_id,)
         irc_msg.reply( reply)
 
     def process_list_all_proposals(self,irc_msg,user):
@@ -180,9 +176,7 @@ class prop(loadable.loadable):
                                                                        r['prop_type'],r['person'],r['proposer'],
                                                                        r['comment_text'])
         if not bool(r['active']):
-            reply+=" This prop expired %s days ago."%(DateTime.Age(DateTime.now(),r['closed']).days,)
-        elif r['padding'] > 0:
-            reply+=" Due to previous failures I'm voting no on this prop with %s %s"%(r['padding'],self.pluralize(r['padding'],'carebear'))
+            reply+=" This prop expired %d days ago."%(DateTime.Age(DateTime.now(),r['closed']).days,)
         if irc_msg.target[0] != "#" or irc_msg.prefix == irc_msg.client.NOTICE_PREFIX or irc_msg.prefix == irc_msg.client.PRIVATE_PREFIX:
             query="SELECT vote,carebears FROM prop_vote"
             query+=" WHERE prop_id=%s AND voter_id=%s"
@@ -202,7 +196,6 @@ class prop(loadable.loadable):
             (voters, yes, no) = self.get_voters_for_prop(prop_id)
             (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(voters,yes,no)
             reply+="The prop"
-            no+=prop['padding']
             if yes > no:
                 reply+=" passed by a vote of %s to %s"%(yes,no)
             else:
@@ -213,8 +206,6 @@ class prop(loadable.loadable):
             reply+=string.join(map(pretty_print,voters['yes']),', ')
             reply+=") and against ("
             reply+=string.join(map(pretty_print,voters['no']),', ')
-            if r['padding'] > 0:
-                reply+=", Munin (%s)"%(r['padding'],)
             reply+=")"
             irc_msg.reply(reply)
 
@@ -265,13 +256,11 @@ class prop(loadable.loadable):
         if not prop:
             irc_msg.reply("No proposition number %s exists (idiot)."%(prop_id,))
             return
-        if u.pnick.lower() != prop['proposer'].lower():
-            irc_msg.reply("Only %s may expire proposition %s."%(prop['proposer'],prop['id']))
+        if u.pnick.lower() != prop['proposer'].lower() and u.userlevel < 1000:
+            irc_msg.reply("Only %s may expire proposition %d."%(prop['proposer'],prop['id']))
             return
         #tally votes for and against
         (voters, yes, no) = self.get_voters_for_prop(prop_id)
-        if prop['padding']:
-            no+=prop['padding']
         (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(voters,yes,no)
 
         age=DateTime.Age(DateTime.now(),prop['created']).days
@@ -287,8 +276,6 @@ class prop(loadable.loadable):
         reply+=string.join(map(pretty_print,voters['yes']),', ')
         reply+=" Against: "
         reply+=string.join(map(pretty_print,voters['no']),', ')
-        if prop['padding'] > 0:
-            reply+=", Munin (%s)"%(prop['padding'],)
         irc_msg.client.privmsg("#%s"%(self.config.get('Auth','home'),),reply)
 
         if prop['prop_type'] == 'kick' and yes > no:
@@ -307,9 +294,14 @@ class prop(loadable.loadable):
             irc_msg.reply("No proposition number %s exists (idiot)."%(prop_id,))
             return
 
-        if u.pnick.lower() != prop['proposer'].lower():
-            irc_msg.reply("Only %s may expire proposition %s."%(prop['proposer'],prop['id']))
+        if u.pnick.lower() != prop['proposer'].lower() and u.userlevel < 1000:
+            irc_msg.reply("Only %s may expire proposition %d."%(prop['proposer'],prop['id']))
             return
+
+        if not prop['active']:
+            irc_msg.reply("Only active props may be cancelled, prop %d has already expired"%(prop['id'],))
+            return
+
 
         (voters, yes, no)=self.get_voters_for_prop(prop_id)
 

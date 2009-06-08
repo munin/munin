@@ -298,6 +298,11 @@ class prop(loadable.loadable):
             irc_msg.reply("Only %s may expire proposition %d."%(prop['proposer'],prop['id']))
             return
 
+        if not prop['active']:
+            irc_msg.reply("Only active props may be cancelled, prop %d has already expired"%(prop['id'],))
+            return
+
+
         (voters, yes, no)=self.get_voters_for_prop(prop_id)
 
         query="DELETE FROM prop_vote WHERE prop_id=%d"

@@ -64,9 +64,6 @@ class yourmum(loadable.loadable):
             if not u: return
 
         self.show_mums_for_user(u,irc_msg)
-
-        # do stuff here
-
         return 1
     
     def show_mums_for_user(self,u,irc_msg):
@@ -74,8 +71,8 @@ class yourmum(loadable.loadable):
         reply="%s is %s carebears fat. These people care most for %s: "
         reply+=", ".join(map(lambda x: "%s (%s)"%(x['giver'],x['cookies']),most_given))
         irc_msg.reply(reply)
-
-    def get_ten_biggest_mums(self,receiver)
+        
+    def get_ten_biggest_mums(self,receiver):
         query="SELECT giver,sum(howmany) AS cookies"
         query+=" FROM cookie_log"
         query+=" WHERE receiver ilike %s"

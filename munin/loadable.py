@@ -581,7 +581,7 @@ class user(object):
         if not self.last_cookie_date or (now - self.last_cookie_date).days > 0:
             self.available_cookies = int(config.get("Alliance","cookies_per_day"))
             query="UPDATE user_list SET available_cookies = %s,last_cookie_date = %s WHERE id = %s"
-            cursor.execute(query,(self.available_cookies,psycopg.TimestampFromMx(now), self.id))
+            cursor.execute(query,(self.available_cookies,now, self.id))
         return self.available_cookies
     
 class intel(object):

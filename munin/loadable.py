@@ -27,7 +27,7 @@ import re
 import string
 import ConfigParser
 from psycopg2 import psycopg1 as psycopg
-from mx import DateTime
+import datetime
 
 class loadable(object):
     def __init__(self,cursor,level):
@@ -576,11 +576,9 @@ class user(object):
         return cursor.dictfetchall()        
 
     def check_available_cookies(self,cursor,config):
-        now = DateTime.now()
-        now = DateTime.Date(now.year,now.month,now.day)
-        if self.last_cookie_date:
-            age = DateTime.Age(now,self.last_cookie_date).hours
-        if not self.last_cookie_date or DateTime.Age(now,self.last_cookie_date).days > 0:
+        now = datetime.datetime.now()
+        now = datetime.datetime(now.year,now.month,now.day)
+        if not self.last_cookie_date or (now - self.last_cookie_date).days > 0:
             self.available_cookies = int(config.get("Alliance","cookies_per_day"))
             query="UPDATE user_list SET available_cookies = %s,last_cookie_date = %s WHERE id = %s"
             cursor.execute(query,(self.available_cookies,psycopg.TimestampFromMx(now), self.id))

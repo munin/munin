@@ -30,7 +30,7 @@ Loadable.Loadable subclass
 import re
 import string
 from munin import loadable
-from mx import DateTime
+import datetime
 
 class prop(loadable.loadable):
     """
@@ -171,12 +171,12 @@ class prop(loadable.loadable):
             irc_msg.reply(reply)
             return
 
-        age=DateTime.Age(DateTime.now(),r['created']).days
+        age=(datetime.datetime.now() - r['created']).days
         reply="proposition %s (%s %s old): %s %s. %s commented '%s'."%(r['id'],age,self.pluralize(age,"day"),
                                                                        r['prop_type'],r['person'],r['proposer'],
                                                                        r['comment_text'])
         if not bool(r['active']):
-            reply+=" This prop expired %d days ago."%(DateTime.Age(DateTime.now(),r['closed']).days,)
+            reply+=" This prop expired %d days ago."%((datetime.datetime.now()-r['closed']).days,)
         if irc_msg.target[0] != "#" or irc_msg.prefix == irc_msg.client.NOTICE_PREFIX or irc_msg.prefix == irc_msg.client.PRIVATE_PREFIX:
             query="SELECT vote,carebears FROM prop_vote"
             query+=" WHERE prop_id=%s AND voter_id=%s"
@@ -263,7 +263,7 @@ class prop(loadable.loadable):
         (voters, yes, no) = self.get_voters_for_prop(prop_id)
         (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(voters,yes,no)
 
-        age=DateTime.Age(DateTime.now(),prop['created']).days
+        age=(datetime.datetime.now(),prop['created']).days
         reply="The proposition raised by %s %s %s ago to %s %s has"%(prop['proposer'],age,self.pluralize(age,"day"),prop['prop_type'],prop['person'])
         if yes > no:
             reply+=" passed"

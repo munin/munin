@@ -67,16 +67,17 @@ class yourmum(loadable.loadable):
         return 1
     
     def show_mums_for_user(self,u,irc_msg):
-        most_given = self.get_ten_biggest_mums(u.pnick)
-        reply="%s is %s carebears fat. These people care most for %s: "
+        most_given = self.get_ten_biggest_mums(u.id)
+        reply="%s is %s carebears fat. These people care most for %s: " % (u.pnick,u.carebears,u.pnick)
         reply+=", ".join(map(lambda x: "%s (%s)"%(x['giver'],x['cookies']),most_given))
         irc_msg.reply(reply)
         
     def get_ten_biggest_mums(self,receiver):
-        query="SELECT giver,sum(howmany) AS cookies"
-        query+=" FROM cookie_log"
+        query="SELECT pnick AS giver,sum(howmany) AS cookies"
+        query+=" FROM cookie_log AS t1"
+        query+=" INNER JOIN user_list AS t2 ON t1.giver=t2.id"
         query+=" WHERE receiver ilike %s"
-        query+=" GROUP BY giver"
+        query+=" GROUP BY pnick"
         query+=" ORDER BY sum(howmany) DESC"
         query+=" LIMIT 10"
         self.cursor.execute(query,(receiver,))

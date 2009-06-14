@@ -37,7 +37,7 @@ class prop(loadable.loadable):
     foo
     """
     def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,100)
+        super(self.__class__,self).__init__(cursor,1000)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(invite|kick|list|show|vote|expire|cancel|recent|search)(.*)")
         self.invite_kickre=re.compile(r"^\s+(\S+)(\s+(\S.*))")
@@ -61,7 +61,7 @@ class prop(loadable.loadable):
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
-
+        
         # assign param variables
         prop_type=m.group(1)
 
@@ -263,7 +263,7 @@ class prop(loadable.loadable):
         (voters, yes, no) = self.get_voters_for_prop(prop_id)
         (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(voters,yes,no)
 
-        age=(datetime.datetime.now(),prop['created']).days
+        age=(datetime.datetime.now()-prop['created']).days
         reply="The proposition raised by %s %s %s ago to %s %s has"%(prop['proposer'],age,self.pluralize(age,"day"),prop['prop_type'],prop['person'])
         if yes > no:
             reply+=" passed"
@@ -304,7 +304,7 @@ class prop(loadable.loadable):
 
 
         (voters, yes, no)=self.get_voters_for_prop(prop_id)
-
+        query="DELETE FROM prop_vote WHERE prop_id=%s"
         self.cursor.execute(query,(prop['id'],))
 
         query="DELETE FROM %s_proposal " %(prop['prop_type'],)

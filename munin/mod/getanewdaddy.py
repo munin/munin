@@ -42,7 +42,6 @@ class getanewdaddy(loadable.loadable):
         self.usage=self.__class__.__name__ + " <pnick>"
         self.helptext=['This command is used when you no longer wish to be sponsor for a person. Their access to #%s will be removed and their Munin access will be lowered to "galmate" level.' % self.config.get('Auth', 'home'),
                        "Anyone is free to sponsor the person back under the usual conditions. This isn't a kick and it's not final."]
-        #self.helptext=['This command is used to vote someone out of the alliance. Your vote is logged and everyone can see what a cunt you are.']
 
     def execute(self,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)

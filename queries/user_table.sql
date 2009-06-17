@@ -435,7 +435,7 @@ CREATE TABLE kick_proposal (
 
 CREATE TABLE prop_vote (
        id SERIAL PRIMARY KEY,
-       vote VARCHAR(7) NOT NULL CHECK(vote in ('yes', 'no', 'abstain')),
+       vote VARCHAR(7) NOT NULL CHECK(vote in ('yes', 'no', 'abstain', 'veto')),
        carebears integer NOT NULL,
        prop_id integer NOT NULL,
        voter_id integer NOT NULL REFERENCES user_list(id)

@@ -67,6 +67,7 @@ for u in old_curs.dictfetchall():
     new_curs.execute("INSERT INTO slogan (slogan) VALUES (%s)",(u['slogan'],))
 
 new_curs.execute("INSERT INTO channel_list (chan,userlevel,maxlevel) VALUES (%s,%s,%s)", ("#ascendancy",100,1000))
+new_curs.execute("INSERT INTO channel_list (chan,userlevel,maxlevel) VALUES (%s,%s,%s)", ("#meanies",1,1000))
 
 new_curs.execute("SELECT setval('user_list_id_seq',(select max(id) from user_list))")
 

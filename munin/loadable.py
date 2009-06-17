@@ -508,8 +508,8 @@ class user(object):
     @staticmethod
     def count_members(cursor):
         query="SELECT count(*) as count FROM user_list WHERE userlevel >= 100"
-        self.cursor.execute(query)
-        return self.cursor.dictfetchone()['count']
+        cursor.execute(query)
+        return cursor.dictfetchone()['count']
 
     def lookup_query(self):
         query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.phone AS phone, t1.pubphone AS pubphone,"

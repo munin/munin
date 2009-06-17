@@ -123,9 +123,9 @@ class prop(loadable.loadable):
         return 1
 
     def too_many_members(self,irc_msg):
-        members=loadable.user.count_members()
-        if members >= self.config('Alliance','member_limit'):
-            irc_msg.reply("You have tried to invite somebody, but we have %s losers and I can't be bothered dealing with more than %s of you.",members, self.config.get('Alliance','member_limit'))
+        members=loadable.user.count_members(self.cursor)
+        if members >= int(self.config.get('Alliance','member_limit')):
+            irc_msg.reply("You have tried to invite somebody, but we have %s losers and I can't be bothered dealing with more than %s of you."%(members, self.config.get('Alliance','member_limit')))
             return 1
         return 0
             
@@ -148,11 +148,14 @@ class prop(loadable.loadable):
         if person.lower() == "munin".lower():
             irc_msg.reply("I'll peck your eyes out, cunt.")
             return 1
-        if not p:
+        if not p or p.userlevel < 100:
             irc_msg.reply("Stupid %s, you can't kick %s, they're not a member."%(user.pnick,person))
             return 1
         if self.is_already_proposed_kick(p.id):
             irc_msg.reply("Silly %s, there's already a proposition to kick %s."%(user.pnick,p.pnick))
+            return 1
+        if p.userlevel > user.userlevel:
+            irc_msg.reply("Unfortunately I like %s more than you. So none of that."%(p.pnick,))
             return 1
         last_comp=self.was_recently_proposed('kick',p.id)
         prop_id=self.create_kick_proposal(user,p,comment,last_comp)
@@ -196,9 +199,14 @@ class prop(loadable.loadable):
                 reply+=" on this proposition."
             else:
                 reply+=" You are not currently voting on this proposition."
-        
-        irc_msg.reply(reply)
+
         (voters, yes, no) = self.get_voters_for_prop(prop_id)
+        if len(voters['veto']) > 0:
+            reply+=" Vetoing: "
+            reply+=string.join(map(lambda x:x['pnick'],voters['veto']),', ')
+        irc_msg.reply(reply)
+
+
         if not bool(r['active']):
             reply=""
             prop=self.find_single_prop_by_id(prop_id)
@@ -209,16 +217,10 @@ class prop(loadable.loadable):
             else:
                 reply+=" failed by a vote of %s to %s"%(no,yes)
             reply+=". The voters in favor were ("
-
             pretty_print=lambda x:"%s (%s)"%(x['pnick'],x['carebears'])
             reply+=string.join(map(pretty_print,voters['yes']),', ')
             reply+=") and against ("
             reply+=string.join(map(pretty_print,voters['no']),', ')
-            reply+=")"
-            irc_msg.reply(reply)
-        if len(voters['veto']) > 0:
-            reply="Vetoing on prop %s: ("%(prop_id,)
-            reply+=string.join(map(pretty_print,voters['veto'],', '))
             reply+=")"
             irc_msg.reply(reply)
 
@@ -235,6 +237,11 @@ class prop(loadable.loadable):
             return
         if prop['proposer'].lower() == u.pnick.lower():
             reply="Arbitrary Munin rule #167: No voting on your own props."
+            irc_msg.reply(reply)
+            return
+
+        if prop['person'].lower() == u.pnick.lower() and vote == 'veto':
+            reply="You can't veto a vote to kick you."
             irc_msg.reply(reply)
             return
 
@@ -291,7 +298,7 @@ class prop(loadable.loadable):
         reply+=" Against: "
         reply+=string.join(map(pretty_print,voters['no']),', ')
         if len(voters['veto']) > 0:
-            reply+=" Vetoing:"
+            reply+=" Veto: "
             reply+=string.join(map(pretty_print,voters['veto']),', ')
             
         irc_msg.client.privmsg("#%s"%(self.config.get('Auth','home'),),reply)

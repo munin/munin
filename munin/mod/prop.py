@@ -205,7 +205,7 @@ class prop(loadable.loadable):
             reply+=" Vetoing: "
             reply+=string.join(map(lambda x:x['pnick'],voters['veto']),', ')
         irc_msg.reply(reply)
-
+        
 
         if not bool(r['active']):
             reply=""

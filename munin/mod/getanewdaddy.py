@@ -72,7 +72,7 @@ class getanewdaddy(loadable.loadable):
 
         # do stuff here
 
-        if access < 1000 and idiot.sponsor.lower() != voter.pnick.lower():
+        if access < 1000 and idiot.sponsor.lower() != voter.pnick.lower() and idiot.pnick.lower() != voter.pnick.lower():
             reply="You are not %s's sponsor"%(idiot.pnick,)
             irc_msg.reply(reply)
             return 1

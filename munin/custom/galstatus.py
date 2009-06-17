@@ -49,15 +49,15 @@ class galstatus:
             reply+=i.nick + " -> "
         reply+=" (xp: %s" % (owner.calc_xp(target),)
 
-        if i.alliance and i.alliance.lower() == self.config.get("Auth", "alliance").lower() and source != "#"+self.config.get("Auth", "home") and not (i.relay and i.reportchan != "#"+self.config.get("Auth", "home")):
-            d = self.get_defcall(target.id, landing_tick)
-            if d:
-                reply+=", d: %s) " % (d['id'],)
-            else:
-                reply+=") "
-            reply+=message
-            self.client.privmsg("#"+self.config.get("Auth", "home"),reply)
-            return
+#        if i.alliance and i.alliance.lower() == self.config.get("Auth", "alliance").lower() and source != "#"+self.config.get("Auth", "home") and not (i.relay and i.reportchan != "#"+self.config.get("Auth", "home")):
+#            d = self.get_defcall(target.id, landing_tick)
+#            if d:
+#                reply+=", d: %s) " % (d['id'],)
+#            else:
+#                reply+=") "
+#            reply+=message
+#            self.client.privmsg("#"+self.config.get("Auth", "home"),reply)
+#            return
 
 
 

@@ -15,38 +15,32 @@ Install instructions:
 
 0) Install pgsql, python, etc.
 a) CREATE DATABASE yourdbnamehere WITH ENCODING = 'LATIN1';
-b) find every reference to the old user and dbname in the code (there
-shouldn't be many) and change them to yourdbname. (Hint: hugin.py, parser.py)
+b) find every reference to the old user and dbname in the config (muninrc) and 
+correct them
 c) Add the plpgsql language to your database. This usually requires
 superuser access. It can either be done from the commandline with:
 
 createlang plpgsql yourdbnamehere
 
-Or in SQL with:
+Or in SQL when connected to the correct database with:
 
 CREATE LANGUAGE plpgqsl
 
 d) Fix user_table.sql to insert the correct superuser pnick (it's
-currently set to jester).
+currently commented out and set to jester).
 e) \i user_table.sql and \i functions.sql
 f) optional: insert stats (see below)
 g) make sure the mods in the mod dir are the only ones you're
 interested in using. 
-h) change all the ascendancy specific code to be less ascendancy
-specific (check for channel specific stuff mod dir). 
-i) Change the nick variable in munin.py. 
-j) you should be set (though I've probably forgotten a bunch of
+h) copy muninrc-example to muninrc and update the values for your alliance
+i) you should be set (though I've probably forgotten a bunch of
 stuff).
 
 
 Instructions for inserting stats (also found in howto_makestats.txt or use putships.py):
 
-a) copy stats from html to excel
-b) remove efficiency columns, add total cost column
-c) add ID column with numbers
-d) \copy ship from stdin
-e) copy ships from excel to stdin
-f) insert into ship (id, name,class,target,type,init,armor,damage,metal,crystal,eonium,race,total_cost) select * from foo ;
+a) python utils/putships.py 
+optionally) python utils/putships.py http://url.to/stats
 
 optional) Set up the drupal instance to use the right db
 

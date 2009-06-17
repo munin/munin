@@ -505,6 +505,12 @@ class user(object):
         self.fleetupdated=fleetupdated
         self.alias_nick=alias_nick
 
+    @staticmethod
+    def count_members(cursor):
+        query="SELECT count(*) as count FROM user_list WHERE userlevel >= 100"
+        self.cursor.execute(query)
+        return self.cursor.dictfetchone()['count']
+
     def lookup_query(self):
         query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.phone AS phone, t1.pubphone AS pubphone,"
         query+=" t1.stay AS stay, t1.invites AS invites, t1.available_cookies AS available_cookies, t1.last_cookie_date AS last_cookie_date, t1.carebears AS carebears, t1.alias_nick AS alias_nick"
@@ -788,3 +794,4 @@ class booking(object):
         else:
             return None
         return None
+

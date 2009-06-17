@@ -41,7 +41,7 @@ class prop(loadable.loadable):
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(invite|kick|list|show|vote|expire|cancel|recent|search)(.*)")
         self.invite_kickre=re.compile(r"^\s+(\S+)(\s+(\S.*))")
-        self.votere=re.compile(r"^\s+(\d+)\s+(yes|no|abstain)")
+        self.votere=re.compile(r"^\s+(\d+)\s+(yes|no|veto|abstain)")
         self.usage=self.__class__.__name__ + " [<invite|kick> <pnick> <comment>] | [list] | [vote <number> <yes|no|abstain>] | [expire <number>] | [show <number>] | [cancel <number>] | [recent] | [search <pnick>]"
         self.helptext=["A proposition is a vote to do something. For now, you can raise propositions to invite or kick someone. Once raised the proposition will stand until you expire it.  Make sure you give everyone time to have their say. Votes for and against a proposition are weighted by carebears. You must have at least 1 carebear to vote."]
 
@@ -69,7 +69,7 @@ class prop(loadable.loadable):
             m=self.match_or_usage(irc_msg,self.invite_kickre,m.group(2))
             if not m: return 1
             if self.command_not_used_in_home(irc_msg,self.__class__.__name__ + " invite"): return 1
-
+            if self.too_many_members(irc_msg): return 1
             person=m.group(1)
             comment=m.group(3)
             self.process_invite_proposal(irc_msg,u,person,comment)
@@ -98,7 +98,7 @@ class prop(loadable.loadable):
             prop_id=int(m.group(1))
             vote=m.group(2)
             self.process_vote_proposal(irc_msg,u,prop_id,vote)
-            
+           
         elif prop_type.lower() == 'expire':
             m=self.match_or_usage(irc_msg,re.compile(r"\s*(\d+)"),m.group(2))
             if not m: return 1
@@ -120,8 +120,15 @@ class prop(loadable.loadable):
             m=self.match_or_usage(irc_msg,re.compile(r"\s*(\S+)"),m.group(2))
             if not m: return 1
             self.process_search_proposal(irc_msg,u,m.group(1))
-            
         return 1
+
+    def too_many_members(self,irc_msg):
+        members=loadable.user.count_members()
+        if members >= self.config('Alliance','member_limit'):
+            irc_msg.reply("You have tried to invite somebody, but we have %s losers and I can't be bothered dealing with more than %s of you.",members, self.config.get('Alliance','member_limit'))
+            return 1
+        return 0
+            
 
     def process_invite_proposal(self,irc_msg,user,person,comment):
         if self.is_member(person):
@@ -189,6 +196,7 @@ class prop(loadable.loadable):
                 reply+=" on this proposition."
             else:
                 reply+=" You are not currently voting on this proposition."
+        
         irc_msg.reply(reply)
         if not bool(r['active']):
             reply=""
@@ -206,6 +214,11 @@ class prop(loadable.loadable):
             reply+=string.join(map(pretty_print,voters['yes']),', ')
             reply+=") and against ("
             reply+=string.join(map(pretty_print,voters['no']),', ')
+            reply+=")"
+            irc_msg.reply(reply)
+        if len(voters['veto']) > 0:
+            reply="Vetoing on prop %s: ("%(prop_id,)
+            reply+=string.join(map(pretty_print,voters['veto'],', '))
             reply+=")"
             irc_msg.reply(reply)
 
@@ -246,7 +259,7 @@ class prop(loadable.loadable):
             reply+="."
         else:
             reply="Set your vote on proposition %s as %s"%(prop['id'],vote)
-            if vote != 'abstain':
+            if vote != 'abstain' and vote != 'veto':
                 reply+=" with %s carebears"%(carebears,)
             reply+="."
         irc_msg.reply(reply)
@@ -265,7 +278,8 @@ class prop(loadable.loadable):
 
         age=(datetime.datetime.now()-prop['created']).days
         reply="The proposition raised by %s %s %s ago to %s %s has"%(prop['proposer'],age,self.pluralize(age,"day"),prop['prop_type'],prop['person'])
-        if yes > no:
+        passed = yes > no and len(voters['veto']) <= 0
+        if passed:
             reply+=" passed"
         else:
             reply+=" failed"
@@ -276,17 +290,21 @@ class prop(loadable.loadable):
         reply+=string.join(map(pretty_print,voters['yes']),', ')
         reply+=" Against: "
         reply+=string.join(map(pretty_print,voters['no']),', ')
+        if len(voters['veto']) > 0:
+            reply+=" Vetoing:"
+            reply+=string.join(map(pretty_print,voters['veto']),', ')
+            
         irc_msg.client.privmsg("#%s"%(self.config.get('Auth','home'),),reply)
 
-        if prop['prop_type'] == 'kick' and yes > no:
+        if prop['prop_type'] == 'kick' and passed:
             self.do_kick(irc_msg,prop,yes,no)
-        elif prop['prop_type'] == 'invite' and yes > no:
+        elif prop['prop_type'] == 'invite' and passed:
             self.do_invite(irc_msg,prop)
 
         query="UPDATE %s_proposal SET active = FALSE, closed = NOW()" % (prop['prop_type'],)
         query+=", vote_result=%s,compensation=%s"
         query+=" WHERE id=%s"
-        self.cursor.execute(query,(['no','yes'][yes>no],losing_total,prop['id']))
+        self.cursor.execute(query,(['no','yes'][passed],losing_total,prop['id']))
 
     def process_cancel_proposal(self, irc_msg, u, prop_id):
         prop=self.find_single_prop_by_id(prop_id)
@@ -369,6 +387,7 @@ class prop(loadable.loadable):
         voters['yes']=[]
         voters['no']=[]
         voters['abstain']=[]
+        voters['veto']=[]
         yes=0;no=0
 
         for r in self.cursor.dictfetchall():
@@ -380,6 +399,8 @@ class prop(loadable.loadable):
                 voters['no'].append(r)
             elif r['vote'] == 'abstain':
                 voters['abstain'].append(r)
+            elif r['vote'] == 'veto':
+                voters['veto'].append(r)
         return (voters, yes, no)
 
     def do_kick(self,irc_msg,prop,yes,no):

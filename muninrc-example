@@ -39,6 +39,7 @@ user: MrPresident
 # This section determines alliance policy stuff.
 # cookies_per_day: how many cookies should the bot give out every day?
 cookies_per_day: 10000000
+member_limit: 100
 
 [Url]
 # Don't change these unless they actually change in reality.

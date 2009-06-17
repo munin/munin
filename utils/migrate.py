@@ -23,7 +23,7 @@
 
 import sys
 
-from psycopg2 import psycopg1 as psycopg1
+from psycopg2 import psycopg1 as psycopg
 
 user="munin"
 
@@ -45,11 +45,7 @@ new_curs=new_conn.cursor()
 old_curs.execute("SELECT t1.id, t1.pnick,t1.userlevel,t1.sponsor, t1.phone, t1.pubphone, t1.passwd, t1.salt, t1.carebears, t1.available_cookies, t1.last_cookie_date  FROM user_list AS t1")
 
 for u in old_curs.dictfetchall():
-    if u['last_cookie_date']:
-        last_cookie_date = psycopg.TimestampFromMx(u['last_cookie_date'])
-    else:
-        last_cookie_date = None
-    new_curs.execute("INSERT INTO user_list (id,pnick,userlevel,sponsor,phone,pubphone,passwd,salt,carebears,available_cookies,last_cookie_date) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(u['id'],u['pnick'],u['userlevel'],u['sponsor'],u['phone'],[False,True][int(u['pubphone'])],u['passwd'],u['salt'],u['carebears'],u['available_cookies'],last_cookie_date))
+    new_curs.execute("INSERT INTO user_list (id,pnick,userlevel,sponsor,phone,pubphone,passwd,salt,carebears,available_cookies,last_cookie_date) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(u['id'],u['pnick'],u['userlevel'],u['sponsor'],u['phone'],[False,True][int(u['pubphone'])],u['passwd'],u['salt'],u['carebears'],u['available_cookies'],u['last_cookie_date']))
 
 old_curs.execute("SELECT user_id, friend_id FROM phone")
 
@@ -74,22 +70,14 @@ new_curs.execute("SELECT setval('user_list_id_seq',(select max(id) from user_lis
 old_curs.execute("SELECT id,active,proposer_id,person,created,closed,comment_text,vote_result,compensation,padding FROM invite_proposal")
 
 for u in old_curs.dictfetchall():
-    if u['closed']:
-        closed = psycopg.TimestampFromMx(u['closed'])
-    else:
-        closed = None
     new_curs.execute("INSERT INTO invite_proposal (id,active,proposer_id,person,created,closed,comment_text,vote_result,compensation,padding) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                     (u['id'],[False,True][int(u['active'])],u['proposer_id'],u['person'],psycopg.TimestampFromMx(u['created']),closed,u['comment_text'],u['vote_result'],u['compensation'],u['padding']))
+                     (u['id'],[False,True][int(u['active'])],u['proposer_id'],u['person'],u['created'],u['closed'],u['comment_text'],u['vote_result'],u['compensation'],u['padding']))
 
 old_curs.execute("SELECT id,active,proposer_id,person_id,created,closed,comment_text,vote_result,compensation,padding FROM kick_proposal")
 
 for u in old_curs.dictfetchall():
-    if u['closed']:
-        closed = psycopg.TimestampFromMx(u['closed'])
-    else:
-        closed = None
     new_curs.execute("INSERT INTO kick_proposal (id,active,proposer_id,person_id,created,closed,comment_text,vote_result,compensation,padding) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                     (u['id'],[False,True][int(u['active'])],u['proposer_id'],u['person_id'],psycopg.TimestampFromMx(u['created']),closed,u['comment_text'],u['vote_result'],u['compensation'],u['padding']))
+                     (u['id'],[False,True][int(u['active'])],u['proposer_id'],u['person_id'],u['created'],u['closed'],u['comment_text'],u['vote_result'],u['compensation'],u['padding']))
 
 new_curs.execute("SELECT setval('proposal_id_seq',(select max(id) from (select id from invite_proposal union select id from kick_proposal) t1))")
 

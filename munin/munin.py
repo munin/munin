@@ -62,11 +62,13 @@ class munin(object):
                 traceback.print_exc()
                 raise
             except reboot.reboot, r:
+                s.client.ping() # make sure we're still connected
                 continue
             except Exception, e:
                 print "Exception during command: " + e.__str__()
                 traceback.print_exc()
                 continue
+            
 
     def reboot(self):
         print "Rebooting Munin."

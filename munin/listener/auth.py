@@ -39,4 +39,3 @@ class auth(object):
         if m:
             self.client.wline("JOIN #%s" % m.group(1))
             return
-

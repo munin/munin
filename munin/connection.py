@@ -113,5 +113,6 @@ class connection:
     if prefix == self.PRIVATE_PREFIX:
       self.privmsg(nick,text)
 
-
+  def ping(self):
+    self.wline("PING :I am Munin hear me squawk")
 

@@ -122,7 +122,7 @@ class xp(loadable.loadable):
 
             reply+="| Bravery: %.2f " % (bravery,)
 
-            cap=attacker.cap_rate(victim)*victim.size
+            cap=int(attacker.cap_rate(victim)*victim.size)
             xp=attacker.calc_xp(victim)
             reply+="| Roids: %s | XP: %s | Score: %s" % (cap,xp,xp*60)
             irc_msg.reply(reply)

@@ -70,6 +70,6 @@ class maxcap(loadable.loadable):
             cap+=int(total_roids*cap_rate)
             reply+="Wave %d: %d (%d), " % (i,int(total_roids*cap_rate),cap)
             total_roids = total_roids - int(total_roids*cap_rate)
-        irc_msg.reply("Caprate: %s%% %s"%(cap_rate*100,reply.strip(', '))
+        irc_msg.reply("Caprate: %s%% %s"%(int(cap_rate*100),reply.strip(', ')))
 
         return 1

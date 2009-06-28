@@ -117,19 +117,14 @@ class xp(loadable.loadable):
                                      self.format_value(victim_val*100),self.format_value(victim_score*100))
             reply+="| Attacker %s:%s:%s (%s|%s) "%(attacker.x,attacker.y,attacker.z,
                                                 self.format_value(attacker_val*100),self.format_value(attacker_score*100))
-            total_roids = victim.size
 
-            bravery = max(0,(min(2,float(victim_val)/attacker_val)-0.1 ) * (min(2,float(victim_score)/attacker_score)-0.2))
-            bravery *= 10
-
-
+            bravery=attacker.bravery(victim)
 
             reply+="| Bravery: %.2f " % (bravery,)
 
-            cap=total_roids/4
-            xp=int(cap*bravery)
+            cap=attacker.cap_rate(victim)*victim.size
+            xp=attacker.calc_xp(victim)
             reply+="| Roids: %s | XP: %s | Score: %s" % (cap,xp,xp*60)
             irc_msg.reply(reply)
-
 
         return 1

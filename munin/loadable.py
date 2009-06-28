@@ -360,9 +360,15 @@ class planet(object):
         return 1
 
     def calc_xp(self,victim):
-        bravery = max(0,(min(2,float(victim.value)/self.value)-0.1 ) * (min(2,float(victim.score)/self.score)-0.2))
-        bravery *= 10
-        return int(bravery*int(victim.size*0.25))
+        bravery = self.bravery(victim)
+        return int(bravery*int(victim.size*self.cap_rate(victim)))
+
+    def bravery(self,victim):
+        return max(0,(min(2,float(victim.value)/self.value)-0.1 ) * (min(2,float(victim.score)/self.score)-0.2))*10
+    def cap_rate(self,victim):
+        modifier=(float(victim.value)/float(self.value))**0.5
+        return .25*modifier
+    
     def vdiff(self,cursor,tick):
         query="SELECT value FROM planet_dump AS t1 WHERE tick=%s AND id=%s"
         cursor.execute(query,(tick,self.id))

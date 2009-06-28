@@ -62,10 +62,14 @@ class maxcap(loadable.loadable):
 
         reply=""
         cap=0
-        for i in range(1,7):
-            cap+=total_roids/4
-            reply+="Wave %d: %d (%d), " % (i,total_roids/4,cap)
-            total_roids = total_roids - total_roids/4
-        irc_msg.reply(reply.strip(', '))
+        cap_rate=.25
+        u=self.load_user_from_pnick(user)
+        if u and u.planet:
+            cap_rate=u.planet.cap_rate(victim)
+        for i in range(1,5):
+            cap+=int(total_roids*cap_rate)
+            reply+="Wave %d: %d (%d), " % (i,total_roids*cap_rate,cap)
+            total_roids = total_roids - total_roids*cap_rate
+        irc_msg.reply("Caprate: %s%% %s"%(cap_rate*100,reply.strip(', '))
 
         return 1

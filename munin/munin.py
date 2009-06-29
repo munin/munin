@@ -53,6 +53,7 @@ class munin(object):
         while True:
             try:
                 self.reboot()
+                break
             except socket.error, s:
                 print "Exception during command at %s: %s" %(time.asctime(),s.__str__())
                 traceback.print_exc()
@@ -67,7 +68,6 @@ class munin(object):
                 print "Exception during command: " + e.__str__()
                 traceback.print_exc()
                 continue
-            self.client.ping() # make sure we're still connected
             
 
     def reboot(self):

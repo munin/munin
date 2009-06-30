@@ -36,8 +36,8 @@ class mydef(loadable.loadable):
         super(self.__class__,self).__init__(cursor,100)
         self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s*(\d)\s*x\s*(.*)")
-        self.countre=re.compile(r"(\d+(?:.\d+)?[mk]?)")
-        self.shipre=re.compile(r"(\w+),?")
+        self.countre=re.compile(r"^(\d+(?:.\d+)?[mk]?)$")
+        self.shipre=re.compile(r"^(\w+),?$")
         self.nulls = ["<>",".","-","?"]
         self.ship_classes = ['fi','co','fr','de','cr','bs']
         self.usage=self.__class__.__name__ + " [fleets] x <[ship count] [ship name]> [comment]"

@@ -90,6 +90,7 @@ class status(loadable.loadable):
             query+=" AND t3.tick = (SELECT max_tick()) AND t3.x=%s AND t3.y=%s"
 
             if z:
+                query+=" ORDER BY tick"
                 p=loadable.planet(x=x,y=y,z=z)
                 if not p.load_most_recent(self.cursor):
                     irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))

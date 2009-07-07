@@ -32,7 +32,7 @@ from munin import loadable
 class eff(loadable.loadable):
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,1)
-        self.paramre=re.compile(r"^\s+(\d+(?:.\d+)?[mk]?)\s+(\S+)(\s+(t1|t2|t3))?")
+        self.paramre=re.compile(r"^\s+(\d+(?:\.\d+)?[mk]?)\s+(\S+)(\s+(t1|t2|t3))?")
         self.usage=self.__class__.__name__ + " <number> <shipname> [t1|t2|t3]"
 
     def execute(self,user,access,irc_msg):

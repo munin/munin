@@ -23,40 +23,46 @@ Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
+import re
+from munin import loadable
+
 class remuser(loadable.loadable):
-    def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,1000)
+    def __init__(self,cursor):
+        super(self.__class__,self).__init__(cursor,1000)
         self.paramre=re.compile(r"^\s+(\S+)")
 
-    def execute(self,nick,username,host,target,prefix,command,user,access):
-        m=self.commandre.search(command)
+    def execute(self,user,access,irc_msg):
+        m=irc_msg.match_command(self.commandre)
         if not m:
             return 0
-        
+
+        if access < self.level:
+            irc_msg.reply("You do not have enough access to use this command")
+            return 0
+
+        u=self.load_user(user,irc_msg)
+        if not u: return 0
+
+
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: remuser <p-nick>")
+            irc_msg.reply("Usage: remuser <p-nick>")
             return 0
         
         pnick=m.group(1).lower()         
-        
-        if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to remove users")
-            return 0
-        
         
         query="SELECT id,pnick,userlevel FROM user_list WHERE pnick ILIKE %s LIMIT 1"
         self.cursor.execute(query,(pnick,))
         res=self.cursor.dictfetchone()
         if not res:
-            self.client.reply(prefix,nick,target,"User '%s' does not exist" % (pnick,))
+            irc_msg.reply("User '%s' does not exist" % (pnick,))
             return 0
         access_lvl = res['userlevel']
         real_pnick = res['pnick']
         uid = res['id']
         
         if access_lvl >= access:
-            self.client.reply(prefix,nick,target,"You may not remove %s, his or her access (%s) exceeds your own (%s)" % (pnick, access_lvl, access))
+            irc_msg.reply("You may not remove %s, his or her access (%s) exceeds your own (%s)" % (pnick, access_lvl, access))
             return 0
 
         query="DELETE FROM target WHERE uid=%s"
@@ -67,10 +73,11 @@ class remuser(loadable.loadable):
         try:
             self.cursor.execute(query,(real_pnick,))
             if self.cursor.rowcount>0:
-                self.client.privmsg('p',"remuser #%s %s" %(self.config.get('Auth', 'home'), real_pnick,))
-                self.client.reply(prefix,nick,target,"Removed user %s" % (real_pnick,))
+                irc_msg.client.privmsg('p','remuser #%s %s'%(self.config.get('Auth', 'home'), real_pnick,))
+                irc_msg.client.privmsg('p',"ban #%s *!*@%s.users.netgamers.org "%(self.config.get('Auth', 'home'), real_pnick,))
+                irc_msg.reply("Removed user %s" % (real_pnick,))
             else:
-                self.client.reply(prefix,nick,target,"No user removed" )
+                irc_msg.reply("No user removed" )
         except:
             raise
         return 1

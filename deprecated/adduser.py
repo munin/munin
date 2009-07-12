@@ -23,29 +23,36 @@ Loadable subclass
 # are included in this collective work with permission of the copyright 
 # owners.
 
+import re
+from munin import loadable
+
 class adduser(loadable.loadable):
-    def __init__(self,client,conn,cursor):
-        loadable.loadable.__init__(self,client,conn,cursor,1000)
+    def __init__(self,cursor):
+        super(self.__class__,self).__init__(cursor,1000)
         self.paramre=re.compile(r"^\s+(\S+)\s+(\d+)")
     
-    def execute(self,nick,username,host,target,prefix,command,user,access):
-        m=self.commandre.search(command)
+    def execute(self,user,access,irc_msg):
+        m=irc_msg.match_command(self.commandre)
         if not m:
             return 0
+
+        if access < self.level:
+            irc_msg.reply("You do not have enough access to use this command")
+            return 0
+
+        u=self.load_user(user,irc_msg)
+        if not u: return 0
+
         m=self.paramre.search(m.group(1))
         if not m:
-            self.client.reply(prefix,nick,target,"Usage: adduser <p-nick> <level>")
+            irc_msg.reply("Usage: adduser <p-nick> <level>")
             return 0
         
         pnick=m.group(1).lower()
         access_lvl=int(m.group(2))
 
-        if access < self.level:
-            self.client.reply(prefix,nick,target,"You do not have enough access to add new users")
-            return 0
-        
         if access_lvl >= access:
-            self.client.reply(prefix,nick,target,"You may not add a user with equal or higher access to your own")
+            irc_msg.reply("You may not add a user with equal or higher access to your own")
             return 0
         
         query="INSERT INTO user_list (pnick,userlevel) VALUES (%s,%s)"
@@ -53,9 +60,10 @@ class adduser(loadable.loadable):
         try:
             self.cursor.execute(query,(pnick,access_lvl))
             if self.cursor.rowcount>0:
-                self.client.reply(prefix,nick,target,"Added user %s at level %s" % (pnick,access_lvl))
+                irc_msg.client.privmsg('P',"adduser #%s %s 399" %(self.config.get('Auth', 'home'), pnick,));
+                irc_msg.reply("Added user %s at level %s" % (pnick,access_lvl))
         except psycopg.IntegrityError:
-            self.client.reply(prefix,nick,target,"User %s already exists" % (pnick,))
+            irc_msg.reply("User %s already exists" % (pnick,))
             raise
         except:
             raise

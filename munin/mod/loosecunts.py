@@ -103,7 +103,6 @@ class loosecunts(loadable.loadable):
         prev=[]
         for b in self.cursor.dictfetchall():
             prev.append("%d:%s (%s)"%(b['activity_rank'],b['pnick'] or b['nick'],self.format_value(b['activity']*100)))
-        prev.reverse()
         reply+=" "+string.join(prev,', ')
 
         irc_msg.reply(reply)

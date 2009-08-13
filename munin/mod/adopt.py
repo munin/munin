@@ -75,7 +75,9 @@ class adopt(loadable.loadable):
             irc_msg.reply("No members matching '%s'"%(adoptee,))
             return 1
 
-        if a.munin_number( self.cursor, self.config):
+        s=loadable.user(pnick=a.pnick)
+        s.load_from_db( self.cursor)
+        if s.id and s.userlevel >= 100:
             irc_msg.reply("%s already has a daddy you filthy would-be kidnapper!"%(a.pnick,))
             return 1
 

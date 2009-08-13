@@ -145,7 +145,7 @@ class prop(loadable.loadable):
 
     def process_kick_proposal(self,irc_msg,user,person,comment):
         p=self.load_user_from_pnick(person)
-        if person.lower() == "munin".lower():
+        if person.lower() == self.config.get('Connection','nick').lower():
             irc_msg.reply("I'll peck your eyes out, cunt.")
             return 1
         if not p or p.userlevel < 100:

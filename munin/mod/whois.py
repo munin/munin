@@ -61,7 +61,7 @@ class whois(loadable.loadable):
 
         # do stuff here
 
-        if search.lower() == 'munin':
+        if search.lower() == self.config.get('Connection','nick').lower():
             irc_msg.reply("I am Munin. Hear me roar.")
             return 1
 

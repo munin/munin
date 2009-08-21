@@ -63,28 +63,16 @@ class phone(loadable.loadable):
         cmd=m.group(1)
 
         if "list".find(cmd) > -1:
-            args=(u.id,)
-            query="SELECT pnick "
-            query+=" FROM phone AS t1"
-            query+=" INNER JOIN user_list AS t2"
-            query+=" ON t2.id=t1.friend_id"
-            query+=" WHERE t1.user_id=%s"
-            self.cursor.execute(query,args)
-            results=self.cursor.dictfetchall()
-            reply=""
-
-            if len(results) < 1:
-                reply="You have no friends. How sad. Maybe you should go post on http://grouphug.us or something."
-            else:
-                people=[]
-
-                for b in results:
-                    people.append(b['pnick'])
-                reply="The following people can view your phone number: "
-                reply+=", ".join(people)
-
-            irc_msg.reply(reply)
-            return 1
+             luser=None
+             second_person=True
+             try:
+                 luser=loadable.user(m.group(3))
+                 if not luser.load_from_db(self.cursor):
+                     irc_msg.reply("'%s' did not match any members.",luser.pnick)
+                 second_person=False
+             except IndexError, e:
+                 luser=u
+            return self.list_for_user(irc_msg,luser)
 
 
         trustee=m.group(3)
@@ -149,5 +137,40 @@ class phone(loadable.loadable):
             return 1
         # if we're still here someone did something wrong
         irc_msg.reply("Usage: %s" % (self.usage,))
+ 
+       return 1
 
+
+    def list_for_user(self,irc_msg,u,second_person):
+        args=(u.id,)
+        query="SELECT pnick "
+        query+=" FROM phone AS t1"
+        query+=" INNER JOIN user_list AS t2"
+        query+=" ON t2.id=t1.friend_id"
+        query+=" WHERE t1.user_id=%s"
+        self.cursor.execute(query,args)
+        results=self.cursor.dictfetchall()
+        reply=""
+
+        if len(results) < 1:
+            reply="%s no friends. How sad. Maybe %s should go post on http://grouphug.us or something."
+            if second_person:
+                reply = reply % ("You have","you")
+            else:
+                reply = reply % (u.pnick + " has", u.pnick)
+
+        else:
+            people=[]
+
+            for b in results:
+                people.append(b['pnick'])
+                
+            reply="The following people can view %s phone number: "
+            if second_person:
+                reply = reply % ("your",)
+            else:
+                reply = reply % (u.pnick + "'s",)
+            reply+=", ".join(people)
+
+        irc_msg.reply(reply)
         return 1

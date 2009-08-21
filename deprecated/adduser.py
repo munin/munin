@@ -46,10 +46,10 @@ class adduser(loadable.loadable):
 
         m=self.paramre.search(m.group(1))
         if not m:
-            irc_msg.reply("Usage: adduser <p-nick> <level>")
+            irc_msg.reply("Usage: adduser <pnick>[,<pnick2>[...]] <level>")
             return 0
         
-        pnick=m.group(1).lower()
+        pnicks=m.group(1).lower()
         access_lvl=int(m.group(2))
 
         if access_lvl >= access:
@@ -58,15 +58,21 @@ class adduser(loadable.loadable):
         
         query="INSERT INTO user_list (pnick,userlevel, sponsor) VALUES (%s,%s,%s)"
         
-        try:
-            self.cursor.execute(query,(pnick,access_lvl,u.pnick))
-            if self.cursor.rowcount>0:
-                irc_msg.client.privmsg('P',"adduser #%s %s 399" %(self.config.get('Auth', 'home'), pnick,));
-                irc_msg.reply("Added user %s at level %s" % (pnick,access_lvl))
-        except psycopg.IntegrityError:
-            irc_msg.reply("User %s already exists" % (pnick,))
-            raise
-        except:
-            raise
+        added = []
+        exists = []
+        for pnick in pnicks.split(","):
+            if not pnick: continue
+            try:
+                self.cursor.execute(query,(pnick,access_lvl,u.pnick))
+            except psycopg.IntegrityError:
+                exists.append(pnick)
+            else:
+                if self.cursor.rowcount>0:
+                    added.append(pnick)
+        if len(added):
+            irc_msg.reply("Added users (%s) at level %s" % (",".join(added),access_lvl))
+            irc_msg.client.privmsg('P',"adduser #%s %s 399" %(self.config.get('Auth', 'home'), ",".join(added),))
+        if len(exists):
+            irc_msg.reply("Users (%s) already exist" % (",".join(exists),))
 
         return 1

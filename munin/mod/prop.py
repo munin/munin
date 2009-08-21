@@ -279,6 +279,8 @@ class prop(loadable.loadable):
         if u.pnick.lower() != prop['proposer'].lower() and u.userlevel < 1000:
             irc_msg.reply("Only %s may expire proposition %d."%(prop['proposer'],prop['id']))
             return
+        if prop['prop_type'] == 'invite' and self.too_many_members(irc_msg):
+            return
         #tally votes for and against
         (voters, yes, no) = self.get_voters_for_prop(prop_id)
         (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(voters,yes,no)

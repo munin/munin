@@ -65,14 +65,15 @@ class phone(loadable.loadable):
         if "list".find(cmd) > -1:
              luser=None
              second_person=True
-             try:
-                 luser=loadable.user(m.group(3))
+             if m.group(3):
+                 luser=loadable.user(pnick=m.group(3))
                  if not luser.load_from_db(self.cursor):
-                     irc_msg.reply("'%s' did not match any members.",luser.pnick)
+                     irc_msg.reply("'%s' did not match any members." % (luser.pnick,))
+                     return 
                  second_person=False
-             except IndexError, e:
+             else:
                  luser=u
-            return self.list_for_user(irc_msg,luser)
+             return self.list_for_user(irc_msg,luser,second_person)
 
 
         trustee=m.group(3)
@@ -138,7 +139,7 @@ class phone(loadable.loadable):
         # if we're still here someone did something wrong
         irc_msg.reply("Usage: %s" % (self.usage,))
  
-       return 1
+        return 1
 
 
     def list_for_user(self,irc_msg,u,second_person):

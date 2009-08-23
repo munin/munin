@@ -81,6 +81,10 @@ class adopt(loadable.loadable):
             irc_msg.reply("%s already has a daddy you filthy would-be kidnapper!"%(a.pnick,))
             return 1
 
+        if u.has_ancestor(self.cursor,a.pnick):
+            irc_msg.reply("Ew, incest.")
+            return 1
+        
         query="UPDATE user_list"
         query+=" SET sponsor = %s"
         query+=" WHERE id = %s"

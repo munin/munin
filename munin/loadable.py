@@ -595,6 +595,15 @@ class user(object):
             query="UPDATE user_list SET available_cookies = %s,last_cookie_date = %s WHERE id = %s"
             cursor.execute(query,(self.available_cookies,now, self.id))
         return self.available_cookies
+
+    def has_ancestor(self,cursor,possible_ancestor):
+        ancestor = user(pnick=self.sponsor)
+        if ancestor.load_from_db(cursor):
+            if ancestor.pnick.lower() == possible_ancestor.lower():
+                return True
+            else:
+                return ancestor.has_ancestor(possible_ancestor,cursor)
+        return False
     
 class intel(object):
     def __init__(self,id=None,pid=-1,nick=None,gov=None,bg=None,covop=False,defwhore=False,fakenick=None,alliance=None,reportchan=None,scanner=False,distwhore=False,relay=False,comment=None):

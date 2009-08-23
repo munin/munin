@@ -56,19 +56,20 @@ class adduser(loadable.loadable):
             irc_msg.reply("You may not add a user with equal or higher access to your own")
             return 0
         
-        query="INSERT INTO user_list (pnick,userlevel, sponsor) VALUES (%s,%s,%s)"
-        
         added = []
         exists = []
         for pnick in pnicks.split(","):
             if not pnick: continue
-            try:
-                self.cursor.execute(query,(pnick,access_lvl,u.pnick))
-            except psycopg.IntegrityError:
-                exists.append(pnick)
+            gimp=self.load_user_from_pnick(pnick)
+            if not gimp or gimp.pnick.lower() != pnick.lower() or gimp.userlevel < access_lvl:
+                if not gimp or gimp.pnick.lower() != pnick.lower():
+                    query="INSERT INTO user_list (userlevel,sponsor,pnick) VALUES (%s,%s,%s)"
+                elif gimp.userlevel < access_lvl:
+                    query="UPDATE user_list SET userlevel = %s, sponsor=%s WHERE pnick ilike %s"
+                self.cursor.execute(query,(access_lvl,u.pnick,pnick))
+                added.append(pnick)
             else:
-                if self.cursor.rowcount>0:
-                    added.append(pnick)
+                exists.append(pnick)
         if len(added):
             irc_msg.reply("Added users (%s) at level %s" % (",".join(added),access_lvl))
             irc_msg.client.privmsg('P',"adduser #%s %s 399" %(self.config.get('Auth', 'home'), ",".join(added),))

@@ -137,6 +137,9 @@ class prop(loadable.loadable):
         if self.is_already_proposed_invite(person):
             irc_msg.reply("Silly %s, there's already a proposal to invite %s."%(user.pnick,person))
             return 1
+        if user.has_ancestor(person):
+            irc_msg.reply("Ew, incest.")
+            return 1
         last_comp=self.was_recently_proposed('invite',person)
         prop_id=self.create_invite_proposal(user,person,comment,last_comp)
         reply="%s created a new proposition (nr. %d) to invite %s." %(user.pnick,prop_id,person)

@@ -93,6 +93,13 @@ class loadable(object):
         self.cursor.execute("SELECT max_tick()")
         return self.cursor.fetchone()[0]
 
+    def load_user_with_planet(self,pnick,irc_msg):
+        u=self.load_user(self,pnick,irc_msg)
+        if not u.planet:
+            irc_msg.reply("You must set your planet with the pref command for the "+self.__class__.__name__+" command to work")
+            return None
+        return u
+    
     def load_user(self,pnick,irc_msg):
         if not pnick:
             irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
@@ -377,7 +384,8 @@ class planet(object):
             return self.value - old_value
         else:
             return None
-
+    def resources_per_agent(self,target):
+        return (self.value * 2000)/target.value
 
 class galaxy(object):
     def __init__(self,x=-1,y=-1,name=None,size=-1,score=-1,value=-1,id=-1):

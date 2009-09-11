@@ -54,6 +54,9 @@ def main(url="http://game.planetarion.com/manual.php?page=stats"):
     connection = psycopg.connect(DSN)
     cursor = connection.cursor()
 
+    cursor.execute("DELETE FROM ship;")
+    cursor.execute("SELECT setval('ship_id_seq', 1, false);")
+
     stats = urllib2.urlopen(url).read()
 
     for line in sre.findall(stats):

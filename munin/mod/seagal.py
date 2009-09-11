@@ -26,6 +26,7 @@ Loadable.Loadable subclass
 # owners.
 
 import re
+import math
 import munin.loadable as loadable
 
 class seagal(loadable.loadable):
@@ -48,11 +49,11 @@ class seagal(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
         
-        m=self.planet_coordre.search(m.group(1))
+        m=self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
-        u=self.load_user_with_planet(self,user,irc_msg)
+        u=self.load_user_with_planet(user,irc_msg)
         if not u:
             return 0
         # assign param variables
@@ -67,6 +68,9 @@ class seagal(loadable.loadable):
             return 1
 
         res=u.planet.resources_per_agent(p)
-        irc_msg.reply("%s per agent"%(res,))
+        reply="Your Seagals will ninja %s resources from %s:%s:%s - 13: %s, 35: %s."%(res,p.x,p.y,p.z,self.format_real_value(res*13),self.format_real_value(res*35))
+        if sum:
+            reply+=" You need %s Seagals to ninja %sk res."%(int(math.ceil((float(sum)*1000)/res)),sum)
+        irc_msg.reply(reply)
 
         return 1

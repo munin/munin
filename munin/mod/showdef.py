@@ -62,11 +62,11 @@ class showdef(loadable.loadable):
             irc_msg.reply("No members matching %s found"%(name,))
             return
 
+        ships=u.get_fleets(self.cursor)
+        
         if self.cursor.rowcount < 1:
             irc_msg.reply("%s is either a lazy pile of shit that hasn't entered any ships for def, or a popular whore who's already turned their tricks."%(u.pnick,))
             return
-        
-        ships=u.get_fleets(self.cursor)
 
         reply="%s def info: fleetcount %s, updated: %s (%s), ships: " %(u.pnick,u.fleetcount,u.fleetupdated,u.fleetupdated-self.current_tick())
         reply+=", ".join(map(lambda x: "%s %s"%(self.format_real_value(x['ship_count']),x['ship']),ships))

@@ -23,14 +23,14 @@ mapping = {"Fi": "Fighter",
            "St": "Struct",
            "Ter": "Terran",
            "Etd": "Eitraides",
-           "Cath": "Cathaar",
+           "Cat": "Cathaar",
            "Zik": "Zikonian",
            "Xan": "Xandathrii"}
 
 keys = ['race', 'name', 'class', 'target_1', 'target_2', 'target_3', 'type', 'init',
         'gun', 'armor', 'damage', 'empres', 'metal', 'crystal', 'eonium']
 
-regex = r'^<tr class="(Ter|Cath|Xan|Zik|Etd)">.+?>([^<]+)</td>' # race & name
+regex = r'^<tr class="(Ter|Cat|Xan|Zik|Etd)">.+?>([^<]+)</td>' # race & name
 regex += r'<td>(\w+)</td>' # class
 regex += r'<td>(\w\w|\-)</td>'*3 # t1,t2,t3
 regex += r'<td>(\w+)</td>' # type
@@ -38,7 +38,7 @@ regex += r'.+?(\d+|\-)</td>'*8 # some numbers
 regex += r'.+?</tr>$' # end of the line
 sre = re.compile(regex,re.I|re.M)
 
-def main(url="http://game.planetarion.com/manual.php?page=stats"):
+def main(url="http://game.planetarion.com/manual.pl?page=stats"):
     """Parse url, and put the ships into our database."""
 
     config = ConfigParser.ConfigParser()

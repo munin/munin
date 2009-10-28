@@ -45,7 +45,7 @@ new_curs=new_conn.cursor()
 old_curs.execute("SELECT id, pnick,userlevel,alias_nick,sponsor, phone, pubphone, passwd, salt, carebears, available_cookies, last_cookie_date  FROM user_list")
 
 for u in old_curs.dictfetchall():
-    new_curs.execute("INSERT INTO user_list (id,pnick,userlevel,alias_nick,sponsor,phone,pubphone,passwd,salt,carebears,available_cookies,last_cookie_date) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(u['id'],u['pnick'],u['userlevel'],u['alias_nick'],u['sponsor'],u['phone'],[False,True][int(u['pubphone'])],u['passwd'],u['salt'],u['carebears'],u['available_cookies'],u['last_cookie_date']))
+    new_curs.execute("INSERT INTO user_list (id,pnick,userlevel,alias_nick,sponsor,phone,pubphone,passwd,salt,carebears,available_cookies,last_cookie_date) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(u['id'],u['pnick'],u['userlevel'],u['alias_nick'],u['sponsor'],u['phone'],[False,True][int(u['pubphone'])],u['passwd'],u['salt'],u['carebears'],u['available_cookies'],u['last_cookie_date']))
 
 old_curs.execute("SELECT user_id, friend_id FROM phone")
 

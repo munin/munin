@@ -82,13 +82,7 @@ class dev(loadable.loadable):
             else:
                 s=self.cursor.dictfetchone()
 
-                query="SELECT light_factory+medium_factory+heavy_factory+wave_amplifier+wave_distorter"
-                query+="+metal_refinery+crystal_refinery+eonium_refinery+research_lab+finance_centre+security_centre"
-                query+=" AS total FROM development WHERE id=%s"
-
-                self.cursor.execute(query,(s['id'],))
-                total=self.cursor.dictfetchone()['total']
-
+                total=self.get_total_cons_from_scan(self.cursor,s['id'])
 
                 reply+="Newest development scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,p.y,p.z,s['rand_id'],s['tick'])
                 reply+=" Travel: %s, Infrajerome: %s, Hulls: %s, Waves: %s, Core: %s, Covop: %s, Mining: %s"%(s['travel'],self.infra(s['infrastructure']),self.hulls(s['hulls']),

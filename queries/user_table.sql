@@ -161,7 +161,7 @@ CREATE TABLE fleet_log (
        user_id integer REFERENCES user_list(id),
        ship varchar(30) NOT NULL,
        ship_count integer,
-       tick integer REFERENCES updates(tick) DEFAULT (SELECT max(tick) FROM updates)
+       tick integer REFERENCES updates(tick) DEFAULT max_tick()
 );
 
 

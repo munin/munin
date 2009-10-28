@@ -137,7 +137,7 @@ class prop(loadable.loadable):
         if self.is_already_proposed_invite(person):
             irc_msg.reply("Silly %s, there's already a proposal to invite %s."%(user.pnick,person))
             return 1
-        if user.has_ancestor(person):
+        if user.has_ancestor(self.cursor,person):
             irc_msg.reply("Ew, incest.")
             return 1
         last_comp=self.was_recently_proposed('invite',person)

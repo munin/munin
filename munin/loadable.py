@@ -381,7 +381,7 @@ class planet(object):
         return max(0,(min(2,float(victim.value)/self.value)-0.1 ) * (min(2,float(victim.score)/self.score)-0.2))*10
     def cap_rate(self,victim):
         modifier=(float(victim.value)/float(self.value))**0.5
-        return min(.25*modifier,.25)
+        return max(.15,min(.25*modifier,.25))
     
     def vdiff(self,cursor,tick):
         query="SELECT value FROM planet_dump AS t1 WHERE tick=%s AND id=%s"
@@ -617,7 +617,7 @@ class user(object):
             if ancestor.pnick.lower() == possible_ancestor.lower():
                 return True
             else:
-                return ancestor.has_ancestor(possible_ancestor,cursor)
+                return ancestor.has_ancestor(cursor, possible_ancestor)
         return False
     
 class intel(object):

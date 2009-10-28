@@ -617,7 +617,7 @@ class user(object):
             if ancestor.pnick.lower() == possible_ancestor.lower():
                 return True
             else:
-                return ancestor.has_ancestor(possible_ancestor,cursor)
+                return ancestor.has_ancestor(cursor, possible_ancestor)
         return False
     
 class intel(object):

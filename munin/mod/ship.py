@@ -79,8 +79,11 @@ class ship(loadable.loadable):
             reply+=" Target 2: %s |"%(s['target_2'],)
         if s['target_3'] != "NULL":
             reply+=" Target 3: %s |"%(s['target_3'],)
-        reply+=" Type: %s | Init: %s |"%(s['type'],s['init'])
-        reply+=" EMPres: %s |"%(s['empres'],)
+        type = s['type']
+        if type.lower() == 'emp':
+            type = '*hugs*'
+        reply+=" Type: %s | Init: %s |"%(type,s['init'])
+        reply+=" HUGres: %s |"%(s['empres'],)
         if s['type']=='Emp':
             reply+=" Hugs: %s |" %(s['gun'],)
         else:

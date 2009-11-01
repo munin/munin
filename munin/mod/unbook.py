@@ -72,7 +72,7 @@ class unbook(loadable.loadable):
             u=None
 
 
-        if when and when < 80:
+        if when and when < 32:
             tick=curtick+when
         elif when and when < curtick:
             irc_msg.reply("Can not unbook targets in the past. You wanted tick %s, but current tick is %s."%(when,curtick))

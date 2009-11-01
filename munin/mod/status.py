@@ -67,7 +67,7 @@ class status(loadable.loadable):
             when=m.group(6)
             if when:
                 when=int(when)
-            if when and when < 80:
+            if when and when < 32:
                 tick=curtick+when
             elif when and when < curtick:
                 irc_msg.reply("Can not check status on the past. You wanted tick %s, but current tick is %s. (If you really need to know, poke %s.)"%(when,curtick, self.config.get('Auth', 'owner_nick')))

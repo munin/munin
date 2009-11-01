@@ -79,7 +79,7 @@ class book(loadable.loadable):
         tick=-1
         eta=-1
 
-        if when < 80:
+        if when < 32:
             tick=curtick+when
             eta=when
         elif when < curtick:

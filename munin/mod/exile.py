@@ -70,6 +70,7 @@ class exile(loadable.loadable):
 	    res=self.cursor.dictfetchall()
 	    gals=0
 	    bracket=0
+	    base_bracket_gals = 0
 	    max_planets=0
 
 	    for r in res:
@@ -83,8 +84,9 @@ class exile(loadable.loadable):
                     rest_planets=r['planets']
 		    break
 		max_planets=r['planets']
+		base_bracket_gals+=r['count']
 
-	    reply="Total galaxies: %s Maximum planets to guarantee a galaxy is in the exile bracket: %s" % (gals,max_planets)
+	    reply="Total galaxies: %s | %s galaxies with a maximum of %s planets guaranteed to be in the exile bracket" % (gals,base_bracket_gals,max_planets)
             reply+=" | Also in the bracket: %s of %s galaxies with %s planets."%(rest_gals,total_rest_gals,rest_planets)
 
 	irc_msg.reply(reply)

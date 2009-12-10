@@ -116,7 +116,7 @@
     CREATE TABLE user_list (
         id SERIAL PRIMARY KEY,
         pnick VARCHAR(15) NOT NULL,
-        alias_nick VARCHAR(15) UNIQUE CHECK (alias_nick NOT IN (user_list.pnick)),
+        alias_nick VARCHAR(15) UNIQUE CHECK (lower(alias_nick) NOT IN (lower(user_list.pnick))),
         sponsor VARCHAR(15),
         passwd CHAR(32),
         userlevel INTEGER NOT NULL,

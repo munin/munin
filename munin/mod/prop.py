@@ -337,7 +337,7 @@ class prop(loadable.loadable):
 
         (voters, yes, no)=self.get_voters_for_prop(prop_id)
 
-        query="UPDATE %s_proposal SET set active = FALSE, closed =NOW() " %(prop['prop_type'],)
+        query="UPDATE %s_proposal SET active = FALSE, closed =NOW() " %(prop['prop_type'],)
         query+=", vote_result=%s"
         query+=" WHERE id=%s"
         self.cursor.execute(query,('cancel',prop['id']))

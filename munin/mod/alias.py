@@ -64,6 +64,11 @@ class alias(loadable.loadable):
         return 1
 
     def update_alias(self,u,alias,irc_msg):
+        query="SELECT pnick FROM user_list WHERE pnick ilike %s"
+        self.cursor.execute(query,(alias,u.pnick))
+        if self.cursor.rowcount > 0:
+            irc_msg.reply("Your alias is already in use or is someone else's pnick (not allowed). Tough noogies.")
+            return
         try:
             query="UPDATE user_list SET alias_nick = %s WHERE pnick ilike %s"
             self.cursor.execute(query,(alias,u.pnick))

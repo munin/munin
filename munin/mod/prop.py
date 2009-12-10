@@ -215,10 +215,12 @@ class prop(loadable.loadable):
             prop=self.find_single_prop_by_id(prop_id)
             (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(voters,yes,no)
             reply+="The prop"
-            if yes > no:
+            if r['vote_result'].upper() == "yes".upper():
                 reply+=" passed by a vote of %s to %s"%(yes,no)
-            else:
+            elif r['vote_result'].upper() == "no".upper():
                 reply+=" failed by a vote of %s to %s"%(no,yes)
+            elif r['vote_result'].upper() == "cancel".upper():
+                reply+=" was cancelled with %s votes for and %s against"%(yes,no)
             reply+=". The voters in favor were ("
             pretty_print=lambda x:"%s (%s)"%(x['pnick'],x['carebears'])
             reply+=string.join(map(pretty_print,voters['yes']),', ')
@@ -334,12 +336,11 @@ class prop(loadable.loadable):
 
 
         (voters, yes, no)=self.get_voters_for_prop(prop_id)
-        query="DELETE FROM prop_vote WHERE prop_id=%s"
-        self.cursor.execute(query,(prop['id'],))
 
-        query="DELETE FROM %s_proposal " %(prop['prop_type'],)
+        query="UPDATE %s_proposal SET set active = FALSE, closed =NOW() " %(prop['prop_type'],)
+        query+=", vote_result=%s"
         query+=" WHERE id=%s"
-        self.cursor.execute(query,(prop['id'],))
+        self.cursor.execute(query,('cancel',prop['id']))
 
         reply="Cancelled proposal %s to %s %s. Voters in favor (" %(prop['id'],prop['prop_type'],prop['person'])
 
@@ -441,12 +442,12 @@ class prop(loadable.loadable):
         irc_msg.client.privmsg('#%s'%(self.config.get('Auth','home')),reply)
 
     def find_single_prop_by_id(self,prop_id):
-        query="SELECT id, prop_type, proposer, person, created, padding, comment_text, active, closed FROM ("
+        query="SELECT id, prop_type, proposer, person, created, padding, comment_text, active, closed, vote_result FROM ("
         query+="SELECT t1.id AS id, 'invite' AS prop_type, t2.pnick AS proposer, t1.person AS person, t1.padding AS padding, t1.created AS created,"
-        query+=" t1.comment_text AS comment_text, t1.active AS active, t1.closed AS closed"
+        query+=" t1.comment_text AS comment_text, t1.active AS active, t1.closed AS closed, t1.vote_result"
         query+=" FROM invite_proposal AS t1 INNER JOIN user_list AS t2 ON t1.proposer_id=t2.id UNION ("
         query+=" SELECT t3.id AS id, 'kick' AS prop_type, t4.pnick AS proposer, t5.pnick AS person, t3.padding AS padding, t3.created AS created,"
-        query+=" t3.comment_text AS comment_text, t3.active AS active, t3.closed AS closed"
+        query+=" t3.comment_text AS comment_text, t3.active AS active, t3.closed AS closed, t3.vote_result"
         query+=" FROM kick_proposal AS t3"
         query+=" INNER JOIN user_list AS t4 ON t3.proposer_id=t4.id"
         query+=" INNER JOIN user_list AS t5 ON t3.person_id=t5.id)) AS t6 WHERE t6.id=%s"

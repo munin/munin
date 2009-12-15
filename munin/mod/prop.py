@@ -172,8 +172,20 @@ class prop(loadable.loadable):
         query+=" INNER JOIN user_list AS t3 ON t2.person_id=t3.id WHERE t2.active)"
         self.cursor.execute(query,())
         a=[]
+        u=loadable.user(pnick=irc_msg.user)
+        u.load_from_db()
         for r in self.cursor.dictfetchall():
-            a.append("%s: %s %s"%(r['id'],r['prop_type'],r['person']))
+            prop_info="%s: %s %s"%(r['id'],r['prop_type'],r['person'])
+            if irc_msg.prefix_private():
+                query="SELECT t1.vote AS vote, t1.carebears AS carebears FROM prop_vote"
+                query+=" WHERE t1.prop_id=%s AND t1.voter_id=%s"
+                self.cursor.execute(query,(r['id'],u.id))
+                if self.cursor.rowcount > 0:
+                    r=self.cursor.dictfetchone()
+                    prop_info+=" (%s,%s)"%(r['vote'][0].upper(),r['carebears'])
+            a.append(prop_info)
+                
+                
         reply="Propositions currently being voted on: %s"%(string.join(a, ", "),)
         irc_msg.reply(reply)
 

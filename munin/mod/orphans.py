@@ -62,7 +62,7 @@ class orphans(loadable.loadable):
         self.cursor.execute(query)
         reply=""
         if self.cursor.rowcount < 1:
-            reply="There are no oprhans. KILL A PARENT NOW."
+            reply="There are no orphans. KILL A PARENT NOW."
         else:
             reply="The following members are orphans: "
             res=self.cursor.dictfetchall()

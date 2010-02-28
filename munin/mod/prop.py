@@ -366,9 +366,11 @@ class prop(loadable.loadable):
         irc_msg.client.privmsg("#%s"%(self.config.get('Auth','home'),),reply)
 
     def process_recent_proposal(self,irc_msg,u):
-        query="SELECT t1.id AS id, t1.person AS person, 'invite' AS prop_type, t1.vote_result AS vote_result FROM invite_proposal AS t1 WHERE NOT t1.active UNION ("
-        query+=" SELECT t2.id AS id, t3.pnick AS person, 'kick' AS prop_type, t2.vote_result AS vote_result FROM kick_proposal AS t2"
-        query+=" INNER JOIN user_list AS t3 ON t2.person_id=t3.id WHERE NOT t2.active) ORDER BY id DESC LIMIT 10"
+        query="SELECT t1.id AS id, t1.person AS person, 'invite' AS prop_type, t1.vote_result AS vote_result, t1.closed AS closed"
+        query+=" FROM invite_proposal AS t1 WHERE NOT t1.active UNION ("
+        query+=" SELECT t2.id AS id, t3.pnick AS person, 'kick' AS prop_type, t2.vote_result AS vote_result, t2.closed AS closed"
+        query+=" FROM kick_proposal AS t2"
+        query+=" INNER JOIN user_list AS t3 ON t2.person_id=t3.id WHERE NOT t2.active) ORDER BY closed DESC LIMIT 30"
         self.cursor.execute(query,())
         a=[]
         for r in self.cursor.dictfetchall():

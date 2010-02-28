@@ -32,7 +32,7 @@ keys = ['race', 'name', 'class', 'target_1', 'target_2', 'target_3', 'type', 'in
 
 regex = r'^<tr class="(Ter|Cat|Xan|Zik|Etd)">.+?>([^<]+)</td>' # race & name
 regex += r'<td>(\w+)</td>' # class
-regex += r'<td>(\w\w|\-)</td>'*3 # t1,t2,t3
+regex += r'(?:<td>(\w\w|\-)</td>)?'*3 # t1,t2,t3
 regex += r'<td>(\w+)</td>' # type
 regex += r'.+?(\d+|\-)</td>'*8 # some numbers
 regex += r'.+?</tr>$' # end of the line
@@ -67,7 +67,7 @@ def main(url="http://game.planetarion.com/manual.pl?page=stats"):
                 line[index] = mapping[line[index]]
             elif line[index].isdigit():
                 line[index] = int(line[index])
-            if line[index] != '-':
+            if line[index] not in ('-', '',):
                 ship[key] = line[index]
         ship['total_cost'] = ship['metal'] + ship['crystal'] + ship['eonium']
         fields = []

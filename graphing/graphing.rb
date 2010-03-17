@@ -2,12 +2,13 @@
 
 require 'rubygems'
 require 'gruff'
-require 'utils/round'
-require 'pg'
+require 'graphing/round'
+require 'graphing/pg_accessor.rb'
+
 
 rounds = { }
 
-File.open "tmp/graphing.txt" do |infile|
+File.open "graphing/graphing.txt" do |infile|
   counter = 0
   while (line = infile.gets)
     line.chomp!
@@ -28,12 +29,20 @@ File.open "tmp/graphing.txt" do |infile|
     counter = counter + 1
   end
 end
+planets = PgAccessor.new('patools21').get_planets(rounds['Round 21'].planets)
+g = Gruff::Line.new
+g.title = "My Round 21 Planet Graph" 
+planets.each do |key, value|
+  g.data(key, value )
+end
+g.write('my_fruity_graph.png')
 
+=begin
 db = PGconn.open :host => "localhost", :port => 5432, :dbname => 'patools21', :user => "munin", :password => "f1r3fly"
 res = db.exec "select id from planet_dump where tick = (select max_tick()) and x=$1 and y=$2 and z=$3", round['Round 21'].planets[0].split("\.")
 pp res[0]
 #pp rounds
-=begin
+
 g = Gruff::Line.new
 g.title = "My Graph" 
 

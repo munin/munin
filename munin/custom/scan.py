@@ -411,10 +411,10 @@ class scan(threading.Thread):
         z = m.group(3)
         tick = m.group(4)
 
-        for m in re.finditer('(\w+\s?\w*\s?\w*)</td><td[^>]*>(\d+)</td>', page):
+        for m in re.finditer('(\w+\s?\w*\s?\w*)</td><td[^>]*>(\d+(?:,\d\d\d)*)</td>', page):
             print m.groups()
             shipname=m.group(1)
-            amount=m.group(2)
+            amount=m.group(2).replace(',', '')
             query="INSERT INTO %s"%(table,)
             query+=" (scan_id,ship_id,amount) VALUES (%s,(SELECT id FROM ship WHERE name=%s),%s)"
             try:

@@ -411,7 +411,7 @@ class scan(threading.Thread):
         z = m.group(3)
         tick = m.group(4)
 
-        for m in re.finditer('(\w+\s?\w*\s?\w*)</td><td[^>]*>(\d+,?\d*)</td>', page):
+        for m in re.finditer('(\w+\s?\w*\s?\w*)</td><td[^>]*>(\d+(?:,\d\d\d)*)</td>', page):
             print m.groups()
             shipname=m.group(1)
             amount=m.group(2).replace(',', '')

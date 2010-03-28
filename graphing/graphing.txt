@@ -8,7 +8,7 @@ Wolfpack/Ascendancy/conspiracy/angels
 
 Round 22
 
-VGN/TGV/Jenova/Conspiracy
+Vengeance/TGV/Jenova/Conspiracy
 
 4.3/2.4/7.2/15.2
 
@@ -24,7 +24,7 @@ exilition/VS/Tides of Fire/Destiny/Newdawn/Ministry
 
 Round 24
 
-Newdawn/conspiracy/urwins/vgn/excessum
+Newdawn/conspiracy/urwins/vengeance/excessum
 
 5.4/9.3/6.1/1.9/8.6
 
@@ -66,7 +66,7 @@ Round 29
 
 ascendancy/conspiracy/denial/newdawn/audentes
 
-1.10./4.7/7.8/5.2/5.3
+1.10/4.7/7.8/5.2/5.3
 
 4.7.9/1.10.7/4.7.7/5.2.8
 
@@ -80,7 +80,7 @@ ascendancy/conspiracy/omen/newdawn/vengeance
 
 round 31
 
-tootthealliance/xvx/dlr/evolution
+toot the alliance/xvx/dlr/evolution
 
 10.4/9.1/1.10./2.8/7.3
 

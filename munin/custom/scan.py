@@ -411,7 +411,7 @@ class scan(threading.Thread):
         z = m.group(3)
         tick = m.group(4)
 
-        for m in re.finditer('(\w+\s?\w*\s?\w*)</td><td[^>]*>(\d+(?:,\d\d\d)*)</td>', page):
+        for m in re.finditer('(\w+\s?\w*\s?\w*)</td><td[^>]*>(\d+(?:,\d{3})*)</td>', page):
             print m.groups()
             shipname=m.group(1)
             amount=m.group(2).replace(',', '')
@@ -446,14 +446,14 @@ class scan(threading.Thread):
 
 	#<tr><td class="left">10:1:10</td><td class="left">Defend</td><td class="left">Pesticide IV</td><td class="right">1</td><td class="right">0</td></tr>
 
-        for m in re.finditer('<td[^>]*>(\d+)\:(\d+)\:(\d+)</td><td[^>]*>([^<]+)</td><td[^>]*>([^<]+)</td><td[^>]*>(\d+)</td><td[^>]*>(\d+)</td>', page):
+        for m in re.finditer('<td[^>]*>(\d+)\:(\d+)\:(\d+)</td><td[^>]*>([^<]+)</td><td[^>]*>([^<]+)</td><td[^>]*>(\d+)</td><td[^>]*>(\d+(?:,\d{3})*)</td>', page):
             originx = m.group(1)
             originy = m.group(2)
             originz = m.group(3)
             mission = m.group(4)
             fleet = m.group(5)
             eta = m.group(6)
-            fleetsize = m.group(7)
+            fleetsize = m.group(7).replace(',', '')
 
             print "JGP fleet "
 

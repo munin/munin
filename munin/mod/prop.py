@@ -295,6 +295,9 @@ class prop(loadable.loadable):
         if not prop:
             irc_msg.reply("No proposition number %s exists (idiot)."%(prop_id,))
             return
+        if not prop['active']:
+            irc_msg.reply("Only active props may be expired, prop %d has already expired"%(prop['id'],))
+            return
         if u.pnick.lower() != prop['proposer'].lower() and u.userlevel < 1000:
             irc_msg.reply("Only %s may expire proposition %d."%(prop['proposer'],prop['id']))
             return

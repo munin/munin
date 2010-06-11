@@ -69,6 +69,8 @@ class irc_message(object):
 
 
     def reply(self,text):
+        if self.command.isupper():
+            text = text.upper()
         self.client.reply(self.prefix_numeric(),self.nick,self.target,text)
 
     def match_command(self,regexp):

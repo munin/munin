@@ -65,7 +65,7 @@ class ship(loadable.loadable):
 
 
         # do stuff here
-        ship=self.get_ship_from_db(ship_name)
+        s=self.get_ship_from_db(ship_name)
         if not s:
             irc_msg.reply("%s is not a ship" % (ship_name))
             return 0

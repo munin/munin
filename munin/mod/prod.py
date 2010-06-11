@@ -56,7 +56,7 @@ class prod(loadable.loadable):
 
         # Verify or fix this!
 
-        ship=self.get_ship_from_db(ship_name)
+        ship=self.get_ship_from_db(shipname)
         
         if not ship:
             irc_msg.reply("%s is not a ship." % shipname)

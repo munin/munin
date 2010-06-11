@@ -80,7 +80,7 @@ class stop(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        ship=self.get_ship_from_db(ship_name)
+        ship=self.get_ship_from_db(bogey)
         if not ship:
             if "asteroids".rfind(bogey) > -1:
                 ship={'name':'Asteroid','class':'Roids','armor':50,'total_cost':20000}

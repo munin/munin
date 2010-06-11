@@ -121,7 +121,7 @@ class mydef(loadable.loadable):
             count=self.human_readable_number_to_integer(mc.group(1))
             ship=ms.group(1)
 
-            ship=self.get_ship_from_db(ship)
+            s=self.get_ship_from_db(ship)
 
             if ship.lower() not in self.ship_classes and s:
                 ship=s['name']                

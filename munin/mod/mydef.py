@@ -121,10 +121,8 @@ class mydef(loadable.loadable):
             count=self.human_readable_number_to_integer(mc.group(1))
             ship=ms.group(1)
 
-            query="SELECT * FROM ship WHERE name ILIKE %s"
+            ship=self.get_ship_from_db(ship_name)
 
-            self.cursor.execute(query,("%"+ship+"%",))
-            s=self.cursor.dictfetchone()
             if ship.lower() not in self.ship_classes and s:
                 ship=s['name']                
             elif ship.lower() not in self.ship_classes:

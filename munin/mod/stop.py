@@ -80,10 +80,7 @@ class stop(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        query="SELECT * FROM ship WHERE name ILIKE %s ORDER BY id"
-
-        self.cursor.execute(query,("%"+bogey+"%",))
-        ship=self.cursor.dictfetchone()
+        ship=self.get_ship_from_db(ship_name)
         if not ship:
             if "asteroids".rfind(bogey) > -1:
                 ship={'name':'Asteroid','class':'Roids','armor':50,'total_cost':20000}

@@ -72,10 +72,7 @@ class eff(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        query="SELECT * FROM ship WHERE name ILIKE %s ORDER BY id"
-
-        self.cursor.execute(query,("%"+ship_name+"%",))
-        ship=self.cursor.dictfetchone()
+        ship=self.get_ship_from_db(ship_name)
         if not ship:
             irc_msg.reply("%s is not a ship" % (ship_name))
             return 0

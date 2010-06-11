@@ -65,11 +65,7 @@ class ship(loadable.loadable):
 
 
         # do stuff here
-        query="SELECT * FROM ship WHERE name ILIKE %s"
-
-        self.cursor.execute(query,("%"+ship_name+"%",))
-        s=self.cursor.dictfetchone()
-
+        ship=self.get_ship_from_db(ship_name)
         if not s:
             irc_msg.reply("%s is not a ship" % (ship_name))
             return 0

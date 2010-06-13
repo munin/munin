@@ -34,7 +34,6 @@ class yourmum(loadable.loadable):
     """
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,100)
-        self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s*(\S+)?")
         self.usage=self.__class__.__name__ + " [pnick]"
 	self.helptext=None

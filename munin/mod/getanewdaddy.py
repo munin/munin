@@ -37,7 +37,6 @@ class getanewdaddy(loadable.loadable):
     """
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,100)
-        self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(\S+)")
         self.usage=self.__class__.__name__ + " <pnick>"
         self.helptext=['This command is used when you no longer wish to be sponsor for a person. Their access to #%s will be removed and their Munin access will be lowered to "galmate" level.' % self.config.get('Auth', 'home'),

@@ -34,7 +34,6 @@ from munin import loadable
 class launch(loadable.loadable):
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,1)
-        self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(\S+|\d+)\s+(\d+)")
         self.usage=self.__class__.__name__ + " <class|eta> <land_tick>"
         self.helptext=["Calculate launch tick, launch time, prelaunch tick and prelaunch modifier for a given ship class or eta, and land tick."]

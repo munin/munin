@@ -35,7 +35,6 @@ class sms(loadable.loadable):
     """
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,100)
-        self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(\S+)\s+(.*)")
         self.usage=self.__class__.__name__ + " <nick> <message>"
 	self.helptext=['Sends an SMS to the specified user. Your username will be appended to the end of each sms. The user must have their phone correctly added and you must have access to their number.']

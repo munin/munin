@@ -34,7 +34,6 @@ class alias(loadable.loadable):
     """
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,1)
-        self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s*(\S{2,15})?")
         self.usage=self.__class__.__name__ + " <alias> (at most 15 characters)"
 	self.helptext=['Set an alias that maps to your pnick, useful if you have a different nick than your pnick and people use autocomplete.'] 

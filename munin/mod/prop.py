@@ -38,7 +38,6 @@ class prop(loadable.loadable):
     """
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,100)
-        self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)")
         self.paramre=re.compile(r"^\s+(invite|kick|list|show|vote|expire|cancel|recent|search)(.*)")
         self.invite_kickre=re.compile(r"^\s+(\S+)(\s+(\S.*))")
         self.votere=re.compile(r"^\s+(\d+)\s+(yes|no|veto|abstain)")

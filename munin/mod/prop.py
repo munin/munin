@@ -38,9 +38,9 @@ class prop(loadable.loadable):
     """
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,100)
-        self.paramre=re.compile(r"^\s+(invite|kick|list|show|vote|expire|cancel|recent|search)(.*)")
-        self.invite_kickre=re.compile(r"^\s+(\S+)(\s+(\S.*))")
-        self.votere=re.compile(r"^\s+(\d+)\s+(yes|no|veto|abstain)")
+        self.paramre=re.compile(r"^\s+(invite|kick|list|show|vote|expire|cancel|recent|search)(.*)",re.I)
+        self.invite_kickre=re.compile(r"^\s+(\S+)(\s+(\S.*))",re.I)
+        self.votere=re.compile(r"^\s+(\d+)\s+(yes|no|veto|abstain)",re.I)
         self.usage=self.__class__.__name__ + " [<invite|kick> <pnick> <comment>] | [list] | [vote <number> <yes|no|abstain>] | [expire <number>] | [show <number>] | [cancel <number>] | [recent] | [search <pnick>]"
         self.helptext=["A proposition is a vote to do something. For now, you can raise propositions to invite or kick someone. Once raised the proposition will stand until you expire it.  Make sure you give everyone time to have their say. Votes for and against a proposition are weighted by carebears. You must have at least 1 carebear to vote."]
 

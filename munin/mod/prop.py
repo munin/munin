@@ -69,8 +69,8 @@ class prop(loadable.loadable):
             if not m: return 1
             if self.command_not_used_in_home(irc_msg,self.__class__.__name__ + " invite"): return 1
             if self.too_many_members(irc_msg): return 1
-            person=m.group(1)
-            comment=m.group(3)
+            person=m.group(1).lower()
+            comment=m.group(3).lower()
             self.process_invite_proposal(irc_msg,u,person,comment)
 
         elif prop_type.lower() == 'kick':
@@ -78,8 +78,8 @@ class prop(loadable.loadable):
             if not m: return 1
             if self.command_not_used_in_home(irc_msg,self.__class__.__name__ + " kick"): return 1
 
-            person=m.group(1)
-            comment=m.group(3)
+            person=m.group(1).lower()
+            comment=m.group(3).lower()
             self.process_kick_proposal(irc_msg,u,person,comment)
 
         elif prop_type.lower() == 'list':
@@ -95,7 +95,7 @@ class prop(loadable.loadable):
             m=self.match_or_usage(irc_msg,self.votere,m.group(2))
             if not m: return 1
             prop_id=int(m.group(1))
-            vote=m.group(2)
+            vote=m.group(2).lower()
             self.process_vote_proposal(irc_msg,u,prop_id,vote)
            
         elif prop_type.lower() == 'expire':
@@ -118,7 +118,7 @@ class prop(loadable.loadable):
         elif prop_type.lower() == 'search':
             m=self.match_or_usage(irc_msg,re.compile(r"\s*(\S+)"),m.group(2))
             if not m: return 1
-            self.process_search_proposal(irc_msg,u,m.group(1))
+            self.process_search_proposal(irc_msg,u,m.group(1).lower())
         return 1
 
     def too_many_members(self,irc_msg):

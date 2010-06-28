@@ -59,8 +59,8 @@ class info(loadable.loadable):
             reply="Nothing in intel matches your search '%s'" % (alliance,)
         else:
             res=self.cursor.dictfetchone()
-            if res['members'] > 60:
-                query=self.query_for_info_limit_60()
+            if res['members'] > 50:
+                query=self.query_for_info_limit_50()
                 self.cursor.execute(query, args)
                 ts=self.cursor.dictfetchone()
                 reply+="%s Members: %s (%s)" % (alliance,res['members'],ts['members'])
@@ -76,12 +76,12 @@ class info(loadable.loadable):
 
         return 1
 
-    def query_for_info_limit_60(self):
+    def query_for_info_limit_50(self):
         query="SELECT count(*) AS members,sum(t4.value) AS tot_value, sum(t4.score) AS tot_score, sum(t4.size) AS tot_size, sum(t4.xp) AS tot_xp"
         query+=" FROM (SELECT t1.value AS value, t1.score AS score, t1.size AS size, t1.xp AS xp, t3.name AS name FROM planet_dump AS t1"
         query+=" INNER JOIN intel AS t2 ON t1.id=t2.pid"
         query+=" LEFT JOIN alliance_canon AS t3 ON t2.alliance_id=t3.id"
-        query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates) AND t3.name ILIKE %s ORDER BY t1.score DESC LIMIT 60) AS t4"
+        query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates) AND t3.name ILIKE %s ORDER BY t1.score DESC LIMIT 50) AS t4"
         query+=" GROUP BY t4.name ILIKE %s"
         return query
 

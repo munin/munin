@@ -16,7 +16,7 @@ class prod(loadable.loadable):
 
     def __init__(self,cursor):
 
-        super(self.__class__,self).__init__(cursor,1000)
+        super(self.__class__,self).__init__(cursor,1)
         self.paramre = re.compile(r"^\s+(\d+(?:\.\d+)?[mk]?)\s+(\S+)\s+(\d+)")
         self.usage = (self.__class__.__name__ +
                       " <number> <shipname> <factories>")
@@ -39,6 +39,7 @@ class prod(loadable.loadable):
 
         if access < self.level:
             irc_msg.reply("You do not have the access necessary to use this command.")
+            return 0
 
         number = match.group(1)
         shipname = match.group(2)

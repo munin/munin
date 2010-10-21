@@ -52,14 +52,14 @@ class tickinfo(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        query="SELECT tick, age(now(), updates.timestamp) FROM updates ORDER BY tick DESC LIMIT 1"
+        query="SELECT tick, age(now(), updates.timestamp) AS tick_age FROM updates ORDER BY tick DESC LIMIT 1"
         self.cursor.execute(query)
         reply=""
         if self.cursor.rowcount < 1:
             reply="lol"
         else:
             res=self.cursor.dictfetchone()
-            reply="My current tick information is for pt%s, which I retrieved %s ago" % (res['tick'],res['timestamp'])
+            reply="My current tick information is for pt%s, which I retrieved %s ago" % (res['tick'],res['tick_age'])
         irc_msg.reply(reply)
 
         return 1

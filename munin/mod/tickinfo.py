@@ -52,7 +52,7 @@ class tickinfo(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        query="SELECT tick, timestamp FROM updates"
+        query="SELECT tick, timestamp FROM updates ORDER BY tick DESC LIMIT 1"
         self.cursor.execute(query)
         reply=""
         if self.cursor.rowcount < 1:

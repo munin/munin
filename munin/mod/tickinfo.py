@@ -25,24 +25,21 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright
 # owners.
 
-
-
 import re
-import string
-from munin import loadable
+import munin.loadable as loadable
 
-class bcalc(loadable.loadable):
+class tickinfo(loadable.loadable):
     """
     foo
     """
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,1)
-        self.paramre=re.compile(r"^\s+(\S+)")
+        self.paramre=re.compile(r"^\s*")
         self.usage=self.__class__.__name__ + ""
-	self.helptext=None
+	self.helptext=['Shows information about the latest tick.']
 
     def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+        m=self.commandre.search(irc_msg.command)
         if not m:
             return 0
 
@@ -50,11 +47,19 @@ class bcalc(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        bcalc = ["http://www.clawofdarkness.com/pawiki","http://parser.5th-element.org/",
-                 "http://munin.ascendancy.tv/","http://www.everyday-hero.net/pa/reshack.html",
-                 "http://game.planetarion.com/bcalc.pl","http://apprime.lt/home/"]
+        m=self.paramre.search(m.group(1))
+        if not m:
+            irc_msg.reply("Usage: %s" % (self.usage,))
+            return 0
 
-        reply="Bcalcs: "+string.join(bcalc," | ")
+        query="SELECT tick, age(now(), updates.timestamp) AS tick_age FROM updates ORDER BY tick DESC LIMIT 1"
+        self.cursor.execute(query)
+        reply=""
+        if self.cursor.rowcount < 1:
+            reply="lol"
+        else:
+            res=self.cursor.dictfetchone()
+            reply="My current tick information is for pt%s, which I retrieved %s ago" % (res['tick'],res['tick_age'])
         irc_msg.reply(reply)
 
         return 1

@@ -229,11 +229,11 @@ class prop(loadable.loadable):
             (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(voters,yes,no)
             reply+="The prop"
             if r['vote_result'].upper() == "yes".upper():
-                reply+=" passed by a vote of %s to %s"%(yes,no)
+                reply+=" passed by a vote of %s carebears for and %s against"%(yes,no)
             elif r['vote_result'].upper() == "no".upper():
-                reply+=" failed by a vote of %s to %s"%(no,yes)
+                reply+=" failed by a vote of %s carebears against and %s for"%(no,yes)
             elif r['vote_result'].upper() == "cancel".upper():
-                reply+=" was cancelled with %s votes for and %s against"%(yes,no)
+                reply+=" was cancelled with %s carebears for and %s against"%(yes,no)
             reply+=". The voters in favor were ("
             pretty_print=lambda x:"%s (%s)"%(x['pnick'],x['carebears'])
             reply+=string.join(map(pretty_print,voters['yes']),', ')

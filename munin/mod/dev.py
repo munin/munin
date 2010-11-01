@@ -158,15 +158,15 @@ class dev(loadable.loadable):
 
     def infra(self,level):
         if level==0:
-            return "10 constructions"
-        if level==1:
             return "20 constructions"
-        if level==2:
+        if level==1:
             return "50 constructions"
-        if level==3:
+        if level==2:
             return "100 constructions"
-        if level==4:
+        if level==3:
             return "150 constructions"
+        if level==4:
+            return "250 constructions"
 
     def hulls(self,level):
         if level==1:

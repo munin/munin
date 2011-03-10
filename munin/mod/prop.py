@@ -65,6 +65,8 @@ class prop(loadable.loadable):
         prop_type=m.group(1)
 
         if prop_type.lower() == 'invite':
+            irc_msg.reply("No. If you want to invite someone, figure out a different way to make it happen.")
+            return 1
             m=self.match_or_usage(irc_msg,self.invite_kickre,m.group(2))
             if not m: return 1
             if self.command_not_used_in_home(irc_msg,self.__class__.__name__ + " invite"): return 1
@@ -74,6 +76,8 @@ class prop(loadable.loadable):
             self.process_invite_proposal(irc_msg,u,person,comment)
 
         elif prop_type.lower() == 'kick':
+            irc_msg.reply("No. If you want to kick someone, figure out a different way to make it happen.")
+            return 1
             m=self.match_or_usage(irc_msg,self.invite_kickre,m.group(2))
             if not m: return 1
             if self.command_not_used_in_home(irc_msg,self.__class__.__name__ + " kick"): return 1
@@ -92,6 +96,7 @@ class prop(loadable.loadable):
             self.process_show_proposal(irc_msg,u,prop_id)
             
         elif prop_type.lower() == 'vote':
+            irc_msg.reply("Like I care what you think!")
             m=self.match_or_usage(irc_msg,self.votere,m.group(2))
             if not m: return 1
             prop_id=int(m.group(1))
@@ -99,6 +104,7 @@ class prop(loadable.loadable):
             self.process_vote_proposal(irc_msg,u,prop_id,vote)
            
         elif prop_type.lower() == 'expire':
+            irc_msg.reply("Good luck with that.")
             m=self.match_or_usage(irc_msg,re.compile(r"\s*(\d+)"),m.group(2))
             if not m: return 1
             if self.command_not_used_in_home(irc_msg,self.__class__.__name__ + " expire"): return 1

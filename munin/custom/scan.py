@@ -59,7 +59,7 @@ class scan(threading.Thread):
 
     def unsafe_method(self):
         if self.group_id:
-            page = urllib2.urlopen('http://game.planetarion.com/showscan.pl?scan_grp='+ self.group_id).read()
+            page = urllib2.urlopen('http://game.planetarion.com/showscan.pl?scan_grp='+ self.group_id + '&inc=1').read()
             for m in re.finditer('scan_id=([0-9a-zA-Z]+)',page):
                 self.rand_id = m.group(1)
                 try:
@@ -71,7 +71,7 @@ class scan(threading.Thread):
             self.unsafe_method2()
 
     def unsafe_method2(self):
-        page = urllib2.urlopen('http://game.planetarion.com/showscan.pl?scan_id=' + self.rand_id).read()
+        page = urllib2.urlopen('http://game.planetarion.com/showscan.pl?scan_id=' + self.rand_id + '&inc=1').read()
 
         m = re.search('>([^>]+) on (\d+)\:(\d+)\:(\d+) in tick (\d+)', page)
         if not m:

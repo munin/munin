@@ -17,7 +17,7 @@
     CREATE TABLE planet_canon (
      id serial,
      planetname varchar(20) NOT NULL,
-     rulername varchar(20) NOT NULL,
+     rulername varchar(30) NOT NULL,
      active boolean NOT NULL DEFAULT TRUE,
      PRIMARY KEY(id),
      UNIQUE (rulername,planetname)
@@ -29,7 +29,7 @@
      y smallint,
      z smallint,
      planetname varchar(20) NOT NULL,
-     rulername varchar(20) NOT NULL,
+     rulername varchar(30) NOT NULL,
      race char(3) NOT NULL CHECK (race in ('Ter','Cat','Xan','Zik','Etd')),
      size smallint NOT NULL,
      score integer NOT NULL,

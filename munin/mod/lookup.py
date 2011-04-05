@@ -33,7 +33,7 @@ class lookup(loadable.loadable):
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,1)
         self.paramre=re.compile(r"^\s+(.*)")
-        self.usage=self.__class__.__name__ + " [<[x:y[:z]]|[alliancename]>]"
+        self.usage=self.__class__.__name__ + " [x:y[:z]|alliancename]"
 
     def execute(self,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)

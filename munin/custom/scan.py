@@ -60,19 +60,23 @@ class scan(threading.Thread):
     def unsafe_method(self):
         if self.group_id:
             page = urllib2.urlopen('http://game.planetarion.com/showscan.pl?scan_grp='+ self.group_id + '&inc=1').read()
-            for m in re.finditer('scan_id=([0-9a-zA-Z]+)',page):
-                self.rand_id = m.group(1)
-                try:
-                    self.unsafe_method2()
-                except Exception, e:
-                    print "Exception in scan: "+e.__str__()
-                    traceback.print_exc()
+            for scan in page.split("<hr>"):
+                m = re.search('scan_id=([0-9a-zA-Z]+)',scan)
+                if m:
+                    self.rand_id = m.group(1)
+                    try:
+                        self.execute(scan)
+                    except Exception, e:
+                        print "Exception in scan: "+e.__str__()
+                        traceback.print_exc()
         else:
             self.unsafe_method2()
 
     def unsafe_method2(self):
         page = urllib2.urlopen('http://game.planetarion.com/showscan.pl?scan_id=' + self.rand_id + '&inc=1').read()
+        self.execute(page)
 
+    def execute(self, page)
         m = re.search('>([^>]+) on (\d+)\:(\d+)\:(\d+) in tick (\d+)', page)
         if not m:
             print "Expired/non-matchinng scan (id: %s)" %(self.rand_id,)

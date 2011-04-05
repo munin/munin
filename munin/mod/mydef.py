@@ -34,8 +34,8 @@ class mydef(loadable.loadable):
     """
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,100)
-        self.paramre=re.compile(r"^\s*(\d)\s*x\s*(.*)")
-        self.countre=re.compile(r"^(\d+(?:\.\d+)?[mk]?)$")
+        self.paramre=re.compile(r"^\s*(\d)\s*x\s*(.*)",re.I)
+        self.countre=re.compile(r"^(\d+(?:\.\d+)?[mk]?)$",re.I)
         self.shipre=re.compile(r"^(\w+),?$")
         self.nulls = ["<>",".","-","?"]
         self.ship_classes = ['fi','co','fr','de','cr','bs']

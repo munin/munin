@@ -105,6 +105,7 @@ class prop(loadable.loadable):
            
         elif prop_type.lower() == 'expire':
             irc_msg.reply("Good luck with that.")
+            return 1
             m=self.match_or_usage(irc_msg,re.compile(r"\s*(\d+)"),m.group(2))
             if not m: return 1
             if self.command_not_used_in_home(irc_msg,self.__class__.__name__ + " expire"): return 1

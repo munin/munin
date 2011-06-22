@@ -76,7 +76,7 @@ class scan(threading.Thread):
         page = urllib2.urlopen('http://game.planetarion.com/showscan.pl?scan_id=' + self.rand_id + '&inc=1').read()
         self.execute(page)
 
-    def execute(self, page)
+    def execute(self, page):
         m = re.search('>([^>]+) on (\d+)\:(\d+)\:(\d+) in tick (\d+)', page)
         if not m:
             print "Expired/non-matchinng scan (id: %s)" %(self.rand_id,)

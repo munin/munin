@@ -73,6 +73,8 @@ class adduser(loadable.loadable):
         if len(added):
             irc_msg.reply("Added users (%s) at level %s" % (",".join(added),access_lvl))
             irc_msg.client.privmsg('P',"adduser #%s %s 399" %(self.config.get('Auth', 'home'), ",".join(added),))
+            for nick in added:
+                irc_msg.client.privmsg('P',"modinfo #%s automode %s op" %(self.config.get('Auth', 'home'), nick,));
         if len(exists):
             irc_msg.reply("Users (%s) already exist" % (",".join(exists),))
 

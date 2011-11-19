@@ -3,7 +3,7 @@ require 'pp'
 class PgAccessor
   def initialize db_name
     @db_name = db_name
-    @db = PGconn.open :host => "localhost", :port => 5432, :dbname => db_name, :user => "munin", :password => "f1r3fly"
+    @db = PGconn.open :host => "localhost", :port => 5432, :dbname => db_name, :user => "munin", :password => "PASSWORDHERE"
   end
  
   def get_planets data_type, planets

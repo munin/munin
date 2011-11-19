@@ -129,7 +129,7 @@ end
 process(read_rounds_from_file("graphing/graphing.txt"))
 
 =begin
-db = PGconn.open :host => "localhost", :port => 5432, :dbname => 'patools21', :user => "munin", :password => "f1r3fly"
+db = PGconn.open :host => "localhost", :port => 5432, :dbname => 'patools21', :user => "munin", :password => "PASSWORDGOESHERE"
 res = db.exec "select id from planet_dump where tick = (select max_tick()) and x=$1 and y=$2 and z=$3", round['Round 21'].planets[0].split("\.")
 pp res[0]
 #pp rounds
@@ -142,7 +142,7 @@ g.data("Oranges", [4, 8, 7, 9, 8, 9])
 g.data("Watermelon", [2, 3, 1, 5, 6, 8])
 g.data("Peaches", [9, 9, 10, 8, 7, 9])
 
-g.labels = {0 => '2003', 2 => '2004', 4 => '2005'}
+gn.labels = {0 => '2003', 2 => '2004', 4 => '2005'}
 
 g.write('my_fruity_graph.png')
 

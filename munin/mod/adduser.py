@@ -31,6 +31,7 @@ class adduser(loadable.loadable):
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,1000)
         self.paramre=re.compile(r"^\s+(\S+)\s+(\d+)")
+        self.usage=self.__class__.__name__ + " <pnick>[,<pnick2>[...]] <level>"
     
     def execute(self,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)

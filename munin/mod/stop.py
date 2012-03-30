@@ -1,4 +1,3 @@
-
 """
 Loadable.Loadable subclass
 """
@@ -35,7 +34,7 @@ class stop(loadable.loadable):
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,1)
         self.paramre=re.compile(r"^\s+(\d+(?:\.\d+)?[mk]?)\s+(\S+)(\s+(t1|t2|t3))?")
-        self.usage=self.__class__.__name__ + " <number> <ship to stop>"
+        self.usage=self.__class__.__name__ + " <number> <target> [t1|t2|t3]"
 
     def execute(self,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
@@ -86,6 +85,8 @@ class stop(loadable.loadable):
                 ship={'name':'Asteroid','class':'Roids','armor':50,'total_cost':20000}
             elif "structures".rfind(bogey) > -1:
                 ship={'name':'Structure','class':'Struct','armor':500,'total_cost':150000}
+            elif "resources".rfind(bogey) > -1:
+                ship={'name':'Resources','class':'Rs','armor':0.02,'total_cost':0.01}
             else:
                 irc_msg.reply("%s is not a ship" % (bogey))
                 return 0
@@ -105,6 +106,8 @@ class stop(loadable.loadable):
                 reply+="Capturing "
             elif ship['class'].lower() == "struct":
                 reply+="Destroying "
+            elif ship['class'].lower() == "rs":
+                reply+="Looting "
             else:
                 reply+="Stopping "
             reply+="%s %s (%s) as %s requires " % (ship_number,ship['name'],self.format_value(ship_number*ship['total_cost']),user_target)

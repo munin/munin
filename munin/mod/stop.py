@@ -86,7 +86,7 @@ class stop(loadable.loadable):
             elif "structures".rfind(bogey) > -1:
                 ship={'name':'Structure','class':'Struct','armor':500,'total_cost':150000}
             elif "resources".rfind(bogey) > -1:
-                ship={'name':'Resources','class':'Rs','armor':0.02,'total_cost':0.01}
+                ship={'name':'Resources','class':'Rs','armor':0.02,'total_cost':1}
             else:
                 irc_msg.reply("%s is not a ship" % (bogey))
                 return 0

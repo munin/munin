@@ -87,7 +87,7 @@ class eff(loadable.loadable):
             irc_msg.reply("%s %s (%s) will destroy Structure: %s (%s)" % (ship_number,ship['name'],self.format_value(ship_number*ship['total_cost']),killed,self.format_value(killed*150000)))
         elif ship['target_1'] == 'Rs':
             killed=total_damage*50
-            irc_msg.reply("%s %s (%s) will loot Resources: %s (%s)" % (ship_number,ship['name'],self.format_value(ship_number*ship['total_cost']),killed,self.format_value(killed/100)))
+            irc_msg.reply("%s %s (%s) will loot Resources: %s (%s)" % (ship_number,ship['name'],self.format_value(ship_number*ship['total_cost']),killed,self.format_value(killed)))
         else:
             query="SELECT * FROM ship WHERE class=%s ORDER BY id"
             self.cursor.execute(query,(ship[target_number],))

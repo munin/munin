@@ -29,6 +29,7 @@ from psycopg2 import psycopg1 as psycopg
 import re
 import traceback
 import urllib2
+import StringIO
 
 config = ConfigParser.ConfigParser()
 if not config.read("muninrc"):
@@ -148,7 +149,10 @@ while True:
          )
         """ % (ptmp,)
         cursor.execute(query)
-        cursor.copy_from(planets,ptmp,"\t")
+        foo=planets.readlines()
+        foo=map(lambda f: f.decode('iso-8859-1').encode('utf8'),foo)
+
+        cursor.copy_from(StringIO.StringIO(''.join(foo)),ptmp,"\t")
 
         query="""
         CREATE TEMP TABLE %s (
@@ -156,13 +160,16 @@ while True:
          y smallint,
          name varchar(66) NOT NULL,
          size int NOT NULL,
-         score bigint NOT NULL,
+         score bigint DEFAULT 0,
          value bigint NOT NULL,
          xp integer NOT NULL
         )
         """ % (gtmp,)
         cursor.execute(query)
-        cursor.copy_from(galaxies,gtmp,"\t")
+        foo=galaxies.readlines()
+        foo=map(lambda f: f.decode('iso-8859-1').encode('utf8'),foo)
+
+        cursor.copy_from(StringIO.StringIO(''.join(foo)),gtmp,"\t",null="")
 
         query="""
         CREATE TEMP TABLE %s (
@@ -175,7 +182,10 @@ while True:
         )
         """ % (atmp,)
         cursor.execute(query)
-        cursor.copy_from(alliances,atmp,"\t")
+        foo=alliances.readlines()
+        foo=map(lambda f: f.decode('iso-8859-1').encode('utf8'),foo)
+
+        cursor.copy_from(StringIO.StringIO(''.join(foo)),atmp,"\t")
 
         t2=time.time()-t1
         print "Copied dumps in %.3f seconds" % (t2,)

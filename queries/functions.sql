@@ -235,7 +235,7 @@ BEGIN
 
         --transfer tmp to dump
         INSERT INTO galaxy_dump (tick,x,y,name,size,score,value,xp,size_rank,score_rank,value_rank,xp_rank,id)
-		SELECT curtick,x,y,name,size,score,value,xp,size_rank,score_rank,value_rank,xp_rank,id FROM gtmp;
+		SELECT curtick,x,y,name,size,COALESCE(score,0),value,xp,size_rank,score_rank,value_rank,xp_rank,id FROM gtmp;
 
 END
 $PROC$ LANGUAGE plpgsql;

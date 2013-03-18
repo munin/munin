@@ -25,7 +25,9 @@ mapping = {"Fi": "Fighter",
            "Etd": "Eitraides",
            "Cat": "Cathaar",
            "Zik": "Zikonian",
-           "Xan": "Xandathrii"}
+           "Xan": "Xandathrii",
+           "Re":  "Rs" # Resources
+           }
 
 keys = ['race', 'name', 'class', 'target_1', 'target_2', 'target_3', 'type', 'init',
         'gun', 'armor', 'damage', 'empres', 'metal', 'crystal', 'eonium']

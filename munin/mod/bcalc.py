@@ -51,8 +51,8 @@ class bcalc(loadable.loadable):
             return 0
 
         bcalc = ["http://www.clawofdarkness.com/pawiki","http://parser.5th-element.org/",
-                 "http://munin.ascendancy.tv/","http://www.everyday-hero.net/pa/reshack.html",
-                 "http://game.planetarion.com/bcalc.pl","http://apprime.lt/home/"]
+                 "http://munin.ascendancy.tv/","http://kia.cthq.net/index.php",
+                 "http://game.planetarion.com/bcalc.pl"]
 
         reply="Bcalcs: "+string.join(bcalc," | ")
         irc_msg.reply(reply)

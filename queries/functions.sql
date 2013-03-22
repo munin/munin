@@ -253,7 +253,8 @@ BEGIN
         --generate averages (should we limit members to 70 since that's all that will be counted? Probably, but let's wait for PAteam to finish deciding)
 	PERFORM add_average('atmp','size','members','smallint');
 	PERFORM add_average('atmp','score','members','integer');
-
+	PERFORM add_average('atmp','total_score','members','integer');
+	PERFORM add_average('atmp','total_value','members','integer');
         --generate ranks
         PERFORM add_rank('atmp','size');
 --        PERFORM add_rank('atmp','score');
@@ -261,10 +262,16 @@ BEGIN
         PERFORM add_rank('atmp','size_avg');
         PERFORM add_rank('atmp','score_avg');
 
+        PERFORM add_rank('atmp','total_score');
+        PERFORM add_rank('atmp','total_value');
+        PERFORM add_rank('atmp','total_score_avg');
+        PERFORM add_rank('atmp','total_value_avg');
+        
+
 
         --transfer tmp to dump
-	INSERT INTO alliance_dump (tick,name,size,members,score,size_avg,score_avg,size_rank,members_rank,score_rank,size_avg_rank,score_avg_rank,id)
-		SELECT curtick,name,size,members,score,size_avg,score_avg,size_rank,members_rank,score_rank,size_avg_rank,score_avg_rank,id FROM atmp;
+	INSERT INTO alliance_dump (tick,name,size,members,score,size_avg,score_avg,size_rank,members_rank,score_rank,size_avg_rank,score_avg_rank,total_score,total_score_rank,total_score_avg,total_score_avg_rank,total_value,total_value_rank,total_value_avg,total_value_avg_rank,id)
+		SELECT curtick,name,size,members,score,size_avg,score_avg,size_rank,members_rank,score_rank,size_avg_rank,score_avg_rank,total_score,total_score_rank,total_score_avg,total_score_avg_rank,total_value,total_value_rank,total_value_avg,total_value_avg_rank,id FROM atmp;
 
 END
 $PROC$ LANGUAGE plpgsql;

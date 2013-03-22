@@ -177,8 +177,10 @@ while True:
          name varchar(22) NOT NULL,
          size int NOT NULL,
          members smallint NOT NULL,
-         score bigint NOT NULL, 
-         points bigint NOT NULL
+         score bigint NOT NULL,
+         points bigint NOT NULL,
+         total_score bigint NOT NULL,
+         total_value bigint NOT NULL
         )
         """ % (atmp,)
         cursor.execute(query)

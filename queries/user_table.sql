@@ -93,6 +93,14 @@
      size_avg smallint NOT NULL,
      score_avg_rank smallint NOT NULL,
      size_avg_rank smallint NOT NULL,
+     total_score bigint NOT NULL,
+     total_score_rank smallint NOT NULL,
+     total_score_avg int NOT NULL,
+     total_score_avg_rank smallint NOT NULL,
+     total_value bigint NOT NULL,
+     total_value_rank smallint NOT NULL,
+     total_value_avg int NOT NULL,
+     total_value_avg_rank smallint NOT NULL,
      id integer NOT NULL REFERENCES alliance_canon(id),
      PRIMARY KEY(tick, name)
     );

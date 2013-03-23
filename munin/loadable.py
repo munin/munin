@@ -36,7 +36,7 @@ class loadable(object):
         self.coordre=re.compile(r"(\d+)[. :-](\d+)([. :-](\d+))?")
         self.planet_coordre=re.compile(r"(\d+)[. :-](\d+)[. :-](\d+)")
         self.idre=re.compile(r"([0-9a-zA-Z]+)")
-        self.commandre=re.compile(r"^"+self.__class__.__name__+"(.*)",re.I)
+        self.commandre=re.compile(r"^\S+(\s*.*)",re.I)
         self.helptext=None
         self.config = ConfigParser.ConfigParser()
         if not self.config.read('muninrc'):
@@ -45,6 +45,13 @@ class loadable(object):
     def execute(self,user,access,irc_msg):
         print "Loadable execute"
         pass
+
+    def aliases(self,command_text):
+        comre=re.compile("^"+command_text)
+        m=comre.search(self.__class__.__name__)
+        if m:
+            return True
+        return False
 
     def help(self,user,access,irc_msg):
         irc_msg.reply(self.usage)

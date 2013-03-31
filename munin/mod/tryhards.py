@@ -88,9 +88,11 @@ class tryhards(loadable.loadable):
         return 0
 
     def rank_alliance_by(self,qualifier,irc_msg):
-        rank="%s_rank"%(qualifier,)
         if qualifier in "value":
             ranker="total_value"
+        else:
+            ranker = qualifier
+        rank="%s_rank"%(ranker,)
         query="SELECT name,%s,%s"%(ranker,rank)
         query+=" FROM alliance_dump"
         query+=" WHERE tick=(SELECT max_tick())"

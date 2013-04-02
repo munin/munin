@@ -102,7 +102,7 @@ class tryhards(loadable.loadable):
         if self.cursor.rowcount < 1:
             irc_msg.reply("lol")
 
-        reply="Alliances trying too hard for %s: "%(ranker,)
+        reply="Alliances trying too hard for %s: "%(ranker.replace("_"," "),)
         reply+=", ".join(map(lambda x: "%s: %s (%s)"%(x[rank],x['name'],self.format_real_value(x[ranker])),self.cursor.dictfetchall()))
         irc_msg.reply(reply)
 
@@ -119,7 +119,7 @@ class tryhards(loadable.loadable):
         if self.cursor.rowcount < 1:
             irc_msg.reply("lol")
 
-        reply="Galaxies trying too hard for %s: "%(qualifier,)
+        reply="Galaxies trying too hard for %s: "%(qualifier.replace("_"," "),)
         reply+=", ".join(map(lambda x: "%s: %s:%s - %s (%s)"%(x[rank],x['x'],x['y'],x['name'],self.format_real_value(x[qualifier])),self.cursor.dictfetchall()))
         irc_msg.reply(reply)
 

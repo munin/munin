@@ -35,8 +35,8 @@ class loadable(object):
         self.level=level
         self.coordre=re.compile(r"(\d+)[. :-](\d+)([. :-](\d+))?")
         self.planet_coordre=re.compile(r"(\d+)[. :-](\d+)[. :-](\d+)")
-        self.idre=re.compile(r"([0-9a-zA-Z]+)")
-        self.commandre=re.compile(r"^\S+(\s*.*)",re.I)
+        self.idre=re.compile(r"([0-9A-z]+)")
+        self.commandre=re.compile(r"^[A-z0-9]+(\s*.*)",re.I)
         self.helptext=None
         self.config = ConfigParser.ConfigParser()
         if not self.config.read('muninrc'):

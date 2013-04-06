@@ -50,8 +50,9 @@ alliancelist: http://195.149.21.23/botfiles/alliance_listing.txt
 
 [Planetarion]
 # General game configurations
-# Set this to the feudalism bonus percentage
-feudalism: 0.12
+# Set this to the governments' bonus percentage
+democracy: 0.07
+totalitarianism: 0.008
 
 [clickatell]
 user: username

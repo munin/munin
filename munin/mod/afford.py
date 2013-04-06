@@ -100,16 +100,22 @@ class afford(loadable.loadable):
                 buildable = capped_number + ((overflow*.95)/total_cost)
 
 
-                feud_modifier=1/(1-float(self.config.get('Planetarion', 'feudalism')))
+                demo_modifier=1/(1-float(self.config.get('Planetarion', 'democracy')))
+                tota_modifier=1/(1-float(self.config.get('Planetarion', 'totalitarianism')))
                 reply+="Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,p.y,p.z,rand_id,tick)
-                reply+=" can purchase %s: %s | Feudalism: %s"%(ship['name'],int(buildable),int(buildable*feud_modifier))
+                reply+=" can purchase %s: %s | Democracy: %s | Totalitarianism: %s"%(ship['name'],
+                                                                                     int(buildable),
+                                                                                     int(buildable*demo_modifier), 
+                                                                                     int(buildable*tota_modifier)
 
                 if prod_res > 0:
                     factory_usage=s[class_factory_table[ship['class']]]
                     max_prod_modifier=prod_modifier_table[factory_usage]
                     buildable_from_prod = buildable + max_prod_modifier*(prod_res)/100/total_cost
                     reply+=" Counting %d res in prod at %s usage:" % (prod_res,factory_usage)
-                    reply+=" %s | Feudalism: %s "%(int(buildable_from_prod), int(buildable_from_prod*feud_modifier))
+                    reply+=" %s | Democracy: %s | Totalitarianism: %s"%(int(buildable_from_prod), 
+                                                                        int(buildable_from_prod*demo_modifier)
+                                                                        int(buildable_from_prod*tota_modifier))
 
         irc_msg.reply(reply)
         return 1

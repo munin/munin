@@ -66,14 +66,22 @@ class cost(loadable.loadable):
             irc_msg.reply("%s is not a ship" % (ship_name))
             return 0
 
-        feudalism = 1-float(self.config.get('Planetarion', 'feudalism'))
+        democracy = 1-float(self.config.get('Planetarion', 'democracy'))
+        totalitarianism = 1-float(self.config.get('Planetarion', 'totalitarianism'))
 
-        reply="Buying %s %s will cost %s metal, %s crystal and %s eonium."%(ship_number,ship['name'],ship['metal'] * ship_number,
-                                                                            ship['crystal'] * ship_number,ship['eonium'] * ship_number)
+        reply="Buying %s %s will cost %s metal, %s crystal and %s eonium."%(ship_number, ship['name'],
+                                                                            ship['metal']   * ship_number,
+                                                                            ship['crystal'] * ship_number,
+                                                                            ship['eonium']  * ship_number)
 
-        reply+=" Feudalism: %s metal, %s crystal and %s eonium."%(int(ship['metal'] * feudalism) * ship_number,int(ship['crystal'] * feudalism)* ship_number,
-                                                                  int(ship['eonium'] * feudalism) * ship_number)
+        reply+=" Democracy: %s metal, %s crystal and %s eonium."%(int(ship['metal']   * democracy) * ship_number,
+                                                                  int(ship['crystal'] * democracy) * ship_number,
+                                                                  int(ship['eonium']  * democracy) * ship_number)
 
+        reply+=" Totalitarianism: %s metal, %s crystal and %s eonium."%(int(ship['metal']   * totalitarianism) * ship_number,
+                                                                        int(ship['crystal'] * totalitarianism) * ship_number,
+                                                                        int(ship['eonium']  * totalitarianism) * ship_number)
+                                                                  
         reply+=" It will add %s value"%((ship['total_cost'] * ship_number)/100,)
 
 

@@ -34,7 +34,7 @@ class roidsave(loadable.loadable):
         super(self.__class__,self).__init__(cursor,1)
         self.paramre=re.compile(r"^\s+(\d+)\s+(\d+)(\s+(\d+))?",re.I)
         self.usage=self.__class__.__name__ + " <roids> <ticks> [mining_bonus]"
-        self.helptext=['Tells you how much value will be mined by a number of roids in that many ticks. M=Max, F=Feudalism, D=Democracy.']
+        self.helptext=['Tells you how much value will be mined by a number of roids in that many ticks.']
     def execute(self,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
         if not m:
@@ -57,13 +57,12 @@ class roidsave(loadable.loadable):
             return 0
 
         mining = int(mining *(float(bonus+100)/100))
+
         cost=self.format_value(ticks*roids*mining)
+        cost_demo=self.format_value(int(ticks*roids*mining*(1/(1-float(self.config.get('Planetarion', 'democracy'))))))
+        cost_tota=self.format_value(int(ticks*roids*mining*(1/(1-float(self.config.get('Planetarion', 'totalitarianism'))))))
 
-        cost_m=self.format_value(int(ticks*roids*mining*1.9529))
-        cost_f=self.format_value(int(ticks*roids*mining*(1/(1-float(self.config.get('Planetarion', 'feudalism'))))))
-        cost_d=self.format_value(int(ticks*roids*mining*.9524))
-
-        reply="%s roids with %s%% bonus will mine %s value (M: %s/F: %s/D: %s) in %s ticks (%s days)" % (roids,bonus,cost,cost_m,cost_f,cost_d,ticks,ticks/24)
+        reply="%s roids with %s%% bonus will mine %s value (Democracy: %s, Totalitarianism: %s) in %s ticks (%s days)" % (roids,bonus,cost,cost_demo,cost_tota,ticks,ticks/24)
 
         irc_msg.reply(reply)
 

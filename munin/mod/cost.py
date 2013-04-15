@@ -56,9 +56,10 @@ class cost(loadable.loadable):
         ship_number=int(ship_number)
         ship_name=m.group(2)
 
-        gov_name=(m.group(3) or '').lower()
+        gov_name=''
         prod_bonus=1
-        if gov_name != '':
+        if m.group(3):
+            gov_name=m.group(3).lower()
             if gov_name in "totalitarianism":
                 prod_bonus=1-float(self.config.get('Planetarion', 'totalitarianism'))
                 gov_name="Totalitarianism"

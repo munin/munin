@@ -47,7 +47,7 @@ class loadable(object):
         pass
 
     def aliases(self,command_text):
-        comre=re.compile("^"+command_text)
+        comre=re.compile("^"+re.escape(command_text))
         m=comre.search(self.__class__.__name__)
         if m:
             return True

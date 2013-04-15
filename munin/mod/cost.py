@@ -58,12 +58,13 @@ class cost(loadable.loadable):
 
         gov_name=(m.group(3) or '').lower()
         prod_bonus=1
-        if gov_name in "totalitarianism":
-            prod_bonus=1-float(self.config.get('Planetarion', 'totalitarianism'))
-            gov_name="Totalitarianism"
-        elif gov_name in "democracy":
-            prod_bonus=1-float(self.config.get('Planetarion', 'democracy'))
-            gov_name="Democracy"
+        if gov_name != '':
+            if gov_name in "totalitarianism":
+                prod_bonus=1-float(self.config.get('Planetarion', 'totalitarianism'))
+                gov_name="Totalitarianism"
+            elif gov_name in "democracy":
+                prod_bonus=1-float(self.config.get('Planetarion', 'democracy'))
+                gov_name="Democracy"
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")

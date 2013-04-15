@@ -114,7 +114,7 @@ class afford(loadable.loadable):
                     buildable_from_prod = buildable + max_prod_modifier*(prod_res)/100/total_cost
                     reply+=" Counting %d res in prod at %s usage:" % (prod_res,factory_usage)
                     reply+=" %s | Democracy: %s | Totalitarianism: %s"%(int(buildable_from_prod), 
-                                                                        int(buildable_from_prod*demo_modifier)
+                                                                        int(buildable_from_prod*demo_modifier),
                                                                         int(buildable_from_prod*tota_modifier))
 
         irc_msg.reply(reply)

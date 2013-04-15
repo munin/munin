@@ -106,7 +106,7 @@ class afford(loadable.loadable):
                 reply+=" can purchase %s: %s | Democracy: %s | Totalitarianism: %s"%(ship['name'],
                                                                                      int(buildable),
                                                                                      int(buildable*demo_modifier), 
-                                                                                     int(buildable*tota_modifier)
+                                                                                     int(buildable*tota_modifier))
 
                 if prod_res > 0:
                     factory_usage=s[class_factory_table[ship['class']]]

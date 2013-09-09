@@ -35,6 +35,7 @@ class scan(threading.Thread):
         self.nick=nick
         self.pnick=pnick
         self.group_id=group_id
+        self.useragent="Munin (Python-urllib/%s); BotNick/%s; Admin/%s" % (urllib2.__version__, config.get("Connection", "nick"), config.get("Auth", "owner_nick"))
         threading.Thread.__init__(self)
 
     def create_conn(self,config):
@@ -59,7 +60,9 @@ class scan(threading.Thread):
 
     def unsafe_method(self):
         if self.group_id:
-            page = urllib2.urlopen('http://game.planetarion.com/showscan.pl?scan_grp='+ self.group_id + '&inc=1').read()
+            req = urllib2.Request('http://game.planetarion.com/showscan.pl?scan_grp='+ self.group_id + '&inc=1')
+            req.add_header('User-Agent',self.useragent)
+            page = urllib2.urlopen(req).read()
             for scan in page.split("<hr>"):
                 m = re.search('scan_id=([0-9a-zA-Z]+)',scan)
                 if m:
@@ -73,7 +76,9 @@ class scan(threading.Thread):
             self.unsafe_method2()
 
     def unsafe_method2(self):
-        page = urllib2.urlopen('http://game.planetarion.com/showscan.pl?scan_id=' + self.rand_id + '&inc=1').read()
+        req = urllib2.Request('http://game.planetarion.com/showscan.pl?scan_id=' + self.rand_id + '&inc=1')
+        req.add_header('User-Agent',self.useragent)
+        page = urllib2.urlopen(req).read()
         self.execute(page)
 
     def execute(self, page):

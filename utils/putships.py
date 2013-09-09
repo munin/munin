@@ -56,10 +56,14 @@ def main(url="http://game.planetarion.com/manual.pl?page=stats"):
     connection = psycopg.connect(DSN)
     cursor = connection.cursor()
 
+    useragent = "Munin (Python-urllib/%s); BotNick/%s; Admin/%s" % (urllib2.__version__, config.get("Connection", "nick"), config.get("Auth", "owner_nick"))
+
     cursor.execute("DELETE FROM ship;")
     cursor.execute("SELECT setval('ship_id_seq', 1, false);")
 
-    stats = urllib2.urlopen(url).read()
+    req = urllib2.Request(url)
+    req.add_header('User-Agent',useragent)
+    stats = urllib2.urlopen(req).read()
 
     for line in sre.findall(stats):
         line = list(line)

@@ -37,6 +37,8 @@ if not config.read("muninrc"):
     raise ValueError("Expected configuration file muninrc"
                      ", not found.")
 
+useragent = "Munin (Python-urllib/%s); BotNick/%s; Admin/%s" % (urllib2.__version__, config.get("Connection", "nick"), config.get("Auth", "owner_nick"))
+
 DSN = "dbname=%s user=%s" % (config.get("Database", "dbname"),
                              config.get("Database", "user"))
 if config.has_option('Database', 'password'):
@@ -62,21 +64,27 @@ while True:
             last_tick = -1
 
         try:
-            planets = urllib2.urlopen(config.get("Url", "planetlist"))
+            req = urllib2.Request(config.get("Url", "planetlist"))
+            req.add_header('User-Agent',useragent)
+            planets = urllib2.urlopen(req)
         except Exception, e:
             print "Failed gathering planet listing."
             print e.__str__()
             time.sleep(300)
             continue
         try:
-            galaxies = urllib2.urlopen(config.get("Url", "galaxylist"))
+            req = urllib2.Request(config.get("Url", "galaxylist"))
+            req.add_header('User-Agent',useragent)
+            galaxies = urllib2.urlopen(req)
         except Exception, e:
             print "Failed gathering galaxy listing."
             print e.__str__()
             time.sleep(300)
             continue
         try:
-            alliances = urllib2.urlopen(config.get("Url", "alliancelist"))
+            req = urllib2.Request(config.get("Url", "alliancelist"))
+            req.add_header('User-Agent',useragent)
+            alliances = urllib2.urlopen(req)
         except Exception, e:
             print "Failed gathering alliance listing."
             print e.__str__()

@@ -13,7 +13,7 @@ from munin import loadable
 class prod(loadable.loadable):
     """Mod for calculating the production time of a spend."""
 
-    def ln(n):
+    def ln(self, n):
         """Natural logarithm."""
         return math.log(n, math.e)
 
@@ -66,7 +66,7 @@ class prod(loadable.loadable):
             return 0
 
         cost = number * ship['total_cost']
-        base_required = 2 * math.sqrt(cost) * ln(cost)
+        base_required = 2 * math.sqrt(cost) * self.ln(cost)
         output = int((4000 * factories) ** 0.98)
 
         reply = "Producing %s %s (%s) with %d factories takes " % (
@@ -83,24 +83,24 @@ class prod(loadable.loadable):
         # Socialism:
         soci_speed = 1-float(self.config.get('Planetarion', 'socialism_prod_speed'))
         soci_time = int(soci_speed * math.ceil((base_required + (10000 * factories)) / output))
-        reply += ", %s ticks with Democracy" % (demo_time)
+        reply += ", %s ticks with Socialism" % (soci_time)
 
         # Nationalism:
         nati_speed = 1-float(self.config.get('Planetarion', 'nationalism_prod_speed'))
         nati_time = int(nati_speed * math.ceil((base_required + (10000 * factories)) / output))
-        reply += ", %s ticks with Socialism" % (soci_time)
+        reply += ", %s ticks with Nationalism" % (nati_time)
 
         # Democracy:
         demo_bonus = 1-float(self.config.get('Planetarion', 'democracy_cost_reduction'))
         demo_speed = 1-float(self.config.get('Planetarion', 'democracy_prod_speed'))
-        demo_required = 2 * math.sqrt(cost * demo_bonus) * ln(cost * demo_bonus)
+        demo_required = 2 * math.sqrt(cost * demo_bonus) * self.ln(cost * demo_bonus)
         demo_time = int(demo_speed * math.ceil((demo_required + (10000 * factories)) / output))
-        reply += ", %s ticks with Nationalism" % (nati_time)
+        reply += ", %s ticks with Democracy" % (demo_time)
 
         # Totalitarianism:
         tota_bonus = 1-float(self.config.get('Planetarion', 'totalitarianism_cost_reduction'))
         tota_speed = 1-float(self.config.get('Planetarion', 'totalitarianism_prod_speed'))
-        tota_required = 2 * math.sqrt(cost * tota_bonus) * ln(cost * tota_bonus)
+        tota_required = 2 * math.sqrt(cost * tota_bonus) * self.ln(cost * tota_bonus)
         tota_time = int(tota_speed * math.ceil((tota_required + (10000 * factories)) / output))
         reply += ", %s ticks with Totalitarianism" % (tota_time)
 

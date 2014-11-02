@@ -59,12 +59,12 @@ class cost(loadable.loadable):
         gov_name=''
         prod_bonus=1
         if m.group(3):
-            gov_name=m.group(3).lower()
-            if gov_name in "totalitarianism":
-                prod_bonus=1-float(self.config.get('Planetarion', 'totalitarianism'))
+            lower_gov_name=m.group(3).lower()
+            if lower_gov_name in "totalitarianism":
+                prod_bonus=1-float(self.config.get('Planetarion', 'totalitarianism_cost_reduction'))
                 gov_name="Totalitarianism"
-            elif gov_name in "democracy":
-                prod_bonus=1-float(self.config.get('Planetarion', 'democracy'))
+            elif lower_gov_name in "democracy":
+                prod_bonus=1-float(self.config.get('Planetarion', 'democracy_cost_reduction'))
                 gov_name="Democracy"
 
         if access < self.level:

@@ -14,7 +14,7 @@ nick: Botolf
 # the user the bot should use
 user: Cake
 # the ircname the bot should use
-name: MC Hammer
+name: MC_Hammer
 [Auth]
 # This section determines which alliance the bot belongs to,
 # and other misc. things.
@@ -24,7 +24,7 @@ alliance: CareBears
 home: carebears
 # owner_nick is the nickname of the owner of the bot.
 owner_nick: Sauron1337
-# owner_pnick is then the p-nick of the owner.
+# owner_pnick is the the p-nick of the owner.
 owner_pnick: MyNickWasTaken
 [Database]
 # This determines what postgres database to connect to, and how.
@@ -50,9 +50,19 @@ alliancelist: http://195.149.21.23/botfiles/alliance_listing.txt
 
 [Planetarion]
 # General game configurations
-# Set this to the governments' bonus percentage
-democracy: 0.07
-totalitarianism: 0.08
+
+# Set this to the governments' production cost bonus. 0 is standard. 0.1 is 10%
+# cheaper. -0.1 is 10% more expensive.
+democracy_cost_reduction: 0.08
+totalitarianism_cost_reduction: 0.08
+
+# Production speed. 0 is standard. 0.1 is 10% faster. -0.1 is 10% slower.
+corporatism_prod_speed: 0.0
+democracy_prod_speed: 0.0
+nationalism_prod_speed: -0.1
+socialism_prod_speed: 0.1
+totalitarianism_prod_speed: -0.1
+anarchy_prod_speed: -0.2
 
 [clickatell]
 user: username

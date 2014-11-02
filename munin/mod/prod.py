@@ -8,11 +8,14 @@ import re
 # This module doesn't have anything alliance specific.
 # qebab, 24/6/08.
 
-
 from munin import loadable
 
 class prod(loadable.loadable):
     """Mod for calculating the production time of a spend."""
+
+    def ln(n):
+        """Natural logarithm."""
+        return math.log(n, math.e)
 
     def __init__(self,cursor):
 
@@ -51,42 +54,61 @@ class prod(loadable.loadable):
             number = float(number[:-1]) * (10 ** 6)
         else:
             number = float(number)
-        number=int(number)
 
+        number = int(number)
         factories = int(factories)
 
         # Verify or fix this!
-
         ship=self.get_ship_from_db(shipname)
-        
+
         if not ship:
             irc_msg.reply("%s is not a ship." % shipname)
             return 0
 
-        def ln(n):
-            """Natural logarithm."""
-            return math.log(n, math.e)
-
         cost = number * ship['total_cost']
-        required = 2 * math.sqrt(cost) * ln(cost)
-
-        # For the gay cost bonus of feudalism
-        feud_required = 2 * math.sqrt(cost * (1-float(self.config.get('Planetarion', 'feudalism')))) * ln(cost * (1-float(self.config.get('Planetarion', 'feudalism'))))
-
+        base_required = 2 * math.sqrt(cost) * ln(cost)
         output = int((4000 * factories) ** 0.98)
 
-        norm_time = int(math.ceil((required +
-                                   (10000 * factories)) / output))
-        feud_time = int(1.2 * math.ceil((feud_required +
-                                   (10000 * factories)) / output))
+        reply = "Producing %s %s (%s) with %d factories takes " % (
+            self.format_value(number * 100),
+            ship['name'],
+            self.format_value(ship['total_cost'] * number),
+            factories)
 
-        reply = "The base time for producing %s %s (%s) is %s ticks with %d factories. " % (self.format_value(number * 100),
-                                                                          ship['name'],
-                                                                          self.format_value(ship['total_cost'] * number),
-                                                                          norm_time, factories)
-        reply += "With feudalism it is %s ticks." % feud_time
+        # All governments can have their own production speed. Corporatism:
+        corp_speed = 1-float(self.config.get('Planetarion', 'corporatism_prod_speed'))
+        corp_time = int(corp_speed * math.ceil((base_required + (10000 * factories)) / output))
+        reply += "%s ticks with Corporatism" % (corp_time)
+
+        # Socialism:
+        soci_speed = 1-float(self.config.get('Planetarion', 'socialism_prod_speed'))
+        soci_time = int(soci_speed * math.ceil((base_required + (10000 * factories)) / output))
+        reply += ", %s ticks with Democracy" % (demo_time)
+
+        # Nationalism:
+        nati_speed = 1-float(self.config.get('Planetarion', 'nationalism_prod_speed'))
+        nati_time = int(nati_speed * math.ceil((base_required + (10000 * factories)) / output))
+        reply += ", %s ticks with Socialism" % (soci_time)
+
+        # Democracy:
+        demo_bonus = 1-float(self.config.get('Planetarion', 'democracy_cost_reduction'))
+        demo_speed = 1-float(self.config.get('Planetarion', 'democracy_prod_speed'))
+        demo_required = 2 * math.sqrt(cost * demo_bonus) * ln(cost * demo_bonus)
+        demo_time = int(demo_speed * math.ceil((demo_required + (10000 * factories)) / output))
+        reply += ", %s ticks with Nationalism" % (nati_time)
+
+        # Totalitarianism:
+        tota_bonus = 1-float(self.config.get('Planetarion', 'totalitarianism_cost_reduction'))
+        tota_speed = 1-float(self.config.get('Planetarion', 'totalitarianism_prod_speed'))
+        tota_required = 2 * math.sqrt(cost * tota_bonus) * ln(cost * tota_bonus)
+        tota_time = int(tota_speed * math.ceil((tota_required + (10000 * factories)) / output))
+        reply += ", %s ticks with Totalitarianism" % (tota_time)
+
+        # Anarchy:
+        anar_speed = 1-float(self.config.get('Planetarion', 'anarchy_prod_speed'))
+        anar_time = int(anar_speed * math.ceil((base_required + (10000 * factories)) / output))
+        reply += ", %s ticks with Anarchy." % (anar_time)
 
         irc_msg.reply(reply)
 
         return 1
-

@@ -59,8 +59,8 @@ class roidsave(loadable.loadable):
         mining = int(mining *(float(bonus+100)/100))
 
         cost=self.format_value(ticks*roids*mining)
-        cost_demo=self.format_value(int(ticks*roids*mining*(1/(1-float(self.config.get('Planetarion', 'democracy'))))))
-        cost_tota=self.format_value(int(ticks*roids*mining*(1/(1-float(self.config.get('Planetarion', 'totalitarianism'))))))
+        cost_demo=self.format_value(int(ticks*roids*mining*(1/(1-float(self.config.get('Planetarion', 'democracy_cost_reduction'))))))
+        cost_tota=self.format_value(int(ticks*roids*mining*(1/(1-float(self.config.get('Planetarion', 'totalitarianism_cost_reduction'))))))
 
         reply="%s roids with %s%% bonus will mine %s value (Democracy: %s, Totalitarianism: %s) in %s ticks (%s days)" % (roids,bonus,cost,cost_demo,cost_tota,ticks,ticks/24)
 

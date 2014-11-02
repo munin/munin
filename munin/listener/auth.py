@@ -26,7 +26,7 @@ class auth(object):
         self.client = client
         self.config = config
         self.welcomre=re.compile(r"\S+\s+(001|433).*",re.I)
-        self.pinvitere=re.compile(r"^:P!cservice@netgamers.org\s+INVITE\s+\S+\s+:#(\S+)",re.I)
+        self.pinvitere=re.compile(r"^:P!cservice@netgamers.org\s+INVITE\s+\S+\s+:?#(\S+)",re.I)
     def message(self,line):
         m=self.welcomre.search(line)
         if m:

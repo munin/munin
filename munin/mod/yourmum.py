@@ -75,7 +75,7 @@ class yourmum(loadable.loadable):
         query="SELECT pnick AS giver,sum(howmany) AS cookies"
         query+=" FROM cookie_log AS t1"
         query+=" INNER JOIN user_list AS t2 ON t1.giver=t2.id"
-        query+=" WHERE receiver ilike %s"
+        query+=" WHERE receiver = %s"
         query+=" GROUP BY pnick"
         query+=" ORDER BY sum(howmany) DESC"
         query+=" LIMIT 10"

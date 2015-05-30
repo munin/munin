@@ -100,7 +100,7 @@ while True:
             continue
         planet_tick=int(m.group(1))
         print "Planet dump for tick %s" % (planet_tick,)
-        planets.readline();planets.readline();planets.readline();
+        planets.readline();planets.readline();planets.readline();planets.readline();
 
         galaxies.readline();galaxies.readline();galaxies.readline();
         tick=galaxies.readline()
@@ -111,9 +111,9 @@ while True:
             continue
         galaxy_tick=int(m.group(1))
         print "Galaxy dump for tick %s" % (galaxy_tick,)
-        galaxies.readline();galaxies.readline();galaxies.readline();
+        galaxies.readline();galaxies.readline();galaxies.readline();galaxies.readline();
 
-        alliances.readline();alliances.readline();alliances.readline();
+        alliances.readline();alliances.readline();alliances.readline();alliances.readline();
         ptick=alliances.readline()
         m=re.search(r"tick:\s+(\d+)",tick,re.I)
         if not m:
@@ -157,7 +157,7 @@ while True:
          )
         """ % (ptmp,)
         cursor.execute(query)
-        foo=planets.readlines()
+        foo=planets.readlines()[:-1]
         foo=map(lambda f: f.decode('iso-8859-1').encode('utf8'),foo)
 
         cursor.copy_from(StringIO.StringIO(''.join(foo)),ptmp,"\t")
@@ -174,7 +174,7 @@ while True:
         )
         """ % (gtmp,)
         cursor.execute(query)
-        foo=galaxies.readlines()
+        foo=galaxies.readlines()[:-1]
         foo=map(lambda f: f.decode('iso-8859-1').encode('utf8'),foo)
 
         cursor.copy_from(StringIO.StringIO(''.join(foo)),gtmp,"\t",null="")
@@ -192,7 +192,7 @@ while True:
         )
         """ % (atmp,)
         cursor.execute(query)
-        foo=alliances.readlines()
+        foo=alliances.readlines()[:-1]
         foo=map(lambda f: f.decode('iso-8859-1').encode('utf8'),foo)
 
         cursor.copy_from(StringIO.StringIO(''.join(foo)),atmp,"\t")

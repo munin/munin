@@ -171,8 +171,12 @@ class loadable(object):
 
     def get_ship_from_db(self,ship_name):
         query="SELECT * FROM ship WHERE name ILIKE %s ORDER BY id"
-        self.cursor.execute(query,("%"+ship_name+"%",))
+        self.cursor.execute(query,(ship_name,))
         ship=self.cursor.dictfetchone()
+        
+        if not ship:
+            self.cursor.execute(query,("%"+ship_name+"%",))
+            ship=self.cursor.dictfetchone()
 
         if not ship and ship_name[-1].lower() == 's':
             ship_name = ship_name[0:-1]

@@ -46,6 +46,9 @@ class stop(loadable.loadable):
             if re.search("\s+hammertime",params,re.I):
                 irc_msg.reply("Can't touch this!")
                 return 1
+            if re.search("\s+the\s+rock",params,re.I):
+                irc_msg.reply("Can't stop the rock!")
+                return 1
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 

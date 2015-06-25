@@ -99,7 +99,6 @@ class sms(loadable.loadable):
 
         message = {
             'to': str(phone),
-            'sender': "Munin",
             'text': str(text),
             'climsgid': str(msg_id),
             'msg_type': 'SMS_TEXT'

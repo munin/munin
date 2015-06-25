@@ -27,20 +27,33 @@ class irc_message(object):
         self.pubprefix=r"!"
         self.privprefix='@'
         self.privmsgre=re.compile(r"^:(\S+)!(\S+)@(\S+)\s+PRIVMSG\s+(\S+)\s+:(\s*(%s|%s|%s)(.*?)\s*)$" %(self.notprefix,self.pubprefix,self.privprefix))
+        self.bifrost_privmsgre=re.compile(r"^:bifrost!\S+@bifrost.users.netgamers.org\s+PRIVMSG\s+(\S+)\s+:<(\S+)>(\s*(%s|%s|%s)(.*?)\s*)$" %(self.notprefix,self.pubprefix,self.privprefix))
         self.pnickre=re.compile(r"(\S{2,15})\.users\.netgamers\.org")
         self.client=client
         self.cursor=cursor
         self.command=None
 
-        m=self.privmsgre.search(line)
+        m=self.bifrost_privmsgre.search(line)
         if m:
-            self.nick=m.group(1)
-            self.username=m.group(2)
-            self.host=m.group(3)
-            self.target=m.group(4)
-            self.message=m.group(5)
-            self.prefix=m.group(6)
-            self.command=m.group(7)
+            self.nick=m.group(2)
+            self.username="bifrost"
+            self.host=m.group(2) + ".users.netgamers.org"
+            self.target=m.group(1)
+            self.message=m.group(3)
+            self.prefix='!'
+            self.command=m.group(5)
+        else:
+            m=self.privmsgre.search(line)
+            if m:
+                self.nick=m.group(1)
+                self.username=m.group(2)
+                self.host=m.group(3)
+                self.target=m.group(4)
+                self.message=m.group(5)
+                self.prefix=m.group(6)
+                self.command=m.group(7)
+
+        if self.command:
             com_parts = self.command.split(' ',1)
             self.command_name = com_parts[0]
             self.command_parameters = None

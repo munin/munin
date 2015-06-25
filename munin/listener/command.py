@@ -1,6 +1,7 @@
 import munin.irc_message as irc_message
-import os
+
 from munin.reboot import reboot
+
 
 class command(object):
     def __init__(self,client,cursor,module,loader):

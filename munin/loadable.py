@@ -492,7 +492,8 @@ class alliance(object):
     def __str__(self):
         retstr="'%s' Members: %s (%s) " % (self.name,self.members,self.members_rank)
         retstr+="Score: %s (%s) Avg: %s (%s) " % (self.score,self.score_rank,self.score_avg,self.score_avg_rank)
-        retstr+="Size: %s (%s) Avg: %s (%s)" % (self.size,self.size_rank,self.size_avg,self.size_avg_rank)
+        retstr+="Size: %s (%s) Avg: %s (%s) " % (self.size,self.size_rank,self.size_avg,self.size_avg_rank)
+        retstr+="Value: %s (%s) Avg: %s (%s)" % (self.value,self.value_rank,self.value_avg,self.value_avg_rank)
         return retstr
         pass
 
@@ -500,12 +501,11 @@ class alliance(object):
         a={}
         if self.name:
             #load from exact name
-            query="SELECT name,size,members,score,size_rank,members_rank,score_rank,score_avg,size_avg,score_avg_rank,size_avg_rank,id FROM alliance_dump WHERE name ILIKE %s AND tick=(SELECT max_tick())"
+            query="SELECT name,size,members,score,size_rank,members_rank,score_rank,score_avg,size_avg,score_avg_rank,size_avg_rank,id, total_value,total_value_rank,total_value_avg,total_value_avg_rank FROM alliance_dump WHERE name ILIKE %s AND tick=(SELECT max_tick())"
             cursor.execute(query,(self.name,))
 
             #if that doesn't work, load from fuzzy name
             if cursor.rowcount < 1:
-                query="SELECT name,size,members,score,size_rank,members_rank,score_rank,score_avg,size_avg,score_avg_rank,size_avg_rank,id FROM alliance_dump WHERE name ILIKE %s AND tick=(SELECT max_tick())"
                 cursor.execute(query,("%"+self.name+"%",))
             pass
         else:
@@ -525,6 +525,10 @@ class alliance(object):
         self.score_avg_rank=a['score_avg_rank']
         self.size_avg_rank=a['size_avg_rank']
         self.id=a['id']
+        self.value=a['total_value']
+        self.value_rank=a['total_value_rank']
+        self.value_avg=a['total_value_avg']
+        self.value_avg_rank=a['total_value_avg_rank']
         return 1
 
 class user(object):
@@ -847,3 +851,4 @@ class booking(object):
             return None
         return None
 
+l

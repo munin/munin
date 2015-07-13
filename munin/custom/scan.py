@@ -381,10 +381,12 @@ class scan(threading.Thread):
         eref = m.group(8)
         reslab = m.group(9)
         finance = m.group(10)
-        security = m.group(11)
-
+        military = m.group(11)
+        security = m.group(12)
+        structuredef = m.group(12)
+        
         args = ()
-        args += (scan_id,lightfactory,medfactory,heavyfactory,waveamp,wavedist,metalref,crystalref,eref,reslab,finance,security)
+        args += (scan_id,lightfactory,medfactory,heavyfactory,waveamp,wavedist,metalref,crystalref,eref,reslab,finance,military,security,structuredef)
 
         m = re.search("""
         <tr><td[^>]*>Space\s+Travel</td><td[^>]*>(\d+)\s*<span[^>]*>[^<]*</span></td></tr>\s*
@@ -408,9 +410,9 @@ class scan(threading.Thread):
 
         query="INSERT INTO development (scan_id,light_factory,medium_factory,heavy_factory"
         query+=",wave_amplifier,wave_distorter,metal_refinery,crystal_refinery,eonium_refinery"
-        query+=",research_lab,finance_centre,security_centre"
+        query+=",research_lab,finance_centre,military_centre,security_centre,structure_defense"
         query+=",travel,infrastructure,hulls,waves,core,covert_op,mining)"
-        query+=" VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        query+=" VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         self.cursor.execute(query,args)
 
         print 'Development: '+x+':'+y+':'+z

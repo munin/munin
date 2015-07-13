@@ -69,9 +69,10 @@ class dev(loadable.loadable):
                 irc_msg.reply("No planet matching '%s' found"%(params,))
                 return 1
 
-            query="SELECT t2.id AS id,t1.tick,nick,scantype,rand_id,travel,infrastructure,hulls,waves,core,covert_op,mining"
-            query+=",light_factory,medium_factory,heavy_factory,wave_amplifier,wave_distorter"
-            query+=",metal_refinery,crystal_refinery,eonium_refinery,research_lab,finance_centre,security_centre"
+            query="SELECT t2.id AS id,t1.tick,nick,scantype,rand_id,travel,infrastructure,hulls,waves,core,covert_op"
+            query+=",mining,light_factory,medium_factory,heavy_factory,wave_amplifier,wave_distorter"
+            query+=",metal_refinery,crystal_refinery,eonium_refinery,research_lab,finance_centre,military_centre"
+            query+=",security_centre,structure_defense"
             query+=" FROM scan AS t1 INNER JOIN development AS t2 ON t1.id=t2.scan_id"
             query+=" WHERE t1.pid=%s ORDER BY t1.tick DESC"
             self.cursor.execute(query,(p.id,))
@@ -91,15 +92,16 @@ class dev(loadable.loadable):
 
 
                 irc_msg.reply(reply)
-                reply="Structures: LFac: %s, MFac: %s, HFac: %s, Amp: %s, Dist: %s, MRef: %s, CRef: %s, ERef: %s, ResLab: %s (%s%%), FC: %s, Sec: %s (%s%%) " % (s['light_factory'],s['medium_factory'],
-                                                                                                                                                       s['heavy_factory'],s['wave_amplifier'],
-                                                                                                                                                       s['wave_distorter'],s['metal_refinery'],
-                                                                                                                                                       s['crystal_refinery'],s['eonium_refinery'],
-                                                                                                                                                       s['research_lab'],
-                                                                                                                                                       int(float(s['research_lab'])/total*100),
-                                                                                                                                                       s['finance_centre'],
-                                                                                                                                                       s['security_centre'],
-                                                                                                                                                       int(float(s['security_centre'])/total*100))
+                reply="Structures: LFac: %s, MFac: %s, HFac: %s, Amp: %s, Dist: %s, MRef: %s, CRef: %s, ERef: %s, ResLab: %s (%s%%), FC: %s, Mil: %s, Sec: %s (%s%%), SD: %s (%s%%) " % (
+                    s['light_factory'], s['medium_factory'],  s['heavy_factory'],
+                    s['wave_amplifier'],s['wave_distorter'],
+                    s['metal_refinery'],s['crystal_refinery'],s['eonium_refinery'],
+                    s['research_lab'],     int(float(s['research_lab'])     /total*100),
+                    s['finance_centre'],
+                    s['military_centre'],
+                    s['security_centre'],  int(float(s['security_centre'])  /total*100),
+                    s['structure_defense'],int(float(s['structure_defense'])/total*100)
+                )
                 i=0
                 reply+=" Older scans: "
                 prev=[]

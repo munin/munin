@@ -366,7 +366,9 @@ class scan(threading.Thread):
             <tr><td[^>]*>Eonium\s+Refinery</td><td[^>]*>(\d*)</td></tr>\s*
             <tr><td[^>]*>Research\s+Laboratory</td><td[^>]*>(\d*)</td></tr>\s*
             <tr><td[^>]*>Finance\s+Centre</td><td[^>]*>(\d*)</td></tr>\s*
+            <tr><td[^>]*>Military\s+Centre</td><td[^>]*>(\d*)</td></tr>
             <tr><td[^>]*>Security\s+Centre</td><td[^>]*>(\d*)</td></tr>
+            <tr><td[^>]*>Structure\s+Defense</td><td[^>]*>(\d*)</td></tr>
             """, page,re.VERBOSE)
 
         lightfactory = m.group(1)

@@ -125,7 +125,7 @@ class loadable(object):
             return None
     def get_total_cons_from_scan(self,cursor,scan_id):
         query="SELECT light_factory+medium_factory+heavy_factory+wave_amplifier+wave_distorter"
-        query+="+metal_refinery+crystal_refinery+eonium_refinery+research_lab+finance_centre+security_centre"
+        query+="+metal_refinery+crystal_refinery+eonium_refinery+research_lab+military_centre+finance_centre+security_centre+structure_defense"
         query+=" AS total FROM development WHERE id=%s"
 
         self.cursor.execute(query,(scan_id,))

@@ -82,7 +82,7 @@ class dev(loadable.loadable):
             else:
                 s=self.cursor.dictfetchone()
 
-                total=self.get_total_cons_from_scan(self.cursor,s['id'])
+                total=max(1,self.get_total_cons_from_scan(self.cursor,s['id']))
 
                 reply+="Newest development scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,p.y,p.z,s['rand_id'],s['tick'])
                 reply+=" Travel: %s, Infrajerome: %s, Hulls: %s, Waves: %s, Core: %s, Covop: %s, Mining: %s"%(s['travel'],self.infra(s['infrastructure']),self.hulls(s['hulls']),

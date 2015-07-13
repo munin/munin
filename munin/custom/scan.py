@@ -366,9 +366,9 @@ class scan(threading.Thread):
             <tr><td[^>]*>Eonium\s+Refinery</td><td[^>]*>(\d*)</td></tr>\s*
             <tr><td[^>]*>Research\s+Laboratory</td><td[^>]*>(\d*)</td></tr>\s*
             <tr><td[^>]*>Finance\s+Centre</td><td[^>]*>(\d*)</td></tr>\s*
-            <tr><td[^>]*>Military\s+Centre</td><td[^>]*>(\d*)</td></tr>
-            <tr><td[^>]*>Security\s+Centre</td><td[^>]*>(\d*)</td></tr>
-            <tr><td[^>]*>Structure\s+Defense</td><td[^>]*>(\d*)</td></tr>
+            <tr><td[^>]*>Military\s+Centre</td><td[^>]*>(\d*)</td></tr>\s*
+            <tr><td[^>]*>Security\s+Centre</td><td[^>]*>(\d*)</td></tr>\s*
+            <tr><td[^>]*>Structure\s+Defence</td><td[^>]*>(\d*)</td></tr>\s*
             """, page,re.VERBOSE)
 
         lightfactory = m.group(1)
@@ -384,7 +384,6 @@ class scan(threading.Thread):
         military = m.group(11)
         security = m.group(12)
         structuredef = m.group(12)
-        
         args = ()
         args += (scan_id,lightfactory,medfactory,heavyfactory,waveamp,wavedist,metalref,crystalref,eref,reslab,finance,military,security,structuredef)
 

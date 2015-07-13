@@ -83,10 +83,10 @@ class afford(loadable.loadable):
             query+=" FROM ship WHERE name ilike %s LIMIT 1"
             self.cursor.execute(query,('%'+ship_name+'%',))
 
-            if self.cursor.rowcount<1:
-                reply="%s is not a ship" % (ship_name,)
+            ship=self.get_ship_from_db(ship_name)
+            if not ship:
+                reply="%s is not a ship" % (ship_name)
             else:
-                ship=self.cursor.dictfetchone()
                 cost_m=ship['metal']
                 cost_c=ship['crystal']
                 cost_e=ship['eonium']

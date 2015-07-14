@@ -107,7 +107,7 @@ class intel(loadable.loadable):
                 if val in self.false:
                     opts[opt] = False
             if opt == "comment":
-                opts[opt] = irc_msg.command.split("comment=")[1]
+                opts[opt] = re.split('comment=', irc_msg.command, flags=re.IGNORECASE)[1]
 
         for k in self.options:
             if not opts.has_key(k):

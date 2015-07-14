@@ -25,6 +25,7 @@ import re
 import threading
 import traceback
 import urllib2
+import dateutil.parser
 
 class scan(threading.Thread):
     def __init__(self, rand_id,client,config,nick,pnick,group_id): # random scan ID, and client for debug ONLY
@@ -48,7 +49,7 @@ class scan(threading.Thread):
         conn=psycopg.connect(dsn)
         conn.autocommit(1)
         return conn
-        
+
     def run(self):
         try:
             self.unsafe_method()
@@ -92,6 +93,10 @@ class scan(threading.Thread):
         y = m.group(3)
         z = m.group(4)
         tick = m.group(5)
+        m = re.search('Scan time: ([^<]+)', page)
+        scan_time=None
+        if m:
+            scan_time=dateutil.parser.parse(m.group(1))
 
         #check to see if we have already added this scan to the database
         p=loadable.planet(x, y, z)
@@ -99,11 +104,11 @@ class scan(threading.Thread):
             #quickly insert the scan incase someone else pastes it :o
             next_id=-1
             nxt_query= "SELECT nextval('scan_id_seq')"
-            query = "INSERT INTO scan (id, tick, pid, nick, pnick, scantype, rand_id, group_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+            query = "INSERT INTO scan (id, tick, pid, nick, pnick, scantype, rand_id, group_id, scan_time) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
             try:
                 self.cursor.execute(nxt_query)
                 next_id=self.cursor.dictfetchone()['nextval']
-                self.cursor.execute(query, (next_id, tick, p.id, self.nick, self.pnick, scantype, self.rand_id, self.group_id))
+                self.cursor.execute(query, (next_id, tick, p.id, self.nick, self.pnick, scantype, self.rand_id, self.group_id, scan_time))
             except psycopg.IntegrityError, e:
                 print "Scan %s may already exist" %(self.rand_id,)
                 print e.__str__()

@@ -261,6 +261,7 @@ CREATE TABLE scan (
 	rand_id VARCHAR(20) NOT NULL,
         group_id VARCHAR(20),
 	scantype VARCHAR(11) NOT NULL CHECK(scantype in ('unknown','planet','development','unit','news','jgp','fleet','au')),
+        scan_time TIMESTAMP WITHOUT TIME ZONE,
 	UNIQUE(rand_id,tick)
 );
 

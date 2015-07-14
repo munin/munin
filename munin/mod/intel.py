@@ -34,6 +34,7 @@ class intel(loadable.loadable):
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,50)
         self.paramre=re.compile(r"^\s+(.*)")
+        self.commentre=re.compile(r"comment=", flags=re.IGNORECASE)
         self.usage=self.__class__.__name__ + " <x:y:z> [option=value]+"
         self.planet_coordre=re.compile(r"(\d+)[. :-](\d+)[. :-](\d+)(.*)")
         self.gal_coordre=re.compile(r"(\d+)[. :-](\d+)")
@@ -107,7 +108,7 @@ class intel(loadable.loadable):
                 if val in self.false:
                     opts[opt] = False
             if opt == "comment":
-                opts[opt] = re.split('comment=', irc_msg.command, flags=re.IGNORECASE)[1]
+                opts[opt] = self.commentre.split(irc_msg.command)[1]
 
         for k in self.options:
             if not opts.has_key(k):

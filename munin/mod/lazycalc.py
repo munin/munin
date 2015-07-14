@@ -82,10 +82,11 @@ class lazycalc(loadable.loadable):
             irc_msg.reply("Get off your ass and give me fresh AUs on: %s" % (reply,))
             return 1
 
-        calc_url=self.create_calc(aus)
+        calc_url=self.create_calc(target,aus)
         # create calc (one AU at a time)
         # link to calc (with caveats)
-        irc_msg.reply("Using ancient intel from %s ago, I found %d fleets AND HERE'S YOUR GOD DAMNED CALC: %s" % (self.age(jgp),len(aus),calc_url))
+        fleet_count=len(aus)-1
+        irc_msg.reply("Using ancient intel from %s ago, I found %d fleet%s AND HERE'S YOUR GOD DAMNED CALC: %s" % (self.age(jgp),fleet_count,"s" if fleet_count > 1 else "",calc_url))
         return 1
 
     def age(self,jgp):
@@ -94,7 +95,7 @@ class lazycalc(loadable.loadable):
         else:
             return "ages"
 
-    def create_calc(self,aus):
+    def create_calc(self,target,aus):
         browser = RoboBrowser(user_agent='a python robot')
         browser.open('https://game.planetarion.com/bcalc.pl')
         for au in aus:
@@ -104,6 +105,7 @@ class lazycalc(loadable.loadable):
             print form
             browser.submit_form(form)
         form = browser.get_form()
+        form['def_metal_asteroids']=target.size
         form['action']='save'
         browser.submit_form(form)
         return browser.url

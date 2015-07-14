@@ -21,7 +21,6 @@ Loadable.Loadable subclass
 
 # This work is Copyright (C)2006 by Andreas Jacobsen
 # Individual portions may be copyright by individual contributors, and
-
 # are included in this collective work with permission of the copyright
 # owners.
 
@@ -36,7 +35,7 @@ class NAMEHERE(loadable.loadable):
         super(self.__class__,self).__init__(cursor,ACCESSLEVELHERE)
         self.paramre=re.compile(r"^\s*(STUFFGOESHERE)")
         self.usage=self.__class__.__name__ + ""
-	self.helptext=None
+        self.helptext=None
 
     def execute(self,user,access,irc_msg):
         m=self.commandre.search(irc_msg.command)

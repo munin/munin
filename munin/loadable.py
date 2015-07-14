@@ -850,5 +850,3 @@ class booking(object):
         else:
             return None
         return None
-
-l

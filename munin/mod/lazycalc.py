@@ -137,13 +137,12 @@ class lazycalc(loadable.loadable):
             val=z.update({"age": 1000})
             print "returning actual value: %s\n" % (val,)
             return val
-        query="SELECT max_tick() - t1.tick AS age,t1.nick,t1.scantype,t1.rand_id,t3.name,t2.amount"
+        query="SELECT max_tick() - t1.tick AS age,t1.rand_id"
         query+=" FROM scan AS t1"
-        query+=" INNER JOIN au AS t2 ON t1.id=t2.scan_id"
-        query+=" INNER JOIN ship AS t3 ON t2.ship_id=t3.id"
-        query+=" WHERE t1.pid=%s AND t1.id=(SELECT id FROM scan WHERE pid=t1.pid"
+        query+=" WHERE t1.pid=%s"
         query+=" AND scantype='au'"
-        query+=" ORDER BY tick DESC LIMIT 1)"
+        query+=" ORDER BY tick DESC LIMIT 1"
+
         self.cursor.execute(query,(p.id,))
         if self.cursor.rowcount < 1:
             val={"age": 1000}

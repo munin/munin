@@ -28,7 +28,19 @@ import re
 import string
 import munin.loadable as loadable
 from robobrowser import RoboBrowser
+import threading
 import datetime
+import time
+
+def timefunc(f):
+    def f_timer(*args, **kwargs):
+        start = time.time()
+        result = f(*args, **kwargs)
+        end = time.time()
+        print f.__name__, 'took', end - start, 'time'
+        return result
+    return f_timer
+
 
 class lazycalc(loadable.loadable):
     """
@@ -39,6 +51,7 @@ class lazycalc(loadable.loadable):
         self.paramre=re.compile(r"^\s*(\d+)[. :-](\d+)[. :-](\d+)\s+(\d+)")
         self.usage=self.__class__.__name__ + " <x:y:z> <eta>"
         self.helptext="Builds a calc for you lazy ass"
+
 
     def execute(self,user,access,irc_msg):
         m=self.commandre.search(irc_msg.command)
@@ -81,37 +94,14 @@ class lazycalc(loadable.loadable):
             reply=string.join(["%s:%s:%s" % (p['x'],p['y'],p['z']) for p in outdated], ", ")
             irc_msg.reply("Get off your ass and give me fresh AUs on: %s" % (reply,))
             return 1
-
-        calc_url=self.create_calc(target,aus)
-        # create calc (one AU at a time)
-        # link to calc (with caveats)
         fleet_count=len(aus)-1
-        irc_msg.reply("Using ancient intel from %s ago, I found %d fleet%s AND HERE'S YOUR GOD DAMNED CALC: %s" % (self.age(jgp),fleet_count,"s" if fleet_count > 1 else "",calc_url))
+        if fleet_count > 10:
+            irc_msg.reply("This is going to take a moment, %s"% (irc_msg.nick,))
+        calc_creator(target,aus,jgp,fleet_count,irc_msg).start()
         return 1
 
-    def age(self,jgp):
-        if len(jgp) > 0 and jgp[0]['scan_time']:
-            return str(datetime.datetime.utcnow() - jgp[0]['scan_time'])
-        else:
-            return "ages"
 
-    def create_calc(self,target,aus):
-        browser = RoboBrowser(user_agent='a python robot')
-        browser.open('https://game.planetarion.com/bcalc.pl')
-        for au in aus:
-            form = browser.get_form()
-            form['scans_area']="http://game.planetarion.com/showscan.pl?scan_id=" + au['rand_id']
-            form['action']='add_att' if au['mission'] == 'attack' else 'add_def'
-            print form
-            browser.submit_form(form)
-        form = browser.get_form()
-        form['def_metal_asteroids']=target.size
-        form['action']='save'
-        browser.submit_form(form)
-        return browser.url
-
-
-
+    @timefunc
     def get_jgp(self,p):
         query="SELECT t3.x,t3.y,t3.z,t1.tick AS tick,t1.nick,t1.scantype,t1.rand_id,t1.scan_time,t2.mission,t2.fleet_size,t2.fleet_name,t2.landing_tick-t1.tick AS eta"
         query+=" FROM scan AS t1"
@@ -129,6 +119,7 @@ class lazycalc(loadable.loadable):
     def get_aus(self,target,planets):
         return [self.get_au(target.x,target.y,target.z,'defend')] + [self.get_au(p['x'],p['y'],p['z'],p['mission']) for p in planets]
 
+    @timefunc
     def get_au(self,x,y,z,mission):
         p=loadable.planet(x=x,y=y,z=z)
         base={"x": x, "y": y, "z": z}
@@ -154,4 +145,48 @@ class lazycalc(loadable.loadable):
         val['mission']=mission
         print "returning actual value: %s\n" % val,
         return val
+
+class calc_creator(threading.Thread):
+    def __init__(self,target,aus,jgp,fleet_count,irc_msg):
+        self.target=target
+        self.aus=aus
+        self.jgp=jgp
+        self.fleet_count=fleet_count
+        self.irc_msg=irc_msg
+        threading.Thread.__init__(self)
+
+    def run(self):
+        try:
+            self.unsafe_method()
+        except Exception, e:
+            irc_msg.reply("Error in module '%s'. Please report the command you used to the bot owner as soon as possible."%(irc_msg.command_name,))
+
+
+    def unsafe_method(self):
+        calc_url=self.create_calc(self.target,self.aus)
+        self.irc_msg.reply("Using ancient intel from %s ago, I found %d fleet%s AND HERE'S YOUR GOD DAMNED CALC: %s" % (self.age(self.jgp),self.fleet_count,"s" if self.fleet_count > 1 else "",calc_url))
+
+    def age(self,jgp):
+        if len(jgp) > 0 and jgp[0]['scan_time']:
+            return str(datetime.datetime.utcnow() - jgp[0]['scan_time'])
+        else:
+            return "ages"
+    @timefunc
+    def create_calc(self,target,aus):
+        browser = RoboBrowser(user_agent='a python robot', history=False)
+        browser.open('https://game.planetarion.com/bcalc.pl')
+        for au in aus:
+            self.add_au(browser,au)
+        form = browser.get_form()
+        form['def_metal_asteroids']=target.size
+        form['action']='save'
+        browser.submit_form(form)
+        return browser.url
+
+    @timefunc
+    def add_au(self,browser,au):
+        form = browser.get_form()
+        form['scans_area']="http://game.planetarion.com/showscan.pl?scan_id=" + au['rand_id']
+        form['action']='add_att' if au['mission'] == 'attack' else 'add_def'
+        browser.submit_form(form)
 

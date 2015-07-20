@@ -51,7 +51,7 @@ class lazycalc(loadable.loadable):
         super(self.__class__,self).__init__(cursor,100)
         self.paramre=re.compile(r"^\s*(\d+)[. :-](\d+)[. :-](\d+)\s+(\d+)")
         self.usage=self.__class__.__name__ + " <x:y:z> <eta>"
-        self.helptext="Builds a calc for you lazy ass"
+        self.helptext=['Builds a calc for your lazy ass']
 
 
     def execute(self,user,access,irc_msg):

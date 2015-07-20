@@ -31,6 +31,7 @@ from robobrowser import RoboBrowser
 import threading
 import datetime
 import time
+import operator
 
 def timefunc(f):
     def f_timer(*args, **kwargs):
@@ -175,7 +176,7 @@ class calc_creator(threading.Thread):
     def create_calc(self,target,aus):
         browser = RoboBrowser(user_agent='a python robot', history=False)
         browser.open('https://game.planetarion.com/bcalc.pl')
-        for au in aus:
+        for au in sorted(aus,key=operator.itemgetter('x','y','z')):
             self.add_au(browser,au)
         form = browser.get_form()
         form['def_metal_asteroids']=target.size

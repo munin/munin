@@ -165,7 +165,7 @@ class calc_creator(threading.Thread):
 
     def unsafe_method(self):
         calc_url=self.create_calc(self.target,self.aus)
-        self.irc_msg.reply("Using ancient intel from %s ago, I found %d fleet%s AND HERE'S YOUR GOD DAMNED CALC: %s" % (self.age(self.jgp),self.fleet_count,"s" if self.fleet_count > 1 else "",calc_url))
+        self.irc_msg.reply("Using ancient intel on %s:%s:%s from %s ago, I found %d fleet%s AND HERE'S YOUR GOD DAMNED CALC: %s" % (self.target.x,self.target.y,self.target.z,self.age(self.jgp),self.fleet_count,"s" if self.fleet_count > 1 else "",calc_url))
 
     def age(self,jgp):
         if len(jgp) > 0 and jgp[0]['scan_time']:

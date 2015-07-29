@@ -68,7 +68,7 @@ class munin(object):
                 print "Exception during command: " + e.__str__()
                 traceback.print_exc()
                 continue
-            
+
 
     def reboot(self):
         print "Rebooting Munin."
@@ -79,7 +79,7 @@ class munin(object):
         router=self.ircu_router.ircu_router(self.client,self.config,self.loader)
         router.run()
 
-    
+
 def run():
     ofile=file("pid.munin", "w")
     ofile.write("%s" % (os.getpid(),))

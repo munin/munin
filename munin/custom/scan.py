@@ -388,7 +388,7 @@ class scan(threading.Thread):
         finance = m.group(10)
         military = m.group(11)
         security = m.group(12)
-        structuredef = m.group(12)
+        structuredef = m.group(13)
         args = ()
         args += (scan_id,lightfactory,medfactory,heavyfactory,waveamp,wavedist,metalref,crystalref,eref,reslab,finance,military,security,structuredef)
 

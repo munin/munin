@@ -217,7 +217,7 @@ class dev(loadable.loadable):
     def covop(self,level):
         if level==0:
             return "Blow up roids"
-        If level==1:
+        if level==1:
             return "Steal agents"
         if level==2:
             return "Steal guards"

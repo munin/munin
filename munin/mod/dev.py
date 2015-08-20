@@ -85,14 +85,16 @@ class dev(loadable.loadable):
                 total=max(1,self.get_total_cons_from_scan(self.cursor,s['id']))
 
                 reply+="Newest development scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,p.y,p.z,s['rand_id'],s['tick'])
-                reply+=" Travel: %s, Infrajerome: %s, Hulls: %s, Waves: %s, Core: %s, Covop: %s, Mining: %s"%(s['travel'],self.infra(s['infrastructure']),self.hulls(s['hulls']),
-                                                                                                              self.waves(s['waves']),s['core'],self.covop(s['covert_op']),
-                                                                                                              self.mining(s['mining']))
+                reply+=" Travel: %s, Infrajerome: %s, Hulls: %s, Waves: %s, Core: %s, Covop: %s, Mining: %s" % (
+                    s['travel'],self.infra(s['infrastructure']),self.hulls(s['hulls']),
+                    self.waves(s['waves']),self.core(s['core']),self.covop(s['covert_op']),
+                    self.mining(s['mining'])
+                )
 
 
 
                 irc_msg.reply(reply)
-                reply="Structures: LFac: %s, MFac: %s, HFac: %s, Amp: %s, Dist: %s, MRef: %s, CRef: %s, ERef: %s, ResLab: %s (%s%%), FC: %s, Mil: %s, Sec: %s (%s%%), SD: %s (%s%%) " % (
+                reply="Structures: LFac: %s, MFac: %s, HFac: %s, Amp: %s, Dist: %s, MRef: %s, CRef: %s, ERef: %s, ResLab: %s (%s%%), FC: %s, Milf: %s, Sec: %s (%s%%), SD: %s (%s%%) " % (
                     s['light_factory'], s['medium_factory'],  s['heavy_factory'],
                     s['wave_amplifier'],s['wave_distorter'],
                     s['metal_refinery'],s['crystal_refinery'],s['eonium_refinery'],
@@ -121,7 +123,8 @@ class dev(loadable.loadable):
             rand_id=m.group(1)
             query="SELECT t2.id AS id,t1.tick,nick,scantype,rand_id,travel,infrastructure,hulls,waves,core,covert_op,mining"
             query+=",light_factory,medium_factory,heavy_factory,wave_amplifier,wave_distorter"
-            query+="+metal_refinery+crystal_refinery+eonium_refinery+research_lab+finance_centre+security_centre"
+            query+=",metal_refinery,crystal_refinery,eonium_refinery,research_lab,finance_centre,military_centre"
+            query+=",security_centre,structure_defense"
             query+=" FROM scan AS t1 INNER JOIN development AS t2 ON t1.id=t2.scan_id"
             query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
             query+=" WHERE t3.tick=(SELECT max_tick()) AND t1.rand_id=%s ORDER BY t1.tick DESC"
@@ -133,26 +136,31 @@ class dev(loadable.loadable):
                 s=self.cursor.dictfetchone()
 
                 query="SELECT light_factory+medium_factory+heavy_factory+wave_amplifier+wave_distorter"
-                query+="+metal_refinery+crystal_refinery+eonium_refinery+research_lab+finance_centre+security_centre"
+                query+="+metal_refinery+crystal_refinery+eonium_refinery+research_lab+finance_centre+military_centre"
+                query+="+security_centre+structure_defense"
                 query+=" AS total FROM development WHERE id=%s"
 
                 self.cursor.execute(query,(s['id'],))
                 total=self.cursor.dictfetchone()['total']
 
                 reply+="Development scan on %s:%s:%s (id: %s, pt: %s)" % (s['x'],s['y'],s['z'],s['rand_id'],s['tick'])
-                reply+=" Travel: %s, Infrajerome: %s, Hulls: %s, Waves: %s, Core: %s, Covop: %s, Mining: %s"%(s['travel'],self.infra(s['infrastructure']),self.hulls(s['hulls']),
-                                                                                                              self.waves(s['waves']),s['core'],self.covop(s['covert_op']),
-                                                                                                              self.mining(s['mining']))
+                reply+=" Travel: -%s, Infrajerome: %s, Hulls: %s, Waves: %s, Core: %s, Covop: %s, Mining: %s" % (
+                    s['travel'],self.infra(s['infrastructure']),self.hulls(s['hulls']),
+                    self.waves(s['waves']),self.core(s['core']),self.covop(s['covert_op']),
+                    self.mining(s['mining'])
+                )
+
                 irc_msg.reply(reply)
-                reply="Surface: LFac: %s, MFac: %s, HFac: %s, Amp: %s, Dist: %s, MRef: %s, CRef: %s, ERef: %s, ResLab: %s (%s%%), FC: %s, Sec: %s (%s%%) " % (s['light_factory'],s['medium_factory'],
-                                                                                                                                                       s['heavy_factory'],s['wave_amplifier'],
-                                                                                                                                                       s['wave_distorter'],s['metal_refinery'],
-                                                                                                                                                       s['crystal_refinery'],s['eonium_refinery'],
-                                                                                                                                                       s['research_lab'],
-                                                                                                                                                       int(float(s['research_lab'])/total*100),
-                                                                                                                                                       s['finance_centre'],
-                                                                                                                                                       s['security_centre'],
-                                                                                                                                                       int(float(s['security_centre'])/total*100))
+                reply="Structures: LFac: %s, MFac: %s, HFac: %s, Amp: %s, Dist: %s, MRef: %s, CRef: %s, ERef: %s, ResLab: %s (%s%%), FC: %s, Milf: %s, Sec: %s (%s%%), SD: %s (%s%%) " % (
+                    s['light_factory'], s['medium_factory'],  s['heavy_factory'],
+                    s['wave_amplifier'],s['wave_distorter'],
+                    s['metal_refinery'],s['crystal_refinery'],s['eonium_refinery'],
+                    s['research_lab'],     int(float(s['research_lab'])     /total*100),
+                    s['finance_centre'],
+                    s['military_centre'],
+                    s['security_centre'],  int(float(s['security_centre'])  /total*100),
+                    s['structure_defense'],int(float(s['structure_defense'])/total*100)
+                )
 
         irc_msg.reply(reply)
 
@@ -182,73 +190,84 @@ class dev(loadable.loadable):
         if level==0:
             return "Planet"
         if level==1:
-            return "Surface"
+            return "Landing"
         if level==2:
-            return "Technology"
+            return "Development"
         if level==3:
             return "Unit"
         if level==4:
             return "News"
         if level==5:
-            return "Fleet"
+            return "Incoming"
         if level==6:
             return "JGP"
         if level==7:
             return "Advanced Unit"
 
+    def core(self,level):
+        if level==0:
+            return "1000 per tick"
+        if level==1:
+            return "4000 per tick"
+        if level==2:
+            return "15000 per tick"
+        if level==3:
+            return "25000 per tick"
+
     def covop(self,level):
         if level==0:
-            return "Research Hack"
-        if level==1:
-            return "Raise Stealth"
-        if level==2:
             return "Blow up roids"
+        If level==1:
+            return "Steal agents"
+        if level==2:
+            return "Steal guards"
         if level==3:
-            return "Blow up shits"
+            return "Steal research"
         if level==4:
-            return "Blow up Amps/Dists"
+            return "Steal shits"
         if level==5:
-            return "Resource hacking (OMG!)"
+            return "Blow up amps & dists"
         if level==6:
-            return "Blow up Strucs"
+            return "DEMOLITION MAN"
+        if level==7:
+            return "Resource hacking (OMG)"
+        if level==8:
+            return "Anarchy in the UK!"
 
 
     def mining(self,level):
-        level+=1
-
         if level==0:
-            return "50 roids"
-        if level==1:
             return "100 roids (scanner!)"
-        if level==2:
+        if level==1:
             return "200 roids"
-        if level==3:
+        if level==2:
             return "300 roids"
-        if level==4:
+        if level==3:
             return "500 roids"
-        if level==5:
+        if level==4:
             return "750 roids"
+        if level==5:
+            return "1000 roids"
         if level==6:
-            return "1k roids"
-        if level==7:
             return "1250 roids"
-        if level==8:
+        if level==7:
             return "1500 roids"
-        if level==9:
+        if level==8:
             return "Jan 1. 1900"
-        if level==10:
+        if level==9:
             return "2500 roids"
-        if level==11:
+        if level==10:
             return "3000 roids"
-        if level==12:
+        if level==11:
             return "3500 roids"
-        if level==13:
+        if level==12:
             return "4500 roids"
-        if level==14:
+        if level==13:
             return "5500 roids"
-        if level==15:
+        if level==14:
             return "6500 roids"
-        if level==16:
+        if level==15:
             return "8000 roids"
-        if level==17:
+        if level==16:
             return "top10 or dumb"
+

@@ -121,8 +121,8 @@ class dev(loadable.loadable):
                 return 0
 
             rand_id=m.group(1)
-            query="SELECT t2.id AS id,t1.tick,nick,scantype,rand_id,travel,infrastructure,hulls,waves,core,covert_op,mining"
-            query+=",light_factory,medium_factory,heavy_factory,wave_amplifier,wave_distorter"
+            query="SELECT t2.id AS id,x,y,z,t1.tick,nick,scantype,rand_id,travel,infrastructure,hulls,waves,core,covert_op"
+            query+=",mining,light_factory,medium_factory,heavy_factory,wave_amplifier,wave_distorter"
             query+=",metal_refinery,crystal_refinery,eonium_refinery,research_lab,finance_centre,military_centre"
             query+=",security_centre,structure_defense"
             query+=" FROM scan AS t1 INNER JOIN development AS t2 ON t1.id=t2.scan_id"
@@ -135,13 +135,12 @@ class dev(loadable.loadable):
             else:
                 s=self.cursor.dictfetchone()
 
-                query="SELECT light_factory+medium_factory+heavy_factory+wave_amplifier+wave_distorter"
-                query+="+metal_refinery+crystal_refinery+eonium_refinery+research_lab+finance_centre+military_centre"
-                query+="+security_centre+structure_defense"
-                query+=" AS total FROM development WHERE id=%s"
-
-                self.cursor.execute(query,(s['id'],))
-                total=self.cursor.dictfetchone()['total']
+                total=(s['light_factory']+s['medium_factory']+s['heavy_factory']+
+                       s['wave_amplifier']+s['wave_distorter']+
+                       s['metal_refinery']+s['crystal_refinery']+s['eonium_refinery']+
+                       s['research_lab']+s['structure_defense']
+                       s['finance_centre']+s['military_centre']+s['security_centre']
+                )
 
                 reply+="Development scan on %s:%s:%s (id: %s, pt: %s)" % (s['x'],s['y'],s['z'],s['rand_id'],s['tick'])
                 reply+=" Travel: -%s, Infrajerome: %s, Hulls: %s, Waves: %s, Core: %s, Covop: %s, Mining: %s" % (

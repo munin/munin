@@ -57,7 +57,7 @@ class exile(loadable.loadable):
         # do stuff here
 	query = "SELECT planets,count(*) AS count FROM "
 	query+= " (SELECT  x AS x,y AS y,count(*) AS planets from planet_dump"
-	query+= " WHERE tick = (SELECT max_tick()) AND x < 200"
+	query+= " WHERE tick = (SELECT max_tick()) AND x < 200 AND NOT (x = 1 AND y = 1)"
 	query+= " GROUP BY x,y ORDER BY count(*) DESC) AS foo"
 	query+= " GROUP BY planets ORDER BY planets ASC"
 

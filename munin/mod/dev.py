@@ -138,7 +138,7 @@ class dev(loadable.loadable):
                 total=(s['light_factory']+s['medium_factory']+s['heavy_factory']+
                        s['wave_amplifier']+s['wave_distorter']+
                        s['metal_refinery']+s['crystal_refinery']+s['eonium_refinery']+
-                       s['research_lab']+s['structure_defense']
+                       s['research_lab']+s['structure_defense']+
                        s['finance_centre']+s['military_centre']+s['security_centre']
                 )
 

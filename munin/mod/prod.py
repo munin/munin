@@ -20,13 +20,13 @@ class prod(loadable.loadable):
     def __init__(self,cursor):
 
         super(self.__class__,self).__init__(cursor,1)
-        self.paramre = re.compile(r"^\s+(\d+(?:\.\d+)?[mk]?)\s+(\S+)\s+(\d+)")
+        self.paramre = re.compile(r"^\s+(\d+(?:\.\d+)?[mk]?)\s+(\S+)\s+(\d+)\s+(\d+)")
         self.usage = (self.__class__.__name__ +
-                      " <number> <shipname> <factories>")
+                      " <number> <shipname> <factories> [population]")
 
         self.helptext = ["Calculate the amount of time"
                          " it will take to prod <n>"
-                         " <ship> with <factories>."]
+                         " <ship> with <factories> and <population>."]
 
     def execute(self,user,access,irc_msg):
 
@@ -47,6 +47,7 @@ class prod(loadable.loadable):
         number = match.group(1)
         shipname = match.group(2)
         factories = match.group(3)
+        population = min(match.group(4) or 0, 60)
 
         if number[-1].lower() == 'k':
             number = float(number[:-1]) * 1000
@@ -67,13 +68,14 @@ class prod(loadable.loadable):
 
         cost = number * ship['total_cost']
         base_required = 2 * math.sqrt(cost) * self.ln(cost)
-        output = int((4000 * factories) ** 0.98)
+        output = int((4000 * factories) ** 0.98 * (1 + population/100))
 
-        reply = "Producing %s %s (%s) with %d factories takes " % (
+        reply = "Producing %s %s (%s) with %d factories and %d population takes " % (
             self.format_value(number * 100),
             ship['name'],
             self.format_value(ship['total_cost'] * number),
-            factories)
+            factories,
+            population)
 
         # All governments can have their own production speed. Corporatism:
         corp_speed = 1-float(self.config.get('Planetarion', 'corporatism_prod_speed'))

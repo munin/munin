@@ -20,7 +20,7 @@ class prod(loadable.loadable):
     def __init__(self,cursor):
 
         super(self.__class__,self).__init__(cursor,1)
-        self.paramre = re.compile(r"^\s+(\d+(?:\.\d+)?[mk]?)\s+(\S+)\s+(\d+)\s+(\d+)")
+        self.paramre = re.compile(r"^\s+(\d+(?:\.\d+)?[mk]?)\s+(\S+)\s+(\d+)(?:\s+(\d+))?")
         self.usage = (self.__class__.__name__ +
                       " <number> <shipname> <factories> [population]")
 
@@ -37,7 +37,7 @@ class prod(loadable.loadable):
         match = self.paramre.search(match.group(1))
 
         if not match:
-            irc_msg.reply("Usage: %s, production time of n ships with n factories." % self.usage)
+            irc_msg.reply("Usage: %s, production time of n ships with n factories and n population." % self.usage)
             return 0
 
         if access < self.level:

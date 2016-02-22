@@ -47,7 +47,7 @@ class prod(loadable.loadable):
         number = match.group(1)
         shipname = match.group(2)
         factories = match.group(3)
-        population = min(int(match.group(4)) or 0, 60)
+        population = min(int(match.group(4) or 0), 60)
 
         if number[-1].lower() == 'k':
             number = float(number[:-1]) * 1000

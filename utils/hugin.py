@@ -153,7 +153,8 @@ while True:
          size integer NOT NULL,
          score integer NOT NULL,
          value integer NOT NULL,
-         xp integer NOT NULL
+         xp integer NOT NULL,
+         special varchar(10) NOT NULL
          )
         """ % (ptmp,)
         cursor.execute(query)

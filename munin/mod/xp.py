@@ -100,9 +100,8 @@ class xp(loadable.loadable):
             reply+="will earn %s:%s:%s (%s|%s) "%(attacker.x,attacker.y,attacker.z,
                                                self.format_value(attacker_val*100),self.format_value(attacker_score*100))
 
-            bravery = max(0,(min(2,float(victim_val)/attacker_val)-0.1 ) * (min(2,float(victim_score)/attacker_score)-0.2))
-            bravery *= 10
-            xp=int(bravery*roid_count)
+            bravery = max(0.2, min(1.8, float(victim_val)/attacker_val) - 0.1) * max(0.2, min(2.2,float(victim_score)/attacker_score) - 0.2) / ((6 + max(4, float(attacker_score)/attacker_value)) / 10)
+            xp=int(10*bravery*roid_count)
 
             reply+="XP: %s, Score: %s (Bravery: %.2f)" % (xp,xp*60,bravery)
             irc_msg.reply(reply)

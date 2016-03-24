@@ -400,7 +400,7 @@ class planet(object):
         return int(bravery*int(victim.size*self.cap_rate(victim)))
 
     def bravery(self,victim):
-        return max(0,(min(2,float(victim.value)/self.value)-0.1 ) * (min(2,float(victim.score)/self.score)-0.2))*10
+        return max(0.2, min(1.8, float(victim.value)/self.value) - 0.1) * max(0.2, min(2.2,float(victim.score)/self.score) - 0.2) / ((6 + max(4, float(self.score)/self.value)) / 10) * 10
     def cap_rate(self,victim):
         modifier=(float(victim.value)/float(self.value))**0.5
         return max(.15,min(.25*modifier,.25))

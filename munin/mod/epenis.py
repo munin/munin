@@ -80,14 +80,12 @@ class epenis(loadable.loadable):
         query+=" LEFT JOIN user_list AS t4 ON t1.id=t4.planet_id"
         query+=" INNER JOIN planet_dump AS t5"
         query+=" ON t1.id=t5.id AND t1.tick - 72 = t5.tick"
-        query+=" LEFT JOIN alliance_canon AS t6 ON t2.alliance_id=t6.id"
         query+=" WHERE t1.tick = (select max(tick) from updates)"
-        query+=" AND t6.name ILIKE %s"
         query+=" ORDER BY xp_gain DESC) AS t6"
         query+=" ORDER BY value_diff DESC) AS t7"
         query+=" ORDER BY activity DESC) AS t8)"
 
-        self.cursor.execute(query, (self.config.get('Auth', 'alliance'),))
+        self.cursor.execute(query,)
 
         query="SELECT nick,pnick,xp_gain,activity,value_diff,xp_gain_rank,value_diff_rank,activity_rank"
         query+=" FROM epenis"
@@ -106,8 +104,7 @@ class epenis(loadable.loadable):
             reply="No epenis stats matching %s"% (search,)
         else:
             person=res['pnick'] or res['nick']
-            reply ="epenis for %s is %s score long. This makes %s rank: %s for epenis in %s!" % (person,res['activity'],person,res['activity_rank'],
-                                                                                                 self.config.get('Auth', 'alliance'))
+            reply ="epenis for %s is %s score long. This makes %s rank: %s for epenis in THE UNIVERSE!" % (person,res['activity'],person,res['activity_rank'])
 
         irc_msg.reply(reply)
 

@@ -71,7 +71,7 @@ class bigdicks(loadable.loadable):
         query+=" (SELECT *,nextval('activity_rank') AS activity_rank"
         query+=" FROM (SELECT  *,nextval('value_diff_rank') AS value_diff_rank"
         query+=" FROM (SELECT *,nextval('xp_gain_rank') AS xp_gain_rank"
-        query+=" FROM (SELECT t2.nick, t4.pnick ,t1.xp-t5.xp AS xp_gain, t1.score-t5.score AS activity, t1.value-t5.value AS value_diff"
+        query+=" FROM (SELECT t1.x,t1.y,t1.z,t2.nick, t4.pnick ,t1.xp-t5.xp AS xp_gain, t1.score-t5.score AS activity, t1.value-t5.value AS value_diff"
         query+=" FROM planet_dump AS t1"
         query+=" INNER JOIN intel AS t2 ON t1.id=t2.pid"
         query+=" LEFT JOIN user_list AS t4 ON t2.pid=t4.planet_id"
@@ -84,7 +84,7 @@ class bigdicks(loadable.loadable):
 
         self.cursor.execute(query)
 
-        query="SELECT pnick,nick,xp_gain,activity,value_diff,xp_gain_rank,value_diff_rank,activity_rank"
+        query="SELECT x,y,z,pnick,nick,xp_gain,activity,value_diff,xp_gain_rank,value_diff_rank,activity_rank"
         query+=" FROM epenis"
         query+=" WHERE activity_rank < 6"
 
@@ -100,7 +100,7 @@ class bigdicks(loadable.loadable):
         reply="Big dicks:"
         prev=[]
         for b in self.cursor.dictfetchall():
-            prev.append("%d:%s (%s)"%(b['activity_rank'],b['pnick'] or b['nick'],self.format_value(b['activity']*100)))
+            prev.append("%d:%s (%s)"%(b['activity_rank'],b['pnick'] or b['nick'] or ("["+str(b['x'])+":"+str(b['y'])+":"+str(b['z'])+"]"),self.format_value(b['activity']*100)))
         reply+=" "+string.join(prev,', ')
 
         irc_msg.reply(reply)

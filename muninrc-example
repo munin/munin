@@ -37,8 +37,10 @@ user: MrPresident
 #host: whitehouse.gov
 [Alliance]
 # This section determines alliance policy stuff.
-# cookies_per_day: how many cookies should the bot give out every day?
-cookies_per_day: 10000000
+# cookies_per_day: how many cookies should the bot give out every day? Maximum
+# value: 32767.
+cookies_per_day: 32767
+# Maximum number of people who can be members of the alliance at the same time.
 member_limit: 100
 
 [Url]

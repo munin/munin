@@ -16,15 +16,15 @@ INSERT INTO updates VALUES (-1,-1,-1,-1,-1);
 
 CREATE TABLE planet_canon (
 id serial,
-planetname varchar(20) NOT NULL,
-rulername varchar(30) NOT NULL,
+uid varchar(12) UNIQUE,
 active boolean NOT NULL DEFAULT TRUE,
 PRIMARY KEY(id),
-UNIQUE (rulername,planetname)
+UNIQUE (uid)
 );
 
 CREATE TABLE planet_dump (
 tick smallint REFERENCES updates (tick),
+uid varchar(12),
 x smallint,
 y smallint,
 z smallint,
@@ -43,7 +43,7 @@ idle smallint NOT NULL DEFAULT 0,
 vdiff integer NOT NULL DEFAULT 0,
 id integer NOT NULL REFERENCES planet_canon(id),
 PRIMARY KEY(tick, x, y, z),
-FOREIGN KEY(rulername,planetname) REFERENCES planet_canon (rulername,planetname)
+FOREIGN KEY(uid) REFERENCES planet_canon (uid)
 );
 
 CREATE TABLE galaxy_canon (
@@ -478,12 +478,12 @@ DECLARE
 r RECORD;
 BEGIN
 -- deactive missing
-UPDATE planet_canon SET active=FALSE WHERE ROW(rulername,planetname) NOT IN (SELECT rulername,planetname FROM ptmp);
+UPDATE planet_canon SET active=FALSE WHERE ROW(uid) NOT IN (SELECT uid FROM ptmp);
 -- insert new into canonical and update IDs
-INSERT INTO planet_canon (rulername,planetname) SELECT t1.rulername,t1.planetname FROM ptmp AS t1 WHERE ROW(t1.rulername,t1.planetname) NOT IN (SELECT rulername,planetname FROM planet_canon);
+INSERT INTO planet_canon (uid) SELECT t1.uid FROM ptmp AS t1 WHERE ROW(t1.uid) NOT IN (SELECT uid FROM planet_canon);
 -- insert IDs for existing
 ALTER TABLE ptmp ADD COLUMN id integer DEFAULT -1;
-UPDATE ptmp SET id=t1.id FROM planet_canon AS t1 WHERE ptmp.rulername=t1.rulername AND ptmp.planetname=t1.planetname;
+UPDATE ptmp SET id=t1.id FROM planet_canon AS t1 WHERE ptmp.uid=t1.uid;
 CREATE INDEX ptmp_id_index ON ptmp(id);
 ANALYZE ptmp;
 END

@@ -144,6 +144,7 @@ while True:
 
         query="""
         CREATE TEMP TABLE %s (
+         uid varchar(12) NOT NULL,
          x smallint,
          y smallint,
          z smallint,
@@ -214,11 +215,6 @@ while True:
             t1=time.time()
 
 
-            #query="SELECT * FROM %s" % (ptmp,)
-            #cursor.execute(query)
-            #for result in cursor.dictfetchall():
-            #    print result
-
             query="SELECT store_galaxies(%s::smallint)"
             cursor.execute(query,(galaxy_tick,))
             t2=time.time()-t1
@@ -226,13 +222,14 @@ while True:
             t1=time.time()
 
             query="SELECT store_alliances(%s::smallint)"
-            cursor.execute(query,(alliance_tick,))    
+            cursor.execute(query,(alliance_tick,))
             t2=time.time()-t1
             print "Processed and inserted alliance dumps in %.3f seconds" % (t2,)
             t1=time.time()
 
         except psycopg.IntegrityError:
-            raise Exception("IntegrityError on dump inserts. Tick number has already been validated above, so that means something else is not unique on PA's end that should be and PA team fucked up again. Go and whine in #support.")
+            raise
+        #raise Exception("IntegrityError on dump inserts. Tick number has already been validated above, so that means something else is not unique on PA's end that should be and PA team fucked up again. Go and whine in #support.")
 
         conn.commit()
         break

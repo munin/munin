@@ -395,9 +395,10 @@ class planet(object):
         self.id=p['id']
         return 1
 
-    def calc_xp(self,victim):
+    def calc_xp(self,victim,mcs=0):
         bravery = self.bravery(victim)
-        return int(bravery*int(victim.size*self.cap_rate(victim)))
+        bonus = 1.0 + 0.005 * float(mcs)
+        return int(bravery*bonus*int(victim.size*self.cap_rate(victim)))
 
     def bravery(self,victim):
         return max(0.2, min(1.8, float(victim.value)/self.value) - 0.1) * max(0.2, min(2.2,float(victim.score)/self.score) - 0.2) / ((6 + max(4, float(self.score)/self.value)) / 10) * 10

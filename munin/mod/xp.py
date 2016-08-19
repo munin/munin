@@ -32,9 +32,8 @@ from munin import loadable
 class xp(loadable.loadable):
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,1)
-        self.paramre=re.compile(r"^\s+(.*)")
-        self.countre=re.compile(r"^(\d+)(\.|-|:|\s*)(.*)")
-        self.usage=self.__class__.__name__ + " <x:y:z> <a:b:c>"
+        self.paramre=re.compile(r"^\s+(\d+)[.-:\s](\d+)[.-:\s](\d+)(?:\s+(\d+)[.-:\s](\d+)[.-:\s](\d+))?(?:\s+(\d+))?")
+        self.usage=self.__class__.__name__ + " <defender coords> [attacker coords] [MCs]"
 
     def execute(self,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
@@ -46,84 +45,53 @@ class xp(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        params=m.group(1)
-
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        roid_count = -1
-
         victim = None
         attacker = None
+        mcs = 0
 
-        m=self.planet_coordre.search(params)
-        if m:
-            victim = loadable.planet(x=m.group(1),y=m.group(2),z=m.group(3))
-            if not victim.load_most_recent(self.cursor):
-                irc_msg.reply("%s:%s:%s is not a valid planet" % (victim.x,victim.y,victim.z))
-                return 1
-            params=params[m.end():]
-
-        m=self.planet_coordre.search(params)
-        if m:
-            attacker = loadable.planet(x=m.group(1),y=m.group(2),z=m.group(3))
-            if not attacker.load_most_recent(self.cursor):
-                irc_msg.reply("%s:%s:%s is not a valid planet" % (attacker.x,attacker.y,attacker.z))
-                return 1
-            params=params[m.end():]
+        victim = loadable.planet(x=m.group(1),y=m.group(2),z=m.group(3))
+        if not victim.load_most_recent(self.cursor):
+            irc_msg.reply("%s:%s:%s is not a valid planet" % (victim.x,victim.y,victim.z))
+            return 1
 
         if not victim:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 1
 
-        if victim and not attacker:
+        if m.lastindex >= 6 and m.group(4) and m.group(5) and m.group(6):
+            attacker = loadable.planet(x=m.group(4),y=m.group(5),z=m.group(6))
+            if not attacker.load_most_recent(self.cursor):
+                irc_msg.reply("%s:%s:%s is not a valid planet" % (attacker.x,attacker.y,attacker.z))
+                return 1
+        if not attacker:
             u=loadable.user(pnick=irc_msg.user)
             if not u.load_from_db(self.cursor):
-		irc_msg.reply("You must be registered to use the automatic "+self.__class__.__name__+" command (log in with P and set mode +x, then make sure your planet is set with the pref command)")
+                irc_msg.reply("You must be registered to use the automatic "+self.__class__.__name__+" command (log in with P and set mode +x, then make sure your planet is set with the pref command)")
                 return 1
             if u.planet_id:
                 attacker = u.planet
             else:
-                irc_msg.reply("Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
+                irc_msg.reply("Usage: %s (make sure your planet is set with the pref command)" % (self.usage,))
                 return 1
 
-        if roid_count > -1:
-            reply="Capturing %s roids " % (roid_count,)
-            victim_val = victim.value
-            victim_score = victim.score
-            reply+="from %s:%s:%s (%s|%s) "%(victim.x,victim.y,victim.z,
-                                          self.format_value(victim_val*100),self.format_value(victim_score*100))
+        if m.lastindex == 7:
+            mcs = int(m.group(7))
 
-            attacker_val = attacker.value
-            attacker_score = attacker.score
-            reply+="will earn %s:%s:%s (%s|%s) "%(attacker.x,attacker.y,attacker.z,
-                                               self.format_value(attacker_val*100),self.format_value(attacker_score*100))
+        reply="Target %s:%s:%s (%s|%s) "%(victim.x,victim.y,victim.z,
+                                          self.format_value(victim.value*100),self.format_value(victim.score*100))
+        reply+="| Attacker %s:%s:%s (%s|%s) "%(attacker.x,attacker.y,attacker.z,
+                                               self.format_value(attacker.value*100),self.format_value(attacker.score*100))
 
-            bravery = 10*max(0.2, min(1.8, float(victim_val)/attacker_val) - 0.1) * max(0.2, min(2.2,float(victim_score)/attacker_score) - 0.2) / ((6 + max(4, float(attacker_score)/attacker_value)) / 10)
-            xp=int(bravery*roid_count)
+        bravery = attacker.bravery(victim)
+        cap = int(attacker.cap_rate(victim)*victim.size)
+        xp = int(attacker.calc_xp(victim, mcs))
+        score = self.format_value(100 * 60 * xp)
 
-            reply+="XP: %s, Score: %s (Bravery: %.2f)" % (xp,xp*60,bravery)
-            irc_msg .reply(reply)
-        else:
-            reply="Target "
-            victim_val = victim.value
-            attacker_val = attacker.value
-            victim_score = victim.score
-            attacker_score = attacker.score
-
-            reply+="%s:%s:%s (%s|%s) "%(victim.x,victim.y,victim.z,
-                                     self.format_value(victim_val*100),self.format_value(victim_score*100))
-            reply+="| Attacker %s:%s:%s (%s|%s) "%(attacker.x,attacker.y,attacker.z,
-                                                self.format_value(attacker_val*100),self.format_value(attacker_score*100))
-
-            bravery=attacker.bravery(victim)
-
-            reply+="| Bravery: %.2f " % (bravery,)
-
-            cap=int(attacker.cap_rate(victim)*victim.size)
-            xp=attacker.calc_xp(victim)
-            reply+="| Roids: %s | XP: %s | Score: %s" % (cap,xp,xp*60)
-            irc_msg.reply(reply)
+        reply+="| Bravery: %.2f | Cap: %d | MCs: %d | XP: %d | Score: %s" % (bravery,cap,mcs,xp,score)
+        irc_msg.reply(reply)
 
         return 1

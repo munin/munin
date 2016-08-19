@@ -66,6 +66,13 @@ socialism_prod_speed: 0.1
 totalitarianism_prod_speed: -0.1
 anarchy_prod_speed: -0.2
 
+# Salvage bonus. 0.1 is 10% more. -0.1 is 10% less.
+ter_salvage_bonus: 0.0
+cat_salvage_bonus: 0.4
+xan_salvage_bonus: 0.0
+zik_salvage_bonus: 0.0
+etd_salvage_bonus: 0.0
+
 [clickatell]
 user: username
 pass: password

@@ -175,7 +175,9 @@ class dev(loadable.loadable):
         if level==3:
             return "150 constructions"
         if level==4:
-            return "250 constructions"
+            return "200 constructions"
+        if level==5:
+            return "300 constructions"
 
     def hulls(self,level):
         if level==1:
@@ -209,8 +211,10 @@ class dev(loadable.loadable):
         if level==1:
             return "4000 per tick"
         if level==2:
-            return "15000 per tick"
+            return "8000 per tick"
         if level==3:
+            return "15000 per tick"
+        if level==4:
             return "25000 per tick"
 
     def covop(self,level):

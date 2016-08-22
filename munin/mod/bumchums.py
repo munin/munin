@@ -75,6 +75,7 @@ class bumchums(loadable.loadable):
         query+=" AND t3.name ilike %s"
         query+=" GROUP BY x,y"
         query+=" HAVING count(*) >= %s"
+        query+=" ORDER BY bums DESC, x ASC, y ASC"
 
         # do stuff here
 

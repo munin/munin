@@ -68,7 +68,7 @@ class prod(loadable.loadable):
 
         cost = number * ship['total_cost']
         base_required = 2 * math.sqrt(cost) * self.ln(cost)
-        output = int((4000 * factories) ** 0.98 * (1 + population/100))
+        output = int((4000 * factories) ** 0.98 * (1 + population/100.0))
 
         reply = "Producing %s %s (%s) with %d factories and %d population takes " % (
             self.format_value(number * 100),

@@ -94,28 +94,42 @@ class afford(loadable.loadable):
                 class_factory_table = {'Fighter': 'factory_usage_light', 'Corvette': 'factory_usage_light', 'Frigate': 'factory_usage_medium',
                                        'Destroyer': 'factory_usage_medium', 'Cruiser': 'factory_usage_heavy', 'Battleship': 'factory_usage_heavy'}
                 prod_modifier_table = {'None': 0, 'Low': 33, 'Medium': 66, 'High': 100}
-                
+
                 capped_number=min(res_m/cost_m, res_c/cost_c, res_e/cost_e)
                 overflow=res_m+res_c+res_e-(capped_number*(cost_m+cost_c+cost_e))
                 buildable = capped_number + ((overflow*.95)/total_cost)
 
-
                 demo_modifier=1/(1-float(self.config.get('Planetarion', 'democracy_cost_reduction')))
                 tota_modifier=1/(1-float(self.config.get('Planetarion', 'totalitarianism_cost_reduction')))
-                reply+="Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,p.y,p.z,rand_id,tick)
-                reply+=" can purchase %s: %s | Democracy: %s | Totalitarianism: %s"%(ship['name'],
-                                                                                     int(buildable),
-                                                                                     int(buildable*demo_modifier), 
-                                                                                     int(buildable*tota_modifier))
+                reply="Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,p.y,p.z,rand_id,tick)
 
-                if prod_res > 0:
+                buildable_from_prod=0
+
+                if prod_res == 0:
+                    reply+=" has nothing in production. Can afford from stockpile:"
+                else:
                     factory_usage=s[class_factory_table[ship['class']]]
                     max_prod_modifier=prod_modifier_table[factory_usage]
-                    buildable_from_prod = buildable + max_prod_modifier*(prod_res)/100/total_cost
-                    reply+=" Counting %d res in prod at %s usage:" % (prod_res,factory_usage)
-                    reply+=" %s | Democracy: %s | Totalitarianism: %s"%(int(buildable_from_prod), 
-                                                                        int(buildable_from_prod*demo_modifier),
-                                                                        int(buildable_from_prod*tota_modifier))
+                    if max_prod_modifier == 0:
+                        reply+=" only has production in wrong factory type(s). Can afford from stockpile:"
+                    else:
+                        buildable_from_prod = max_prod_modifier*prod_res/100/total_cost
+
+                        reply+=" has %d res in production at %s usage: %s: %d | Democracy: %d | Totalitarianism: %d. Counting stockpile:" % (
+                            prod_res,
+                            factory_usage,
+                            ship['name'],
+                            int(buildable_from_prod),
+                            int(buildable_from_prod*demo_modifier),
+                            int(buildable_from_prod*tota_modifier)
+                        )
+
+                reply+= " %s: %d | Democracy: %d | Totalitarianism: %d" % (
+                    ship['name'],
+                    int(buildable_from_prod + buildable),
+                    int((buildable_from_prod + buildable) * demo_modifier),
+                    int((buildable_from_prod + buildable) * demo_modifier),
+                )
 
         irc_msg.reply(reply)
         return 1

@@ -176,8 +176,13 @@ class calc_creator(threading.Thread):
     def create_calc(self,target,aus):
         browser = RoboBrowser(user_agent='a python robot', history=False)
         browser.open('https://game.planetarion.com/bcalc.pl')
+        t = filter(lambda a: target.x == a['x'] and target.y == a['y'] and target.z == a['z'],
+                   aus)
+        if len(t) == 1:
+            self.add_au(browser,t[0])
         for au in sorted(aus,key=operator.itemgetter('x','y','z')):
-            self.add_au(browser,au)
+            if len(t) != 1 or target.x != au['x'] or target.y != au['y'] or target.z != au['z']:
+                self.add_au(browser,au)
         form = browser.get_form()
         form['def_metal_asteroids']=target.size
         form['action']='save'

@@ -30,6 +30,7 @@ import re
 import traceback
 import urllib2
 import StringIO
+import sys
 
 config = ConfigParser.ConfigParser()
 if not config.read("muninrc"):
@@ -63,33 +64,59 @@ while True:
         if not last_tick:
             last_tick = -1
 
-        try:
-            req = urllib2.Request(config.get("Url", "planetlist"))
-            req.add_header('User-Agent',useragent)
-            planets = urllib2.urlopen(req)
-        except Exception, e:
-            print "Failed gathering planet listing."
-            print e.__str__()
-            time.sleep(300)
-            continue
-        try:
-            req = urllib2.Request(config.get("Url", "galaxylist"))
-            req.add_header('User-Agent',useragent)
-            galaxies = urllib2.urlopen(req)
-        except Exception, e:
-            print "Failed gathering galaxy listing."
-            print e.__str__()
-            time.sleep(300)
-            continue
-        try:
-            req = urllib2.Request(config.get("Url", "alliancelist"))
-            req.add_header('User-Agent',useragent)
-            alliances = urllib2.urlopen(req)
-        except Exception, e:
-            print "Failed gathering alliance listing."
-            print e.__str__()
-            time.sleep(300)
-            continue
+        from_web = False
+
+        if len(sys.argv) == 4:
+            try:
+                planets = open(sys.argv[1], 'r')
+            except Exception, e:
+                print "Failed to open planet listing."
+                print e.__str__()
+                exit(1)
+            try:
+                galaxies = open(sys.argv[2], 'r')
+            except Exception, e:
+                print "Failed to open galaxy listing."
+                print e.__str__()
+                exit(1)
+            try:
+                alliances = open(sys.argv[3], 'r')
+            except Exception, e:
+                print "Failed to open alliance listing."
+                print e.__str__()
+                exit(1)
+        elif len(sys.argv) == 1:
+            from_web = True
+            try:
+                req = urllib2.Request(config.get("Url", "planetlist"))
+                req.add_header('User-Agent',useragent)
+                planets = urllib2.urlopen(req)
+            except Exception, e:
+                print "Failed gathering planet listing."
+                print e.__str__()
+                time.sleep(300)
+                continue
+            try:
+                req = urllib2.Request(config.get("Url", "galaxylist"))
+                req.add_header('User-Agent',useragent)
+                galaxies = urllib2.urlopen(req)
+            except Exception, e:
+                print "Failed gathering galaxy listing."
+                print e.__str__()
+                time.sleep(300)
+                continue
+            try:
+                req = urllib2.Request(config.get("Url", "alliancelist"))
+                req.add_header('User-Agent',useragent)
+                alliances = urllib2.urlopen(req)
+            except Exception, e:
+                print "Failed gathering alliance listing."
+                print e.__str__()
+                time.sleep(300)
+                continue
+        else:
+            print "Expected 0 (get the dumps for most recent tick from the web) or 3 (read planet, galaxy, alliance dumps from file) arguments, but got %d! Exiting." % (len(sys.argv))
+            exit(1)
 
         planets.readline();planets.readline();planets.readline();
         tick=planets.readline()
@@ -130,12 +157,18 @@ while True:
             time.sleep(30)
             continue
         if not planet_tick > last_tick:
-            print "Stale ticks found, sleeping"
-            time.sleep(60)
-            continue
+            if from_web:
+                print "Stale ticks found, sleeping"
+                time.sleep(60)
+                continue
+            else:
+                print "Warning: stale ticks found, but dump files were passed on command line, continuing"
 
         t2=time.time()-t1
-        print "Loaded dumps from webserver in %.3f seconds" % (t2,)
+        if from_web:
+            print "Loaded dumps from webserver in %.3f seconds" % (t2,)
+        else:
+            print "Loaded dumps from file in %.3f seconds" % (t2,)
         t1=time.time()
 
         ptmp='ptmp'
@@ -213,7 +246,6 @@ while True:
             t2=time.time()-t1
             print "Processed and inserted planet dumps in %.3f seconds" % (t2,)
             t1=time.time()
-
 
             query="SELECT store_galaxies(%s::smallint)"
             cursor.execute(query,(galaxy_tick,))

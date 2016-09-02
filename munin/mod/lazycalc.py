@@ -49,9 +49,9 @@ class lazycalc(loadable.loadable):
     """
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,100)
-        self.paramre=re.compile(r"^\s*(\d+)[. :-](\d+)[. :-](\d+)\s+(\d+)")
-        self.usage=self.__class__.__name__ + " <x:y:z> <eta>"
-        self.helptext=['Builds a calc for your lazy ass']
+        self.paramre=re.compile(r"^\s*(\d+)[. :-](\d+)[. :-](\d+)\s+(\d+)(?:\s+(skip))?")
+        self.usage=self.__class__.__name__ + " <x:y:z> <eta> [skip]"
+        self.helptext=['Builds a calc for your lazy ass. Add "skip" to ignore missing AU scans']
 
 
     def execute(self,user,access,irc_msg):
@@ -74,7 +74,9 @@ class lazycalc(loadable.loadable):
         z=m.group(3)
         eta=m.group(4)
 
-        # do stuff here
+        skip_missing = False
+        if m.lastindex == 5:
+            skip_missing = True
 
         target=loadable.planet(x=x,y=y,z=z)
         if not target.load_most_recent(self.cursor):
@@ -88,17 +90,28 @@ class lazycalc(loadable.loadable):
 
         planets=[row for row in jgp if row['eta']==int(eta)]
         aus=self.get_aus(target,planets)
-        print aus
         outdated=[au for au in aus if au['age'] > 12]
+        up_to_date=[au for au in aus if au['age'] <= 12]
+        fleet_count = len(up_to_date)
         if len(outdated) > 0:
-            # fixme: actually list the missing planets here
-            reply=string.join(["%s:%s:%s" % (p['x'],p['y'],p['z']) for p in outdated], ", ")
-            irc_msg.reply("Get off your ass and give me fresh AUs on: %s" % (reply,))
-            return 1
-        fleet_count=len(aus)-1
-        if fleet_count > 10:
-            irc_msg.reply("This is going to take a moment, %s"% (irc_msg.nick,))
-        calc_creator(target,aus,jgp,fleet_count,irc_msg).start()
+            if skip_missing:
+                if fleet_count == 0:
+                    irc_msg.reply("I need at least one AU to make a calc, dummy")
+                    return 0
+                else:
+                    reply = "Ignoring missing AU scans on "
+                    reply += string.join(["%s:%s:%s" % (p['x'],p['y'],p['z']) for p in outdated], ", ")
+                    if fleet_count > 10:
+                        reply += ". This is going to take a moment, %s" % (irc_msg.nick,)
+                    irc_msg.reply(reply)
+            else:
+                reply=string.join(["%s:%s:%s" % (p['x'],p['y'],p['z']) for p in outdated], ", ")
+                irc_msg.reply("Get off your ass and give me fresh AUs on: %s" % (reply,))
+                return 1
+        elif fleet_count > 10:
+            irc_msg.reply("This is going to take a moment, %s" % (irc_msg.nick,))
+
+        calc_creator(target,up_to_date,jgp,fleet_count,irc_msg).start()
         return 1
 
 
@@ -127,7 +140,6 @@ class lazycalc(loadable.loadable):
         if not p.load_most_recent(self.cursor):
             z=base.copy()
             val=z.update({"age": 1000})
-            print "returning actual value: %s\n" % (val,)
             return val
         query="SELECT max_tick() - t1.tick AS age,t1.rand_id"
         query+=" FROM scan AS t1"
@@ -144,7 +156,6 @@ class lazycalc(loadable.loadable):
         val['y']=y
         val['z']=z
         val['mission']=mission
-        print "returning actual value: %s\n" % val,
         return val
 
 class calc_creator(threading.Thread):

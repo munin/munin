@@ -73,7 +73,7 @@ anarchy_prod_speed: -0.2
 ter_prod_speed: 0.1
 cat_prod_speed: 0.0
 xan_prod_speed: 0.1
-zik_prod_speed: 0.0
+zik_prod_speed: 0.2
 etd_prod_speed: 0.0
 
 # Salvage bonus. 0.1 is 10% more. -0.1 is 10% less.

@@ -1,3 +1,4 @@
+# -*- mode: conf; -*-
 # This is a comment. It lasts until the end of the line.
 [IRC]
 # auth is the p user name and the p password used to connect.
@@ -49,6 +50,7 @@ member_limit: 100
 planetlist: http://195.149.21.23/botfiles/planet_listing.txt
 galaxylist: http://195.149.21.23/botfiles/galaxy_listing.txt
 alliancelist: http://195.149.21.23/botfiles/alliance_listing.txt
+userfeed: https://195.149.21.23/botfiles/user_feed.txt
 
 [Planetarion]
 # General game configurations
@@ -82,6 +84,9 @@ cat_salvage_bonus: 0.4
 xan_salvage_bonus: 0.0
 zik_salvage_bonus: 0.0
 etd_salvage_bonus: 0.0
+
+# Wars have a fixed duration of this many ticks.
+war_duration: 48
 
 [clickatell]
 user: username

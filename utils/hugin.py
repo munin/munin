@@ -66,7 +66,7 @@ while True:
 
         from_web = False
 
-        if len(sys.argv) == 4:
+        if len(sys.argv) == 5:
             try:
                 planets = open(sys.argv[1], 'r')
             except Exception, e:
@@ -83,6 +83,12 @@ while True:
                 alliances = open(sys.argv[3], 'r')
             except Exception, e:
                 print "Failed to open alliance listing."
+                print e.__str__()
+                exit(1)
+            try:
+                userfeed = open(sys.argv[4], 'r')
+            except Exception, e:
+                print "Failed to open user feed."
                 print e.__str__()
                 exit(1)
         elif len(sys.argv) == 1:
@@ -114,8 +120,17 @@ while True:
                 print e.__str__()
                 time.sleep(300)
                 continue
+            try:
+                req = urllib2.Request(config.get("Url", "userfeed"))
+                req.add_header('User-Agent',useragent)
+                userfeed = urllib2.urlopen(req)
+            except Exception, e:
+                print "Failed gathering user feed."
+                print e.__str__()
+                time.sleep(300)
+                continue
         else:
-            print "Expected 0 (get the dumps for most recent tick from the web) or 3 (read planet, galaxy, alliance dumps from file) arguments, but got %d! Exiting." % (len(sys.argv))
+            print "Expected 0 (get the dumps for most recent tick from the web) or 4 (read planet, galaxy, alliance, user feed dumps from file) arguments, but got %d! Exiting." % (len(sys.argv))
             exit(1)
 
         planets.readline();planets.readline();planets.readline();
@@ -151,9 +166,20 @@ while True:
         print "Alliance dump for tick %s" % (alliance_tick,)
         alliances.readline();alliances.readline();alliances.readline();
 
-        if not (planet_tick == galaxy_tick  == alliance_tick):
+        userfeed.readline();userfeed.readline();userfeed.readline();userfeed.readline();
+        ptick=userfeed.readline()
+        m=re.search(r"tick:\s+(\d+)",tick,re.I)
+        if not m:
+            print "Invalid tick: '%s'" % (tick,)
+            time.sleep(120)
+            continue
+        userfeed_tick=int(m.group(1))
+        print "User feed dump for tick %s" % (userfeed_tick,)
+        userfeed.readline();userfeed.readline();userfeed.readline();
+
+        if not (planet_tick == galaxy_tick  == alliance_tick == userfeed_tick):
             print "Varying ticks found, sleeping"
-            print "Planet: %s, Galaxy: %s, Alliance: %s" % (planet_tick,galaxy_tick,alliance_tick)
+            print "Planet: %s, Galaxy: %s, Alliance: %s, User feed: %s" % (planet_tick,galaxy_tick,alliance_tick,userfeed_tick)
             time.sleep(30)
             continue
         if not planet_tick > last_tick:
@@ -174,6 +200,7 @@ while True:
         ptmp='ptmp'
         gtmp='gtmp'
         atmp='atmp'
+        utmp='utmp'
 
         query="""
         CREATE TEMP TABLE %s (
@@ -232,12 +259,29 @@ while True:
 
         cursor.copy_from(StringIO.StringIO(''.join(foo)),atmp,"\t")
 
+        query="""
+        CREATE TEMP TABLE %s (
+         tick smallint NOT NULL,
+         type varchar(32) NOT NULL,
+         text varchar(255) NOT NULL
+        )
+        """ % (utmp,)
+        cursor.execute(query)
+        foo=userfeed.readlines()[:-1]
+        foo=map(lambda f: f.decode('iso-8859-1').encode('utf8'),foo)
+
+        # Only include entries from last tick.
+        userfeed_regex = re.compile("^" + str(userfeed_tick - 1) + "\t")
+        foo=filter(lambda f: userfeed_regex.match(f), foo)
+
+        cursor.copy_from(StringIO.StringIO(''.join(foo)),utmp,"\t")
+
         t2=time.time()-t1
         print "Copied dumps in %.3f seconds" % (t2,)
         t1=time.time()
 
-        query="SELECT store_update(%s::smallint,%s::text,%s::text,%s::text)"
-        cursor.execute(query,(planet_tick,ptmp,gtmp,atmp))
+        query="SELECT store_update(%s::smallint,%s::text,%s::text,%s::text,%s::text)"
+        cursor.execute(query,(planet_tick,ptmp,gtmp,atmp,utmp))
 
         try:
 
@@ -257,6 +301,12 @@ while True:
             cursor.execute(query,(alliance_tick,))
             t2=time.time()-t1
             print "Processed and inserted alliance dumps in %.3f seconds" % (t2,)
+            t1=time.time()
+
+            query="SELECT store_userfeed()"
+            cursor.execute(query)
+            t2=time.time()-t1
+            print "Processed and inserted user feed dumps in %.3f seconds" % (t2,)
             t1=time.time()
 
         except psycopg.IntegrityError:

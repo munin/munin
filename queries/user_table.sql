@@ -8,11 +8,12 @@ tick smallint UNIQUE,
 planets smallint,
 galaxies smallint,
 alliances smallint,
+userfeed smallint,
 timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
 PRIMARY KEY (id)
 );
 
-INSERT INTO updates VALUES (-1,-1,-1,-1,-1);
+INSERT INTO updates VALUES (-1,-1,-1,-1,-1,-1);
 
 CREATE TABLE planet_canon (
 id serial,
@@ -105,20 +106,39 @@ id integer NOT NULL REFERENCES alliance_canon(id),
 PRIMARY KEY(tick, name)
 );
 
+CREATE TABLE userfeed_dump (
+tick smallint,
+type varchar(32) NOT NULL,
+text varchar(255) NOT NULL,
+PRIMARY KEY(tick, text)
+);
+
 CREATE INDEX planet_dump_tick_index ON planet_dump(tick);
 CREATE INDEX planet_dump_id_index ON planet_dump(id);
 CREATE INDEX planet_dump_rn_index ON planet_dump(rulername);
 CREATE INDEX planet_dump_pn_index ON planet_dump(planetname);
 
-
 CREATE INDEX galaxy_dump_tick_index ON galaxy_dump(tick);
-
 CREATE INDEX galaxy_dump_id_index ON galaxy_dump(id);
 
 CREATE INDEX alliance_dump_tick_index ON alliance_dump(tick);
-
 CREATE INDEX alliance_dump_id_index ON alliance_dump(id);
 
+CREATE INDEX userfeed_dump_tick_index ON userfeed_dump(tick);
+CREATE INDEX userfeed_dump_text_index ON userfeed_dump(text);
+
+
+CREATE TABLE anarchy (
+id serial,
+pid integer NOT NULL REFERENCES planet_canon(id),
+start_tick smallint NOT NULL,
+end_tick smallint NOT NULL,
+PRIMARY KEY(id),
+FOREIGN KEY(pid) REFERENCES planet_canon(id)
+);
+
+CREATE INDEX anarchy_id_index ON anarchy(id);
+CREATE INDEX anarchy_pid_index ON anarchy(pid);
 
 
 CREATE TABLE user_list (
@@ -704,11 +724,41 @@ SELECT curtick,name,size,members,score,size_avg,score_avg,size_rank,members_rank
 END
 $PROC$ LANGUAGE plpgsql;
 
+DROP FUNCTION IF EXISTS store_userfeed();
+CREATE FUNCTION store_userfeed() RETURNS void AS $PROC$
+BEGIN
+--remove quotes from names added by the dumpfile generator
+PERFORM trim_quotes('utmp','type');
+PERFORM trim_quotes('utmp','text');
+
+--transfer tmp to dump
+INSERT INTO userfeed_dump (tick,type,text)
+SELECT tick,type,text FROM utmp ON CONFLICT DO NOTHING;
+
+--extract anarchy data
+ALTER TABLE utmp ADD COLUMN x smallint;
+UPDATE utmp SET x=substring(text from '(\d+):\d+:\d+')::smallint;
+ALTER TABLE utmp ADD COLUMN y smallint;
+UPDATE utmp SET y=substring(text from '\d+:(\d+):\d+')::smallint;
+ALTER TABLE utmp ADD COLUMN z smallint;
+UPDATE utmp SET z=substring(text from '\d+:\d+:(\d+)')::smallint;
+ALTER TABLE utmp ADD COLUMN end_tick smallint;
+UPDATE utmp SET end_tick=substring(text from 'until tick (\d+)')::smallint;
+ALTER TABLE utmp add COLUMN pid integer DEFAULT NULL;
+UPDATE utmp SET pid=p.id FROM planet_dump AS p WHERE utmp.x = p.x AND utmp.y = p.y AND utmp.z = p.z AND utmp.tick = p.tick;
+
+--transfer anarchy data, exclude exit anarchy entries
+INSERT INTO anarchy (start_tick, end_tick, pid)
+SELECT tick, end_tick, pid FROM utmp WHERE end_tick IS NOT NULL AND pid IS NOT NULL;
+
+END
+$PROC$ LANGUAGE plpgsql;
 
 DROP FUNCTION IF EXISTS store_update(smallint,text,text,text);
-CREATE FUNCTION store_update(curtick smallint,ptable text,gtable text,atable text) RETURNS void AS $PROC$
+DROP FUNCTION IF EXISTS store_update(smallint,text,text,text,text);
+CREATE FUNCTION store_update(curtick smallint,ptable text,gtable text,atable text,utable text) RETURNS void AS $PROC$
 BEGIN
-INSERT INTO updates (tick,planets,galaxies,alliances) VALUES (curtick,(SELECT COUNT(*) FROM quote_ident(ptable)),(SELECT COUNT(*) FROM quote_ident(gtable)),(SELECT COUNT(*) FROM quote_ident(atable)));
+INSERT INTO updates (tick,planets,galaxies,alliances,userfeed) VALUES (curtick,(SELECT COUNT(*) FROM quote_ident(ptable)),(SELECT COUNT(*) FROM quote_ident(gtable)),(SELECT COUNT(*) FROM quote_ident(atable)),(SELECT COUNT(*) FROM quote_ident(utable)));
 END
 $PROC$ LANGUAGE plpgsql;
 

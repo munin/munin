@@ -61,13 +61,12 @@ class prod(loadable.loadable):
 
         # Verify or fix this!
         ship=self.get_ship_from_db(shipname)
-
-        race=ship['race'].lower()[0:3]
-        race_speed = self.config.getfloat('Planetarion', race + '_prod_speed')
-
         if not ship:
             irc_msg.reply("%s is not a ship." % shipname)
             return 0
+
+        race=ship['race'].lower()[0:3]
+        race_speed = self.config.getfloat('Planetarion', race + '_prod_speed')
 
         cost = number * ship['total_cost']
         base_required = 2 * math.sqrt(cost) * self.ln(cost)

@@ -270,10 +270,6 @@ while True:
         foo=userfeed.readlines()[:-1]
         foo=map(lambda f: f.decode('iso-8859-1').encode('utf8'),foo)
 
-        # Only include entries from this tick.
-        userfeed_regex = re.compile("^" + str(userfeed_tick) + "\t")
-        foo=filter(lambda f: userfeed_regex.match(f), foo)
-
         cursor.copy_from(StringIO.StringIO(''.join(foo)),utmp,"\t")
 
         t2=time.time()-t1

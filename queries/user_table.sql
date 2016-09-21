@@ -732,14 +732,10 @@ BEGIN
 PERFORM trim_quotes('utmp','type');
 PERFORM trim_quotes('utmp','text');
 
--- TRUNCATE queries can be replaced by ON CONFLICT DO NOTHING in postgres 9.5
--- and later.
-
 --transfer tmp to dump
-TRUNCATE userfeed_dump;
 INSERT INTO userfeed_dump (tick,type,text)
 SELECT tick,type,text FROM utmp
---ON CONFLICT DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 --extract anarchy data
 ALTER TABLE utmp ADD COLUMN x smallint;
@@ -754,11 +750,9 @@ ALTER TABLE utmp add COLUMN pid integer DEFAULT NULL;
 UPDATE utmp SET pid=p.id FROM planet_dump AS p WHERE utmp.x = p.x AND utmp.y = p.y AND utmp.z = p.z AND utmp.tick = p.tick;
 
 --transfer anarchy data, exclude exit anarchy entries
---
-TRUNCATE anarchy;
 INSERT INTO anarchy (start_tick, end_tick, pid)
 SELECT tick, anarchy_end_tick, pid FROM utmp WHERE anarchy_end_tick IS NOT NULL AND pid IS NOT NULL
---ON CONFLICT DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 END
 $PROC$ LANGUAGE plpgsql;

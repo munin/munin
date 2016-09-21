@@ -92,7 +92,7 @@ class anarchy(loadable.loadable):
                 needed_scans = []
 
                 # Get guards from planet scan.
-                query = "SELECT t1.tick, guards"
+                query = "SELECT scan.tick, guards"
                 query += " FROM scan INNER JOIN planet ON scan.id = planet.scan_id"
                 query += " WHERE scan.pid = %s "
                 query += " ORDER BY scan.scan_time DESC"

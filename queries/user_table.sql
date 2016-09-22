@@ -137,9 +137,23 @@ PRIMARY KEY(id),
 UNIQUE (pid, start_tick, end_tick),
 FOREIGN KEY(pid) REFERENCES planet_canon(id)
 );
-
 CREATE INDEX anarchy_id_index ON anarchy(id);
 CREATE INDEX anarchy_pid_index ON anarchy(pid);
+
+
+CREATE TABLE alliance_relation (
+id serial,
+type varchar(4) NOT NULL,
+start_tick smallint NOT NULL DEFAULT -1,
+end_tick smallint NOT NULL DEFAULT 32767,
+initiator integer NOT NULL,
+acceptor integer NOT NULL,
+PRIMARY KEY(id),
+FOREIGN KEY(initiator) REFERENCES alliance_canon(id),
+FOREIGN KEY(acceptor) REFERENCES alliance_canon(id)
+);
+CREATE INDEX alliance_relation_initiator_index ON alliance_relation(initiator);
+CREATE INDEX alliance_relation_acceptor_index ON alliance_relation(acceptor);
 
 
 CREATE TABLE user_list (
@@ -725,6 +739,128 @@ SELECT curtick,name,size,members,score,size_avg,score_avg,size_rank,members_rank
 END
 $PROC$ LANGUAGE plpgsql;
 
+DROP FUNCTION IF EXISTS analyze_naps();
+CREATE FUNCTION analyze_naps() RETURNS void AS $PROC$
+BEGIN
+-- NAP start.
+UPDATE utmp as main
+SET relation_type='NAP',
+relation_end_tick = 32767,
+alliance1_id=(SELECT id FROM alliance_canon
+              WHERE name = substring(main.text from '(.*) and .* have confirmed they have formed a non-aggression pact')
+              AND tick = main.tick),
+alliance2_id=(SELECT id FROM alliance_canon
+              WHERE name = substring(main.text from '.* and (.*) have confirmed they have formed a non-aggression pact')
+              AND tick = main.tick)
+WHERE main.text ILIKE '% and % have confirmed they have formed a non-aggression pact%';
+
+-- NAP end.
+UPDATE utmp as main SET
+alliance1_id=(SELECT id FROM alliance_canon
+              WHERE name = substring(main.text from '(.*) has decided to end its NAP with .*')
+              AND tick = main.tick),
+alliance2_id=(SELECT id FROM alliance_canon 
+              WHERE name = substring(main.text from '.* has decided to end its NAP with (.*)\.')
+              AND tick = main.tick)
+WHERE main.text ILIKE '% has decided to end its NAP with %';
+
+-- NAP end tick
+UPDATE utmp AS main
+SET relation_end_tick = other.tick
+FROM utmp AS other
+WHERE ((other.alliance1_id = main.alliance1_id AND other.alliance2_id = main.alliance2_id)
+       OR
+       (other.alliance1_id = main.alliance2_id AND other.alliance2_id = main.alliance1_id))
+AND main.relation_type = 'NAP'
+AND other.tick > main.tick
+AND other.text ILIKE '% has decided to end its NAP with %';
+
+END
+$PROC$ LANGUAGE plpgsql;
+
+
+DROP FUNCTION IF EXISTS analyze_alliances();
+CREATE FUNCTION analyze_alliances() RETURNS void AS $PROC$
+BEGIN
+
+-- Ally start.
+UPDATE utmp as main
+SET relation_type='Ally',
+relation_end_tick = 32767,
+alliance1_id=(SELECT id FROM alliance_canon
+              WHERE name = substring(main.text from '(.*) and .* have confirmed they are allied')
+              AND tick = main.tick),
+alliance2_id=(SELECT id FROM alliance_canon
+              WHERE name = substring(main.text from '.* and (.*) have confirmed they are allied')
+              AND tick = main.tick)
+WHERE main.text ILIKE '% and % have confirmed they are allied%';
+
+-- Ally end.
+UPDATE utmp as main SET
+alliance1_id=(SELECT id FROM alliance_canon
+              WHERE name = substring(main.text from '(.*) has decided to end its alliance with .*')
+              AND tick = main.tick),
+alliance2_id=(SELECT id FROM alliance_canon
+              WHERE name = substring(main.text from '.* has decided to end its alliance with (.*)\.')
+              AND tick = main.tick)
+WHERE main.text ILIKE '% has decided to end its alliance with %';
+
+-- Ally end tick
+UPDATE utmp AS main
+SET relation_end_tick = other.tick
+FROM utmp AS other
+WHERE ((other.alliance1_id = main.alliance1_id AND other.alliance2_id = main.alliance2_id)
+       OR
+       (other.alliance1_id = main.alliance2_id AND other.alliance2_id = main.alliance1_id))
+AND main.relation_type = 'Ally'
+AND other.tick > main.tick
+AND other.text ILIKE '% has decided to end its alliance with %';
+
+END
+$PROC$ LANGUAGE plpgsql;
+
+
+DROP FUNCTION IF EXISTS analyze_wars();
+CREATE FUNCTION analyze_wars() RETURNS void AS $PROC$
+BEGIN
+
+-- War start and default end tick.
+UPDATE utmp AS main SET relation_type='War',
+alliance1_id=(SELECT id FROM alliance_canon
+              WHERE name = substring(text from '(.*) has declared war on .*')
+              AND tick = main.tick),
+alliance2_id=(SELECT id FROM alliance_canon
+              WHERE name = substring(text from '.* has declared war on (.*) !')
+              AND tick = main.tick),
+relation_end_tick=(tick+48) -- Wars have a fixed length of 48 ticks.
+WHERE text ILIKE '% has declared war on %';
+
+-- War end.
+UPDATE utmp AS main SET
+alliance1_id=(SELECT id FROM alliance_canon
+              WHERE name = substring(text from '(.*)''s war with .* has expired.')
+              AND tick = main.tick),
+alliance2_id=(SELECT id FROM alliance_canon
+              WHERE name = substring(text from '.*''s war with (.*) has expired.')
+              AND tick = main.tick)
+WHERE text ILIKE '%''s war with % has expired.';
+
+-- War end tick. Wars have a fixed length of 48 ticks, but just to be safe, see
+-- if we can't find an explicit end tick.
+UPDATE utmp AS main
+SET relation_end_tick = other.tick
+FROM utmp AS other
+WHERE ((other.alliance1_id = main.alliance1_id AND other.alliance2_id = main.alliance2_id)
+       OR
+       (other.alliance1_id = main.alliance2_id AND other.alliance2_id = main.alliance1_id))
+AND main.relation_type = 'War'
+AND other.tick > main.tick
+AND other.text ILIKE '%''s war with % has expired.';
+
+END
+$PROC$ LANGUAGE plpgsql;
+
+
 DROP FUNCTION IF EXISTS store_userfeed();
 CREATE FUNCTION store_userfeed() RETURNS void AS $PROC$
 BEGIN
@@ -754,8 +890,25 @@ INSERT INTO anarchy (start_tick, end_tick, pid)
 SELECT tick, anarchy_end_tick, pid FROM utmp WHERE anarchy_end_tick IS NOT NULL AND pid IS NOT NULL
 ON CONFLICT DO NOTHING;
 
+-- Extract alliance relation data.
+ALTER TABLE utmp ADD COLUMN relation_type varchar(4);
+ALTER TABLE utmp ADD COLUMN alliance1_id integer;
+ALTER TABLE utmp ADD COLUMN alliance2_id integer;
+ALTER TABLE utmp ADD COLUMN relation_end_tick smallint DEFAULT 32767;
+
+PERFORM analyze_naps();
+PERFORM analyze_alliances();
+PERFORM analyze_wars();
+
+-- Transfer alliance relation data. Clear and refill the table every tick.
+TRUNCATE alliance_relation;
+INSERT INTO alliance_relation (start_tick, type, end_tick, initiator, acceptor)
+SELECT tick, relation_type, relation_end_tick, alliance1_id, alliance2_id FROM utmp
+WHERE relation_type IS NOT NULL;
+
 END
 $PROC$ LANGUAGE plpgsql;
+
 
 DROP FUNCTION IF EXISTS store_update(smallint,text,text,text);
 DROP FUNCTION IF EXISTS store_update(smallint,text,text,text,text);

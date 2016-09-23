@@ -1,47 +1,44 @@
-Requirements:
+* Requirements
 
-python 2.3 (it may run with earlier versions, but this is untested)
-postgresql 8.1 (it may run with 8.0, but I'm pretty sure it won't run
-on 7.x)
-plpgsql 
-a database (I haven't done any namespace stuff, but if you play around
-with table names you could probably run it on a common DB.)
-crontab
-1GB drivespace for a full round. Usable with less if you remove old
-tick information, but this might cause some breakage (for example with
-old scans)
+- python 2.3 (it may run with earlier versions, but this is untested)
+- postgresql 9.5
+- plpgsql
+- a database (I haven't done any namespace stuff, but if you play around with
+  table names you could probably run it on a common DB.)
+- crontab
+- 1GB drivespace for a full round. Usable with less if you remove old tick
+  information, but this will cause some breakage (for example with old scans and
+  commands making use of the data included in the user feed dump)
 
-Install instructions:
+* Install instructions
 
 0) Install pgsql, python, etc.
 a) CREATE DATABASE yourdbnamehere WITH ENCODING = 'LATIN1';
-b) find every reference to the old user and dbname in the config (muninrc) and 
-correct them
-c) Add the plpgsql language to your database. This usually requires
-superuser access. It can either be done from the commandline with:
+b) find every reference to the old user and dbname in the config (muninrc) and
+   correct them
+c) Add the plpgsql language to your database. This usually requires superuser
+   access. It can either be done from the commandline with:
 
-createlang plpgsql yourdbnamehere
+   createlang plpgsql yourdbnamehere
 
-Or in SQL when connected to the correct database with:
+   Or in SQL when connected to the correct database with:
 
-CREATE LANGUAGE plpgqsl
+   CREATE LANGUAGE plpgqsl
 
-d) Fix user_table.sql to insert the correct superuser pnick (it's
-currently commented out and set to jester).
-e) \i user_table.sql and \i functions.sql
+d) Fix user_table.sql to insert the correct superuser pnick (it's currently
+   commented out and set to jester).
+e) \i user_table.sql
 f) optional: insert stats (see below)
-g) make sure the mods in the mod dir are the only ones you're
-interested in using. 
+g) make sure the mods in the mod dir are the only ones you're interested in
+   using.
 h) copy muninrc-example to muninrc and update the values for your alliance
-i) you should be set (though I've probably forgotten a bunch of
-stuff).
+i) you should be set (though I've probably forgotten a bunch of stuff).
 
+* Instructions for inserting stats
 
-Instructions for inserting stats (also found in howto_makestats.txt or use putships.py):
+These instructions can also be found in howto_makestats.txt.
 
-a) python utils/putships.py 
-optionally) python utils/putships.py http://url.to/stats
-
+a) python utils/putships.py (or: python utils/putships.py http://url.to/stats)
 optional) Set up the drupal instance to use the right db
 
 

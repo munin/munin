@@ -510,7 +510,7 @@ class alliance(object):
                 cursor.execute(query,("%"+self.name+"%",))
             pass
         else:
-            raise Exception("Tried to load planet with no unique identifiers")
+            raise Exception("Tried to load alliance with no unique identifiers")
         a=cursor.dictfetchone()
         if not a:
             return None

@@ -38,11 +38,13 @@ class prop(loadable.loadable):
     """
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,100)
-        self.paramre=re.compile(r"^\s+(invite|kick|list|show|vote|expire|cancel|recent|search)(.*)",re.I)
+        self.paramre=re.compile(r"^\s+(invite|kick|poll|list|show|vote|expire|cancel|recent|search)(.*)",re.I)
         self.invite_kickre=re.compile(r"^\s+(\S+)(\s+(\S.*))",re.I)
-        self.votere=re.compile(r"^\s+(\d+)\s+(yes|no|abstain)",re.I)
-        self.usage=self.__class__.__name__ + " [<invite|kick> <pnick> <comment>] | [list] | [vote <number> <yes|no|abstain>] | [expire <number>] | [show <number>] | [cancel <number>] | [recent] | [search <pnick>]"
-        self.helptext=["A proposition is a vote to do something. For now, you can raise propositions to invite or kick someone. Once raised the proposition will stand until you expire it.  Make sure you give everyone time to have their say. Votes for and against a proposition are weighted by carebears. You must have at least 1 carebear to vote."]
+        self.pollre=re.compile(r"\s*([^?]+)\?\s*([^?\"]+)*", re.I)
+        self.poll_split_answers = re.compile(r"\s*!+\s*")
+        self.votere=re.compile(r"^\s+(\d+)\s+(yes|no|abstain|[A-J])",re.I)
+        self.usage=self.__class__.__name__ + " [<invite|kick> <pnick> <comment>] | poll <question>? <answer!>... | [list] | [vote <number> <yes|no|abstain|A..J>] | [expire <number>] | [show <number>] | [cancel <number>] | [recent] | [search <pnick>]"
+        self.helptext=["A proposition is a vote to do something. For now, you can raise propositions to invite or kick someone, or to perform a poll. Once raised the proposition will stand until you expire it.  Make sure you give everyone time to have their say. Votes for and against a proposition are weighted by carebears. You must have at least 1 carebear to vote."]
 
     def execute(self,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
@@ -86,6 +88,15 @@ class prop(loadable.loadable):
             comment=m.group(3).lower()
             self.process_kick_proposal(irc_msg,u,person,comment)
 
+        elif prop_type.lower() == 'poll':
+            m=self.match_or_usage(irc_msg,self.pollre, m.group(2))
+            if not m: return 1
+            if self.command_not_used_in_home(irc_msg, self.__class__.__name__ + " poll"): return 1
+            question=m.group(1)
+            answers=filter(lambda answer: len(answer) > 0,
+                           re.split(self.poll_split_answers, m.group(2)))
+            self.process_poll_proposal(irc_msg,u,question,answers[:10])
+
         elif prop_type.lower() == 'list':
             self.process_list_all_proposals(irc_msg,u)
 
@@ -96,16 +107,13 @@ class prop(loadable.loadable):
             self.process_show_proposal(irc_msg,u,prop_id)
             
         elif prop_type.lower() == 'vote':
-            irc_msg.reply("Like I care what you think!")
             m=self.match_or_usage(irc_msg,self.votere,m.group(2))
             if not m: return 1
             prop_id=int(m.group(1))
             vote=m.group(2).lower()
             self.process_vote_proposal(irc_msg,u,prop_id,vote)
-           
+            
         elif prop_type.lower() == 'expire':
-            irc_msg.reply("Good luck with that.")
-            return 1
             m=self.match_or_usage(irc_msg,re.compile(r"\s*(\d+)"),m.group(2))
             if not m: return 1
             if self.command_not_used_in_home(irc_msg,self.__class__.__name__ + " expire"): return 1
@@ -134,7 +142,6 @@ class prop(loadable.loadable):
             irc_msg.reply("You have tried to invite somebody, but we have %s losers and I can't be bothered dealing with more than %s of you."%(members, self.config.get('Alliance','member_limit')))
             return 1
         return 0
-            
 
     def process_invite_proposal(self,irc_msg,user,person,comment):
         if self.is_member(person):
@@ -172,19 +179,35 @@ class prop(loadable.loadable):
         reply+=" When people have had a fair shot at voting you can call a count using !prop expire %d."%(prop_id,)
         irc_msg.reply( reply)
 
+    def process_poll_proposal(self,irc_msg,user,question,answers):
+        prop_id=self.create_poll_proposal(user,question,answers)
+        alliance=self.config.get('Auth', 'alliance')
+        reply="%s created a new proposition (nr. %d) to poll %s." %(user.pnick, prop_id, alliance)
+        reply+= " When people have been given a fair shot at voting you can call a count using !prop expire %d."%(prop_id,)
+        irc_msg.reply(reply)
+
     def process_list_all_proposals(self,irc_msg,user):
         u=loadable.user(pnick=irc_msg.user)
         u.load_from_db(self.cursor)
-        query="SELECT t1.id AS id, t1.person AS person, 'invite' AS prop_type FROM invite_proposal AS t1 WHERE t1.active UNION ("
-        query+=" SELECT t2.id AS id, t3.pnick AS person, 'kick' AS prop_type FROM kick_proposal AS t2"
-        query+=" INNER JOIN user_list AS t3 ON t2.person_id=t3.id WHERE t2.active)"
+        query="SELECT invite.id AS id, invite.person AS person, NULL AS question, 'invite' AS prop_type"
+        query+=" FROM invite_proposal AS invite"
+        query+=" WHERE invite.active"
+        query+=" UNION ("
+        query+="     SELECT kick.id AS id, t3.pnick AS person, NULL AS question, 'kick' AS prop_type"
+        query+="     FROM kick_proposal AS kick"
+        query+="     INNER JOIN user_list AS t3 ON kick.person_id=t3.id"
+        query+="     WHERE kick.active"
+        query+=" )"
+        query+=" UNION ("
+        query+="     SELECT poll.id AS id, NULL AS person, poll.question AS question, 'poll' AS prop_type"
+        query+="     FROM poll_proposal AS poll"
+        query+="     WHERE poll.active"
+        query+=" )"
         self.cursor.execute(query,())
         a=[]
         for r in self.cursor.dictfetchall():
-            prop_info="%s: %s %s"%(r['id'],r['prop_type'],r['person'])
-            print prop_info
+            prop_info="%s: %s %s"%(r['id'],r['prop_type'],r['person'] or r['question'] + '?')
             if not irc_msg.chan_reply():
-                print "private"
                 query="SELECT t1.vote AS vote, t1.carebears AS carebears FROM prop_vote AS t1"
                 query+=" WHERE t1.prop_id=%s AND t1.voter_id=%s"
                 self.cursor.execute(query,(r['id'],u.id))
@@ -192,8 +215,7 @@ class prop(loadable.loadable):
                     r=self.cursor.dictfetchone()
                     prop_info+=" (%s,%s)"%(r['vote'][0].upper(),r['carebears'])
             a.append(prop_info)
-                
-                
+
         reply="Propositions currently being voted on: %s"%(string.join(a, ", "),)
         irc_msg.reply(reply)
 
@@ -205,52 +227,78 @@ class prop(loadable.loadable):
             return
 
         age=(datetime.datetime.now() - r['created']).days
-        reply="proposition %s (%s %s old): %s %s. %s commented '%s'."%(r['id'],age,self.pluralize(age,"day"),
-                                                                       r['prop_type'],r['person'],r['proposer'],
-                                                                       r['comment_text'])
+        if r['prop_type'] == 'poll':
+            reply="proposition %s (%s %s old): poll. %s asked '%s?' and offered options" % (r['id'],
+                                                                                            age,
+                                                                                            self.pluralize(age,"day"),
+                                                                                            r['proposer'],
+                                                                                            r['question'])
+            query="SELECT answer_index, answer_text"
+            query+=" FROM poll_answer"
+            query+=" WHERE poll_id=%s"
+            self.cursor.execute(query, (prop_id,))
+            answers=[]
+            for a in self.cursor.dictfetchall():
+                answers.append('%s: "%s"' % (a['answer_index'].upper(),
+                                             a['answer_text']))
+            reply+=" %s" % ", ".join(answers)
+        else:
+            reply="proposition %s (%s %s old): %s %s. %s commented '%s'"%(r['id'],
+                                                                          age,
+                                                                          self.pluralize(age,"day"),
+                                                                          r['prop_type'],
+                                                                          r['person'],
+                                                                          r['proposer'],
+                                                                          r['comment_text'])
         if not bool(r['active']):
-            reply+=" This prop expired %d days ago."%((datetime.datetime.now()-r['closed']).days,)
-        if irc_msg.target[0] != "#" or irc_msg.prefix == irc_msg.client.NOTICE_PREFIX or irc_msg.prefix == irc_msg.client.PRIVATE_PREFIX:
+            reply+=", this prop expired %d days ago."%((datetime.datetime.now()-r['closed']).days,)
+        if irc_msg.target[0] != "#" or irc_msg.prefix_notice() or irc_msg.prefix_private():
             query="SELECT vote,carebears FROM prop_vote"
             query+=" WHERE prop_id=%s AND voter_id=%s"
             self.cursor.execute(query,(prop_id,u.id))
             s=self.cursor.dictfetchone()
             if s:
-                reply+=" You are currently voting '%s'"%(s['vote'],)
+                vote=s['vote'].upper() if len(s['vote']) == 1 else s['vote']
+                reply+=", you are currently voting '%s'"%(vote,)
                 if s['vote'] != 'abstain':
                     reply+=" with %s carebears"%(s['carebears'],)
                 reply+=" on this proposition."
             else:
-                reply+=" You are not currently voting on this proposition."
+                reply+=", you are not currently voting on this proposition."
 
-        (voters, yes, no) = self.get_voters_for_prop(prop_id)
-        if len(voters['veto']) > 0:
+        outcome = self.get_voters_for_prop(prop_id, r['prop_type'])
+        if len(outcome['veto']['list']) > 0:
             reply+=" Vetoing: "
-            reply+=string.join(map(lambda x:x['pnick'],voters['veto']),', ')
+            reply+=string.join(map(lambda x:x['pnick'],outcome['veto']['list']),', ')
         irc_msg.reply(reply)
-        
 
         if not bool(r['active']):
-            reply=""
             prop=self.find_single_prop_by_id(prop_id)
-            (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(voters,yes,no)
-            reply+="The prop"
-            if r['vote_result'].upper() == "yes".upper():
-                reply+=" passed by a vote of %s carebears for and %s against"%(yes,no)
-            elif r['vote_result'].upper() == "no".upper():
-                reply+=" failed by a vote of %s carebears against and %s for"%(no,yes)
-            elif r['vote_result'].upper() == "cancel".upper():
-                reply+=" was cancelled with %s carebears for and %s against"%(yes,no)
-            reply+=". The voters in favor were ("
             pretty_print=lambda x:"%s (%s)"%(x['pnick'],x['carebears'])
-            reply+=string.join(map(pretty_print,voters['yes']),', ')
-            reply+=") and against ("
-            reply+=string.join(map(pretty_print,voters['no']),', ')
-            reply+=")"
+            if r['prop_type'] == 'poll':
+                reply="The prop expired with %s winning" % (r['vote_result'])
+                for o in sorted(outcome.keys()):
+                    if o != 'abstain' and o != 'veto':
+                        reply+= ". The voters for %s were (%s)" % (o, ', '.join(map(pretty_print,outcome[o]['list'])))
+                reply+="."
+            else:
+                no=outcome['no']['count']
+                yes=outcome['yes']['count']
+                (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(outcome)
+                if r['vote_result'].upper() == "yes".upper():
+                    reply="The prop passed by a vote of %s carebears for and %s against"%(yes,no)
+                elif r['vote_result'].upper() == "no".upper():
+                    reply="The prop failed by a vote of %s carebears against and %s for"%(no,yes)
+                elif r['vote_result'].upper() == "cancel".upper():
+                    reply="The prop was cancelled with %s carebears for and %s against"%(yes,no)
+                reply+=". The voters in favor were ("
+                reply+=string.join(map(pretty_print,outcome['yes']['list']),', ')
+                reply+=") and against ("
+                reply+=string.join(map(pretty_print,outcome['no']['list']),', ')
+                reply+=")"
             irc_msg.reply(reply)
 
     def process_vote_proposal(self,irc_msg,u,prop_id,vote):
-        # todo ensure prop is active
         carebears=u.carebears
         prop=self.find_single_prop_by_id(prop_id)
         if not prop:
@@ -265,10 +313,29 @@ class prop(loadable.loadable):
             irc_msg.reply(reply)
             return
 
-        if prop['person'].lower() == u.pnick.lower() and vote == 'veto':
+        if prop['person'] and prop['person'].lower() == u.pnick.lower() and vote == 'veto':
             reply="You can't veto a vote to kick you."
             irc_msg.reply(reply)
             return
+
+        if prop['prop_type'] == 'poll':
+            query="SELECT answer_index"
+            query+=" FROM poll_answer"
+            query+=" WHERE poll_id=%s"
+            poll_arr=[]
+            self.cursor.execute(query,(prop_id,))
+            for a in self.cursor.dictfetchall():
+                poll_arr.append(a['answer_index'])
+            poll_arr.append('veto')
+            poll_arr.append('abstain')
+            if vote.lower() not in poll_arr:
+                irc_msg.reply("You can only vote %s on this poll, you moron" % (', '.join(poll_arr)))
+                return
+        else:
+            kick_inv_arr=['yes', 'no', 'veto', 'abstain']
+            if vote.lower() not in kick_inv_arr:
+                irc_msg.reply("You can only vote %s on a %s prop, you moron" % (', '.join(kick_inv_arr), prop['prop_type']))
+                return
 
         query="SELECT id,vote,carebears, prop_id FROM prop_vote"
         query+=" WHERE prop_id=%s AND voter_id=%s"
@@ -308,29 +375,56 @@ class prop(loadable.loadable):
             irc_msg.reply("Only %s may expire proposition %d."%(prop['proposer'],prop['id']))
             return
         if prop['prop_type'] == 'invite' and self.too_many_members(irc_msg):
-            return 
+            return
         #tally votes for and against
-        (voters, yes, no) = self.get_voters_for_prop(prop_id)
-        (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(voters,yes,no)
+        outcome = self.get_voters_for_prop(prop_id, prop['prop_type'])
+        highest = -1
+        winner = None
+        for o in sorted(outcome.keys()):
+            if o != 'abstain' and outcome[o]['count'] > highest:
+                highest = outcome[o]['count']
+                winner = o
 
         age=(datetime.datetime.now()-prop['created']).days
-        reply="The proposition raised by %s %s %s ago to %s %s has"%(prop['proposer'],age,self.pluralize(age,"day"),prop['prop_type'],prop['person'])
-        passed = yes > no and len(voters['veto']) <= 0
-        if passed:
-            reply+=" passed"
-        else:
-            reply+=" failed"
-        reply+=" with %s carebears for and %s against."%(yes,no)
-        reply+=" In favor: "
-
         pretty_print=lambda x:"%s (%s)"%(x['pnick'],x['carebears'])
-        reply+=string.join(map(pretty_print,voters['yes']),', ')
-        reply+=" Against: "
-        reply+=string.join(map(pretty_print,voters['no']),', ')
-        if len(voters['veto']) > 0:
-            reply+=" Veto: "
-            reply+=string.join(map(pretty_print,voters['veto']),', ')
-            
+
+        if prop['prop_type'] == 'poll':
+            reply="The proposition raised by %s %s %s ago to %s %s has passed with %s as winner." % (
+                prop['proposer'],
+                age,
+                self.pluralize(age, 'day'),
+                prop['prop_type'],
+                self.config.get('Auth','home'),
+                winner
+            )
+            losing_total=0
+            for o in sorted(outcome.keys()):
+                if o != 'abstain':
+                    opt=o.upper() if len(o) == 1 else o
+                    reply+= " %s: %s" % (opt, ', '.join(map(pretty_print,outcome[o]['list'])))
+
+        else:
+            (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(outcome)
+
+            reply="The proposition raised by %s %s %s ago to %s %s has"%(prop['proposer'],age,self.pluralize(age,"day"),prop['prop_type'],prop['person'] or self.config.get('Auth','alliance'))
+            yes=outcome['yes']['count']
+            no=outcome['no']['count']
+            passed = yes > no and len(outcome['veto']['list']) <= 0
+            if passed:
+                reply+=" passed"
+                winner='yes'
+            else:
+                reply+=" failed"
+                winner='no'
+            reply+=" with %s carebears for and %s against."%(yes,no)
+            reply+=" In favor: "
+            reply+=string.join(map(pretty_print,outcome['yes']['list']),', ')
+            reply+=" Against: "
+            reply+=string.join(map(pretty_print,outcome['no']['list']),', ')
+            if len(outcome['veto']['list']) > 0:
+                reply+=" Veto: "
+                reply+=string.join(map(pretty_print,outcome['veto']['list']),', ')
+
         irc_msg.client.privmsg("#%s"%(self.config.get('Auth','home'),),reply)
 
         if prop['prop_type'] == 'kick' and passed:
@@ -341,7 +435,7 @@ class prop(loadable.loadable):
         query="UPDATE %s_proposal SET active = FALSE, closed = NOW()" % (prop['prop_type'],)
         query+=", vote_result=%s,compensation=%s"
         query+=" WHERE id=%s"
-        self.cursor.execute(query,(['no','yes'][passed],losing_total,prop['id']))
+        self.cursor.execute(query,(winner,losing_total,prop['id']))
 
     def process_cancel_proposal(self, irc_msg, u, prop_id):
         prop=self.find_single_prop_by_id(prop_id)
@@ -350,96 +444,130 @@ class prop(loadable.loadable):
             return
 
         if u.pnick.lower() != prop['proposer'].lower() and u.userlevel < 1000:
-            irc_msg.reply("Only %s may expire proposition %d."%(prop['proposer'],prop['id']))
+            irc_msg.reply("Only %s may cancel proposition %d."%(prop['proposer'],prop['id']))
             return
 
         if not prop['active']:
             irc_msg.reply("Only active props may be cancelled, prop %d has already expired"%(prop['id'],))
             return
 
-
-        (voters, yes, no)=self.get_voters_for_prop(prop_id)
+        outcome=self.get_voters_for_prop(prop_id, prop['prop_type'])
 
         query="UPDATE %s_proposal SET active = FALSE, closed =NOW() " %(prop['prop_type'],)
         query+=", vote_result=%s"
         query+=" WHERE id=%s"
         self.cursor.execute(query,('cancel',prop['id']))
 
-        reply="Cancelled proposal %s to %s %s. Voters in favor (" %(prop['id'],prop['prop_type'],prop['person'])
-
         pretty_print=lambda x:"%s (%s)"%(x['pnick'],x['carebears'])
-        reply+=string.join(map(pretty_print,voters['yes']),', ')
-        reply+=") and against ("
-        reply+=string.join(map(pretty_print,voters['no']),', ')
-        reply+=")"
+        reply="Cancelled proposal %s to %s %s" %(prop['id'],prop['prop_type'],prop['person'] or self.config.get('Auth','alliance'))
+        if prop['prop_type'] == 'poll':
+            for o in sorted(outcome.keys()):
+                if o != 'abstain':
+                    opt=o.upper() if len(o) == 1 else o
+                    reply+= ". Voters for %s (%s)" % (opt, ', '.join(map(pretty_print,outcome[o]['list'])))
+            reply+="."
+        else:
+            reply+=". Voters in favor (%s)" % (', '.join(map(pretty_print,outcome['yes']['list'])))
+            reply+=" and against (%s)" % (', '.join(map(pretty_print,outcome['no']['list'])))
+
         irc_msg.client.privmsg("#%s"%(self.config.get('Auth','home'),),reply)
 
     def process_recent_proposal(self,irc_msg,u):
-        query="SELECT t1.id AS id, t1.person AS person, 'invite' AS prop_type, t1.vote_result AS vote_result, t1.closed AS closed"
-        query+=" FROM invite_proposal AS t1 WHERE NOT t1.active UNION ("
-        query+=" SELECT t2.id AS id, t3.pnick AS person, 'kick' AS prop_type, t2.vote_result AS vote_result, t2.closed AS closed"
-        query+=" FROM kick_proposal AS t2"
-        query+=" INNER JOIN user_list AS t3 ON t2.person_id=t3.id WHERE NOT t2.active) ORDER BY closed DESC LIMIT 30"
+        query="SELECT inv.id AS id, inv.person AS person, NULL AS question, 'invite' AS prop_type, inv.vote_result AS vote_result, inv.closed AS closed"
+        query+=" FROM invite_proposal AS inv"
+        query+=" WHERE NOT inv.active"
+        query+=" UNION ("
+        query+="     SELECT kick.id AS id, ulist.pnick AS person, NULL AS question, 'kick' AS prop_type, kick.vote_result AS vote_result, kick.closed AS closed"
+        query+="     FROM kick_proposal AS kick"
+        query+="     INNER JOIN user_list AS ulist ON kick.person_id=ulist.id"
+        query+="     WHERE NOT kick.active"
+        query+=" )"
+        query+=" UNION ("
+        query+="     SELECT poll.id AS id, NULL AS person, poll.question || '?' AS question, 'poll' AS prop_type, poll.vote_result AS vote_result, poll.closed AS closed"
+        query+="     FROM poll_proposal AS poll"
+        query+="     WHERE NOT poll.active"
+        query+=" )"
+        query+=" ORDER BY closed DESC LIMIT 30"
         self.cursor.execute(query,())
         a=[]
         for r in self.cursor.dictfetchall():
-            a.append("%s: %s %s %s"%(r['id'],r['prop_type'],r['person'],r['vote_result'][0].upper() if r['vote_result'] else ""))
+            a.append("%s: %s %s %s"%(r['id'],r['prop_type'],r['person'] or r['question'],r['vote_result'][0].upper() if r['vote_result'] else ""))
         reply="Recently expired propositions: %s"%(string.join(a, ", "),)
         irc_msg.reply(reply)
 
     def process_search_proposal(self,irc_msg,u,search):
-        query="SELECT id, prop_type, person, vote_result FROM ("
-        query+=" SELECT t1.id AS id, 'invite' AS prop_type, t1.person AS person, t1.vote_result AS vote_result"
-        query+="  FROM invite_proposal AS t1 UNION ("
-        query+=" SELECT t3.id AS id, 'kick' AS prop_type, t5.pnick AS person, t3.vote_result AS vote_result"
-        query+="  FROM kick_proposal AS t3 INNER JOIN user_list AS t5 ON t3.person_id=t5.id)) "
-        query+="AS t6 WHERE t6.person ILIKE %s ORDER BY id DESC LIMIT 10"
-        self.cursor.execute(query,("%"+search+"%",))
+        query="SELECT id, prop_type, person, question, vote_result FROM ("
+        query+="     SELECT inv.id AS id, 'invite' AS prop_type, inv.person AS person, NULL as question, inv.vote_result AS vote_result"
+        query+="     FROM invite_proposal AS inv"
+        query+="     UNION ("
+        query+="         SELECT kick.id AS id, 'kick' AS prop_type, ulist.pnick AS person, NULL as quesion, kick.vote_result AS vote_result"
+        query+="         FROM kick_proposal AS kick INNER JOIN user_list AS ulist ON kick.person_id=ulist.id"
+        query+="     )"
+        query+="     UNION ("
+        query+="         SELECT poll.id AS id, 'poll' AS prop_type, NULL AS person, poll.question AS question, poll.vote_result AS vote_result"
+        query+="         FROM poll_proposal AS poll"
+        query+="     )"
+        query+=" )"
+        query+=" AS prop"
+        query+=" WHERE prop.person ILIKE %s OR prop.question ILIKE %s"
+        query+=" ORDER BY id DESC"
+        query+=" LIMIT 10"
+        self.cursor.execute(query,("%"+search+"%", "%"+search+"%"))
         a=[]
         for r in self.cursor.dictfetchall():
-            a.append("%s: %s %s %s"%(r['id'],r['prop_type'],r['person'],r['vote_result'][0].upper() if r['vote_result'] else "",))
+            a.append("%s: %s %s %s"%(r['id'],r['prop_type'],r['person'] or r['question'] + '?',r['vote_result'][0].upper() if r['vote_result'] else "",))
         reply="Propositions matching '%s': %s"%(search,string.join(a, ", "),)
         irc_msg.reply(reply)
 
-    def get_winners_and_losers(self,voters,yes,no):
-        if yes > no:
-            losers=voters['no']
-            winners=voters['yes']
-            winning_total=yes
-            losing_total=no
+    def get_winners_and_losers(self,outcome):
+        if outcome['yes']['count'] > outcome['no']['count']:
+            losers=outcome['no']['list']
+            losing_total=outcome['no']['count']
+            winners=outcome['yes']['list']
+            winning_total=outcome['yes']['count']
         else:
-            winners=voters['no']
-            losers=voters['yes']
-            winning_total=no
-            losing_total=yes
+            winners=outcome['no']['list']
+            winning_total=outcome['no']['count']
+            losers=outcome['yes']['list']
+            losing_total=outcome['yes']['count']
         return (winners,losers,winning_total,losing_total)
 
-    def get_voters_for_prop(self,prop_id):
-        query="SELECT t1.vote AS vote,t1.carebears AS carebears"
-        query+=", t1.prop_id AS prop_idd,t1.voter_id AS voter_id,t2.pnick AS pnick"
-        query+=" FROM prop_vote AS t1"
-        query+=" INNER JOIN user_list AS t2 ON t1.voter_id=t2.id"
+    def get_voters_for_prop(self,prop_id,prop_type):
+        outcome={}
+        for a in ['abstain', 'veto']:
+            outcome[a]={}
+            outcome[a]['list']=[]
+            outcome[a]['count']=0
+
+        if prop_type == 'poll':
+            query="SELECT answer_index"
+            query+=" FROM poll_answer"
+            query+=" WHERE poll_id=%s"
+            self.cursor.execute(query, (prop_id,))
+            for a in self.cursor.dictfetchall():
+                index=a['answer_index']
+                outcome[index]={}
+                outcome[index]['list']=[]
+                outcome[index]['count']=0
+
+        else:
+            for a in ['yes', 'no']:
+                outcome[a]={}
+                outcome[a]['list']=[]
+                outcome[a]['count']=0
+
+        query="SELECT v.vote AS vote, v.carebears AS carebears, v.prop_id AS prop_id, v.voter_id AS voter_id, ulist.pnick AS pnick"
+        query+=" FROM prop_vote AS v"
+        query+=" INNER JOIN user_list AS ulist ON v.voter_id=ulist.id"
         query+=" WHERE prop_id=%s"
         self.cursor.execute(query,(prop_id,))
-        voters={}
-        voters['yes']=[]
-        voters['no']=[]
-        voters['abstain']=[]
-        voters['veto']=[]
-        yes=0;no=0
 
         for r in self.cursor.dictfetchall():
-            if r['vote'] == 'yes':
-                yes+=r['carebears']
-                voters['yes'].append(r)
-            elif r['vote'] == 'no':
-                no+=r['carebears']
-                voters['no'].append(r)
-            elif r['vote'] == 'abstain':
-                voters['abstain'].append(r)
-            elif r['vote'] == 'veto':
-                voters['veto'].append(r)
-        return (voters, yes, no)
+            vote=r['vote']
+            outcome[vote]['list'].append(r)
+            outcome[vote]['count'] += r['carebears']
+
+        return outcome
 
     def do_kick(self,irc_msg,prop,yes,no):
         idiot=self.load_user_from_pnick(prop['person'])
@@ -467,15 +595,27 @@ class prop(loadable.loadable):
         irc_msg.client.privmsg('#%s'%(self.config.get('Auth','home')),reply)
 
     def find_single_prop_by_id(self,prop_id):
-        query="SELECT id, prop_type, proposer, person, created, padding, comment_text, active, closed, vote_result FROM ("
-        query+="SELECT t1.id AS id, 'invite' AS prop_type, t2.pnick AS proposer, t1.person AS person, t1.padding AS padding, t1.created AS created,"
-        query+=" t1.comment_text AS comment_text, t1.active AS active, t1.closed AS closed, t1.vote_result"
-        query+=" FROM invite_proposal AS t1 INNER JOIN user_list AS t2 ON t1.proposer_id=t2.id UNION ("
-        query+=" SELECT t3.id AS id, 'kick' AS prop_type, t4.pnick AS proposer, t5.pnick AS person, t3.padding AS padding, t3.created AS created,"
-        query+=" t3.comment_text AS comment_text, t3.active AS active, t3.closed AS closed, t3.vote_result"
-        query+=" FROM kick_proposal AS t3"
-        query+=" INNER JOIN user_list AS t4 ON t3.proposer_id=t4.id"
-        query+=" INNER JOIN user_list AS t5 ON t3.person_id=t5.id)) AS t6 WHERE t6.id=%s"
+        query="SELECT id, prop_type, proposer, person, created, padding, comment_text, active, closed, vote_result, question"
+        query+=" FROM ("
+        query+="     SELECT inv.id AS id, 'invite' AS prop_type, ulist1.pnick AS proposer, inv.person AS person, inv.padding AS padding, inv.created AS created,"
+        query+="            inv.comment_text AS comment_text, inv.active AS active, inv.closed AS closed, inv.vote_result, NULL AS question"
+        query+="     FROM invite_proposal AS inv"
+        query+="     INNER JOIN user_list AS ulist1 ON inv.proposer_id=ulist1.id"
+        query+="     UNION ("
+        query+="         SELECT kick.id AS id, 'kick' AS prop_type, ulist2.pnick AS proposer, ulist3.pnick AS person, kick.padding AS padding, kick.created AS created,"
+        query+="                kick.comment_text AS comment_text, kick.active AS active, kick.closed AS closed, kick.vote_result, NULL AS question"
+        query+="         FROM kick_proposal AS kick"
+        query+="         INNER JOIN user_list AS ulist2 ON kick.proposer_id=ulist2.id"
+        query+="         INNER JOIN user_list AS ulist3 ON kick.person_id=ulist3.id"
+        query+="     )"
+        query+="     UNION ("
+        query+="         SELECT poll.id AS id, 'poll' AS prop_type, ulist4.pnick AS proposer, NULL AS person, poll.padding AS padding, poll.created AS created,"
+        query+="                NULL AS comment_text, poll.active AS active, poll.closed AS closed, poll.vote_result, poll.question AS question"
+        query+="         FROM poll_proposal AS poll"
+        query+="         INNER JOIN user_list AS ulist4 ON poll.proposer_id=ulist4.id"
+        query+="     )"
+        query+=" ) AS joined"
+        query+=" WHERE joined.id=%s"
         
         self.cursor.execute(query,(prop_id,))
         return self.cursor.dictfetchone()
@@ -491,8 +631,16 @@ class prop(loadable.loadable):
         return self.cursor.rowcount > 0
 
     def was_recently_proposed(self,prop_type,person_or_person_id):
-        query="SELECT vote_result,compensation FROM %s_proposal WHERE person%s"%(prop_type,['','_id'][prop_type=='kick'])
-        query+=" ilike %s AND not active ORDER BY closed DESC"
+        if prop_type == 'kick':
+            query="SELECT vote_result,compensation FROM kick_proposal"
+            query+=" WHERE person_id = %s"
+            query+=" AND not active"
+            query+=" ORDER BY closed DESC"
+        else:
+            query="SELECT vote_result,compensation FROM invite_proposal"
+            query+=" WHERE person ilike %s"
+            query+=" AND not active"
+            query+=" ORDER BY closed DESC"
         self.cursor.execute(query,(person_or_person_id,))
         r=self.cursor.dictfetchone()
         if r and r['vote_result'] != 'yes':
@@ -520,3 +668,19 @@ class prop(loadable.loadable):
         self.cursor.execute(query,(person_id,))
         return self.cursor.rowcount > 0
 
+    def create_poll_proposal(self,user,question,answers):
+        query="INSERT INTO poll_proposal (proposer_id, question)"
+        query+=" VALUES (%s, %s)"
+        self.cursor.execute(query,(user.id, question))
+
+        query="SELECT id FROM poll_proposal WHERE proposer_id = %s AND question = %s AND active ORDER BY created DESC LIMIT 1"
+        self.cursor.execute(query,(user.id, question))
+        poll_id=self.cursor.dictfetchone()['id']
+
+        # OPTIMIZE: Do this in 1 query.
+        for i in range(0, len(answers)):
+            query="INSERT INTO poll_answer (poll_id, answer_index, answer_text)"
+            query+=" VALUES (%s, %s, %s)"
+            self.cursor.execute(query, (poll_id, chr(ord('a') + i), answers[i]))
+
+        return poll_id

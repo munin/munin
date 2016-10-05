@@ -487,11 +487,36 @@ comment_text TEXT NOT NULL
 
 CREATE TABLE prop_vote (
 id SERIAL PRIMARY KEY,
-vote VARCHAR(7) NOT NULL CHECK(vote in ('yes', 'no', 'abstain', 'veto')),
+vote VARCHAR(7) NOT NULL CHECK(vote in ('yes', 'no', 'abstain', 'veto', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j')),
 carebears integer NOT NULL,
 prop_id integer NOT NULL,
 voter_id integer NOT NULL REFERENCES user_list(id)
 );
+
+CREATE TABLE poll_proposal (
+id integer PRIMARY KEY NOT NULL DEFAULT nextval('proposal_id_seq'),
+active boolean NOT NULL DEFAULT true,
+proposer_id integer NOT NULL REFERENCES user_list(id),
+question varchar(512) NOT NULL,
+created timestamp NOT NULL DEFAULT now(),
+closed timestamp,
+padding integer DEFAULT 0,
+vote_result varchar(7),
+compensation integer
+);
+
+CREATE TABLE poll_answer (
+id serial,
+poll_id integer,
+answer_index char(1),
+answer_text varchar(512),
+PRIMARY KEY(id),
+FOREIGN KEY(poll_id) REFERENCES poll_proposal (id)
+);
+CREATE INDEX poll_answer_answer_index_index ON poll_answer(answer_index);
+
+-- TODO: Put this in the commit message.
+ALTER TABLE prop_vote DROP CONSTRAINT prop_vote_vote_check;
 
 
 -- Since the plpythonu language is unrestricted, functions must be created as

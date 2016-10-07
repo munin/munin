@@ -252,13 +252,13 @@ class prop(loadable.loadable):
                                                                           r['comment_text'])
         if not bool(r['active']):
             reply+=", this prop expired %d days ago."%((datetime.datetime.now()-r['closed']).days,)
-        if irc_msg.target[0] != "#" or irc_msg.prefix_notice() or irc_msg.prefix_private():
+        elif irc_msg.target[0] != "#" or irc_msg.prefix_notice() or irc_msg.prefix_private():
             query="SELECT vote,carebears FROM prop_vote"
             query+=" WHERE prop_id=%s AND voter_id=%s"
             self.cursor.execute(query,(prop_id,u.id))
             s=self.cursor.dictfetchone()
             if s:
-                vote=s['vote'].upper() if len(s['vote']) == 1 else s['vote']
+                vote=s['vote'][:1].upper() + s['vote'][1:]
                 reply+=", you are currently voting '%s'"%(vote,)
                 if s['vote'] != 'abstain':
                     reply+=" with %s carebears"%(s['carebears'],)
@@ -278,7 +278,7 @@ class prop(loadable.loadable):
             if r['prop_type'] == 'poll':
                 reply="The prop expired with %s winning" % (r['vote_result'])
                 for o in sorted(outcome.keys()):
-                    if o != 'abstain' and o != 'veto':
+                    if o != 'veto':
                         reply+= ". The voters for %s were (%s)" % (o, ', '.join(map(pretty_print,outcome[o]['list'])))
                 reply+="."
             else:
@@ -378,10 +378,10 @@ class prop(loadable.loadable):
             return
         #tally votes for and against
         outcome = self.get_voters_for_prop(prop_id, prop['prop_type'])
-        highest = -1
+        highest = 0
         winner = None
         for o in sorted(outcome.keys()):
-            if o != 'abstain' and outcome[o]['count'] > highest:
+            if outcome[o]['count'] > highest and outcome[o]['count'] > 0:
                 highest = outcome[o]['count']
                 winner = o
 
@@ -389,19 +389,32 @@ class prop(loadable.loadable):
         pretty_print=lambda x:"%s (%s)"%(x['pnick'],x['carebears'])
 
         if prop['prop_type'] == 'poll':
-            reply="The proposition raised by %s %s %s ago to %s %s has passed with %s as winner." % (
+            reply="The proposition raised by %s %s %s ago to ask %s '%s?'" % (
                 prop['proposer'],
                 age,
                 self.pluralize(age, 'day'),
-                prop['prop_type'],
                 self.config.get('Auth','home'),
-                winner
+                prop['question']
             )
+            if not winner:
+                reply+=" has expired without any votes"
+                winner='abstain'
+            elif winner == 'veto':
+                reply+=" has expired with one or more vetoes"
+            else:
+                reply+=" has expired with '%s!' as winner" % (outcome[winner]['text'])
+
             losing_total=0
             for o in sorted(outcome.keys()):
-                if o != 'abstain':
-                    opt=o.upper() if len(o) == 1 else o
-                    reply+= " %s: %s" % (opt, ', '.join(map(pretty_print,outcome[o]['list'])))
+                opt=o[:1].upper() + o[1:]
+                text=outcome[o]['text']
+                if text:
+                    reply+=". Voters for '%s': (%s)" % (text,
+                                                        ', '.join(map(pretty_print,outcome[o]['list'])))
+                else:
+                    reply+=". Voters for %s: (%s)" % (opt,
+                                                      ', '.join(map(pretty_print,outcome[o]['list'])))
+            reply+="."
 
         else:
             (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(outcome)
@@ -459,14 +472,22 @@ class prop(loadable.loadable):
         self.cursor.execute(query,('cancel',prop['id']))
 
         pretty_print=lambda x:"%s (%s)"%(x['pnick'],x['carebears'])
-        reply="Cancelled proposal %s to %s %s" %(prop['id'],prop['prop_type'],prop['person'] or self.config.get('Auth','alliance'))
         if prop['prop_type'] == 'poll':
+            reply="Cancelled proposal %s to ask %s '%s?'" %(prop['id'],
+                                                            prop['prop_type'],
+                                                            self.config.get('Auth','alliance'))
             for o in sorted(outcome.keys()):
-                if o != 'abstain':
-                    opt=o.upper() if len(o) == 1 else o
-                    reply+= ". Voters for %s (%s)" % (opt, ', '.join(map(pretty_print,outcome[o]['list'])))
+                opt=o[:1].upper() + o[1:]
+                text=outcome[o]['text']
+                if text:
+                    reply+= ". Voters for '%s!' (%s)" % (text,
+                                                         ', '.join(map(pretty_print,outcome[o]['list'])))
+                else:
+                    reply+= ". Voters for %s (%s)" % (opt,
+                                                      ', '.join(map(pretty_print,outcome[o]['list'])))
             reply+="."
         else:
+            reply="Cancelled proposal %s to %s %s" %(prop['id'],prop['prop_type'],prop['person'])
             reply+=". Voters in favor (%s)" % (', '.join(map(pretty_print,outcome['yes']['list'])))
             reply+=" and against (%s)" % (', '.join(map(pretty_print,outcome['no']['list'])))
 
@@ -534,13 +555,14 @@ class prop(loadable.loadable):
 
     def get_voters_for_prop(self,prop_id,prop_type):
         outcome={}
-        for a in ['abstain', 'veto']:
+        for a in ['veto']:
             outcome[a]={}
             outcome[a]['list']=[]
             outcome[a]['count']=0
+            outcome[a]['text']=''
 
         if prop_type == 'poll':
-            query="SELECT answer_index"
+            query="SELECT answer_index, answer_text"
             query+=" FROM poll_answer"
             query+=" WHERE poll_id=%s"
             self.cursor.execute(query, (prop_id,))
@@ -549,17 +571,20 @@ class prop(loadable.loadable):
                 outcome[index]={}
                 outcome[index]['list']=[]
                 outcome[index]['count']=0
+                outcome[index]['text']=a['answer_text']
 
         else:
             for a in ['yes', 'no']:
                 outcome[a]={}
                 outcome[a]['list']=[]
                 outcome[a]['count']=0
+                outcome[a]['text']=a
 
         query="SELECT v.vote AS vote, v.carebears AS carebears, v.prop_id AS prop_id, v.voter_id AS voter_id, ulist.pnick AS pnick"
         query+=" FROM prop_vote AS v"
         query+=" INNER JOIN user_list AS ulist ON v.voter_id=ulist.id"
         query+=" WHERE prop_id=%s"
+        query+=" AND NOT vote='abstain'"
         self.cursor.execute(query,(prop_id,))
 
         for r in self.cursor.dictfetchall():

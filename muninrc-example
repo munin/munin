@@ -68,7 +68,7 @@ anarchy_cost_reduction: 0.0
 corporatism_prod_speed: 0.0
 democracy_prod_speed: 0.0
 nationalism_prod_speed: -0.1
-socialism_prod_speed: 0.1
+socialism_prod_speed: 0.2
 totalitarianism_prod_speed: -0.1
 anarchy_prod_speed: -0.2
 

@@ -89,8 +89,9 @@ class cookie(loadable.loadable):
             irc_msg.reply("Cookies? Pah! I only eat carrion.")
             return 1
 
-        rec=self.load_user_from_pnick(receiver)
-        if not rec or rec.userlevel < 100:
+        minimum_userlevel=100
+        rec=self.load_user_from_pnick(receiver,minimum_userlevel)
+        if not rec:
             irc_msg.reply("I don't know who '%s' is, so I can't very well give them any cookies can I?" % (receiver,))
             return 1
         if u.pnick == rec.pnick:

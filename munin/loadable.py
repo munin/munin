@@ -117,8 +117,8 @@ class loadable(object):
             return None
         return u
 
-    def load_user_from_pnick(self,username):
-        u=user(pnick=username)
+    def load_user_from_pnick(self,username,minimum_userlevel=-1):
+        u=user(pnick=username,userlevel=minimum_userlevel)
         if u.load_from_db(self.cursor):
             return u
         else:
@@ -569,8 +569,8 @@ class user(object):
     def load_from_db(self,cursor):
         query=self.lookup_query()
         if self.pnick:
-            query+=" t1.pnick ILIKE %s OR t1.alias_nick ILIKE %s"
-            cursor.execute(query,(self.pnick,self.pnick))
+            query+=" ( t1.pnick ILIKE %s OR t1.alias_nick ILIKE %s ) AND t1.userlevel >= %s"
+            cursor.execute(query,(self.pnick,self.pnick,self.userlevel))
         elif self.id > 0:
             query+=" t1.id=%s"
             cursor.execute(query,(self.id,))

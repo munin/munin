@@ -77,29 +77,34 @@ class exile(loadable.loadable):
                     rest_gals=bracket+r['count']
                     total_rest_gals=r['count']
                     rest_planets=r['planets']
+                    if max_planets == 0:
+                        max_planets=r['planets'] - 1
                     break
                 max_planets=r['planets']
                 base_bracket_gals+=r['count']
 
-            query = "SELECT x, y FROM ("
-            query+= "     SELECT x AS x,y AS y,count(*) AS planets "
-            query+= "     FROM planet_dump "
-            query+= "     WHERE tick = (SELECT max_tick()) "
-            query+= "     AND x < 200 "
-            query+= "     AND NOT (x = 1 AND y = 1) "
-            query+= "     GROUP BY x,y "
-            query+= "     ORDER BY count(*) DESC "
-            query+= " ) AS foo "
-            query+= " WHERE planets <= %s "
-            query+= " ORDER BY x ASC, y ASC"
-            self.cursor.execute(query,(max_planets,))
-            if self.cursor.rowcount<1:
-                reply="Whoops."
-            else:
-                eligible=", ".join(map(lambda x: "%s:%s"%(x['x'],x['y']),
-                                       self.cursor.dictfetchall()))
-                reply ="Total galaxies: %s | %s galaxies with a maximum of %s planets guaranteed to be in the exile bracket: %s" % (gals,base_bracket_gals,max_planets,eligible)
-                reply+=" | Also in the bracket: %s of %s galaxies with %s planets."%(rest_gals,total_rest_gals,rest_planets)
+            reply ="Total galaxies: %s | %s galaxies with a maximum of %s planets guaranteed to be in the exile bracket" % (gals,base_bracket_gals,max_planets)
+
+            if base_bracket_gals > 0:
+                # >0 galaxies are guaranteed to be in the bracket. List them.
+                query = "SELECT x, y FROM ("
+                query+= "     SELECT x AS x,y AS y,count(*) AS planets "
+                query+= "     FROM planet_dump "
+                query+= "     WHERE tick = (SELECT max_tick()) "
+                query+= "     AND x < 200 "
+                query+= "     AND NOT (x = 1 AND y = 1) "
+                query+= "     GROUP BY x,y "
+                query+= "     ORDER BY count(*) DESC "
+                query+= " ) AS foo "
+                query+= " WHERE planets <= %s "
+                query+= " ORDER BY x ASC, y ASC"
+                self.cursor.execute(query,(max_planets,))
+                eligible="Whoops"
+                if self.cursor.rowcount>0:
+                    eligible=", ".join(map(lambda x: "%s:%s"%(x['x'],x['y']),
+                                           self.cursor.dictfetchall()))
+                reply+=": %s"%(eligible)
+            reply+=" | Also in the bracket: %s of %s galaxies with %s planets."%(rest_gals,total_rest_gals,rest_planets)
 
         irc_msg.reply(reply)
 

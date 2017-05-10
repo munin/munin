@@ -71,7 +71,7 @@ class smslog(loadable.loadable):
             r=self.cursor.dictfetchone()
             reply="SMS with ID %s sent by %s to %s with text: %s"%(r['id'],r['sender'],r['receiver'],r['sms_text'])
             irc_msg.reply(reply)
-            
+
     def show_all(self,irc_msg):
         query=self.base_query()
         query+=" ORDER BY t1.id DESC LIMIT 10"
@@ -89,4 +89,4 @@ class smslog(loadable.loadable):
         query+=" ON t1.sender_id = t2.id"
         query+=" INNER JOIN user_list AS t3"
         query+=" ON t1.receiver_id = t3.id"
-        return query        
+        return query

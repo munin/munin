@@ -53,7 +53,6 @@ class loosecunts(loadable.loadable):
         if m:
             search=m.group(2) or search
 
-
         for q in ["DROP TABLE epenis","DROP SEQUENCE xp_gain_rank",
                   "DROP SEQUENCE value_diff_rank","DROP SEQUENCE activity_rank"]:
             try:
@@ -66,42 +65,37 @@ class loosecunts(loadable.loadable):
         query="SELECT setval('xp_gain_rank',1,false); SELECT setval('value_diff_rank',1,false); SELECT setval('activity_rank',1,false)"
         self.cursor.execute(query)
 
-
         query="CREATE TEMP TABLE epenis AS"
         query+=" (SELECT *,nextval('activity_rank') AS activity_rank"
-        query+=" FROM (SELECT  *,nextval('value_diff_rank') AS value_diff_rank"
-        query+=" FROM (SELECT *,nextval('xp_gain_rank') AS xp_gain_rank"
-        query+=" FROM (SELECT t2.nick, t4.pnick ,t1.xp-t5.xp AS xp_gain, t1.score-t5.score AS activity, t1.value-t5.value AS value_diff"
-        query+=" FROM planet_dump AS t1"
-        query+=" INNER JOIN intel AS t2 ON t1.id=t2.pid"
-        query+=" LEFT JOIN user_list AS t4 ON t2.pid=t4.planet_id"
-        query+=" INNER JOIN planet_dump AS t5"
-        query+=" ON t1.id=t5.id AND t1.tick - 72 = t5.tick"
-        query+=" WHERE t1.tick = (select max(tick) from updates)"
-        query+=" ORDER BY xp_gain DESC) AS t6"
-        query+=" ORDER BY value_diff DESC) AS t7"
-        query+=" ORDER BY activity DESC) AS t8)"
+        query+="  FROM (SELECT *,nextval('value_diff_rank') AS value_diff_rank"
+        query+="        FROM (SELECT *,nextval('xp_gain_rank') AS xp_gain_rank"
+        query+="              FROM (SELECT i.nick, u.pnick, p0.xp-p72.xp AS xp_gain, p0.score-p72.score AS activity, p0.value-p72.value AS value_diff"
+        query+="                    FROM       planet_dump     AS p0"
+        query+="                    LEFT JOIN  intel           AS i   ON p0.id=i.pid"
+        query+="                    LEFT JOIN  round_user_pref AS r   ON p0.id=r.planet_id"
+        query+="                    LEFT JOIN  user_list       AS u   ON u.id=r.user_id"
+        query+="                    INNER JOIN planet_dump     AS p72 ON p0.id=p72.id AND p0.tick - 72 = p72.tick"
+        query+="                    WHERE p0.tick = (SELECT max_tick(%s::smallint)) AND p0.round = %s"
+        query+="                    ORDER BY xp_gain DESC) AS t6"
+        query+="              ORDER BY value_diff DESC) AS t7"
+        query+="        ORDER BY activity DESC) AS t8)"
 
-        self.cursor.execute(query)
+        self.cursor.execute(query,(irc_msg.round,irc_msg.round,))
 
-        query="SELECT pnick,nick,xp_gain,activity,value_diff,xp_gain_rank,value_diff_rank,activity_rank"
+        query="SELECT nick,pnick,xp_gain,activity,value_diff,xp_gain_rank,value_diff_rank,activity_rank"
         query+=" FROM epenis"
         query+=" ORDER BY activity_rank DESC LIMIT 5"
 
         self.cursor.execute(query,())
 
-
-        reply=""
         if self.cursor.rowcount < 1:
-            reply+="There is no penis"
-            irc_msg.reply(reply)
+            irc_msg.reply("There is no penis")
             return 1
 
-        reply="Loose cunts:"
         prev=[]
         for b in self.cursor.dictfetchall():
             prev.append("%d:%s (%s)"%(b['activity_rank'],b['pnick'] or b['nick'],self.format_value(b['activity']*100)))
-        reply+=" "+string.join(prev,', ')
+        reply="Loose cunts: %s"%(', '.join(prev))
 
         irc_msg.reply(reply)
         return 1

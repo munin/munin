@@ -54,7 +54,7 @@ class yourmum(loadable.loadable):
         search=m.group(1)
         if search:
         # assign param variables
-            u=self.load_user_from_pnick(search)
+            u=self.load_user_from_pnick(search,irc_msg.round)
             if not u:
                 irc_msg.reply("No member found matching %s."%(search,))
                 return

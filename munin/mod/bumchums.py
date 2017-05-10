@@ -60,35 +60,36 @@ class bumchums(loadable.loadable):
         # assign param variables
 
         alliance=m.group(1)
-        bums=m.group(2)
+        bums=m.group(2) or 1
 
         a=loadable.alliance(name=alliance)
 
-        if not a.load_most_recent(self.cursor):
+        if not a.load_most_recent(self.cursor,irc_msg.round):
             irc_msg.reply("No alliance matching '%s' found" % (alliance,))
             return 1
 
         query="SELECT x,y,count(*) AS bums FROM planet_dump AS t1"
         query+=" INNER JOIN intel AS t2 ON t1.id=t2.pid"
         query+=" LEFT JOIN alliance_canon AS t3 ON t2.alliance_id=t3.id"
-        query+=" WHERE t1.tick=(SELECT max_tick())"
+        query+=" WHERE t1.tick=(SELECT max_tick(%s::smallint))"
         query+=" AND t3.name ilike %s"
+        query+=" AND t1.round=%s"
         query+=" GROUP BY x,y"
         query+=" HAVING count(*) >= %s"
         query+=" ORDER BY bums DESC, x ASC, y ASC"
 
         # do stuff here
 
-        self.cursor.execute(query,(a.name,bums or 1))
+        self.cursor.execute(query,(irc_msg.round,a.name,irc_msg.round,bums,))
 
         reply=""
         if self.cursor.rowcount < 1:
-            reply+="No galaxies with at least %s bumchums from %s"%(bums or 1, a.name)
+            reply+="No galaxies with at least %s bumchums from %s"%(bums, a.name)
         else:
             prev=[]
             for b in self.cursor.dictfetchall():
                 prev.append("%s:%s (%s)"%(b['x'],b['y'],b['bums']))
-            reply+="Galaxies with at least %s bums from %s: "%(bums or 1,a.name)+ ' | '.join(prev)
+            reply+="Galaxies with at least %s bums from %s: "%(bums,a.name)+ ' | '.join(prev)
 
         irc_msg.reply(reply)
 

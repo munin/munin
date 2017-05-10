@@ -55,11 +55,11 @@ class topcunts(loadable.loadable):
         m=self.paramre.search(m.group(1))
         if not m or not m.group(1):
             u=loadable.user(pnick=irc_msg.user)
-            if not u.load_from_db(self.cursor):
+            if not u.load_from_db(self.cursor,irc_msg.round,):
                 irc_msg.reply("Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
                 return 1
             if u.planet:
-                reply=self.surprise(x=u.planet.x,y=u.planet.y,z=u.planet.z)
+                reply=self.surprise(round=irc_msg.round,x=u.planet.x,y=u.planet.y,z=u.planet.z)
                 irc_msg.reply(reply)
             else:
                 irc_msg.reply("Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
@@ -75,27 +75,27 @@ class topcunts(loadable.loadable):
 
             if z:
                 p=loadable.planet(x=x,y=y,z=z)
-                if not p.load_most_recent(self.cursor):
+                if not p.load_most_recent(self.cursor,irc_msg.round):
                     irc_msg.reply("No planet matching '%s' found"%(param,))
                     return 1
-                reply=self.surprise(x=p.x,y=p.y,z=p.z)
+                reply=self.surprise(round=irc_msg.round,x=p.x,y=p.y,z=p.z)
 
                 irc_msg.reply(reply)
                 return 1
             else:
                 g=loadable.galaxy(x=x,y=y)
-                if not g.load_most_recent(self.cursor):
+                if not g.load_most_recent(self.cursor,irc_msg.round):
                     irc_msg.reply("No galaxy matching '%s' found"%(param,))
                     return 1
-                reply=self.surprise(x=g.x,y=g.y)
+                reply=self.surprise(round=irc_msg.round,x=g.x,y=g.y)
                 irc_msg.reply(reply)
                 return 1
 
         a=loadable.alliance(name=param.strip())
-        if not a.load_most_recent(self.cursor):
+        if not a.load_most_recent(self.cursor,irc_msg.round):
             irc_msg.reply("No alliance matching '%s' found" % (param,))
             return 1
-        reply=self.surprise(alliance=a.name)
+        reply=self.surprise(round=irc_msg.round,alliance=a.name)
         irc_msg.reply(reply)
 
         return 1
@@ -106,8 +106,8 @@ class topcunts(loadable.loadable):
         else:
             return text.upper()
 
-    def surprise(self,x=None,y=None,z=None,alliance=None):
-        args=()
+    def surprise(self,round,x=None,y=None,z=None,alliance=None):
+        args=(round,round,)
         query="SELECT t1.id AS attacker,count(t1.id) AS attacks "
         query+=" FROM planet_canon AS t1"
         query+=" INNER JOIN fleet AS t3 ON t1.id=t3.owner_id"
@@ -115,7 +115,7 @@ class topcunts(loadable.loadable):
         query+=" INNER JOIN intel AS t5 ON t3.target=t5.pid"
         query+=" INNER JOIN alliance_canon AS t6 ON t5.alliance_id=t6.id"
         query+=" WHERE mission = 'attack'"
-        query+=" AND t4.tick=(SELECT max_tick())"
+        query+=" AND t4.tick=(SELECT max_tick(%s::smallint)) AND t4.round=%s"
 
         if x and y:
             query+=" AND t4.x=%s AND t4.y=%s"
@@ -159,7 +159,7 @@ class topcunts(loadable.loadable):
                     i+=1
 
                 p=loadable.planet(id=a['attacker'])
-                if not p.load_most_recent(self.cursor):
+                if not p.load_most_recent(self.cursor,round):
                     i-=1
                     pass
                 prev.append("%s:%s:%s - %s"%(p.x,p.y,p.z,a['attacks']))

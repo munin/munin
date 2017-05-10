@@ -60,7 +60,7 @@ class prod(loadable.loadable):
         factories = int(factories)
 
         # Verify or fix this!
-        ship=self.get_ship_from_db(shipname)
+        ship=self.get_ship_from_db(shipname,irc_msg.round)
         if not ship:
             irc_msg.reply("%s is not a ship." % shipname)
             return 0

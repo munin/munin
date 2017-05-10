@@ -62,7 +62,7 @@ class unit(loadable.loadable):
             z=m.group(3)
 
             p=loadable.planet(x=x,y=y,z=z)
-            if not p.load_most_recent(self.cursor):
+            if not p.load_most_recent(self.cursor,irc_msg.round):
                 irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
                 return 1
 
@@ -100,8 +100,8 @@ class unit(loadable.loadable):
             query+=" INNER JOIN unit AS t2 ON t1.id=t2.scan_id"
             query+=" INNER JOIN ship AS t3 ON t2.ship_id=t3.id"
             query+=" INNER JOIN planet_dump AS t4 ON t1.pid=t4.id"
-            query+=" WHERE t4.tick=(SELECT max_tick()) AND t1.rand_id=%s"
-            self.cursor.execute(query,(rand_id,))
+            query+=" WHERE t4.tick=(SELECT max_tick(%s::smallint)) AND round=%s AND t1.rand_id=%s"
+            self.cursor.execute(query,(irc_msg.round,irc_msg.round,rand_id,))
 
             if self.cursor.rowcount < 1:
                 reply+="No planet scans matching ID %s" % (rand_id,)

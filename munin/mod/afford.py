@@ -58,7 +58,7 @@ class afford(loadable.loadable):
         ship_name=m.group(4)
 
         p=loadable.planet(x=x,y=y,z=z)
-        if not p.load_most_recent(self.cursor):
+        if not p.load_most_recent(self.cursor,irc_msg.round):
             irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
             return 1
 
@@ -80,10 +80,10 @@ class afford(loadable.loadable):
             rand_id=s['rand_id']
 
             query="SELECT name,class,metal,crystal,eonium,total_cost"
-            query+=" FROM ship WHERE name ilike %s LIMIT 1"
-            self.cursor.execute(query,('%'+ship_name+'%',))
+            query+=" FROM ship WHERE name ilike %s AND round = %s LIMIT 1"
+            self.cursor.execute(query,('%'+ship_name+'%',irc_msg.round,))
 
-            ship=self.get_ship_from_db(ship_name)
+            ship=self.get_ship_from_db(ship_name,irc_msg.round)
             if not ship:
                 reply="%s is not a ship" % (ship_name)
             else:

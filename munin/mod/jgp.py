@@ -62,7 +62,7 @@ class jgp(loadable.loadable):
             z=m.group(3)
 
             p=loadable.planet(x=x,y=y,z=z)
-            if not p.load_most_recent(self.cursor):
+            if not p.load_most_recent(self.cursor,irc_msg.round):
                 irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
                 return 1
 
@@ -70,13 +70,13 @@ class jgp(loadable.loadable):
             query+=" FROM scan AS t1"
             query+=" INNER JOIN fleet AS t2 ON t1.id=t2.scan_id"
             query+=" INNER JOIN planet_dump AS t3 ON t2.owner_id=t3.id"
-            query+=" WHERE t1.pid=%s AND t3.tick=(SELECT max_tick())"
+            query+=" WHERE t1.pid=%s AND t3.tick=(SELECT max_tick(%s::smallint)) AND t3.round=%s"
             query+=" AND t1.id=(SELECT id FROM scan WHERE pid=t1.pid AND scantype='jgp'"
             query+=" ORDER BY tick DESC, id DESC LIMIT 1) ORDER BY eta ASC"
-            self.cursor.execute(query,(p.id,))
+            self.cursor.execute(query,(p.id,irc_msg.round,irc_msg.round,))
 
             if self.cursor.rowcount < 1:
-                if self.fallback(irc_msg,p,None):
+                if self.fallback(irc_msg,p,None,irc_msg.round):
                     return 1
                 else:
                     reply+="No JGP scans available on %s:%s:%s" % (p.x,p.y,p.z)
@@ -109,11 +109,11 @@ class jgp(loadable.loadable):
             query+=" INNER JOIN fleet AS t2 ON t1.id=t2.scan_id"
             query+=" INNER JOIN planet_dump AS t4 ON t1.pid=t4.id"
             query+=" INNER JOIN planet_dump AS t5 ON t4.tick=t5.tick AND t2.owner_id=t5.id"
-            query+=" WHERE t4.tick=(SELECT max_tick()) AND t1.rand_id=%s"
-            self.cursor.execute(query,(rand_id,))
+            query+=" WHERE t4.tick=(SELECT max_tick(%s::smallint)) AND t4.round=%s AND t1.rand_id=%s"
+            self.cursor.execute(query,(irc_msg.round,irc_msg.round,rand_id,))
 
             if self.cursor.rowcount < 1:
-                if self.fallback(irc_msg,None,rand_id):
+                if self.fallback(irc_msg,None,rand_id,irc_msg.round):
                     return 1
                 else:
                     reply+="No JGP scans matching ID %s" % (rand_id,)
@@ -133,12 +133,12 @@ class jgp(loadable.loadable):
         return 1
 
 
-    def fallback(self,irc_msg,planet,rand_id):
+    def fallback(self,irc_msg,planet,rand_id,round):
         query="SELECT rand_id FROM scan AS t1 "
         query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
-        query+=" WHERE t3.tick = (SELECT max_tick())"
+        query+=" WHERE t3.tick = (SELECT max_tick(%s::smallint)) AND t3.round=%s"
 
-        args=()
+        args=(round,round,)
         if planet:
             query+=" AND t3.id=%s"
             args+=(planet.id,)

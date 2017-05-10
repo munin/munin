@@ -52,13 +52,13 @@ class exile(loadable.loadable):
 
         reply=""
 
-        query = "SELECT planets,count(*) AS count FROM "
-        query+= " (SELECT  x AS x,y AS y,count(*) AS planets from planet_dump"
-        query+= " WHERE tick = (SELECT max_tick()) AND x < 200 AND NOT (x = 1 AND y = 1)"
-        query+= " GROUP BY x,y ORDER BY count(*) DESC) AS foo"
+        query = "SELECT planets,count(*) AS count"
+        query+= " FROM (SELECT x AS x,y AS y,count(*) AS planets FROM planet_dump"
+        query+= "       WHERE tick = (SELECT max_tick(%s::smallint)) AND round = %s AND x < 200 AND NOT (x = 1 AND y = 1)"
+        query+= "       GROUP BY x,y ORDER BY count(*) DESC) AS foo"
         query+= " GROUP BY planets ORDER BY planets ASC"
 
-        self.cursor.execute(query)
+        self.cursor.execute(query,(irc_msg.round,irc_msg.round,))
         if self.cursor.rowcount<1:
             reply="There is no spoon"
         else:
@@ -88,17 +88,18 @@ class exile(loadable.loadable):
             if base_bracket_gals > 0:
                 # >0 galaxies are guaranteed to be in the bracket. List them.
                 query = "SELECT x, y FROM ("
-                query+= "     SELECT x AS x,y AS y,count(*) AS planets "
-                query+= "     FROM planet_dump "
-                query+= "     WHERE tick = (SELECT max_tick()) "
-                query+= "     AND x < 200 "
-                query+= "     AND NOT (x = 1 AND y = 1) "
-                query+= "     GROUP BY x,y "
-                query+= "     ORDER BY count(*) DESC "
-                query+= " ) AS foo "
-                query+= " WHERE planets <= %s "
+                query+= "     SELECT x AS x,y AS y,count(*) AS planets"
+                query+= "     FROM planet_dump"
+                query+= "     WHERE tick = (SELECT max_tick(%s::smallint))"
+                query+= "     AND round = %s"
+                query+= "     AND x < 200"
+                query+= "     AND NOT (x = 1 AND y = 1)"
+                query+= "     GROUP BY x,y"
+                query+= "     ORDER BY count(*) DESC"
+                query+= " ) AS foo"
+                query+= " WHERE planets <= %s"
                 query+= " ORDER BY x ASC, y ASC"
-                self.cursor.execute(query,(max_planets,))
+                self.cursor.execute(query,(irc_msg.round,irc_msg.round,max_planets,))
                 eligible="Whoops"
                 if self.cursor.rowcount>0:
                     eligible=", ".join(map(lambda x: "%s:%s"%(x['x'],x['y']),

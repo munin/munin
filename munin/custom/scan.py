@@ -31,7 +31,8 @@ class scan(threading.Thread):
     def __init__(self, rand_id,client,config,nick,pnick,group_id): # random scan ID, and client for debug ONLY
         self.rand_id=rand_id
         self.client=client
-        self.connection=self.create_conn(config)
+        self.config=config
+        self.connection=self.create_conn()
         self.cursor=self.connection.cursor()
         self.nick=nick
         self.pnick=pnick
@@ -39,12 +40,12 @@ class scan(threading.Thread):
         self.useragent="Munin (Python-urllib/%s); BotNick/%s; Admin/%s" % (urllib2.__version__, config.get("Connection", "nick"), config.get("Auth", "owner_nick"))
         threading.Thread.__init__(self)
 
-    def create_conn(self,config):
-        dsn = 'user=%s dbname=%s' % (config.get("Database", "user"), config.get("Database", "dbname"))
-        if config.has_option("Database", "password"):
-            dsn += ' password=%s' % config.get("Database", "password")
-        if config.has_option("Database", "host"):
-            dsn += ' host=%s' % config.get("Database", "host")
+    def create_conn(self):
+        dsn = 'user=%s dbname=%s' % (self.config.get("Database", "user"), self.config.get("Database", "dbname"))
+        if self.config.has_option("Database", "password"):
+            dsn += ' password=%s' % self.config.get("Database", "password")
+        if self.config.has_option("Database", "host"):
+            dsn += ' host=%s' % self.config.get("Database", "host")
 
         conn=psycopg.connect(dsn)
         conn.autocommit(1)
@@ -85,8 +86,10 @@ class scan(threading.Thread):
     def execute(self, page):
         m = re.search('>([^>]+) on (\d+)\:(\d+)\:(\d+) in tick (\d+)', page)
         if not m:
-            print "Expired/non-matchinng scan (id: %s)" %(self.rand_id,)
+            print "Expired/non-matching scan (id: %s)" %(self.rand_id,)
             return
+
+        round=self.config.getint('Planetarion', 'current_round')
 
         scantype=self.name_to_type(m.group(1))
         x = m.group(2)
@@ -100,15 +103,17 @@ class scan(threading.Thread):
 
         #check to see if we have already added this scan to the database
         p=loadable.planet(x, y, z)
-        if p.load_most_recent(self.cursor): #really, this should never, ever fail.
+        if p.load_most_recent(self.cursor,round): #really, this should never, ever fail.
             #quickly insert the scan incase someone else pastes it :o
             next_id=-1
             nxt_query= "SELECT nextval('scan_id_seq')"
-            query = "INSERT INTO scan (id, tick, pid, nick, pnick, scantype, rand_id, group_id, scan_time) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            query = "INSERT INTO scan (id, round, tick, pid, nick, pnick, scantype, rand_id, group_id, scan_time) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             try:
                 self.cursor.execute(nxt_query)
                 next_id=self.cursor.dictfetchone()['nextval']
-                self.cursor.execute(query, (next_id, tick, p.id, self.nick, self.pnick, scantype, self.rand_id, self.group_id, scan_time))
+                # TODO: Remove this ~mz
+                tick=100
+                self.cursor.execute(query, (next_id, round, tick, p.id, self.nick, self.pnick, scantype, self.rand_id, self.group_id, scan_time))
             except psycopg.IntegrityError, e:
                 print "Scan %s may already exist" %(self.rand_id,)
                 print e.__str__()
@@ -122,14 +127,14 @@ class scan(threading.Thread):
                 self.parse_development(next_id,page)
 
             elif scantype=='unit':
-                self.parse_unit(next_id,page,'unit')
+                self.parse_unit(next_id,page,'unit',round)
 
             elif scantype=='news':
-                self.parse_news(next_id,page)
+                self.parse_news(next_id,page,round)
             elif scantype=='jgp':
-                self.parse_jumpgate(next_id,page)
+                self.parse_jumpgate(next_id,page,round)
             elif scantype=='au':
-                self.parse_unit(next_id,page,'au')
+                self.parse_unit(next_id,page,'au',round)
 
     def name_to_type(self,name):
         if name=='Planet Scan':
@@ -147,7 +152,7 @@ class scan(threading.Thread):
 
         print "Name: "+name
 
-    def parse_news(self, scan_id,page):
+    def parse_news(self,scan_id,page,round):
         m = re.search('on (\d+)\:(\d+)\:(\d+) in tick (\d+)', page)
         x = m.group(1)
         y = m.group(2)
@@ -155,7 +160,7 @@ class scan(threading.Thread):
         tick = m.group(4)
 
         p=loadable.planet(x, y, z)
-        if not p.load_most_recent(self.cursor): #really, this should never, ever fail.
+        if not p.load_most_recent(self.cursor,round): #really, this should never, ever fail.
             return
     #incoming fleets
     #<td class=left valign=top>Incoming</td><td valign=top>851</td><td class=left valign=top>We have detected an open jumpgate from Tertiary, located at 18:5:11. The fleet will approach our system in tick 855 and appears to have roughly 95 ships.</td>
@@ -421,7 +426,7 @@ class scan(threading.Thread):
 
         print 'Development: '+x+':'+y+':'+z
 
-    def parse_unit(self, scan_id, page, table):
+    def parse_unit(self, scan_id, page, table, round):
         m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)', page)
         x = m.group(1)
         y = m.group(2)
@@ -433,9 +438,9 @@ class scan(threading.Thread):
             shipname=m.group(1)
             amount=m.group(2).replace(',', '')
             query="INSERT INTO %s"%(table,)
-            query+=" (scan_id,ship_id,amount) VALUES (%s,(SELECT id FROM ship WHERE name=%s),%s)"
+            query+=" (scan_id,ship_id,amount) VALUES (%s,(SELECT id FROM ship WHERE name=%s AND round=%s),%s)"
             try:
-                self.cursor.execute(query,(scan_id,shipname,amount))
+                self.cursor.execute(query,(scan_id,shipname,round,amount,))
             except Exception, e:
                 print "Exception in unit: "+e.__str__()
                 traceback.print_exc()
@@ -443,7 +448,7 @@ class scan(threading.Thread):
 
         print 'Unit: '+x+':'+y+':'+z
 
-    def parse_jumpgate(self, scan_id,page):
+    def parse_jumpgate(self, scan_id,page,round):
         m = re.search('on (\d+)\:(\d+)\:(\d+) in tick (\d+)', page)
         x = m.group(1)
         y = m.group(2)
@@ -452,9 +457,8 @@ class scan(threading.Thread):
         # <td class=left>Origin</td><td class=left>Mission</td><td>Fleet</td><td>ETA</td><td>Fleetsize</td>
         # <td class=left>13:10:5</td><td class=left>Attack</td><td>Gamma</td><td>5</td><td>265</td>
 
-
         p=loadable.planet(x, y, z)
-        if not p.load_most_recent(self.cursor): #really, this should never, ever fail, but exiles might bork it
+        if not p.load_most_recent(self.cursor,round): #really, this should never, ever fail, but exiles might bork it
             return
 
         #                     <td class="left">15:7:11            </td><td class="left">Defend </td><td>Ad infinitum</td><td>9</td><td>0</td>
@@ -475,20 +479,20 @@ class scan(threading.Thread):
             print "JGP fleet "
 
             attacker=loadable.planet(originx,originy,originz)
-            if not attacker.load_most_recent(self.cursor):
+            if not attacker.load_most_recent(self.cursor,round):
                 print "Can't find attacker in db: %s:%s:%s"%(originx,originy,originz)
                 continue
-            query="INSERT INTO fleet (scan_id,owner_id,target,fleet_size,fleet_name,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,%s)"
+            query="INSERT INTO fleet (round,scan_id,owner_id,target,fleet_size,fleet_name,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
 
             try:
-                self.cursor.execute(query,(scan_id,attacker.id,p.id,fleetsize,fleet,int(tick)+int(eta),mission.lower()))
+                self.cursor.execute(query,(round,scan_id,attacker.id,p.id,fleetsize,fleet,int(tick)+int(eta),mission.lower()))
             except psycopg.IntegrityError, e:
                 print "Caught exception in jgp: "+e.__str__()
                 traceback.print_exc()
                 print "Trying to update instead"
-                query="UPDATE fleet SET scan_id=%s WHERE owner_id=%s AND target=%s AND fleet_size=%s AND fleet_name=%s AND landing_tick=%s AND mission=%s"
+                query="UPDATE fleet SET scan_id=%s WHERE round=%s owner_id=%s AND target=%s AND fleet_size=%s AND fleet_name=%s AND landing_tick=%s AND mission=%s"
                 try:
-                    self.cursor.execute(query,(scan_id,attacker.id,p.id,fleetsize,fleet,int(tick)+int(eta),mission.lower()))
+                    self.cursor.execute(query,(scan_id,round,attacker.id,p.id,fleetsize,fleet,int(tick)+int(eta),mission.lower()))
                 except:
                     print "Exception trying to update jgp: "+e.__str__()
                     traceback.print_exc()

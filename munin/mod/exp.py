@@ -53,19 +53,20 @@ class exp(loadable.loadable):
             tick=m.group(4)
 
             p=loadable.planet(x=x,y=y,z=z)
-            if not p.load_most_recent(self.cursor):
+            if not p.load_most_recent(self.cursor,irc_msg.round):
                 irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
                 return 1
 
             query="SELECT t1.xp,t1.xp-t2.xp AS vdiff,t1.size-t2.size AS sdiff"
             query+=" FROM planet_dump AS t1"
             query+=" INNER JOIN planet_dump AS t2"
-            query+=" ON t1.id=t2.id AND t1.tick-1=t2.tick"
+            query+=" ON t1.id=t2.id AND t1.tick-1=t2.tick AND t1.round=t2.round"
             query+=" WHERE t1.tick=%s AND t1.id=%s"
+            query+=" AND t1.round=%s"
 
             reply=""
 
-            self.cursor.execute(query,(tick,p.id))
+            self.cursor.execute(query,(tick,p.id,irc_msg.round))
             if self.cursor.rowcount<1:
                 reply+="No data for %s:%s:%s on tick %s" % (p.x,p.y,p.z,tick)
             else:
@@ -86,18 +87,18 @@ class exp(loadable.loadable):
             z=m.group(3)
 
             p=loadable.planet(x=x,y=y,z=z)
-            if not p.load_most_recent(self.cursor):
+            if not p.load_most_recent(self.cursor, irc_msg.round):
                 irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
                 return 1
 
             query="SELECT t1.tick,t1.xp,t1.xp-t2.xp AS vdiff,t1.size-t2.size AS sdiff"
             query+=" FROM planet_dump AS t1"
             query+=" INNER JOIN planet_dump AS t2"
-            query+=" ON t1.id=t2.id AND t1.tick-1=t2.tick"
-            query+=" WHERE t1.tick>(SELECT max_tick()-16) AND t1.id=%s"
+            query+=" ON t1.id=t2.id AND t1.tick-1=t2.tick AND t1.round=t2.round"
+            query+=" WHERE t1.tick>(SELECT max_tick(%s::smallint)-16) AND t1.round=%s AND t1.id=%s"
             query+=" ORDER BY t1.tick ASC"
 
-            self.cursor.execute(query,(p.id,))
+            self.cursor.execute(query,(irc_msg.round,irc_msg.round,p.id,))
 
             reply=""
 

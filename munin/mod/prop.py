@@ -62,7 +62,7 @@ class prop(loadable.loadable):
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
-        
+
         # assign param variables
         prop_type=m.group(1)
 
@@ -105,14 +105,14 @@ class prop(loadable.loadable):
             if not m: return 1
             prop_id=int(m.group(1))
             self.process_show_proposal(irc_msg,u,prop_id)
-            
+
         elif prop_type.lower() == 'vote':
             m=self.match_or_usage(irc_msg,self.votere,m.group(2))
             if not m: return 1
             prop_id=int(m.group(1))
             vote=m.group(2).lower()
             self.process_vote_proposal(irc_msg,u,prop_id,vote)
-            
+
         elif prop_type.lower() == 'expire':
             m=self.match_or_usage(irc_msg,re.compile(r"\s*(\d+)"),m.group(2))
             if not m: return 1
@@ -126,7 +126,7 @@ class prop(loadable.loadable):
             if self.command_not_used_in_home(irc_msg, self.__class__.__name__ + " cancel"): return 1
             prop_id=int(m.group(1))
             self.process_cancel_proposal(irc_msg, u, prop_id)
-            
+
         elif prop_type.lower() == 'recent':
             self.process_recent_proposal(irc_msg,u)
 
@@ -138,8 +138,9 @@ class prop(loadable.loadable):
 
     def too_many_members(self,irc_msg):
         members=loadable.user.count_members(self.cursor)
-        if members >= int(self.config.get('Alliance','member_limit')):
-            irc_msg.reply("You have tried to invite somebody, but we have %s losers and I can't be bothered dealing with more than %s of you."%(members, self.config.get('Alliance','member_limit')))
+        limit=self.config.getint('Alliance','member_limit')
+        if members >= limit:
+            irc_msg.reply("You have tried to invite somebody, but we have %s losers and I can't be bothered dealing with more than %s of you."%(members, limit))
             return 1
         return 0
 
@@ -150,7 +151,7 @@ class prop(loadable.loadable):
         if self.is_already_proposed_invite(person):
             irc_msg.reply("Silly %s, there's already a proposal to invite %s."%(user.pnick,person))
             return 1
-        if user.has_ancestor(self.cursor,person):
+        if user.has_ancestor(self.cursor,person,irc_msg.round):
             irc_msg.reply("Ew, incest.")
             return 1
         last_comp=self.was_recently_proposed('invite',person)
@@ -160,7 +161,7 @@ class prop(loadable.loadable):
         irc_msg.reply(reply)
 
     def process_kick_proposal(self,irc_msg,user,person,comment):
-        p=self.load_user_from_pnick(person)
+        p=self.load_user_from_pnick(person,irc_msg.round)
         if person.lower() == self.config.get('Connection','nick').lower():
             irc_msg.reply("I'll peck your eyes out, cunt.")
             return 1
@@ -188,7 +189,7 @@ class prop(loadable.loadable):
 
     def process_list_all_proposals(self,irc_msg,user):
         u=loadable.user(pnick=irc_msg.user)
-        u.load_from_db(self.cursor)
+        u.load_from_db(self.cursor,irc_msg.round)
         query="SELECT invite.id AS id, invite.person AS person, NULL AS question, 'invite' AS prop_type"
         query+=" FROM invite_proposal AS invite"
         query+=" WHERE invite.active"
@@ -300,6 +301,7 @@ class prop(loadable.loadable):
 
     def process_vote_proposal(self,irc_msg,u,prop_id,vote):
         carebears=u.carebears
+        alliance=self.config.get('Auth','alliance'),
         prop=self.find_single_prop_by_id(prop_id)
         if not prop:
             irc_msg.reply("No proposition number %s exists (idiot)."%(prop_id,))
@@ -365,6 +367,7 @@ class prop(loadable.loadable):
 
     def process_expire_proposal(self,irc_msg,u,prop_id):
         prop=self.find_single_prop_by_id(prop_id)
+        alliance=self.config.get('Auth','alliance')
         if not prop:
             irc_msg.reply("No proposition number %s exists (idiot)."%(prop_id,))
             return
@@ -393,7 +396,7 @@ class prop(loadable.loadable):
                 prop['proposer'],
                 age,
                 self.pluralize(age, 'day'),
-                self.config.get('Auth','home'),
+                alliance,
                 prop['question']
             )
             if not winner:
@@ -419,7 +422,7 @@ class prop(loadable.loadable):
         else:
             (winners,losers,winning_total,losing_total)=self.get_winners_and_losers(outcome)
 
-            reply="The proposition raised by %s %s %s ago to %s %s has"%(prop['proposer'],age,self.pluralize(age,"day"),prop['prop_type'],prop['person'] or self.config.get('Auth','alliance'))
+            reply="The proposition raised by %s %s %s ago to %s %s has"%(prop['proposer'],age,self.pluralize(age,"day"),prop['prop_type'],prop['person'] or alliance)
             yes=outcome['yes']['count']
             no=outcome['no']['count']
             passed = yes > no and len(outcome['veto']['list']) <= 0
@@ -475,7 +478,7 @@ class prop(loadable.loadable):
         if prop['prop_type'] == 'poll':
             reply="Cancelled proposal %s to ask %s '%s?'" %(prop['id'],
                                                             prop['prop_type'],
-                                                            self.config.get('Auth','alliance'))
+                                                            alliance)
             for o in sorted(outcome.keys()):
                 opt=o[:1].upper() + o[1:]
                 text=outcome[o]['text']
@@ -596,28 +599,30 @@ class prop(loadable.loadable):
 
     def do_kick(self,irc_msg,prop,yes,no):
         idiot=self.load_user_from_pnick(prop['person'])
+        home=self.config.get('Auth', 'home')
         query="UPDATE user_list SET userlevel = 1 WHERE id = %s"
         self.cursor.execute(query,(idiot.id,))
-        irc_msg.client.privmsg('p','remuser #%s %s'%(self.config.get('Auth', 'home'), idiot.pnick,))
-        irc_msg.client.privmsg('p',"ban #%s *!*@%s.users.netgamers.org %s"%(self.config.get('Auth', 'home'), idiot.pnick,prop['comment_text']))
+        irc_msg.client.privmsg('p','remuser #%s %s'%(home, idiot.pnick,))
+        irc_msg.client.privmsg('p',"ban #%s *!*@%s.users.netgamers.org %s"%(home, idiot.pnick,prop['comment_text']))
 
         irc_msg.client.privmsg('p',"note send %s A proposition to kick you from %s has been raised by %s with reason '%s' and passed by a vote of %s to %s."%(idiot.pnick,self.config.get('Auth','alliance'),prop['proposer'],prop['comment_text'],yes,no))
 
-        reply="%s has been reduced to level 1 and removed from #%s."%(idiot.pnick,self.config.get('Auth','home'))
-        irc_msg.client.privmsg('#%s'%(self.config.get('Auth','home')),reply)
+        reply="%s has been reduced to level 1 and removed from #%s."%(idiot.pnick,home)
+        irc_msg.client.privmsg('#%s'%(home),reply)
 
     def do_invite(self,irc_msg,prop):
         gimp=self.load_user_from_pnick(prop['person'])
+        home=self.config.get('Auth', 'home')
         if not gimp or gimp.pnick.lower() != prop['person'].lower():
             query="INSERT INTO user_list (userlevel,sponsor,pnick) VALUES (100,%s,%s)"
         else:
             query="UPDATE user_list SET userlevel = 100, sponsor=%s WHERE pnick ilike %s"
         self.cursor.execute(query,(prop['proposer'],prop['person']))
-        irc_msg.client.privmsg('P',"adduser #%s %s 399" %(self.config.get('Auth', 'home'), prop['person'],));
-        irc_msg.client.privmsg('P',"modinfo #%s automode %s op" %(self.config.get('Auth', 'home'), prop['person'],));
+        irc_msg.client.privmsg('P',"adduser #%s %s 399" %(home, prop['person'],));
+        irc_msg.client.privmsg('P',"modinfo #%s automode %s op" %(home, prop['person'],));
 
-        reply="%s has been added to #%s and given level 100 access to me."%(prop['person'],self.config.get('Auth','home'))
-        irc_msg.client.privmsg('#%s'%(self.config.get('Auth','home')),reply)
+        reply="%s has been added to #%s and given level 100 access to me."%(prop['person'],home)
+        irc_msg.client.privmsg('#%s'%(home),reply)
 
     def find_single_prop_by_id(self,prop_id):
         query="SELECT id, prop_type, proposer, person, created, padding, comment_text, active, closed, vote_result, question"
@@ -641,7 +646,7 @@ class prop(loadable.loadable):
         query+="     )"
         query+=" ) AS joined"
         query+=" WHERE joined.id=%s"
-        
+
         self.cursor.execute(query,(prop_id,))
         return self.cursor.dictfetchone()
 
@@ -671,7 +676,7 @@ class prop(loadable.loadable):
         if r and r['vote_result'] != 'yes':
             return r['compensation']
         return 0
-    
+
     def create_invite_proposal(self,user,person,comment,padding):
         query="INSERT INTO invite_proposal (proposer_id, person, comment_text, padding)"
         query+=" VALUES (%s, %s, %s, %s)"

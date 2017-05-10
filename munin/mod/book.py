@@ -64,18 +64,18 @@ class book(loadable.loadable):
 
 
         p=loadable.planet(x=x,y=y,z=z)
-        if not p.load_most_recent(self.cursor):
+        if not p.load_most_recent(self.cursor,irc_msg.round):
             irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
             return 1
         else:
             i=loadable.intel(pid=p.id)
-            if not i.load_from_db(self.cursor):
+            if not i.load_from_db(self.cursor,irc_msg.round):
                 pass
             else:
                 if i and i.alliance and i.alliance.lower()== self.config.get("Auth", "alliance").lower():
                     irc_msg.reply("%s:%s:%s is %s in %s. Quick, launch before they notice the highlight."%(x,y,z,i.nick or 'someone',self.config.get('Auth', 'alliance')))
                     return 0
-        curtick=self.current_tick()
+        curtick=self.current_tick(irc_msg.round)
         tick=-1
         eta=-1
 
@@ -96,12 +96,11 @@ class book(loadable.loadable):
         query+=" FROM target AS t1"
         query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
         query+=" LEFT JOIN user_list AS t2 ON t1.uid=t2.id"
-        query+=" WHERE"
-        query+=" t1.tick > %s"
-        query+=" AND t3.tick = (SELECT max_tick()) AND t3.x=%s AND t3.y=%s"
-        query+=" AND t3.z=%s"
+        query+=" WHERE t1.tick > %s"
+        query+=" AND t3.tick = (SELECT max_tick(%s::smallint)) AND t3.round=%s"
+        query+=" AND t3.x=%s AND t3.y=%s AND t3.z=%s"
 
-        self.cursor.execute(query,(tick,x,y,z))
+        self.cursor.execute(query,(tick,irc_msg.round,irc_msg.round,x,y,z,))
 
         if self.cursor.rowcount > 0 and not override:
             reply="There are already bookings for that target after landing pt %s (eta %s). To see status on this target, do !status %s:%s:%s." % (tick,eta,x,y,z)
@@ -120,12 +119,12 @@ class book(loadable.loadable):
         uid=None
         if irc_msg.user:
             u=loadable.user(pnick=irc_msg.user)
-            if u.load_from_db(self.cursor):
+            if u.load_from_db(self.cursor,irc_msg.round):
                 uid=u.id
 
-        query="INSERT INTO target (nick,pid,tick,uid) VALUES (%s,%s,%s,%s)"
+        query="INSERT INTO target (nick,pid,tick,round,uid) VALUES (%s,%s,%s,%s,%s)"
         try:
-            self.cursor.execute(query,(irc_msg.nick,p.id,tick,uid))
+            self.cursor.execute(query,(irc_msg.nick,p.id,tick,irc_msg.round,uid,))
             if uid:
                 reply="Booked landing on %s:%s:%s tick %s for user %s" % (p.x,p.y,p.z,tick,irc_msg.user)
             else:
@@ -133,9 +132,9 @@ class book(loadable.loadable):
         except psycopg.IntegrityError:
             query="SELECT t1.id AS id, t1.nick AS nick, t1.pid AS pid, t1.tick AS tick, t1.uid AS uid, t2.pnick AS pnick, t2.userlevel AS userlevel "
             query+=" FROM target AS t1 LEFT JOIN user_list AS t2 ON t1.uid=t2.id "
-            query+=" WHERE t1.pid=%s AND t1.tick=%s"
+            query+=" WHERE t1.pid=%s AND t1.tick=%s AND t1.round=%s"
 
-            self.cursor.execute(query,(p.id,tick))
+            self.cursor.execute(query,(p.id,tick,irc_msg.round,))
             book=self.cursor.dictfetchone()
             if not book:
                 raise Exception("Integrity error? Unable to booking for pid %s and tick %s"%(p.id,tick))

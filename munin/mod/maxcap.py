@@ -44,7 +44,7 @@ class maxcap(loadable.loadable):
         m=self.planet_coordre.search(params)
         if m:
             victim=loadable.planet(x=m.group(1),y=m.group(2),z=m.group(3))
-            if not victim.load_most_recent(self.cursor):
+            if not victim.load_most_recent(self.cursor,irc_msg.round):
                 irc_msg.reply("%s:%s:%s is not a valid planet" % (victim.x,victim.y,victim.z))
                 return 1
             total_roids=victim.size
@@ -63,7 +63,7 @@ class maxcap(loadable.loadable):
         reply=""
         cap=0
         cap_rate=.25
-        u=self.load_user_from_pnick(user)
+        u=self.load_user_from_pnick(user,irc_msg.round)
         if u and u.planet and victim:
             cap_rate=u.planet.cap_rate(victim)
         for i in range(1,5):

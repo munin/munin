@@ -58,7 +58,7 @@ class status(loadable.loadable):
                 return 1
             irc_msg.reply("You do not have enough access to use this command")
             return 0
-        curtick=self.current_tick()
+        curtick=self.current_tick(irc_msg.round)
         m=self.coordre.search(param)
         if m:
             x=m.group(1)
@@ -83,15 +83,17 @@ class status(loadable.loadable):
             query+=" WHERE"
 
             if when:
-                query+=" t1.tick = %s"
-                args+=(tick,)
+                query+=" t1.tick = %s AND t1.round = %s"
+                args+=(tick,irc_msg.round)
             else:
-                query+=" t1.tick > (SELECT max_tick())"
-            query+=" AND t3.tick = (SELECT max_tick()) AND t3.x=%s AND t3.y=%s"
+                query+=" t1.tick > (SELECT max_tick(%s::smallint)) AND t1.round = %s"
+                args+=(irc_msg.round,irc_msg.round,)
+            query+=" AND t3.tick = (SELECT max_tick(%s::smallint)) AND t3.round = %s AND t3.x=%s AND t3.y=%s"
+            args+=(irc_msg.round,irc_msg.round,)
 
             if z:
                 p=loadable.planet(x=x,y=y,z=z)
-                if not p.load_most_recent(self.cursor):
+                if not p.load_most_recent(self.cursor,irc_msg.round):
                     irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
                     return 1
                 query+=" AND t3.z=%s"
@@ -187,12 +189,13 @@ class status(loadable.loadable):
             query+=" WHERE"
 
             if when:
-                query+=" t1.tick = %s"
-                args+=(tick,)
+                query+=" t1.tick = %s AND t1.round = %s"
+                args+=(tick,irc_msg.round,)
             else:
-                query+=" t1.tick > (SELECT max_tick())"
-                
-            query+=" AND t3.tick = (SELECT max_tick()) AND (t1.nick ILIKE %s OR t2.pnick ILIKE %s)"
+                query+=" t1.tick > (SELECT max_tick(%s::smallint)) AND t1.round = %s"
+                args+=(irc_msg.round,irc_msg.round,)
+            query+=" AND t3.tick = (SELECT max_tick(%s::smallint)) AND t3.round = %s AND (t1.nick ILIKE %s OR t2.pnick ILIKE %s)"
+            args+=(irc_msg.round,irc_msg.round,)
             self.cursor.execute(query,args+('%'+subject+'%','%'+subject+'%'))
             if self.cursor.rowcount < 1:
                 reply="No active bookings matching nick/user %s" %(subject)
@@ -233,16 +236,16 @@ class status(loadable.loadable):
             irc_msg.reply("You must set mode +x to check your own status.")
             return
         curtick=self.current_tick()
-        args=()
         reply="Your bookings:"
         query="SELECT t1.id AS id, t1.nick AS nick, t1.pid AS pid, t1.tick AS tick, t1.uid AS uid, t2.pnick AS pnick, t2.userlevel AS userlevel, t3.x AS x, t3.y AS y, t3.z AS z"
         query+=" FROM target AS t1"
         query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
         query+=" LEFT JOIN user_list AS t2 ON t1.uid=t2.id"
         query+=" WHERE"
-        query+=" t1.tick > (SELECT max_tick())"
-        query+=" AND t3.tick = (SELECT max_tick()) AND t2.pnick ILIKE %s"
-        self.cursor.execute(query,args+(irc_msg.user,))
+        query+=" t1.tick > (SELECT max_tick(%s::smallint)) AND t1.round = %s"
+        query+=" AND t3.tick = (SELECT max_tick(%s::smallint)) AND t3.round = %s"
+        query+=" AND t2.pnick ILIKE %s"
+        self.cursor.execute(query,(irc_msg.round,irc_msg.round,irc_msg.round,irc_msg.round,irc_msg.user,))
         if self.cursor.rowcount < 1:
             reply="No active bookings matching user %s" %(irc_msg.user,)
             irc_msg.reply(reply)

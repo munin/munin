@@ -52,7 +52,7 @@ class info(loadable.loadable):
 
         alliance=m.group(1)
         query = self.query_for_info()
-        args=('%'+alliance+'%','%'+alliance+'%')
+        args=(irc_msg.round,irc_msg.round,'%'+alliance+'%','%'+alliance+'%')
         self.cursor.execute(query,args)
         reply=""
         if self.cursor.rowcount<1:
@@ -60,7 +60,7 @@ class info(loadable.loadable):
         else:
             res=self.cursor.dictfetchone()
             if res['members'] > 50:
-                query=self.query_for_info_limit_50()
+                query=self.query_for_info_limit_50(irc_msg.round)
                 self.cursor.execute(query, args)
                 ts=self.cursor.dictfetchone()
                 reply+="%s Members: %s (%s)" % (alliance,res['members'],ts['members'])
@@ -81,7 +81,7 @@ class info(loadable.loadable):
         query+=" FROM (SELECT t1.value AS value, t1.score AS score, t1.size AS size, t1.xp AS xp, t3.name AS name FROM planet_dump AS t1"
         query+=" INNER JOIN intel AS t2 ON t1.id=t2.pid"
         query+=" LEFT JOIN alliance_canon AS t3 ON t2.alliance_id=t3.id"
-        query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates) AND t3.name ILIKE %s ORDER BY t1.score DESC LIMIT 50) AS t4"
+        query+=" WHERE t1.tick=(SELECT max_tick(%s::smallint)) AND t1.round=%s AND t3.name ILIKE %s ORDER BY t1.score DESC LIMIT 50) AS t4"
         query+=" GROUP BY t4.name ILIKE %s"
         return query
 
@@ -90,6 +90,6 @@ class info(loadable.loadable):
         query+=" FROM planet_dump AS t1"
         query+=" INNER JOIN intel AS t2 ON t1.id=t2.pid"
         query+=" LEFT JOIN alliance_canon t3 ON t2.alliance_id=t3.id"
-        query+=" WHERE t1.tick=(SELECT MAX(tick) FROM updates) AND t3.name ILIKE %s"
+        query+=" WHERE t1.tick=(SELECT max_tick(%s::smallint)) AND t1.round=%s AND t3.name ILIKE %s"
         query+=" GROUP BY t3.name ILIKE %s"
         return query

@@ -56,15 +56,14 @@ class bitches(loadable.loadable):
         tick=None
         if m:
             tick=m.group(1)
-            query+=" WHERE t1.tick >= ((SELECT max_tick())+%s)"
-            args+=(m.group(1),)
+            query+=" WHERE t1.tick >= ((SELECT max_tick(%s::smallint))+%s)"
+            args+=(irc_msg.round,m.group(1),)
         else:
-            query+=" WHERE t1.tick > (SELECT max_tick())"
-        query+="  AND t3.tick = (SELECT max_tick())"
+            query+=" WHERE t1.tick > (SELECT max_tick(%s::smallint))"
+            args+=(irc_msg.round,)
+        query+="  AND t1.round = %s AND t3.tick = (SELECT max_tick(%s::smallint))"
         query+=" GROUP BY x, y ORDER BY x, y"
-
-
-
+        args+=(irc_msg.round,irc_msg.round,)
 
         self.cursor.execute(query,args)
         if self.cursor.rowcount < 1:
@@ -79,7 +78,6 @@ class bitches(loadable.loadable):
         reply+=" "+string.join(prev,', ')
         irc_msg.reply(reply)
 
-
         #begin finding of all alliance targets
 
         args=()
@@ -89,11 +87,13 @@ class bitches(loadable.loadable):
         query+=" LEFT JOIN intel AS t2 ON t3.id=t2.pid"
         query+=" LEFT JOIN alliance_canon AS t6 ON t2.alliance_id=t6.id"
         if tick:
-            query+=" WHERE t1.tick >= ((SELECT max_tick())+%s)"
-            args+=(tick,)
+            query+=" WHERE t1.tick >= ((SELECT max_tick(%s::smallint))+%s)"
+            args+=(irc_msg.round,tick,)
         else:
-            query+=" WHERE t1.tick > (SELECT max_tick())"
-        query+="  AND t3.tick = (SELECT max_tick())"
+            query+=" WHERE t1.tick > (SELECT max_tick(%s::smallint))"
+            args+=(irc_msg.round,)
+        query+="  AND t1.round = %s AND t3.tick = (SELECT max_tick(%s::smallint))"
+        args+=(irc_msg.round,irc_msg.round,)
         query+=" GROUP BY lower(t6.name) ORDER BY lower(t6.name)"
         self.cursor.execute(query,args)
 

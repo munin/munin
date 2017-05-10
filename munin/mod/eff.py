@@ -72,7 +72,7 @@ class eff(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        ship=self.get_ship_from_db(ship_name)
+        ship=self.get_ship_from_db(ship_name,irc_msg.round)
         if not ship:
             irc_msg.reply("%s is not a ship" % (ship_name))
             return 0
@@ -89,8 +89,8 @@ class eff(loadable.loadable):
             killed=total_damage*50
             irc_msg.reply("%s %s (%s) will loot Resources: %s (%s)" % (ship_number,ship['name'],self.format_value(ship_number*ship['total_cost']),killed,self.format_value(killed)))
         else:
-            query="SELECT * FROM ship WHERE class=%s ORDER BY id"
-            self.cursor.execute(query,(ship[target_number],))
+            query="SELECT * FROM ship WHERE class=%s AND round=%s ORDER BY id"
+            self.cursor.execute(query,(ship[target_number],irc_msg.round,))
             targets=self.cursor.dictfetchall()
             if len(targets) == 0:
                 reply="%s does not have any targets in that category (%s)" % (ship['name'],user_target)

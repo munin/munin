@@ -35,7 +35,6 @@ class tryhards(loadable.loadable):
     """
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,1)
-        #self.paramre=re.compile(r"^\s*(al?l?i?a?n?c?e?s?|ga?l?a?x?(y|ie?s?)?|pl?a?n?e?t?s?)\s+(sco?r?e?|va?l?u?e?|xp?|siz?e?|po?i?n?t?s?)")
         self.paramre=re.compile(r"^\s*(\S+)\s*(\S+)")
         self.usage=self.__class__.__name__ + " <alliances|galaxy|planet> [score|total_score|value|xp|size]"
         self.helptext=['Shows top5 for alliances, galaxies or planets ranked by score, total_score, value, xp or size']
@@ -95,10 +94,10 @@ class tryhards(loadable.loadable):
         rank="%s_rank"%(ranker,)
         query="SELECT name,%s,%s"%(ranker,rank)
         query+=" FROM alliance_dump"
-        query+=" WHERE tick=(SELECT max_tick())"
+        query+=" WHERE tick=(SELECT max_tick(%s::smallint)) AND round=%s"
         query+=" ORDER BY %s ASC"%(rank,)
         query+=" LIMIT 5"
-        self.cursor.execute(query)
+        self.cursor.execute(query,(irc_msg.round,irc_msg.round,))
         if self.cursor.rowcount < 1:
             irc_msg.reply("lol")
 
@@ -112,10 +111,10 @@ class tryhards(loadable.loadable):
             return self.reply_usage(irc_msg)
         query="SELECT x,y,name,%s,%s"%(qualifier,rank)
         query+=" FROM galaxy_dump"
-        query+=" WHERE tick=(SELECT max_tick())"
+        query+=" WHERE tick=(SELECT max_tick(%s::smallint)) AND round=%s"
         query+=" ORDER BY %s ASC"%(rank,)
         query+=" LIMIT 5"
-        self.cursor.execute(query)
+        self.cursor.execute(query,(irc_msg.round,irc_msg.round,))
         if self.cursor.rowcount < 1:
             irc_msg.reply("lol")
 
@@ -131,10 +130,10 @@ class tryhards(loadable.loadable):
         query+=" FROM planet_dump p1"
         query+=" LEFT JOIN intel p2 ON p2.pid=p1.id"
         query+=" LEFT JOIN alliance_canon p3 ON p3.id=p2.alliance_id"
-        query+=" WHERE p1.tick=(SELECT max_tick())"
+        query+=" WHERE p1.tick=(SELECT max_tick(%s::smallint)) AND p1.round=%s"
         query+=" ORDER BY %s ASC"%(rank,)
         query+=" LIMIT 5"
-        self.cursor.execute(query)
+        self.cursor.execute(query,(irc_msg.round,irc_msg.round,))
         if self.cursor.rowcount < 1:
             irc_msg.reply("lol")
 

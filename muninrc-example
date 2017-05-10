@@ -88,6 +88,9 @@ etd_salvage_bonus: 0.0
 # Wars have a fixed duration of this many ticks.
 war_duration: 48
 
+# Default round number for multi-round Munin
+current_round: 71
+
 [clickatell]
 user: username
 pass: password

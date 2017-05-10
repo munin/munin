@@ -12,6 +12,7 @@ LEFT JOIN intel AS t2 ON t1.id=t2.pid
 LEFT JOIN alliance_canon AS t3 ON t2.alliance_id=t3.id
 INNER JOIN planet_dump AS t4 ON t1.id=t4.id
 LEFT JOIN epenis_cache AS t5 ON t1.id=t5.planet_id
-WHERE t4.tick = (SELECT max_tick())
+WHERE t4.tick = (SELECT max_tick(71))
+AND t4.round = 71
 ;
 

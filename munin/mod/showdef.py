@@ -54,20 +54,20 @@ class showdef(loadable.loadable):
 
         name=m.group(1)
         if name:
-            u=self.load_user_from_pnick(name)
+            u=self.load_user_from_pnick(name,irc_msg.round)
         else:
-            u=self.load_user_from_pnick(irc_msg.user)
+            u=self.load_user_from_pnick(irc_msg.user,irc_msg.round)
         if not u or u.userlevel < 100:
             irc_msg.reply("No members matching %s found"%(name,))
             return
 
-        ships=u.get_fleets(self.cursor)
-        
+        ships=u.get_fleets(self.cursor,irc_msg.round)
+
         if self.cursor.rowcount < 1:
             irc_msg.reply("%s is either a lazy pile of shit that hasn't entered any ships for def, or a popular whore who's already turned their tricks."%(u.pnick,))
             return
 
-        reply="%s def info: fleetcount %s, updated: %s (%s), ships: " %(u.pnick,u.fleetcount,u.fleetupdated,u.fleetupdated-self.current_tick())
+        reply="%s def info: %s fleets, updated pt%s (%s), ships: " %(u.pnick,u.fleetcount,u.fleetupdated,u.fleetupdated-self.current_tick(irc_msg.round))
         reply+=", ".join(map(lambda x: "%s %s"%(self.format_real_value(x['ship_count']),x['ship']),ships))
         reply+=" comment: %s"%(u.fleetcomment,)
         irc_msg.reply(reply)

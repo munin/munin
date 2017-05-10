@@ -59,17 +59,17 @@ class usedef(loadable.loadable):
         # assign param variables
         name=m.group(1)
         ships=m.group(2)
-        u=self.load_user_from_pnick(name)
+        u=self.load_user_from_pnick(name,irc_msg.round)
         if not u or u.userlevel < 100:
             irc_msg.reply("No members matching %s found"%(name,))
             return
 
         if u.fleetcount > 0:
-            query="UPDATE user_list SET fleetcount = fleetcount - 1"
-            query+=" WHERE id=%s"
-            self.cursor.execute(query,(u.id,))
+            query="UPDATE round_user_pref SET fleetcount = fleetcount - 1"
+            query+=" WHERE user_id=%s AND round=%s"
+            self.cursor.execute(query,(u.id,irc_msg.round,))
 
-        removed = self.drop_ships(u,taker,ships)
+        removed = self.drop_ships(u,taker,ships,irc_msg.round)
         reply=""
         if u.fleetcount == 0:
             reply+="%s's fleetcount was already 0, please ensure that they actually had a fleet free to launch."%(u.pnick,)
@@ -80,25 +80,25 @@ class usedef(loadable.loadable):
         irc_msg.reply(reply)
         return 1
 
-    def drop_ships(self,user,taker,ships):
-        ship_query="SELECT ship, ship_count FROM user_fleet WHERE ship ilike %s and user_id = %s"
+    def drop_ships(self,user,taker,ships,round):
+        ship_query="SELECT ship, ship_count FROM user_fleet WHERE ship ilike %s AND round = %s AND user_id = %s"
         removed={}
         for ship in ships.split():
             if ship not in self.ship_classes:
                 ship_lookup="%"+ship+"%"
             else:
                 ship_lookup=ship
-            self.cursor.execute(ship_query,(ship_lookup,user.id))
+            self.cursor.execute(ship_query,(ship_lookup,round,user.id))
             for result in self.cursor.dictfetchall():
                 s=result['ship']
                 c=result['ship_count']
                 removed[s]=c
-                self.delete_ships(user,taker,s,c)
+                self.delete_ships(user,taker,s,c,round)
         return removed
 
-    def delete_ships(self,user,taker,ship,count):
-        delete_query="DELETE FROM user_fleet WHERE ship ilike %s and user_id = %s"
-        self.cursor.execute(delete_query,(ship,user.id))
-        log_query="INSERT INTO fleet_log (taker_id,user_id,ship,ship_count)"
-        log_query+=" VALUES (%s,%s,%s,%s)"
-        self.cursor.execute(log_query,(taker.id,user.id,ship,count))
+    def delete_ships(self,user,taker,ship,count,round):
+        delete_query="DELETE FROM user_fleet WHERE ship ilike %s AND round = %s AND user_id = %s"
+        self.cursor.execute(delete_query,(ship,round,user.id))
+        log_query="INSERT INTO fleet_log (taker_id,user_id,ship,ship_count,round)"
+        log_query+=" VALUES (%s,%s,%s,%s,%s)"
+        self.cursor.execute(log_query,(taker.id,user.id,ship,count,round))

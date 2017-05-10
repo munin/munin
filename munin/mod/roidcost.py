@@ -78,7 +78,7 @@ class roidcost(loadable.loadable):
 
         repay_tota = int((cost*100)/(roids*mining*(1/(1-float(self.config.get('Planetarion', 'totalitarianism_cost_reduction'))))))
         reply+=" Totalitarianism: %s ticks (%s days)" % (repay_tota,repay_tota/24)
-        
+
         irc_msg.reply(reply)
 
         return 1

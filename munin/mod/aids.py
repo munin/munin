@@ -61,11 +61,11 @@ class aids(loadable.loadable):
 
         if search.lower() == 'munin':
             # Hardcoded == bad?
-            irc_msg.reply("I am Munin. I gave aids to all you bitches.")
+            irc_msg.reply("I am Munin. I gave aids to all y'all bitches.")
             return 1
 
         u=loadable.user(pnick=search)
-        if not u.load_from_db(self.cursor):
+        if not u.load_from_db(self.cursor,irc_msg.round):
             irc_msg.reply("No users matching '%s'"%(search,))
             return 1
         if u.userlevel < 100:

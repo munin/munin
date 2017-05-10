@@ -57,6 +57,11 @@ class mydef(loadable.loadable):
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
+
+        if not self.current_tick(irc_msg.round):
+            irc_msg.reply("I don't know this round, what did you fuck up?")
+            return 0
+
         fleetcount=m.group(1)
         garbage=m.group(2)
         # assign param variables
@@ -66,49 +71,51 @@ class mydef(loadable.loadable):
         if garbage in self.nulls:
             reset_ships=True
         else:
-            (ships, comment)=self.parse_garbage(garbage)
+            (ships, comment)=self.parse_garbage(garbage,irc_msg.round)
 
-        (ships,comment)=self.reset_ships_and_comment(u,ships,fleetcount,comment,reset_ships)
+        (ships,comment)=self.reset_ships_and_comment(u,ships,fleetcount,irc_msg.round,comment,reset_ships)
 
-        irc_msg.reply("Updated your def info to: fleetcount %s, updated: pt%s ships: %s and comment: %s"%(fleetcount,self.current_tick(),", ".join(map(lambda x:"%s %s" %(self.format_real_value(x['ship_count']),x['ship']),ships)),comment))
+        irc_msg.reply("Updated your def info to: fleetcount %s, updated: pt%s ships: %s and comment: %s"%(fleetcount,
+                                                                                                          self.current_tick(irc_msg.round),
+                                                                                                          ", ".join(map(lambda x:"%s %s" %(self.format_real_value(x['ship_count']),x['ship']),ships)),
+                                                                                                          comment))
 
         return 1
 
-    def reset_ships_and_comment(self,user,ships,fleetcount,comment,reset_ships):
-        comment=self.update_comment_and_fleetcount(user,fleetcount,comment)
+    def reset_ships_and_comment(self,user,ships,fleetcount,round,fleetcomment,reset_ships):
+        comment=self.update_comment_and_fleetcount(user,round,fleetcount,fleetcomment)
         if len(ships) > 0 or reset_ships:
-            self.update_fleets(user,ships)
-        ships=user.get_fleets(self.cursor)
+            self.update_fleets(user,ships,round)
+        ships=user.get_fleets(self.cursor,round)
         return (ships,comment)
-        
-    def update_fleets(self,user,ships):
-        query="DELETE FROM user_fleet WHERE user_id = %s"
-        self.cursor.execute(query,(user.id,))
+
+    def update_fleets(self,user,ships,round):
+        query="DELETE FROM user_fleet WHERE user_id = %s AND round = %s"
+        self.cursor.execute(query,(user.id,round,))
 
         for k in ships.keys():
-            query="INSERT INTO user_fleet (user_id,ship,ship_count)"
-            query+=" VALUES (%s,%s,%s)"
-            args=(user.id,k,ships[k])
+            query="INSERT INTO user_fleet (user_id,round,ship,ship_count)"
+            query+=" VALUES (%s,%s,%s,%s)"
+            args=(user.id,round,k,ships[k],)
             self.cursor.execute(query,args)
-    
-    def update_comment_and_fleetcount(self,user,fleetcount,comment):
-        query="UPDATE user_list SET fleetcount=%s"
-        args=(fleetcount,)
-        if comment != "":
-            if comment in self.nulls:
-                comment=""
-            args+=(comment,)
-            query+=", fleetcomment=%s"
-        query+=",fleetupdated=%s"
-        args+=(self.current_tick(),)
-        query+=" WHERE id = %s"
-        args+=(user.id,)
-        self.cursor.execute(query,args)
-        query="SELECT fleetcomment FROM user_list WHERE id = %s"
-        self.cursor.execute(query,(user.id,))
+
+    def update_comment_and_fleetcount(self,user,round,fleetcount,fleetcomment):
+        if fleetcomment != "":
+            if fleetcomment in self.nulls:
+                fleetcomment=""
+
+        tick=self.current_tick(round)
+
+        query ="INSERT INTO round_user_pref (user_id,round,fleetcount,fleetcomment,fleetupdated) VALUES (%s,%s,%s,%s,%s)"
+        query+=" ON CONFLICT (user_id,round) DO"
+        query+=" UPDATE SET fleetcount=EXCLUDED.fleetcount, fleetcomment=EXCLUDED.fleetcomment, fleetupdated=EXCLUDED.fleetupdated"
+        self.cursor.execute(query,(user.id,round,fleetcount,fleetcomment,tick))
+
+        query ="SELECT fleetcomment FROM round_user_pref WHERE user_id=%s AND round=%s"
+        self.cursor.execute(query,(user.id,round,))
         return self.cursor.dictfetchone()['fleetcomment']
 
-    def parse_garbage(self,garbage):
+    def parse_garbage(self,garbage,round):
         parts=garbage.split()
         ships={}
         while len(parts) > 1:
@@ -120,16 +127,15 @@ class mydef(loadable.loadable):
             count=self.human_readable_number_to_integer(mc.group(1))
             ship=ms.group(1)
 
-            s=self.get_ship_from_db(ship)
+            s=self.get_ship_from_db(ship,round)
 
             if ship.lower() not in self.ship_classes and s:
-                ship=s['name']                
+                ship=s['name']
             elif ship.lower() not in self.ship_classes:
                 break
 
             ships[ship]=count
-            
-            
+
             parts.pop(0)
             parts.pop(0)
         comment=" ".join(parts)

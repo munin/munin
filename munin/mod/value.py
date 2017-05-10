@@ -33,8 +33,8 @@ class value(loadable.loadable):
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,1)
         self.paramre=re.compile(r"^\s+(\d+)[. :-](\d+)[. :-](\d+)\s+(\d+)")
-        self.usage=self.__class__.__name__ + ""
-        self.helptext=None
+        self.usage=self.__class__.__name__ + " <x:y:z> [tick]"
+        self.helptext=["Show how the given planet's value changed in the last 15 ticks, or in the given tick"]
 
     def execute(self,user,access,irc_msg):
         m=irc_msg.match_command(self.commandre)
@@ -53,7 +53,7 @@ class value(loadable.loadable):
             tick=m.group(4)
 
             p=loadable.planet(x=x,y=y,z=z)
-            if not p.load_most_recent(self.cursor):
+            if not p.load_most_recent(self.cursor,irc_msg.round):
                 irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
                 return 1
 
@@ -78,7 +78,6 @@ class value(loadable.loadable):
             irc_msg.reply(reply)
             return 1
 
-
         m=self.planet_coordre.search(params)
         if  m:
             x=m.group(1)
@@ -86,7 +85,7 @@ class value(loadable.loadable):
             z=m.group(3)
 
             p=loadable.planet(x=x,y=y,z=z)
-            if not p.load_most_recent(self.cursor):
+            if not p.load_most_recent(self.cursor,irc_msg.round):
                 irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
                 return 1
 
@@ -95,10 +94,10 @@ class value(loadable.loadable):
             query+=" FROM planet_dump AS t1"
             query+=" INNER JOIN planet_dump AS t2"
             query+=" ON t1.id=t2.id AND t1.tick-1=t2.tick"
-            query+=" WHERE t1.tick>(SELECT max_tick()-16) AND t1.id=%s"
+            query+=" WHERE t1.tick>(SELECT max_tick(%s::smallint)-16)AND t1.id=%s"
             query+=" ORDER BY t1.tick ASC"
 
-            self.cursor.execute(query,(p.id,))
+            self.cursor.execute(query,(irc_msg.round,p.id,))
 
             reply=""
 

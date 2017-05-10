@@ -51,7 +51,7 @@ class anarchy(loadable.loadable):
         params = m.group(1)
         m = self.planet_coordre.search(params)
 
-        current_tick = self.current_tick()
+        current_tick = self.current_tick(irc_msg.round)
 
         if m:
             x = m.group(1)
@@ -59,21 +59,22 @@ class anarchy(loadable.loadable):
             z = m.group(3)
 
             planet = loadable.planet(x = x,y = y,z = z)
-            if not planet.load_most_recent(self.cursor):
+            if not planet.load_most_recent(self.cursor,irc_msg.round):
                 irc_msg.reply("No planet matching %s:%s:%s found" % (x, y, z))
                 return 0
 
             reply = "%s:%s:%s" % (x, y, z)
 
-            query = "SELECT start_tick, end_tick"
-            query += " FROM anarchy"
-            query += " INNER JOIN planet_dump ON anarchy.pid = planet_dump.id"
-            query += " WHERE planet_dump.tick = %s"
-            query += " AND planet_dump.x = %s"
-            query += " AND planet_dump.y = %s"
-            query += " AND planet_dump.z = %s"
-            query += " ORDER BY end_tick ASC"
-            self.cursor.execute(query, (current_tick, x, y, z))
+            query = "SELECT a.start_tick, a.end_tick"
+            query += " FROM anarchy AS a"
+            query += " INNER JOIN planet_dump AS p ON a.pid = p.id"
+            query += " WHERE p.round = %s"
+            query += " AND p.tick = %s"
+            query += " AND p.x = %s"
+            query += " AND p.y = %s"
+            query += " AND p.z = %s"
+            query += " ORDER BY a.end_tick ASC"
+            self.cursor.execute(query, (irc_msg.round, current_tick, x, y, z))
             current_end_tick = None
             anarchy_list = []
             for period in self.cursor.dictfetchall():
@@ -141,19 +142,24 @@ class anarchy(loadable.loadable):
             else:
                 reply += " and is not currently in anarchy"
         else:
-            query = "SELECT x, y, z"
-            query += " FROM anarchy"
-            query += " INNER JOIN planet_dump ON anarchy.pid = planet_dump.id"
-            query += " WHERE end_tick > %s"
-            query += " AND tick = %s"
-            query += " ORDER BY x ASC, y ASC, z ASC"
-            self.cursor.execute(query, (current_tick, current_tick))
+            query = "SELECT p.x, p.y, p.z"
+            query += " FROM anarchy AS a"
+            query += " INNER JOIN planet_dump AS p ON a.pid = p.id"
+            query += " WHERE p.round = %s"
+            query += " AND a.start_tick < %s"
+            query += " AND a.end_tick > %s"
+            query += " AND p.tick = %s"
+            query += " ORDER BY p.x ASC, p.y ASC, p.z ASC"
+            query += " LIMIT 120"
+            self.cursor.execute(query, (irc_msg.round, current_tick, current_tick, current_tick))
             if self.cursor.rowcount < 1:
                 reply = "There are currently no planets in anarchy. Get to it!"
             else:
                 anarchy_list = map(lambda p: "%d:%d:%d" % (p['x'], p['y'], p['z']),
                                    self.cursor.dictfetchall())
                 reply = "Planets currently in anarchy: %s" % (", ".join(anarchy_list))
+                if self.cursor.rowcount == 120:
+                    reply += " and a bunch more"
 
         irc_msg.reply(reply)
         return 1

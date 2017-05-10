@@ -72,7 +72,7 @@ class launch(loadable.loadable):
                 irc_msg.reply("Usage: %s" % (self.usage,))
                 return 0
 
-        current_tick=self.current_tick()
+        current_tick=self.current_tick(irc_msg.round)
 
         current_time = datetime.datetime.utcnow()
         launch_tick = land_tick - eta

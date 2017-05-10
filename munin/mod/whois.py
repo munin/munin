@@ -59,7 +59,6 @@ class whois(loadable.loadable):
         search=m.group(1)
 
         # do stuff here
-
         if search.lower() == self.config.get('Connection','nick').lower():
             irc_msg.reply("I am Munin. Hear me roar.")
             return 1
@@ -81,19 +80,16 @@ class whois(loadable.loadable):
             reply+="No members matching '%s'"%(search,)
         else:
             u=loadable.user(pnick=r['pnick'])
-            u.load_from_db( self.cursor)
+            u.load_from_db( self.cursor,irc_msg.round)
             if r['pnick'] == irc_msg.user:
                 reply+="You are %s. You are also known as %s. Your sponsor is %s. Your Munin number is %s. You have %d %s."
             else:
                 reply+="Information about %s: They are also known as %s. Their sponsor is %s. Their Munin number is %s. They have %d %s."
-            reply=reply%(r['pnick'],r['alias_nick'],r['sponsor'],self.munin_number_to_output(u),r['carebears'],self.pluralize(r['carebears'],"carebear"))
+            reply=reply%(r['pnick'],r['alias_nick'],r['sponsor'],self.munin_number_to_output(u,irc_msg.round),r['carebears'],self.pluralize(r['carebears'],"carebear"))
 
         irc_msg.reply(reply)
-
         return 1
-    def munin_number_to_output(self,u):
-        number=u.munin_number( self.cursor, self.config)
-        if number:
-            return number
-        else:
-            return "a kabajillion"
+
+    def munin_number_to_output(self,u,round):
+        number=u.munin_number(self.cursor, self.config, round)
+        return number or 'a kabajillion'

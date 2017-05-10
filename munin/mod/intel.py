@@ -73,26 +73,26 @@ class intel(loadable.loadable):
 
         params=m.group(4)
 
-        if not p.load_most_recent(self.cursor):
+        if not p.load_most_recent(self.cursor,irc_msg.round):
             irc_msg.reply("No planet matching '%s:%s:%s' found"%(p.x,p.y,p.z,))
             return 1
 
         i=loadable.intel(pid=p.id)
-        if not i.load_from_db(self.cursor):
+        if not i.load_from_db(self.cursor,irc_msg.round):
             pass
 
         opts=self.split_opts(params)
         opts['pid']=p.id
         a=loadable.alliance(name=i.alliance)
         if i.alliance:
-            a.load_most_recent(self.cursor)
+            a.load_most_recent(self.cursor,irc_msg.round)
         for opt, val in opts.items():
             if opt == "alliance":
                 if val in self.nulls:
                     a=loadable.alliance(id=None)
                     continue
                 a=loadable.alliance(name=val)
-                if not a.load_most_recent(self.cursor):
+                if not a.load_most_recent(self.cursor,irc_msg.round):
                     irc_msg.reply("'%s' is not a valid alliance, your information was not added."%(val,))
                     return 1
                 else:
@@ -124,8 +124,8 @@ class intel(loadable.loadable):
                                        opts['covop'],a.id,opts['relay'],opts['reportchan'],
                                        opts['scanner'],opts['distwhore'],opts['comment'],i.id))
         elif params:
-            query="INSERT INTO intel (pid,nick,fakenick,defwhore,gov,bg,covop,relay,reportchan,scanner,distwhore,comment,alliance_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-            self.cursor.execute(query,(opts['pid'],opts['nick'],
+            query="INSERT INTO intel (round,pid,nick,fakenick,defwhore,gov,bg,covop,relay,reportchan,scanner,distwhore,comment,alliance_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            self.cursor.execute(query,(irc_msg.round,opts['pid'],opts['nick'],
                                        opts['fakenick'],opts['defwhore'],opts['gov'],opts['bg'],
                                        opts['covop'],opts['relay'],opts['reportchan'],
                                        opts['scanner'],opts['distwhore'],
@@ -150,8 +150,12 @@ class intel(loadable.loadable):
         return param_dict
 
     def exec_gal(self,irc_msg,x,y):
-        query="SELECT t2.id AS id, t1.id AS pid, t1.x AS x, t1.y AS y, t1.z AS z, t2.nick AS nick, t2.fakenick AS fakenick, t2.defwhore AS defwhore, t2.gov AS gov, t2.bg AS bg, t2.covop AS covop, t2.alliance_id AS alliance_id, t2.relay AS relay, t2.reportchan AS reportchan, t2.scanner AS scanner, t2.distwhore AS distwhore, t2.comment AS comment, t3.name AS alliance FROM planet_dump as t1, intel as t2 LEFT JOIN alliance_canon AS t3 ON t2.alliance_id=t3.id WHERE tick=(SELECT max_tick()) AND t1.id=t2.pid AND x=%s AND y=%s ORDER BY y,z,x"
-        self.cursor.execute(query,(x,y))
+        query ="SELECT i.id AS id, p.id AS pid, p.x AS x, p.y AS y, p.z AS z, i.nick AS nick, i.fakenick AS fakenick, i.defwhore AS defwhore, i.gov AS gov, i.bg AS bg, i.covop AS covop, i.alliance_id AS alliance_id, i.relay AS relay, i.reportchan AS reportchan, i.scanner AS scanner, i.distwhore AS distwhore, i.comment AS comment, a.name AS alliance"
+        query+=" FROM planet_dump AS p, intel AS i"
+        query+=" LEFT JOIN alliance_canon AS a ON i.alliance_id=a.id"
+        query+=" WHERE tick=(SELECT max_tick(%s::smallint)) AND p.round=%s AND p.id=i.pid AND x=%s AND y=%s"
+        query+=" ORDER BY z ASC"
+        self.cursor.execute(query,(irc_msg.round,irc_msg.round,x,y,))
 
         replied_to_request = False
 
@@ -178,13 +182,13 @@ class intel(loadable.loadable):
             irc_msg.reply("No information stored for galaxy %s:%s" % (x,y))
         else:
             reply="Intel %d:%d - "%(x,y)
-            reply+=self.gal_info(x,y)
+            reply+=self.gal_info(x,y,irc_msg.round)
             reply+=" - "
             reply+=" - ".join(repls)
             irc_msg.reply(reply)
         return 1
 
-    def gal_info(self,x,y):
+    def gal_info(self,x,y,round):
         g=loadable.galaxy(x=x,y=y)
-        g.load_most_recent(self.cursor)
+        g.load_most_recent(self.cursor,round)
         return "Score (%d) Value (%d) Size (%d)"%(g.score_rank,g.value_rank,g.size_rank)

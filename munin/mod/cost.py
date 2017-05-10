@@ -71,7 +71,7 @@ class cost(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        ship=self.get_ship_from_db(ship_name)
+        ship=self.get_ship_from_db(ship_name,irc_msg.round)
         if not ship:
             irc_msg.reply("%s is not a ship" % (ship_name))
             return 0

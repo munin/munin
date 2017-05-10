@@ -96,14 +96,12 @@ class victim(loadable.loadable):
                 alliance=m.group(1)
                 continue
 
-
-
         if bash:
             if not user:
                 irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command's bash option (log in with P and set mode +x)")
                 return 1
             u=loadable.user(pnick=irc_msg.user)
-            if not u.load_from_db(self.cursor):
+            if not u.load_from_db(self.cursor,irc_msg.round):
                 irc_msg.reply("Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))" % (self.usage,))
                 return 1
             if u.planet_id:
@@ -112,7 +110,7 @@ class victim(loadable.loadable):
                 irc_msg.reply("Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))" % (self.usage,))
                 return 1
 
-        victims=self.victim(alliance,race,size_mod,size,value_mod,value,attacker,bash,cluster)
+        victims=self.victim(irc_msg.round,alliance,race,size_mod,size,value_mod,value,attacker,bash,cluster)
 
         i=0
         if not len(victims):
@@ -146,13 +144,14 @@ class victim(loadable.loadable):
 
         return 1
 
-    def victim(self,alliance=None,race=None,size_mod='>',size=None,value_mod='<',value=None,attacker=None,bash=None,cluster=None):
-        args=()
-        query="SELECT t1.x AS x,t1.y AS y,t1.z AS z,t1.size AS size,t1.size_rank AS size_rank,t1.value AS value,t1.value_rank AS value_rank,t1.race AS race,t6.name AS alliance,t2.nick AS nick"
-        query+=" FROM planet_dump AS t1 INNER JOIN planet_canon AS t3 ON t1.id=t3.id"
-        query+=" LEFT JOIN intel AS t2 ON t3.id=t2.pid"
-        query+=" LEFT JOIN alliance_canon AS t6 ON t2.alliance_id=t6.id"
-        query+=" WHERE t1.tick=(SELECT max_tick())"
+    def victim(self,round,alliance=None,race=None,size_mod='>',size=None,value_mod='<',value=None,attacker=None,bash=None,cluster=None):
+        args=(round,round,)
+        query ="SELECT t1.x AS x,t1.y AS y,t1.z AS z,t1.size AS size,t1.size_rank AS size_rank,t1.value AS value,t1.value_rank AS value_rank,t1.race AS race,t6.name AS alliance,t2.nick AS nick"
+        query+=" FROM planet_dump          AS t1"
+        query+=" INNER JOIN planet_canon   AS t3 ON t1.id=t3.id"
+        query+=" LEFT JOIN  intel          AS t2 ON t3.id=t2.pid"
+        query+=" LEFT JOIN  alliance_canon AS t6 ON t2.alliance_id=t6.id"
+        query+=" WHERE t1.tick=(SELECT max_tick(%s::smallint)) AND t1.round=%s"
 
         if alliance:
             query+=" AND t6.name ILIKE %s"

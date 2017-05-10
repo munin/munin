@@ -35,7 +35,7 @@ class seagal(loadable.loadable):
     """
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,1)
-        self.paramre=re.compile(r"^\s*(\d+)[. :-](\d+)[. :-](\d+)(\s+(\d+))?")
+        self.paramre=re.compile(r"^\s*(\d+)[. :-](\d+)[. :-](\d+)(\s+(\S+))?")
         self.usage=self.__class__.__name__ + " <x:y:z> [number of resources]"
 	self.helptext=None
 
@@ -47,7 +47,7 @@ class seagal(loadable.loadable):
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
-        
+
         m=self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
@@ -62,14 +62,17 @@ class seagal(loadable.loadable):
         sum=m.group(5)
 
         p=loadable.planet(x=x,y=y,z=z)
-        if not p.load_most_recent(self.cursor):
+        if not p.load_most_recent(self.cursor,irc_msg.round):
             irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
             return 1
 
         res=u.planet.resources_per_agent(p)
         reply="Your Seagals will ninja %s resources from %s:%s:%s - 13: %s, 35: %s."%(res,p.x,p.y,p.z,self.format_real_value(res*13),self.format_real_value(res*35))
         if sum:
-            reply+=" You need %s Seagals to ninja %sk res."%(int(math.ceil((float(sum)*1000)/res)),sum)
+            sum=self.human_readable_number_to_integer(sum)
+            agents=int(math.ceil((float(sum))/res))
+            reply+=" You need %s Seagals to ninja %s res."%(agents,
+                                                            self.format_real_value(sum))
         irc_msg.reply(reply)
 
         return 1

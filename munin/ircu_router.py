@@ -35,7 +35,7 @@ class ircu_router(object):
         self.cursor = self.conn.cursor()
 
         self.listeners=[
-            command.command(client,self.cursor,mod,loader),
+            command.command(client,self.cursor,mod,loader,config),
             custom_runner.custom_runner(client,self.cursor,config),
             auth.auth(client,config)
             ]

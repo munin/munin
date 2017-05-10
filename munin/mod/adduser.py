@@ -61,7 +61,7 @@ class adduser(loadable.loadable):
         exists = []
         for pnick in pnicks.split(","):
             if not pnick: continue
-            gimp=self.load_user_from_pnick(pnick)
+            gimp=self.load_user_from_pnick(pnick,irc_msg.round)
             if not gimp or gimp.pnick.lower() != pnick.lower() or gimp.userlevel < access_lvl:
                 if not gimp or gimp.pnick.lower() != pnick.lower():
                     query="INSERT INTO user_list (userlevel,sponsor,pnick) VALUES (%s,%s,%s)"

@@ -59,16 +59,16 @@ class unbook(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        curtick=self.current_tick()
+        curtick=self.current_tick(irc_msg.round)
         tick=-1
 
         p=loadable.planet(x=x,y=y,z=z)
-        if not p.load_most_recent(self.cursor):
+        if not p.load_most_recent(self.cursor,irc_msg.round):
             irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
             return 1
 
         u=loadable.user(pnick=irc_msg.user)
-        if not u.load_from_db(self.cursor):
+        if not u.load_from_db(self.cursor,irc_msg.round):
             u=None
 
 
@@ -81,7 +81,7 @@ class unbook(loadable.loadable):
             tick=when
 
         if not override: # trying to unbook own target
-            query="DELETE FROM target WHERE pid = %s "
+            query="DELETE FROM target WHERE pid = %s"
             args=(p.id,)
             if when:
                 query+=" AND tick = %s "
@@ -90,7 +90,6 @@ class unbook(loadable.loadable):
                 query+=" AND tick > %s "
                 args+=(curtick,)
             if u:
-                #query+=" AND (uid ILIKE %s OR uid IS NULL)"
                 query+=" AND uid = %s"
                 args+=(u.id,)
             else:
@@ -114,7 +113,7 @@ class unbook(loadable.loadable):
         else:
             query="SELECT t1.id AS id, t1.nick AS nick, t1.pid AS pid, t1.tick AS tick, t1.uid AS uid, t2.pnick AS pnick, t2.userlevel AS userlevel "
             query+=" FROM target AS t1 LEFT JOIN user_list AS t2 ON t1.uid=t2.id "
-            query+=" WHERE t1.pid=%s "
+            query+=" WHERE t1.pid=%s"
             args=(p.id,)
             if when:
                 query+=" AND tick=%s"
@@ -132,7 +131,7 @@ class unbook(loadable.loadable):
 
             res=self.cursor.dictfetchall()
 
-            query="DELETE FROM target WHERE pid = %s "
+            query="DELETE FROM target WHERE pid = %s"
             args=(p.id,)
             if when:
                 query+=" AND tick = %s "
@@ -152,7 +151,7 @@ class unbook(loadable.loadable):
                     type="user"
                 reply+=" for landing pt %s (previously held by %s %s)"%(res[0]['tick'],type,owner)
             else:
-                reply+=" for %d booking(s): "%(self.cursor.rowcount)
+                reply+=" for %d booking(s):"%(self.cursor.rowcount)
                 prev=[]
                 for r in res:
                     owner="nick: "+r['nick']

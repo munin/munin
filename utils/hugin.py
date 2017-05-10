@@ -31,6 +31,7 @@ import traceback
 import urllib2
 import StringIO
 import sys
+import argparse
 
 config = ConfigParser.ConfigParser()
 if not config.read("muninrc"):
@@ -59,39 +60,33 @@ while True:
         conn=psycopg.connect(DSN)
         cursor=conn.cursor()
 
-        cursor.execute("SELECT max_tick()")
-        last_tick=int(cursor.fetchone()[0])
-        if not last_tick:
-            last_tick = -1
+        cursor.execute("SELECT max_round()")
+        round=int(cursor.fetchone()[0])
+        if not round:
+            round = -1
 
         from_web = False
 
-        if len(sys.argv) == 5:
-            try:
-                planets = open(sys.argv[1], 'r')
-            except Exception, e:
-                print "Failed to open planet listing."
-                print e.__str__()
-                exit(1)
-            try:
-                galaxies = open(sys.argv[2], 'r')
-            except Exception, e:
-                print "Failed to open galaxy listing."
-                print e.__str__()
-                exit(1)
-            try:
-                alliances = open(sys.argv[3], 'r')
-            except Exception, e:
-                print "Failed to open alliance listing."
-                print e.__str__()
-                exit(1)
-            try:
-                userfeed = open(sys.argv[4], 'r')
-            except Exception, e:
-                print "Failed to open user feed."
-                print e.__str__()
-                exit(1)
-        elif len(sys.argv) == 1:
+        parser = argparse.ArgumentParser(description='Planetarion dumps processor for Munin.',
+                                         epilog='Note that --planets, --galaxies, --alliances and --userfeed must either be given together, or not at all (in which case the most recent dumps are retrieved from the web)')
+        parser.add_argument('-p', '--planets',   type=argparse.FileType('r'), metavar='FILE')
+        parser.add_argument('-g', '--galaxies',  type=argparse.FileType('r'), metavar='FILE')
+        parser.add_argument('-a', '--alliances', type=argparse.FileType('r'), metavar='FILE')
+        parser.add_argument('-u', '--userfeed',  type=argparse.FileType('r'), metavar='FILE')
+        parser.add_argument('-r', '--round',     type=int, default=round, help='Default is the most recent round for which ticks can be found. If this is the first time you run Hugin for a new round, this is a required option.')
+        args = parser.parse_args();
+        round=args.round
+        if args.planets and args.galaxies and args.alliances and args.userfeed:
+            # ArgumentParser opens the files for us.
+            planets=args.planets
+            galaxies=args.galaxies
+            alliances=args.alliances
+            userfeed=args.userfeed
+        elif args.planets or args.galaxies or args.alliances or args.userfeed:
+            print "%s: error: The options --planets, --galaxies, --alliance and --userfeed must either be given together or not at all!\n"%(sys.argv[0])
+            exit(3)
+        else:
+            # Read dumps from the web
             from_web = True
             try:
                 req = urllib2.Request(config.get("Url", "planetlist"))
@@ -129,9 +124,13 @@ while True:
                 print e.__str__()
                 time.sleep(300)
                 continue
-        else:
-            print "Expected 0 (get the dumps for most recent tick from the web) or 4 (read planet, galaxy, alliance, user feed dumps from file) arguments, but got %d! Exiting." % (len(sys.argv))
-            exit(1)
+
+        cursor.execute("SELECT max_tick(%s::smallint)",(round,))
+        last_tick=cursor.fetchone()[0]
+        if last_tick:
+            last_tick=int(last_tick)
+        if not last_tick:
+            last_tick = -1
 
         planets.readline();planets.readline();planets.readline();
         tick=planets.readline()
@@ -276,31 +275,31 @@ while True:
         print "Copied dumps in %.3f seconds" % (t2,)
         t1=time.time()
 
-        query="SELECT store_update(%s::smallint,%s::text,%s::text,%s::text,%s::text)"
-        cursor.execute(query,(planet_tick,ptmp,gtmp,atmp,utmp))
+        query="SELECT store_update(%s::smallint,%s::smallint,%s::text,%s::text,%s::text,%s::text)"
+        cursor.execute(query,(round,planet_tick,ptmp,gtmp,atmp,utmp))
 
         try:
 
-            query="SELECT store_planets(%s::smallint)"
-            cursor.execute(query,(planet_tick,))
+            query="SELECT store_planets(%s::smallint,%s::smallint)"
+            cursor.execute(query,(round,planet_tick,))
             t2=time.time()-t1
             print "Processed and inserted planet dumps in %.3f seconds" % (t2,)
             t1=time.time()
 
-            query="SELECT store_galaxies(%s::smallint)"
-            cursor.execute(query,(galaxy_tick,))
+            query="SELECT store_galaxies(%s::smallint,%s::smallint)"
+            cursor.execute(query,(round,galaxy_tick,))
             t2=time.time()-t1
             print "Processed and inserted galaxy dumps in %.3f seconds" % (t2,)
             t1=time.time()
 
-            query="SELECT store_alliances(%s::smallint)"
-            cursor.execute(query,(alliance_tick,))
+            query="SELECT store_alliances(%s::smallint,%s::smallint)"
+            cursor.execute(query,(round,alliance_tick,))
             t2=time.time()-t1
             print "Processed and inserted alliance dumps in %.3f seconds" % (t2,)
             t1=time.time()
 
-            query="SELECT store_userfeed()"
-            cursor.execute(query)
+            query="SELECT store_userfeed(%s::smallint)"
+            cursor.execute(query,(round,))
             t2=time.time()-t1
             print "Processed and inserted user feed dumps in %.3f seconds" % (t2,)
             t1=time.time()

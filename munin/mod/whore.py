@@ -57,7 +57,7 @@ class whore(loadable.loadable):
 
         attacker=None
         u=loadable.user(pnick=irc_msg.user)
-        if not u.load_from_db(self.cursor):
+        if not u.load_from_db(self.cursor,irc_msg.round):
             irc_msg.reply("Usage: %s (you must set your planet in preferences to use this command (!pref planet=x:y:z))" % (self.usage,))
             return 1
         if u.planet_id:
@@ -107,7 +107,7 @@ class whore(loadable.loadable):
                 continue
 
 
-        victims=self.victim(alliance,race,size_mod,size,value_mod,value,attacker,True,cluster)
+        victims=self.victim(irc_msg.round,alliance,race,size_mod,size,value_mod,value,attacker,True,cluster)
         i=0
         if not len(victims):
             reply="No"
@@ -140,20 +140,16 @@ class whore(loadable.loadable):
 
         return 1
 
-    def victim(self,alliance=None,race=None,size_mod='>',size=None,value_mod='<',value=None,attacker=None,bash=True,cluster=None):
-        args=(attacker.score,attacker.value)
+    def victim(self,round,alliance=None,race=None,size_mod='>',size=None,value_mod='<',value=None,attacker=None,bash=True,cluster=None):
+        args=(attacker.score,attacker.value,round,round,)
 
         query="SELECT t1.x AS x,t1.y AS y,t1.z AS z,t1.size AS size,t1.size_rank AS size_rank,t1.value AS value,t1.value_rank AS value_rank,t1.race AS race,t6.name AS alliance,t2.nick AS nick"
 
-        #bravery = max(0,min(30,10*(min(2,float(victim_val)/attacker_val)  + min(2,float(victim_score)/attacker_score) - 1)))
-
-        #query+=", (t1.size/4) * 10 *float8larger(0,(float8smaller(3,(float8smaller(2,(t1.score::float8/%s)) + float8smaller(2,(t1.value::float8/%s)) - 1)))) AS xp_gain"
-
         query+=", (t1.size/4) * 10 * (float8smaller(2,(t1.score::float/%s::float))-0.2)*(float8smaller(2,(t1.value::float/%s::float))-0.1) AS xp_gain"
-        query+=" FROM planet_dump AS t1" # INNER JOIN planet_canon AS t3 ON t1.id=t3.id"
+        query+=" FROM planet_dump AS t1"
         query+=" LEFT JOIN intel AS t2 ON t1.id=t2.pid"
         query+=" LEFT JOIN alliance_canon AS t6 ON t2.alliance_id=t6.id"
-        query+=" WHERE t1.tick=(SELECT max_tick())"
+        query+=" WHERE t1.tick=(SELECT max_tick(%s::smallint)) AND t1.round=%s"
 
         if alliance:
             query+=" AND t6.name ILIKE %s"

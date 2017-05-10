@@ -62,9 +62,8 @@ class ship(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-
         # do stuff here
-        s=self.get_ship_from_db(ship_name)
+        s=self.get_ship_from_db(ship_name,irc_msg.round)
         if not s:
             irc_msg.reply("%s is not a ship" % (ship_name))
             return 0
@@ -85,7 +84,6 @@ class ship(loadable.loadable):
             reply+=" D/C: %s |"%((s['damage']*10000)/s['total_cost'],)
 
         reply+=" A/C: %s"%((s['armor']*10000)/s['total_cost'],)
-        #reply+=" (%s)"%(
 
         irc_msg.reply(reply)
 

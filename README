@@ -23,7 +23,7 @@ c) Add the plpgsql language to your database. This usually requires superuser
 
    Or in SQL when connected to the correct database with:
 
-   CREATE LANGUAGE plpgqsl
+   CREATE LANGUAGE plpgsql
 
 d) Fix user_table.sql to insert the correct superuser pnick (it's currently
    commented out and set to jester).

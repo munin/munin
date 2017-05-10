@@ -65,7 +65,7 @@ class dev(loadable.loadable):
             z=m.group(3)
 
             p=loadable.planet(x=x,y=y,z=z)
-            if not p.load_most_recent(self.cursor):
+            if not p.load_most_recent(self.cursor,irc_msg.round):
                 irc_msg.reply("No planet matching '%s' found"%(params,))
                 return 1
 
@@ -74,8 +74,9 @@ class dev(loadable.loadable):
             query+=",metal_refinery,crystal_refinery,eonium_refinery,research_lab,finance_centre,military_centre"
             query+=",security_centre,structure_defense"
             query+=" FROM scan AS t1 INNER JOIN development AS t2 ON t1.id=t2.scan_id"
-            query+=" WHERE t1.pid=%s ORDER BY t1.tick DESC"
-            self.cursor.execute(query,(p.id,))
+            query+=" WHERE t1.pid=%s AND t1.round=%s"
+            query+=" ORDER BY t1.tick DESC"
+            self.cursor.execute(query,(p.id,irc_msg.round))
 
             if self.cursor.rowcount < 1:
                 reply+="No dev scans available on %s:%s:%s" % (p.x,p.y,p.z)
@@ -90,8 +91,6 @@ class dev(loadable.loadable):
                     self.waves(s['waves']),self.core(s['core']),self.covop(s['covert_op']),
                     self.mining(s['mining'])
                 )
-
-
 
                 irc_msg.reply(reply)
                 reply="Structures: LFac: %s, MFac: %s, HFac: %s, Amp: %s, Dist: %s, MRef: %s, CRef: %s, ERef: %s, ResLab: %s (%s%%), FC: %s, Milf: %s, Sec: %s (%s%%), SD: %s (%s%%) " % (
@@ -125,10 +124,11 @@ class dev(loadable.loadable):
             query+=",mining,light_factory,medium_factory,heavy_factory,wave_amplifier,wave_distorter"
             query+=",metal_refinery,crystal_refinery,eonium_refinery,research_lab,finance_centre,military_centre"
             query+=",security_centre,structure_defense"
-            query+=" FROM scan AS t1 INNER JOIN development AS t2 ON t1.id=t2.scan_id"
-            query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
-            query+=" WHERE t3.tick=(SELECT max_tick()) AND t1.rand_id=%s ORDER BY t1.tick DESC"
-            self.cursor.execute(query,(rand_id,))
+            query+=" FROM scan AS t1"
+            query+=" INNER JOIN development AS t2 ON t1.id=t2.scan_id"
+            query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id AND t1.round=t3.round"
+            query+=" WHERE t3.tick=(SELECT max_tick(%s::smallint)) AND t1.rand_id=%s AND t1.round=%s ORDER BY t1.tick DESC"
+            self.cursor.execute(query,(irc_msg.round,rand_id,irc_msg.round))
 
             if self.cursor.rowcount < 1:
                 reply+="No dev scans matching ID %s" % (rand_id,)

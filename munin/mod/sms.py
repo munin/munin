@@ -59,13 +59,13 @@ class sms(loadable.loadable):
         rec = m.group(1)
         public_text = m.group(2) + ' - %s' % (user,)
         text = public_text + '/%s' %(u.phone,)
-        receiver=self.load_user_from_pnick(rec)
+        receiver=self.load_user_from_pnick(rec,irc_msg.round)
         if not receiver:
             irc_msg.reply("Who exactly is %s?" % (rec,))
             return 1
         if receiver.pnick.lower() == 'valle':
             irc_msg.reply("I refuse to talk to that Swedish clown. Use !phone show Valle and send it using your own phone.")
-            return 
+            return
 
         results=self.phone_query_builder(receiver,"AND t1.friend_id=%s",(u.id,))
 
@@ -126,4 +126,4 @@ class sms(loadable.loadable):
         query="INSERT INTO sms_log (sender_id,receiver_id,phone,sms_text)"
         query+=" VALUES (%s,%s,%s,%s)"
         self.cursor.execute(query,(sender_id,receiver_id,phone,text))
-                            
+

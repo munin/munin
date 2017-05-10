@@ -50,12 +50,12 @@ class salvage(loadable.loadable):
 
         if m.lastindex == 3 and m.group(1) and m.group(2) and m.group(3):
             planet = loadable.planet(x = m.group(1),y = m.group(2),z = m.group(3))
-            if not planet.load_most_recent(self.cursor):
+            if not planet.load_most_recent(self.cursor,irc_msg.round):
                 irc_msg.reply("%s:%s:%s is not a valid planet" % (planet.x,planet.y,planet.z))
                 return 1
         else:
             u = loadable.user(pnick = irc_msg.user)
-            if not u.load_from_db(self.cursor):
+            if not u.load_from_db(self.cursor,irc_msg.round):
                 irc_msg.reply("You must be registered to use the automatic "+self.__class__.__name__+" command (log in with P and set mode +x, then make sure your planet is set with the pref command)")
                 return 1
             if u.planet_id:
@@ -70,10 +70,10 @@ class salvage(loadable.loadable):
 
         query="SELECT score"
         query+=" FROM planet_dump"
-        query+=" WHERE tick=(SELECT max_tick())"
+        query+=" WHERE tick=(SELECT max_tick(%s::smallint)) AND round=%s"
         query+=" ORDER BY score_rank ASC"
         query+=" LIMIT 20"
-        self.cursor.execute(query)
+        self.cursor.execute(query,(irc_msg.round,irc_msg.round,))
         if self.cursor.rowcount < 1:
             irc_msg.reply("Error retrieving score of top 20 planets from database")
         top20_average_score = reduce(lambda s, p: s + float(p['score'])/20.0,

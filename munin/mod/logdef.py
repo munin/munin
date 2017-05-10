@@ -56,45 +56,45 @@ class logdef(loadable.loadable):
         search=m.group(1)
         hit={}
 
-        hit=self.search_by_ship(irc_msg,search)
+        hit=self.search_by_ship(irc_msg.round,search)
 
-        u=self.load_user_from_pnick(search)
+        u=self.load_user_from_pnick(search,irc_msg.round)
         if not hit and u:
-            hit=self.search_by_user(irc_msg,u)
+            hit=self.search_by_user(irc_msg.round,u)
 
         if hit:
-            cur=self.current_tick()
+            cur=self.current_tick(irc_msg.round)
             reply=", ".join(map(lambda x:"%s gave %s %s to %s (%s)"%(x['owner'],self.format_real_value(x['ship_count']),
                                                                      x['ship'],x['taker'],x['tick']-cur),hit))
             irc_msg.reply(reply)
         else:
             irc_msg.reply("No matches found in the deflog for search '%s'"%(search,))
-    
+
         return 1
 
 
-    def search_by_user(self,irc_msg,user):
+    def search_by_user(self,round,user):
         query=self.base_query()
-        query+=" WHERE t3.id=%s"
+        query+=" AND t3.id=%s"
         query+=" ORDER BY t1.tick DESC"
         query+=" LIMIT 5"
-        
-        self.cursor.execute(query,(user.id,))
+
+        self.cursor.execute(query,(round,user.id,))
 
         if self.cursor.rowcount > 0:
             return self.cursor.dictfetchall()
         return False
 
-    def search_by_ship(self,irc_msg,ship):
+    def search_by_ship(self,round,ship):
         lookup=ship
         if ship not in self.ship_classes:
             lookup='%' + ship + '%'
         query=self.base_query()
-        query+=" WHERE t1.ship ilike %s"
+        query+=" AND t1.ship ilike %s"
         query+=" ORDER BY t1.tick DESC"
         query+=" LIMIT 5"
 
-        self.cursor.execute(query,(lookup,))
+        self.cursor.execute(query,(round,lookup,))
 
         if self.cursor.rowcount > 0:
             return self.cursor.dictfetchall()
@@ -104,8 +104,7 @@ class logdef(loadable.loadable):
     def base_query(self):
         query="SELECT t2.pnick AS taker,t3.pnick AS owner,t1.ship,t1.ship_count,t1.tick"
         query+=" FROM fleet_log AS t1"
-        query+=" INNER JOIN user_list AS t2"
-        query+=" ON t2.id=t1.taker_id"
-        query+=" INNER JOIN user_list AS t3"
-        query+=" ON t3.id=t1.user_id"
+        query+=" INNER JOIN user_list AS t2 ON t2.id=t1.taker_id"
+        query+=" INNER JOIN user_list AS t3 ON t3.id=t1.user_id"
+        query+=" WHERE t1.round=%s"
         return query

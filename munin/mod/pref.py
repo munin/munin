@@ -47,9 +47,8 @@ class pref(loadable.loadable):
             return 0
 
         u=loadable.user(pnick=irc_msg.user)
-        if not u.load_from_db(self.cursor):
+        if not u.load_from_db(self.cursor,irc_msg.round):
             irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
-            #irc_msg.reply("You must be registered to use the pref command")
             return 1
 
 
@@ -73,63 +72,55 @@ class pref(loadable.loadable):
                 else:
                     irc_msg.reply("You must provide coordinates (x:y:z) for the planet option")
                     continue
-                pid = self.save_planet(irc_msg,u,x,y,z)
+                pid = self.save_planet(irc_msg,u,x,y,z,irc_msg.round)
                 if pid > 0 and u.userlevel >= 100:
                     a=loadable.alliance(name=self.config.get('Auth', 'alliance'))
-                    if a.load_most_recent(self.cursor):
+                    if a.load_most_recent(self.cursor,irc_msg.round):
                         i=loadable.intel(pid=pid)
-                        i.load_from_db(self.cursor)
+                        i.load_from_db(self.cursor,irc_msg.round)
                         if i.id:
                             query="UPDATE intel SET "
                             query+="nick=%s,alliance_id=%s"
                             query+=" WHERE id=%s"
                             self.cursor.execute(query,(user,a.id,i.id))
                         else:
-                            query="INSERT INTO intel (pid,nick,alliance_id) VALUES (%s,%s,%s)"
-                            self.cursor.execute(query,(pid,user,a.id))
+                            query="INSERT INTO intel (pid,nick,alliance_id,round) VALUES (%s,%s,%s,%s)"
+                            self.cursor.execute(query,(pid,user,a.id,irc_msg.round,))
             if opt == "stay":
-                self.save_stay(irc_msg,u,val,access)
+                self.save_stay(irc_msg,u,val,access,irc_msg.round)
             if opt == "pubphone":
                 self.save_pubphone(irc_msg,u,val,access)
             if opt == "password":
                 self.save_password(irc_msg,u,val)
-                pass
             if opt == "phone":
                 self.save_phone(irc_msg,u,val)
-                pass
 
         return 1
 
-    def save_planet(self,irc_msg,u,x,y,z):
+    def save_planet(self,irc_msg,u,x,y,z,round):
         p=loadable.planet(x=x,y=y,z=z)
-        if not p.load_most_recent(self.cursor):
+        if not p.load_most_recent(self.cursor,round):
             irc_msg.reply("%s:%s:%s is not a valid planet" % (x,y,z))
             return 0
 
         if u.pref:
-            query="UPDATE user_list SET planet_id=%s WHERE id=%s"
-            self.cursor.execute(query,(p.id,u.id))
+            query ="INSERT INTO round_user_pref (user_id,round,planet_id) VALUES (%s,%s,%s)"
+            query+=" ON CONFLICT (user_id,round) DO"
+            query+=" UPDATE SET planet_id=EXCLUDED.planet_id"
+            self.cursor.execute(query,(u.id,round,p.id,))
             irc_msg.reply("Your planet has been saved as %s:%s:%s" % (x,y,z))
             return p.id
-        else:
-            raise Exception("This code /should/ be defunct now that prefs are in the user_list table")
-            query="INSERT INTO user_pref (id,planet_id) VALUES (%s,%s)"
-            self.cursor.execute(query,(u.id,p.id))
-            irc_msg.reply("Your planet has been saved as %s:%s:%s" % (x,y,z))
 
-    def save_stay(self,irc_msg,u,status,access):
+    def save_stay(self,irc_msg,u,status,access,round):
         if access < 100:
             return 0
-        print "Trying to set stay to %s"%(status,)
         query=""
         args=()
         if u.pref:
-            query="UPDATE user_list SET stay=%s WHERE id=%s"
-            args+=(status,u.id)
-        else:
-            raise Exception("This code /should/ be defunct now that prefs are in the user_list table")
-            query="INSERT INTO user_pref (id,stay) VALUES (%s,%s)"
-            args+=(u.id,status)
+            query ="INSERT INTO round_user_pref (user_id,round,stay) VALUES (%s,%s,%s)"
+            query+=" ON CONFLICT (user_id,round) DO"
+            query+=" UPDATE SET stay=EXCLUDED.stay"
+            args+=(u.id,round,status,)
         reply="Your stay status has been saved as %s"%(status,)
         try:
             self.cursor.execute(query,args)
@@ -138,7 +129,6 @@ class pref(loadable.loadable):
         irc_msg.reply(reply)
 
     def save_phone(self,irc_msg,u,passwd):
-        print "trying to set phone for %s"%(u.pnick,)
         if len(passwd) > 32:
             irc_msg.reply("Your phone number may not be longer than 32 characters (if you need more than 32 characters poke %s)."%(self.config.get('Auth','owner_nick')))
             return
@@ -153,8 +143,8 @@ class pref(loadable.loadable):
 
     def save_pubphone(self,irc_msg,u,status,access):
         if access < 100:
-            irc_msg.reply("Only %s members can allow all members of %s to view their phone"%(self.config.get('Auth','alliance'),
-                                                                                                 self.config.get('Auth','alliance')))
+            alliance=self.config.get('Auth','alliance'),
+            irc_msg.reply("Only %s members can allow all members of %s to view their phone"%(alliance,alliance))
             return 0
         query=""
         args=()
@@ -163,11 +153,11 @@ class pref(loadable.loadable):
         reply="Your pubphone status has been saved as %s"%(status,)
         try:
             self.cursor.execute(query,args)
-        except psycopg.ProgrammingError :
+        except psycopg.ProgrammingError:
             reply="Your pubphone status '%s' is not a valid value. If you want your phone number to be visible to all %s members, it should be 'yes'. Otherwise it should be 'no'." %(status,self.config.get('Auth','alliance'))
         irc_msg.reply(reply)
+
     def save_password(self,irc_msg,u,passwd):
-        print "trying to set password for %s"%(u.pnick,)
         query="UPDATE user_list SET passwd = MD5(MD5(salt) || MD5(%s))"
         query+=" WHERE id = %s"
 

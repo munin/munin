@@ -49,7 +49,7 @@ class cowards(loadable.loadable):
 
         alliance_name = m.group(1)
         a=loadable.alliance(name=alliance_name)
-        if not a.load_most_recent(self.cursor):
+        if not a.load_most_recent(self.cursor,irc_msg.round):
             irc_msg.reply("No alliance matching '%s' found" % (alliance_name))
             return 0
 
@@ -58,8 +58,8 @@ class cowards(loadable.loadable):
         query += " INNER JOIN alliance_canon AS canon1 ON rel.initiator = canon1.id"
         query += " INNER JOIN alliance_canon AS canon2 ON rel.acceptor = canon2.id"
         query += " WHERE canon1.id = %s OR canon2.id = %s"
-        query += " AND rel.end_tick > (SELECT max_tick());"
-        self.cursor.execute(query, (a.id, a.id))
+        query += " AND rel.end_tick > (SELECT max_tick(%s::smallint))"
+        self.cursor.execute(query, (a.id, a.id,irc_msg.round))
 
         if self.cursor.rowcount == 0:
             reply = '%s is neutral. Easy targets!' % (a.name)

@@ -8,6 +8,7 @@ from psycopg2 import psycopg1 as psycopg
 import urllib2
 import re
 import sys
+import argparse
 
 QUERY = """
 INSERT INTO ship(%s)
@@ -40,7 +41,7 @@ regex += r'.+?(\d+|\-)</td>'*8 # some numbers
 regex += r'.+?</tr>$' # end of the line
 sre = re.compile(regex,re.I|re.M)
 
-def main(url="http://game.planetarion.com/manual.pl?page=stats"):
+def main():
     """Parse url, and put the ships into our database."""
 
     config = ConfigParser.ConfigParser()
@@ -56,12 +57,20 @@ def main(url="http://game.planetarion.com/manual.pl?page=stats"):
     connection = psycopg.connect(DSN)
     cursor = connection.cursor()
 
+    parser = argparse.ArgumentParser(description='Planetarion ship stats importer for Munin.')
+    default_round=config.getint('Planetarion', 'current_round')
+    default_stats='https://game.planetarion.com/manual.pl?page=stats'
+    parser.add_argument('-r', '--round', type=int, default=default_round,
+                        help="Default: the value of 'Planetarion/current_round' in muninrc (%s)"%(default_round))
+    parser.add_argument('-u', '--url',             default=default_stats,
+                        help="Default: %s"%(default_stats))
+    args = parser.parse_args();
+
     useragent = "Munin (Python-urllib/%s); BotNick/%s; Admin/%s" % (urllib2.__version__, config.get("Connection", "nick"), config.get("Auth", "owner_nick"))
 
-    cursor.execute("DELETE FROM ship;")
-    cursor.execute("SELECT setval('ship_id_seq', 1, false);")
+    cursor.execute("DELETE FROM ship WHERE round=%s;",(args.round,))
 
-    req = urllib2.Request(url)
+    req = urllib2.Request(args.url)
     req.add_header('User-Agent',useragent)
     stats = urllib2.urlopen(req).read()
 
@@ -76,8 +85,8 @@ def main(url="http://game.planetarion.com/manual.pl?page=stats"):
             if line[index] not in ('-', '',):
                 ship[key] = line[index]
         ship['total_cost'] = ship['metal'] + ship['crystal'] + ship['eonium']
-        fields = []
-        params = []
+        fields = ['round']
+        params = [args.round]
         for key in ship:
             fields.append(key)
             params.append(ship[key])
@@ -87,7 +96,4 @@ def main(url="http://game.planetarion.com/manual.pl?page=stats"):
     connection.commit()
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        sys.exit(main(url=sys.argv[1]))
-    else:
-        sys.exit(main())
+    main()

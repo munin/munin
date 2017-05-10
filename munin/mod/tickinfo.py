@@ -6,7 +6,6 @@ Loadable.Loadable subclass
 
 # Munin is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
 
@@ -21,7 +20,6 @@ Loadable.Loadable subclass
 
 # This work is Copyright (C)2006 by Andreas Jacobsen
 # Individual portions may be copyright by individual contributors, and
-
 # are included in this collective work with permission of the copyright
 # owners.
 
@@ -52,11 +50,11 @@ class tickinfo(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        query="SELECT tick, age(now(), updates.timestamp) AS tick_age FROM updates ORDER BY tick DESC LIMIT 1"
-        self.cursor.execute(query)
+        query="SELECT tick, age(now(), updates.timestamp) AS tick_age FROM updates WHERE round = %s ORDER BY tick DESC LIMIT 1"
+        self.cursor.execute(query,(irc_msg.round,))
         reply=""
         if self.cursor.rowcount < 1:
-            reply="lol"
+            reply="Don't be stupid, that doesn't exist."
         else:
             res=self.cursor.dictfetchone()
             reply="My current tick information is for pt%s, which I retrieved %s ago" % (res['tick'],res['tick_age'])

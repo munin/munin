@@ -45,7 +45,7 @@ class gangbang(loadable.loadable):
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
-        curtick=self.current_tick()
+        curtick=self.current_tick(irc_msg.round)
 
 
         m=self.paramre.search(m.group(1))
@@ -61,7 +61,7 @@ class gangbang(loadable.loadable):
 
         a=loadable.alliance(name=subject)
         if a.name.lower() != "unknown":
-            if not a.load_most_recent(self.cursor):
+            if not a.load_most_recent(self.cursor, irc_msg.round):
                 irc_msg.reply("'%s' is not a valid alliance."%(subject,))
                 return 1
 
@@ -85,9 +85,11 @@ class gangbang(loadable.loadable):
             query+=" t1.tick = %s"
             args+=(tick,)
         else:
-            query+=" t1.tick > (SELECT max_tick())"
+            query+=" t1.tick > (SELECT max_tick(%s::smallint))"
+            args+=(irc_msg.round,)
 
-        query+=" AND t3.tick = (SELECT max_tick())"
+        query+=" AND t3.tick = (SELECT max_tick(%s::smallint))"
+        args+=(irc_msg.round,)
         query+=" AND t4.alliance_id "+("=" if a.id else "IS")+" %s"
         query+=" ORDER BY tick, x, y, z"
         self.cursor.execute(query,args+(a.id,))

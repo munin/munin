@@ -4,10 +4,11 @@ from munin.reboot import reboot
 
 
 class command(object):
-    def __init__(self,client,cursor,module,loader):
+    def __init__(self,client,cursor,module,loader,config):
         self.client=client
         self.cursor=cursor
         self.module=module
+        self.config=config
         self.control=self.register_control(module,loader)
 
     def register_control(self,module,loader):
@@ -25,6 +26,7 @@ class command(object):
     def message(self,line):
         irc_msg = irc_message.irc_message(client = self.client,
                                           cursor = self.cursor,
+                                          config = self.config,
                                           line   = line)
         if irc_msg.command:
             key = "munin.mod."+irc_msg.command_name.lower()

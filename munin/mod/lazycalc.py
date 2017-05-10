@@ -63,6 +63,11 @@ class lazycalc(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
+        cur=self.config.getint('Planetarion', 'current_round')
+        if irc_msg.round != cur:
+            irc_msg.reply("I'm really sorry, but I can only make calcs for round %s. Fuckface."%(cur))
+            return 0
+
         m=self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
@@ -74,22 +79,20 @@ class lazycalc(loadable.loadable):
         z=m.group(3)
         eta=m.group(4)
 
-        skip_missing = False
-        if m.lastindex == 5:
-            skip_missing = True
+        skip_missing = (m.lastindex == 5)
 
         target=loadable.planet(x=x,y=y,z=z)
-        if not target.load_most_recent(self.cursor):
+        if not target.load_most_recent(self.cursor,irc_msg.round):
             irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
             return 1
 
-        jgp=self.get_jgp(target)
+        jgp=self.get_jgp(target,irc_msg.round)
         if not jgp:
             irc_msg.reply("I'd get right on that if I had a JGP from this tick. Really, I would. Right. On. That.")
             return 1
 
         planets=[row for row in jgp if row['eta']==int(eta)]
-        aus=self.get_aus(target,planets)
+        aus=self.get_aus(target,planets,irc_msg.round)
         outdated=[au for au in aus if au['age'] > 12]
         up_to_date=[au for au in aus if au['age'] <= 12]
         fleet_count = len(up_to_date)
@@ -116,38 +119,38 @@ class lazycalc(loadable.loadable):
 
 
     @timefunc
-    def get_jgp(self,p):
+    def get_jgp(self,p,round):
         query="SELECT t3.x,t3.y,t3.z,t1.tick AS tick,t1.nick,t1.scantype,t1.rand_id,t1.scan_time,t2.mission,t2.fleet_size,t2.fleet_name,t2.landing_tick-t1.tick AS eta"
         query+=" FROM scan AS t1"
         query+=" INNER JOIN fleet AS t2 ON t1.id=t2.scan_id"
         query+=" INNER JOIN planet_dump AS t3 ON t2.owner_id=t3.id"
-        query+=" WHERE t1.pid=%s AND t3.tick=(SELECT max_tick())"
+        query+=" WHERE t1.pid=%s AND t3.tick=(SELECT max_tick(%s::smallint)) AND t3.round=%s"
         query+=" AND t1.id=(SELECT id FROM scan WHERE pid=t1.pid AND scantype='jgp'"
-        query+=" AND t1.tick=(SELECT max_tick())"
+        query+=" AND t1.tick=(SELECT max_tick(%s::smallint))"
         query+=" ORDER BY tick DESC, id DESC LIMIT 1) ORDER BY eta ASC"
-        self.cursor.execute(query,(p.id,))
+        self.cursor.execute(query,(p.id,round,round,round))
         if self.cursor.rowcount < 1:
             return None
         return self.cursor.dictfetchall()
 
-    def get_aus(self,target,planets):
-        return [self.get_au(target.x,target.y,target.z,'defend')] + [self.get_au(p['x'],p['y'],p['z'],p['mission']) for p in planets]
+    def get_aus(self,target,planets,round):
+        return [self.get_au(target.x,target.y,target.z,'defend',round)] + [self.get_au(p['x'],p['y'],p['z'],p['mission'],round) for p in planets]
 
     @timefunc
-    def get_au(self,x,y,z,mission):
+    def get_au(self,x,y,z,mission,round):
         p=loadable.planet(x=x,y=y,z=z)
         base={"x": x, "y": y, "z": z}
-        if not p.load_most_recent(self.cursor):
+        if not p.load_most_recent(self.cursor,round):
             z=base.copy()
             val=z.update({"age": 1000})
             return val
-        query="SELECT max_tick() - t1.tick AS age,t1.rand_id"
+        query="SELECT max_tick(%s::smallint) - t1.tick AS age,t1.rand_id"
         query+=" FROM scan AS t1"
         query+=" WHERE t1.pid=%s"
         query+=" AND scantype='au'"
         query+=" ORDER BY tick DESC LIMIT 1"
 
-        self.cursor.execute(query,(p.id,))
+        self.cursor.execute(query,(round,p.id,))
         if self.cursor.rowcount < 1:
             val={"age": 1000}
         else:
@@ -171,7 +174,7 @@ class calc_creator(threading.Thread):
         try:
             self.unsafe_method()
         except Exception, e:
-            irc_msg.reply("Error in module '%s'. Please report the command you used to the bot owner as soon as possible."%(irc_msg.command_name,))
+            self.irc_msg.reply("Error in module '%s'. Please report the command you used to the bot owner as soon as possible."%(self.irc_msg.command_name,))
 
 
     def unsafe_method(self):

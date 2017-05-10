@@ -68,21 +68,21 @@ class galpenis(loadable.loadable):
         self.cursor.execute(query)
 
 
-        query="CREATE TEMP TABLE galpenis AS"
+        query ="CREATE TEMP TABLE galpenis AS"
         query+=" (SELECT *,nextval('gal_activity_rank') AS activity_rank"
         query+=" FROM (SELECT  *,nextval('gal_value_diff_rank') AS value_diff_rank"
-        query+=" FROM (SELECT *,nextval('gal_xp_gain_rank') AS xp_gain_rank"
-        query+=" FROM (SELECT t1.x AS x,t1.y AS y,t1.name AS name,t1.xp-t5.xp AS xp_gain, t1.score-t5.score AS activity, t1.value-t5.value AS value_diff"
-        query+=" FROM galaxy_dump AS t1"
-        query+=" INNER JOIN galaxy_dump AS t5"
-        query+=" ON t1.id=t5.id AND t1.tick - 72 = t5.tick"
-        query+=" WHERE t1.tick = (select max(tick) from updates)"
-        query+=" ORDER BY xp_gain DESC) AS t6"
-        query+=" ORDER BY value_diff DESC) AS t7"
-        query+=" ORDER BY activity DESC) AS t8)"
+        query+="       FROM (SELECT *,nextval('gal_xp_gain_rank') AS xp_gain_rank"
+        query+="             FROM (SELECT t1.x AS x,t1.y AS y,t1.name AS name,t1.xp-t5.xp AS xp_gain, t1.score-t5.score AS activity, t1.value-t5.value AS value_diff"
+        query+="                   FROM galaxy_dump AS t1"
+        query+="                   INNER JOIN galaxy_dump AS t5 ON t1.id=t5.id AND t1.tick - 72 = t5.tick"
+        query+="                   WHERE t1.tick = (SELECT max_tick(%s::smallint))"
+        query+="                   AND   t1.round = %s"
+        query+="                   ORDER BY xp_gain DESC) AS t6"
+        query+="             ORDER BY value_diff DESC) AS t7"
+        query+="       ORDER BY activity DESC) AS t8)"
 
 
-        self.cursor.execute(query)
+        self.cursor.execute(query,(irc_msg.round,irc_msg.round))
 
         query="SELECT x,y,name,xp_gain,activity,value_diff,xp_gain_rank,value_diff_rank,activity_rank"
         query+=" FROM galpenis"

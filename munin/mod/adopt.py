@@ -37,7 +37,7 @@ class adopt(loadable.loadable):
     def __init__(self,cursor):
         super(self.__class__,self).__init__(cursor,100)
         self.paramre=re.compile(r"^\s+(\S+)")
-        self.usage=self.__class__.__name__ + "<pnick>"
+        self.usage=self.__class__.__name__ + " <pnick>"
         self.helptext=None
 
     def execute(self,user,access,irc_msg):
@@ -56,7 +56,7 @@ class adopt(loadable.loadable):
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
-        
+
         # assign param variables
         adoptee=m.group(1)
 
@@ -69,21 +69,21 @@ class adopt(loadable.loadable):
             return 1
 
         a=loadable.user(pnick=adoptee)
-        a.load_from_db( self.cursor)
+        a.load_from_db(self.cursor, irc_msg.round)
         if not a.id or a.userlevel < 100:
             irc_msg.reply("No members matching '%s'"%(adoptee,))
             return 1
 
         s=loadable.user(pnick=a.sponsor)
-        s.load_from_db( self.cursor)
+        s.load_from_db(self.cursor, irc_msg.round)
         if s.id and s.userlevel >= 100:
             irc_msg.reply("%s already has a daddy you filthy would-be kidnapper!"%(a.pnick,))
             return 1
 
-        if u.has_ancestor(self.cursor,a.pnick):
+        if u.has_ancestor(self.cursor,a.pnick,irc_msg.round):
             irc_msg.reply("Ew, incest.")
             return 1
-        
+
         query="UPDATE user_list"
         query+=" SET sponsor = %s"
         query+=" WHERE id = %s"

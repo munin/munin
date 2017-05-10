@@ -51,7 +51,6 @@ class cunts(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-
         # assign param variables
 
         if access < self.level:
@@ -104,7 +103,7 @@ class cunts(loadable.loadable):
                 irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command's bash option (log in with P and set mode +x)")
                 return 1
             u=loadable.user(pnick=irc_msg.user)
-            if not u.load_from_db(self.cursor):
+            if not u.load_from_db(self.cursor,irc_msg.round):
                 irc_msg.reply("Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))" % (self.usage,))
                 return 1
             if u.planet_id:
@@ -113,7 +112,7 @@ class cunts(loadable.loadable):
                 irc_msg.reply("Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))" % (self.usage,))
                 return 1
 
-        victims=self.cunts(alliance,race,size_mod,size,value_mod,value,attacker,bash,cluster)
+        victims=self.cunts(irc_msg.round,alliance,race,size_mod,size,value_mod,value,attacker,bash,cluster)
 
         i=0
         if not len(victims):
@@ -139,10 +138,9 @@ class cunts(loadable.loadable):
                 reply+=" Nick: %s" % (v['nick'],)
             if not alliance and v['alliance']:
                 reply+=" Alliance: %s" % (v['alliance'],)
-            targs=self.attacking(v['pid'])
+            targs=self.attacking(v['pid'],irc_msg.round)
             if targs:
                 reply+=" Hitting: "
-                print targs
                 a=[]
                 for t in targs:
                     if t:
@@ -159,31 +157,28 @@ class cunts(loadable.loadable):
 
         return 1
 
-    def cunts(self,alliance=None,race=None,size_mod='>',size=None,value_mod='<',value=None,attacker=None,bash=None,cluster=None):
+    def cunts(self,round,alliance=None,race=None,size_mod='>',size=None,value_mod='<',value=None,attacker=None,bash=None,cluster=None):
         args=()
 
-        query="SELECT DISTINCT t1.id AS pid,t1.x AS x,t1.y AS y,t1.z AS z,"
-        query+="t1.size AS size,t1.size_rank AS size_rank,t1.value AS value,"
-        query+="t1.value_rank AS value_rank,t1.race AS race,"
-        query+="t6.name AS alliance,t2.nick AS nick"
-        #query+="t3.landing_tick AS landing_tick, t4.size*.25 AS potential_gain,"
-        #query+="t6.nick AS target_nick"
-        query+=" FROM planet_dump AS t1"
-        query+=" LEFT JOIN intel AS t2 ON t1.id=t2.pid"
-        query+=" INNER JOIN fleet AS t3 ON t1.id=t3.owner_id"
-        #query+=" INNER JOIN intel AS t6 ON t3.target=t6.pid"
-        query+=" LEFT JOIN alliance_canon AS t6 ON t2.alliance_id=t6.id"
-        query+=" WHERE t1.tick=(SELECT max_tick())"
-        #query+=" AND t4.tick=(SELECT max_tick())"
-        query+=" AND t3.landing_tick>(SELECT max_tick())"
-        query+=" AND t3.mission ilike 'attack'"
-        query+=" AND t3.target IN ("
-        query+=" SELECT t5.pid FROM intel AS t5 "
-        query+=" LEFT JOIN alliance_canon AS t7 ON t5.alliance_id=t7.id"
-        query+=" WHERE t7.name ilike %s) " #% self.config.get('Auth', 'alliance')
-        args += (self.config.get('Auth', 'alliance'),)
+        query="SELECT DISTINCT p.id AS pid,p.x AS x,p.y AS y,p.z AS z,"
+        query+="               p.size AS size,p.size_rank AS size_rank,p.value AS value,"
+        query+="               p.value_rank AS value_rank,p.race AS race,"
+        query+="               a.name AS alliance,i.nick AS nick"
+        query+=" FROM       planet_dump    AS p"
+        query+=" LEFT JOIN  intel          AS i ON p.id=i.pid"
+        query+=" INNER JOIN fleet          AS f ON p.id=f.owner_id"
+        query+=" LEFT JOIN  alliance_canon AS a ON a.id=i.alliance_id"
+        query+=" WHERE p.tick=(SELECT max_tick(%s::smallint))"
+        query+=" AND p.round=%s"
+        query+=" AND f.landing_tick>(SELECT max_tick(%s::smallint))"
+        query+=" AND f.mission ilike 'attack'"
+        query+=" AND f.target IN ("
+        query+="                  SELECT t5.pid FROM intel AS t5 "
+        query+="                  LEFT JOIN alliance_canon AS t7 ON t5.alliance_id=t7.id"
+        query+="                  WHERE t7.name ILIKE %s)"
+        args += (round,round,round,self.config.get('Auth', 'alliance'),)
         if alliance:
-            query+=" AND t6.name ILIKE %s"
+            query+=" AND a.name ILIKE %s"
             args+=('%'+alliance+'%',)
         if race:
             query+=" AND race ILIKE %s"
@@ -201,14 +196,15 @@ class cunts(loadable.loadable):
             query+=" AND x = %s::smallint"
             args+=(cluster,)
 
-        query+=" ORDER BY t1.size DESC, t1.value DESC"
+        query+=" ORDER BY p.size DESC, p.value DESC"
         self.cursor.execute(query,args)
         return self.cursor.dictfetchall()
 
-    def attacking(self,pid):
+    def attacking(self,pid,round):
         query="SELECT DISTINCT t2.nick AS nick, t1.fleet_size, t1.landing_tick FROM fleet AS t1"
         query+=" INNER JOIN intel AS t2 ON t1.target=t2.pid"
         query+=" WHERE t1.owner_id = %s"
-        query+=" AND t1.landing_tick > (select max_tick())"
-        self.cursor.execute(query,(pid,))
+        query+=" AND t1.landing_tick > (select max_tick(%s::smallint))"
+        query+=" AND t1.round=%s"
+        self.cursor.execute(query,(pid,round,round))
         return self.cursor.dictfetchall()

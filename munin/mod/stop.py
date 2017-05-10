@@ -79,7 +79,7 @@ class stop(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        ship=self.get_ship_from_db(bogey)
+        ship=self.get_ship_from_db(bogey,irc_msg.round)
         if not ship:
             if "asteroids".rfind(bogey) > -1:
                 ship={'name':'Asteroid','class':'Roids','armor':50,'total_cost':20000}
@@ -93,8 +93,8 @@ class stop(loadable.loadable):
         total_armor=ship['armor']*ship_number
 
         # do stuff here
-        query="SELECT * FROM ship WHERE "+target_number+"=%s ORDER BY id"
-        self.cursor.execute(query,(ship['class'],))
+        query="SELECT * FROM ship WHERE "+target_number+"=%s AND round=%s ORDER BY id"
+        self.cursor.execute(query,(ship['class'],irc_msg.round,))
         attackers=self.cursor.dictfetchall()
 
         reply=""

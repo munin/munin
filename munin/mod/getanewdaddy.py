@@ -59,13 +59,13 @@ class getanewdaddy(loadable.loadable):
         # assign param variables
 
         voter=loadable.user(pnick=irc_msg.user)
-        if not voter.load_from_db(self.cursor):
+        if not voter.load_from_db(self.cursor,irc_msg.round):
             irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
             return 1
 
 
         idiot=loadable.user(pnick=m.group(1))
-        if not idiot.load_from_db(self.cursor):
+        if not idiot.load_from_db(self.cursor,irc_msg.round):
             irc_msg.reply("That idiot doesn't exist")
             return 1
 

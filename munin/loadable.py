@@ -96,8 +96,8 @@ class loadable(object):
         number=int(number)
         return number
     
-    def current_tick(self):
-        self.cursor.execute("SELECT max_tick()")
+    def current_tick(self,round):
+        self.cursor.execute("SELECT max_tick(%s::smallint)",(round,))
         return self.cursor.fetchone()[0]
 
     def load_user_with_planet(self,pnick,irc_msg):
@@ -111,22 +111,23 @@ class loadable(object):
         if not pnick:
             irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
             return None
-        u=self.load_user_from_pnick(pnick)
+        u=self.load_user_from_pnick(pnick,irc_msg.round)
         if not u:
             irc_msg.reply("You must be registered to use the automatic "+self.__class__.__name__+" command (log in with P and set mode +x, then make sure you've set your planet with the pref command)")
             return None
         return u
 
-    def load_user_from_pnick(self,username,minimum_userlevel=-1):
+    def load_user_from_pnick(self,username,round,minimum_userlevel=-1):
         u=user(pnick=username,userlevel=minimum_userlevel)
-        if u.load_from_db(self.cursor):
+        if u.load_from_db(self.cursor,round):
             return u
         else:
             return None
     def get_total_cons_from_scan(self,cursor,scan_id):
         query="SELECT light_factory+medium_factory+heavy_factory+wave_amplifier+wave_distorter"
         query+="+metal_refinery+crystal_refinery+eonium_refinery+research_lab+military_centre+finance_centre+security_centre+structure_defense"
-        query+=" AS total FROM development WHERE id=%s"
+        query+=" AS total FROM development"
+        query+=" WHERE id=%s"
 
         self.cursor.execute(query,(scan_id,))
         return self.cursor.dictfetchone()['total']
@@ -149,6 +150,7 @@ class loadable(object):
         if not m:
             irc_msg.reply("Usage: %s" %(self.usage,))
         return m
+
     def command_not_used_in_home(self,irc_msg,command_name):
         if irc_msg.target.lower() != "#"+self.config.get("Auth","home").lower():
             irc_msg.reply("The %s command may only be used in #%s."%(command_name,self.config.get("Auth","home"),))
@@ -169,18 +171,18 @@ class loadable(object):
         self.cursor.execute(query,args)
         return self.cursor.dictfetchall()
 
-    def get_ship_from_db(self,ship_name):
-        query="SELECT * FROM ship WHERE name ILIKE %s ORDER BY id"
-        self.cursor.execute(query,(ship_name,))
+    def get_ship_from_db(self,ship_name,round):
+        query="SELECT * FROM ship WHERE name ILIKE %s AND round=%s ORDER BY id"
+        self.cursor.execute(query,(ship_name,round))
         ship=self.cursor.dictfetchone()
-        
+
         if not ship:
-            self.cursor.execute(query,("%"+ship_name+"%",))
+            self.cursor.execute(query,("%"+ship_name+"%",round,))
             ship=self.cursor.dictfetchone()
 
         if not ship and ship_name[-1].lower() == 's':
             ship_name = ship_name[0:-1]
-            self.cursor.execute(query,("%"+ship_name+"%",))
+            self.cursor.execute(query,("%"+ship_name+"%",round,))
             ship=self.cursor.dictfetchone()
         return ship
 
@@ -214,7 +216,7 @@ class defcall(object):
         ret_str+=" comment."
         return ret_str
 
-    def load_most_recent(self,cursor):
+    def load_most_recent(self,cursor,round):
         #for now, always load from ID
         query="SELECT id,bcalc,status,claimed_by,comment,target,landing_tick"
         query+=" FROM defcalls WHERE id=%s"
@@ -230,7 +232,7 @@ class defcall(object):
         self.target=d['target']
         self.landing_tick=d['landing_tick']
         p=planet(id=self.target)
-        if not p.load_most_recent(cursor):
+        if not p.load_most_recent(cursor,round):
             raise Exception("Defcall with id %s has no valid planet information. Oops...")
         self.actual_target=p
 
@@ -282,12 +284,12 @@ class fleet(object):
         return reply
 
 
-    def load_most_recent(self,cursor):
+    def load_most_recent(self,cursor,round):
         #for now, always load from ID
         query="SELECT id,scan_id,owner_id,target,fleet_size,fleet_name"
-        query+=",launch_tick,landing_tick, (landing_tick-(SELECT max_tick())) AS eta,mission"
+        query+=",launch_tick,landing_tick, (landing_tick-(SELECT max_tick(%s::smallint))) AS eta,mission"
         query+=" FROM fleet WHERE id=%s"
-        args=(self.id,)
+        args=(round,self.id,)
         cursor.execute(query,args)
         d=cursor.dictfetchone()
         if not d:
@@ -304,12 +306,12 @@ class fleet(object):
         self.eta=d['eta']
 
         p=planet(id=self.target_id)
-        if not p.load_most_recent(cursor):
+        if not p.load_most_recent(cursor,round):
             raise Exception("Defcall with id %s has no valid target information. Oops..."%(self.id,))
         self.actual_target=p
 
         p=planet(id=self.owner_id)
-        if not p.load_most_recent(cursor):
+        if not p.load_most_recent(cursor,round):
             raise Exception("Defcall with id %s has no valid owner information. Oops..."%(self.id,))
         self.actual_owner=p
 
@@ -319,12 +321,12 @@ class fleet(object):
         if s:
             self.actual_rand_id=s['rand_id']
 
-        query="SELECT id FROM defcalls WHERE target=%s AND landing_tick=%s"
-        cursor.execute(query,(self.target_id,self.landing_tick))
+        query="SELECT id FROM defcalls WHERE target=%s AND landing_tick=%s AND round=%s"
+        cursor.execute(query,(self.target_id,self.landing_tick,round,))
         s=cursor.dictfetchone()
         if s:
             defc=defcall(id=s['id'])
-            if defc.load_most_recent(cursor):
+            if defc.load_most_recent(cursor,round):
                 self.defcall=defc
         return 1
 
@@ -358,20 +360,23 @@ class planet(object):
         return retstr
         pass
 
-    def load_most_recent(self,cursor):
+    def load_most_recent(self,cursor,round):
         p={}
         if self.x > -1 and self.y > -1 and self.z > -1:
             #load from coords
-            query="SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id FROM planet_dump WHERE x=%s AND y=%s AND z=%s AND tick=(SELECT max_tick())"
-            cursor.execute(query,(self.x,self.y,self.z))
+            query ="SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id"
+            query+=" FROM planet_dump WHERE round=%s AND x=%s AND y=%s AND z=%s AND tick=(SELECT max_tick(%s::smallint))"
+            cursor.execute(query,(round,self.x,self.y,self.z,round,))
             pass
         elif self.planetname and self.rulername:
-            query="SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id FROM planet_dump WHERE planetname=%s AND rulername=%s AND tick=(SELECT max_tick())"
-            cursor.execute(query,(self.planetname,self.rulername))
+            query ="SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id"
+            query+=" FROM planet_dump WHERE round=%s AND planetname=%s AND rulername=%s AND tick=(SELECT max_tick(%s::smallint))"
+            cursor.execute(query,(round,self.planetname,self.rulername,round,))
             pass
         elif self.id > 0:
-            query="SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id FROM planet_dump WHERE id=%s AND tick=(SELECT max_tick())"
-            cursor.execute(query,(self.id,))
+            query ="SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id"
+            query+=" FROM planet_dump WHERE round=%s AND id=%s AND tick=(SELECT max_tick(%s::smallint))"
+            cursor.execute(query,(round,self.id,round,))
         else:
             raise Exception("Tried to load planet with no unique identifiers")
         p=cursor.dictfetchone()
@@ -402,13 +407,14 @@ class planet(object):
 
     def bravery(self,victim):
         return max(0.2, min(1.8, float(victim.value)/self.value) - 0.1) * max(0.2, min(2.2,float(victim.score)/self.score) - 0.2) / ((6 + max(4, float(self.score)/self.value)) / 10) * 10
+
     def cap_rate(self,victim):
         modifier=(float(victim.value)/float(self.value))**0.5
         return max(.15,min(.25*modifier,.25))
-    
-    def vdiff(self,cursor,tick):
-        query="SELECT value FROM planet_dump AS t1 WHERE tick=%s AND id=%s"
-        cursor.execute(query,(tick,self.id))
+
+    def vdiff(self,cursor,tick,round):
+        query="SELECT value FROM planet_dump AS t1 WHERE tick=%s AND id=%s AND round=%s"
+        cursor.execute(query,(tick,self.id,round))
         if cursor.rowcount > 0:
             old_value = cursor.dictfetchone()['value']
             return self.value - old_value
@@ -430,10 +436,6 @@ class galaxy(object):
         self.size_rank=-1
         self.xp=-1
         self.xp_rank=-1
-#        self.score_avg=-1
-#        self.size_avg=-1
-#        self.value_avg=-1
-#        self.xp_avg=-1
         self.id=id
         self.members=-1
 
@@ -447,12 +449,13 @@ class galaxy(object):
         return retstr
         pass
 
-    def load_most_recent(self,cursor):
+    def load_most_recent(self,cursor,round):
         g={}
         if self.x > 0 and self.y > 0:
             #load from coords
-            query="SELECT x,y,name,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,id FROM galaxy_dump WHERE x=%s AND y=%s AND tick=(SELECT max_tick())"
-            cursor.execute(query,(self.x,self.y))
+            query ="SELECT x,y,name,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,id"
+            query+=" FROM galaxy_dump WHERE round=%s AND x=%s AND y=%s AND tick=(SELECT max_tick(%s::smallint))"
+            cursor.execute(query,(round,self.x,self.y,round,))
             pass
         else:
             raise Exception("Tried to load planet with no unique identifiers")
@@ -498,16 +501,17 @@ class alliance(object):
         return retstr
         pass
 
-    def load_most_recent(self,cursor):
+    def load_most_recent(self,cursor,round):
         a={}
         if self.name:
             #load from exact name
-            query="SELECT name,size,members,score,size_rank,members_rank,score_rank,score_avg,size_avg,score_avg_rank,size_avg_rank,id, total_value,total_value_rank,total_value_avg,total_value_avg_rank FROM alliance_dump WHERE name ILIKE %s AND tick=(SELECT max_tick())"
-            cursor.execute(query,(self.name,))
+            query ="SELECT name,size,members,score,size_rank,members_rank,score_rank,score_avg,size_avg,score_avg_rank,size_avg_rank,id, total_value,total_value_rank,total_value_avg,total_value_avg_rank"
+            query+=" FROM alliance_dump WHERE round=%s AND name ILIKE %s AND tick=(SELECT max_tick(%s::smallint))"
+            cursor.execute(query,(round,self.name,round,))
 
             #if that doesn't work, load from fuzzy name
             if cursor.rowcount < 1:
-                cursor.execute(query,("%"+self.name+"%",))
+                cursor.execute(query,(round,"%"+self.name+"%",round,))
             pass
         else:
             raise Exception("Tried to load alliance with no unique identifiers")
@@ -560,26 +564,30 @@ class user(object):
         return cursor.dictfetchone()['count']
 
     def lookup_query(self):
-        query="SELECT t1.id AS id, t1.pnick AS pnick, t1.sponsor AS sponsor, t1.userlevel AS userlevel, t1.planet_id AS planet_id, t1.phone AS phone, t1.pubphone AS pubphone,"
-        query+=" t1.stay AS stay, t1.invites AS invites, t1.available_cookies AS available_cookies, t1.last_cookie_date AS last_cookie_date, t1.carebears AS carebears, t1.alias_nick AS alias_nick"
-        query+=", t1.fleetcount AS fleetcount,t1.fleetcomment AS fleetcomment,t1.fleetupdated AS fleetupdated "
-        query+=" FROM user_list AS t1 WHERE"
+        query="SELECT id, pnick, sponsor, userlevel, phone, pubphone, invites, available_cookies, last_cookie_date, carebears, alias_nick"
+        query+=" FROM user_list WHERE "
         return query
 
-    def load_from_db(self,cursor):
+    def lookup_round_query(self):
+        query="SELECT planet_id, stay, fleetcount, fleetcomment, fleetupdated "
+        query+=" FROM round_user_pref AS p"
+        query+=" WHERE p.round=%s AND p.user_id=%s"
+        return query
+
+    def load_from_db(self,cursor,round):
         query=self.lookup_query()
         if self.pnick:
-            query+=" ( t1.pnick ILIKE %s OR t1.alias_nick ILIKE %s ) AND t1.userlevel >= %s"
+            query+=" ( pnick ILIKE %s OR alias_nick ILIKE %s ) AND userlevel >= %s"
             cursor.execute(query,(self.pnick,self.pnick,self.userlevel))
         elif self.id > 0:
-            query+=" t1.id=%s"
+            query+=" id=%s"
             cursor.execute(query,(self.id,))
         else:
             return None
         u=cursor.dictfetchone()
         if not u and self.pnick:
             query=self.lookup_query()
-            query+=" t1.pnick ILIKE %s"
+            query+=" pnick ILIKE %s"
             query+=" ORDER BY userlevel DESC"
             cursor.execute(query,('%'+self.pnick+'%',))
             u=cursor.dictfetchone()
@@ -588,33 +596,39 @@ class user(object):
             self.pnick=u['pnick']
             self.sponsor=u['sponsor']
             self.userlevel=u['userlevel']
-            self.planet_id=u['planet_id']
             self.phone=u['phone']
             self.pubphone=u['pubphone']
-            if u['planet_id']:
-                self.planet=planet(id=self.planet_id)
-                self.planet.load_most_recent(cursor)
-            else:
-                self.planet=None
-            self.stay=u['stay']
             self.pref=True
             self.invites=u['invites']
             self.available_cookies=u['available_cookies']
             self.last_cookie_date=u['last_cookie_date']
             self.carebears=u['carebears']
-            self.fleetcount=u['fleetcount']
-            self.fleetcomment=u['fleetcomment']
-            self.fleetupdated=u['fleetupdated']
             self.alias_nick=u['alias_nick']
+
+            query=self.lookup_round_query()
+            cursor.execute(query,(round,u['id'],))
+            if cursor.rowcount > 0:
+                u=cursor.dictfetchone()
+                if u:
+                    self.planet_id=u['planet_id']
+                    if self.planet_id:
+                        self.planet=planet(id=self.planet_id)
+                        self.planet.load_most_recent(cursor,(round,))
+                    else:
+                        self.planet=None
+                    self.stay=u['stay']
+                    self.fleetcount=u['fleetcount']
+                    self.fleetcomment=u['fleetcomment']
+                    self.fleetupdated=u['fleetupdated']
             return 1
         return None
 
-    def munin_number(self,cursor,config):
+    def munin_number(self,cursor,config,round):
         if self.sponsor.lower() == config.get("Connection","nick").lower():
             return 1
         u=user(pnick=self.sponsor)
-        if u.load_from_db(cursor) and u.userlevel >= 100 and u.pnick.lower() != u.sponsor.lower():
-            parent_number = u.munin_number(cursor,config )
+        if u.load_from_db(cursor,round) and u.userlevel >= 100 and u.pnick.lower() != u.sponsor.lower():
+            parent_number = u.munin_number(cursor,config,round)
             if parent_number:
                 return parent_number + 1
             else:
@@ -622,12 +636,12 @@ class user(object):
         else:
             return None # dead subtree, get rid of these.
 
-    def get_fleets(self,cursor):
+    def get_fleets(self,cursor,round):
         query="SELECT t1.ship, t1.ship_count"
         query+=" FROM user_fleet AS t1 "
-        query+=" WHERE t1.user_id=%s"
-        cursor.execute(query,(self.id,))
-        return cursor.dictfetchall()        
+        query+=" WHERE t1.user_id=%s AND t1.round=%s"
+        cursor.execute(query,(self.id,round,))
+        return cursor.dictfetchall()
 
     def check_available_cookies(self,cursor,config):
         now = datetime.datetime.now()
@@ -638,9 +652,9 @@ class user(object):
             cursor.execute(query,(self.available_cookies,now, self.id))
         return self.available_cookies
 
-    def has_ancestor(self,cursor,possible_ancestor):
+    def has_ancestor(self,cursor,possible_ancestor,round):
         ancestor = user(pnick=self.sponsor)
-        if ancestor.load_from_db(cursor):
+        if ancestor.load_from_db(cursor,round):
             if ancestor.pnick.lower() == possible_ancestor.lower():
                 return True
             else:
@@ -664,27 +678,26 @@ class intel(object):
         self.distwhore=distwhore
         self.comment=comment
 
-    def load_from_db(self,cursor):
-        query="SELECT t2.id AS id,pid,nick,defwhore,gov,covop,bg,fakenick,relay,reportchan,scanner,distwhore,comment,t1.name AS alliance"
-        query+=" FROM intel AS t2"
-        query+=" LEFT JOIN alliance_canon AS t1 ON t2.alliance_id=t1.id "
-        query+=" WHERE "
+    def load_from_db(self,cursor,round):
+        query="SELECT i.id AS id,pid,nick,defwhore,gov,covop,bg,fakenick,relay,reportchan,scanner,distwhore,comment,a.name AS alliance"
+        query+=" FROM intel AS i"
+        query+=" LEFT JOIN alliance_canon AS a ON i.alliance_id=a.id "
+        query+=" WHERE i.round=%s AND "
         if self.id > 0:
             query+="id=%s"
-            cursor.execute(query,(self.id,))
-        if self.pid > 0:
+            cursor.execute(query,(round,self.id,))
+        elif self.pid > 0:
             query+="pid=%s"
-            cursor.execute(query,(self.pid,))
-
+            cursor.execute(query,(round,self.pid,))
         elif self.nick:
             query+="nick=%s LIMIT 1"
-            cursor.execute(query,("%"+self.nick+"%",))
+            cursor.execute(query,(round,"%"+self.nick+"%",))
         elif self.fakenick:
             query+="fakenick=%s LIMIT 1"
-            cursor.execute(query,("%"+self.fakenick+"%",))
+            cursor.execute(query,(round,"%"+self.fakenick+"%",))
         elif self.comment:
             query+="comment=%s LIMIT 1"
-            cursor.execute(query,("%"+self.comment+"%",))
+            cursor.execute(query,(round,"%"+self.comment+"%",))
         i=cursor.dictfetchone()
         if not i:
             return None
@@ -702,7 +715,6 @@ class intel(object):
         self.scanner=bool(i['scanner']) and True or False
         self.distwhore=bool(i['distwhore']) and True or False
         self.comment=i['comment']
-        print i
         return 1
 
     def __str__(self):
@@ -832,12 +844,12 @@ class booking(object):
         self.pid=pid
         self.uid=uid
 
-    def load_from_db(self,cursor):
-        query="SELECT t1.id AS id, t1.nick AS nick, t1.pid AS pid, t1.tick AS tick, t1.uid AS uid FROM target AS t1 WHERE "
+    def load_from_db(self,cursor,round):
+        query="SELECT t1.id AS id, t1.nick AS nick, t1.pid AS pid, t1.tick AS tick, t1.uid AS uid FROM target AS t1 WHERE round=%s AND"
 
         if tick and pid:
             query+="pid=%s AND tick=%s "
-            cursor.execute(query,(self.pnick,))
+            cursor.execute(query,(round,self.pnick,))
             b=cursor.dictfetchone()
             if not b:
                 return None

@@ -62,16 +62,16 @@ class au(loadable.loadable):
             z=m.group(3)
 
             p=loadable.planet(x=x,y=y,z=z)
-            if not p.load_most_recent(self.cursor):
+            if not p.load_most_recent(self.cursor,irc_msg.round):
                 irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
                 return 1
 
-            query="SELECT t1.tick,t1.nick,t1.scantype,t1.rand_id,t3.name,t2.amount"
-            query+=" FROM scan AS t1"
-            query+=" INNER JOIN au AS t2 ON t1.id=t2.scan_id"
-            query+=" INNER JOIN ship AS t3 ON t2.ship_id=t3.id"
-            query+=" WHERE t1.pid=%s AND t1.id=(SELECT id FROM scan WHERE pid=t1.pid AND scantype='au' ORDER BY tick DESC LIMIT 1)"
-            self.cursor.execute(query,(p.id,))
+            query="SELECT s.tick,s.rand_id,h.name,a.amount"
+            query+=" FROM scan       AS s"
+            query+=" INNER JOIN au   AS a ON s.id=a.scan_id"
+            query+=" INNER JOIN ship AS h ON a.ship_id=h.id"
+            query+=" WHERE s.pid=%s AND s.id=(SELECT id FROM scan WHERE pid=s.pid AND scantype='au' AND ROUND=%s ORDER BY tick DESC LIMIT 1) AND h.round=%s"
+            self.cursor.execute(query,(p.id,irc_msg.round,irc_msg.round,))
 
             if self.cursor.rowcount < 1:
                 reply+="No advanced unit scans available on %s:%s:%s" % (p.x,p.y,p.z)
@@ -85,7 +85,7 @@ class au(loadable.loadable):
                     tick=s['tick']
                     rand_id=s['rand_id']
 
-                reply+=" (id: %s, age: %s, value diff: %s) " % (rand_id,self.current_tick()-tick,p.vdiff(self.cursor,tick))
+                reply+=" (id: %s, age: %s, value diff: %s) " % (rand_id,self.current_tick(irc_msg.round)-tick,p.vdiff(self.cursor,tick,irc_msg.round))
                 reply+=string.join(prev,' | ')
         else:
             m=self.idre.search(params)
@@ -95,14 +95,14 @@ class au(loadable.loadable):
 
             rand_id=m.group(1)
 
-            query="SELECT t4.x,t4.y,t4.z,t1.tick,t1.nick,t1.scantype,t1.rand_id,t3.name,t2.amount,t4.value-t5.value AS vdiff"
-            query+=" FROM scan AS t1"
-            query+=" INNER JOIN au AS t2 ON t1.id=t2.scan_id"
-            query+=" INNER JOIN ship AS t3 ON t2.ship_id=t3.id"
-            query+=" INNER JOIN planet_dump AS t4 ON t1.pid=t4.id"
-            query+=" INNER JOIN planet_dump AS t5 ON t1.pid=t5.id AND t1.tick=t5.tick"
-            query+=" WHERE t4.tick=(SELECT max_tick()) AND t1.rand_id=%s"
-            self.cursor.execute(query,(rand_id,))
+            query="SELECT p1.x,p1.y,p1.z,s.tick,h.name,a.amount,p1.value-p2.value AS vdiff"
+            query+=" FROM scan              AS s"
+            query+=" INNER JOIN au          AS a  ON s.id=a.scan_id"
+            query+=" INNER JOIN ship        AS h  ON h.id=a.ship_id"
+            query+=" INNER JOIN planet_dump AS p1 ON s.pid=p1.id AND s.round=p1.round"
+            query+=" INNER JOIN planet_dump AS p2 ON s.pid=p2.id AND s.tick=p2.tick AND s.round=p2.round"
+            query+=" WHERE p1.tick=(SELECT max_tick(%s::smallint)) AND s.rand_id=%s"
+            self.cursor.execute(query,(irc_msg.round,rand_id,))
 
             if self.cursor.rowcount < 1:
                 reply+="No planet scans matching ID %s" % (rand_id,)
@@ -118,7 +118,7 @@ class au(loadable.loadable):
                     z=s['z']
                     vdiff=s['vdiff']
 
-                reply+="%s:%s:%s (id: %s, age: %s, value diff: %s) " % (x,y,z,rand_id,self.current_tick()-tick,vdiff)
+                reply+="%s:%s:%s (id: %s, age: %s, value diff: %s) " % (x,y,z,rand_id,self.current_tick(irc_msg.round)-tick,vdiff)
                 reply+=string.join(prev,' | ')
         irc_msg.reply(reply)
         return 1

@@ -53,12 +53,12 @@ class search(loadable.loadable):
             return 0
 
         # do stuff here
-        args=('%'+params+'%','%'+params+'%')
+        args=(irc_msg.round,irc_msg.round,'%'+params+'%','%'+params+'%')
         query="SELECT t1.x AS x,t1.y AS y,t1.z AS z,t1.size AS size,t1.score AS score,t1.value AS value,t1.race AS race,t4.name AS alliance,t2.nick AS nick,t2.reportchan AS reportchan,t2.comment AS comment"
         query+=" FROM planet_dump AS t1 INNER JOIN planet_canon AS t3 ON t1.id=t3.id"
         query+=" INNER JOIN intel AS t2 ON t3.id=t2.pid"
         query+=" LEFT JOIN alliance_canon AS t4 ON t2.alliance_id=t4.id"
-        query+=" WHERE t1.tick=(SELECT max_tick()) AND (t4.name ILIKE %s OR t2.nick ILIKE %s)"
+        query+=" WHERE t1.tick=(SELECT max_tick(%s::smallint)) AND t1.round=%s AND (t4.name ILIKE %s OR t2.nick ILIKE %s)"
         self.cursor.execute(query,args)
 
         i=0

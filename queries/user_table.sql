@@ -1,30 +1,39 @@
 -- CREATE DATABASE patools17 WITH ENCODING = 'LATIN1';
 -- createlang plpgsql patest | CREATE LANGUAGE plpgqsl
 
+DROP FUNCTION IF EXISTS max_round();
+CREATE FUNCTION max_round() RETURNS smallint AS $PROC$
+BEGIN
+RETURN MAX(round) FROM updates;
+END
+$PROC$ LANGUAGE plpgsql;
 
 CREATE TABLE updates (
 id serial,
-tick smallint UNIQUE,
+round smallint NOT NULL,
+tick smallint,
 planets smallint,
 galaxies smallint,
 alliances smallint,
 userfeed smallint,
 timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
-PRIMARY KEY (id)
+PRIMARY KEY (id),
+UNIQUE(round,tick)
 );
-
-INSERT INTO updates VALUES (-1,-1,-1,-1,-1,-1);
+INSERT INTO updates VALUES (-1,-1,-1,-1,-1,-1,-1);
 
 CREATE TABLE planet_canon (
 id serial,
-uid varchar(12) UNIQUE,
+round smallint NOT NULL,
+uid varchar(12),
 active boolean NOT NULL DEFAULT TRUE,
 PRIMARY KEY(id),
-UNIQUE (uid)
+UNIQUE (uid,round)
 );
 
 CREATE TABLE planet_dump (
-tick smallint REFERENCES updates (tick),
+round smallint NOT NULL,
+tick smallint,
 uid varchar(12),
 x smallint,
 y smallint,
@@ -43,21 +52,27 @@ xp_rank smallint NOT NULL,
 idle smallint NOT NULL DEFAULT 0,
 vdiff integer NOT NULL DEFAULT 0,
 id integer NOT NULL REFERENCES planet_canon(id),
-PRIMARY KEY(tick, x, y, z),
-FOREIGN KEY(uid) REFERENCES planet_canon (uid)
+PRIMARY KEY(round, tick, x, y, z),
+FOREIGN KEY(uid,round) REFERENCES planet_canon (uid,round),
+FOREIGN KEY(tick,round) REFERENCES updates(tick,round)
 );
+CREATE INDEX planet_dump_rn_index ON planet_dump(rulername);
+CREATE INDEX planet_dump_pn_index ON planet_dump(planetname);
+
 
 CREATE TABLE galaxy_canon (
 id serial,
+round smallint NOT NULL,
 x smallint,
 y smallint,
 active boolean NOT NULL DEFAULT TRUE,
 PRIMARY KEY(id),
-UNIQUE(x,y)
+UNIQUE(round,x,y)
 );
 
 CREATE TABLE galaxy_dump (
-tick smallint REFERENCES updates (tick),
+round smallint NOT NULL,
+tick smallint,
 x smallint,
 y smallint,
 name varchar(64) NOT NULL,
@@ -70,20 +85,25 @@ size_rank smallint NOT NULL,
 xp integer NOT NULL,
 xp_rank smallint NOT NULL,
 id integer NOT NULL REFERENCES galaxy_canon(id),
-PRIMARY KEY(tick, x, y),
-FOREIGN KEY(x,y) REFERENCES galaxy_canon (x,y)
+PRIMARY KEY(round, tick, x, y),
+FOREIGN KEY(round,x,y) REFERENCES galaxy_canon (round,x,y),
+FOREIGN KEY(round,tick) REFERENCES updates (round,tick)
 );
+
 
 CREATE TABLE alliance_canon (
 id serial,
-name varchar(20) UNIQUE,
+round smallint NOT NULL,
+name varchar(20),
 active boolean NOT NULL DEFAULT TRUE,
-PRIMARY KEY(id)
+PRIMARY KEY(id),
+UNIQUE(round,name)
 );
 
 CREATE TABLE alliance_dump (
-tick smallint REFERENCES updates (tick),
-name varchar(20) NOT NULL REFERENCES alliance_canon (name),
+round smallint NOT NULL,
+tick smallint,
+name varchar(20) NOT NULL,
 size int NOT NULL,
 members smallint NOT NULL,
 score bigint NOT NULL,
@@ -103,28 +123,19 @@ total_value_rank smallint NOT NULL,
 total_value_avg int NOT NULL,
 total_value_avg_rank smallint NOT NULL,
 id integer NOT NULL REFERENCES alliance_canon(id),
-PRIMARY KEY(tick, name)
+PRIMARY KEY(round, tick, name),
+FOREIGN KEY(name,round) REFERENCES alliance_canon (name,round),
+FOREIGN KEY(round,tick) REFERENCES updates(round,tick)
 );
 
+
 CREATE TABLE userfeed_dump (
+round smallint NOT NULL,
 tick smallint,
 type varchar(32) NOT NULL,
 text varchar(255) NOT NULL,
-PRIMARY KEY(tick, text)
+PRIMARY KEY(round, tick, text)
 );
-
-CREATE INDEX planet_dump_tick_index ON planet_dump(tick);
-CREATE INDEX planet_dump_id_index ON planet_dump(id);
-CREATE INDEX planet_dump_rn_index ON planet_dump(rulername);
-CREATE INDEX planet_dump_pn_index ON planet_dump(planetname);
-
-CREATE INDEX galaxy_dump_tick_index ON galaxy_dump(tick);
-CREATE INDEX galaxy_dump_id_index ON galaxy_dump(id);
-
-CREATE INDEX alliance_dump_tick_index ON alliance_dump(tick);
-CREATE INDEX alliance_dump_id_index ON alliance_dump(id);
-
-CREATE INDEX userfeed_dump_tick_index ON userfeed_dump(tick);
 CREATE INDEX userfeed_dump_text_index ON userfeed_dump(text);
 
 
@@ -137,12 +148,13 @@ PRIMARY KEY(id),
 UNIQUE (pid, start_tick, end_tick),
 FOREIGN KEY(pid) REFERENCES planet_canon(id)
 );
-CREATE INDEX anarchy_id_index ON anarchy(id);
-CREATE INDEX anarchy_pid_index ON anarchy(pid);
+CREATE INDEX anarchy_round_index ON anarchy(round);
 
 
 CREATE TABLE alliance_relation (
 id serial,
+-- Needed by Hugin to re-add the data for the current round only.
+round smallint NOT NULL,
 type varchar(4) NOT NULL,
 start_tick smallint NOT NULL DEFAULT -1,
 end_tick smallint NOT NULL DEFAULT 32767,
@@ -152,8 +164,7 @@ PRIMARY KEY(id),
 FOREIGN KEY(initiator) REFERENCES alliance_canon(id),
 FOREIGN KEY(acceptor) REFERENCES alliance_canon(id)
 );
-CREATE INDEX alliance_relation_initiator_index ON alliance_relation(initiator);
-CREATE INDEX alliance_relation_acceptor_index ON alliance_relation(acceptor);
+CREATE INDEX alliance_relation_round_index ON alliance_relation(round);
 
 
 CREATE TABLE user_list (
@@ -165,8 +176,6 @@ passwd CHAR(32),
 userlevel INTEGER NOT NULL,
 posflags VARCHAR(30),
 negflags VARCHAR(30),
-planet_id integer REFERENCES planet_canon(id) ON DELETE CASCADE,
-stay BOOLEAN DEFAULT FALSE,
 invites smallint NOT NULL DEFAULT 0 CHECK (invites >= 0),
 quit smallint NOT NULL DEFAULT 0,
 phone VARCHAR(48),
@@ -174,11 +183,26 @@ pubphone BOOLEAN NOT NULL DEFAULT FALSE,
 available_cookies smallint NOT NULL DEFAULT 0,
 carebears integer NOT NULL DEFAULT 0,
 last_cookie_date TIMESTAMP DEFAULT NULL,
-fleetcount integer NOT NULL DEFAULT 0,
-fleetcomment VARCHAR(512) NOT NULL DEFAULT '',
-fleetupdated integer NOT NULL DEFAULT 0,
 salt varchar(4) NOT NULL DEFAULT SUBSTRING(CAST(RANDOM() AS VARCHAR) FROM 3 FOR 4)
 );
+CREATE UNIQUE INDEX user_list_pnick_case_insensitive_index ON user_list(LOWER(pnick));
+
+-- UNCOMMENT THIS IF YOU WANT TO INSERT A SUPERUSER ON DB CREATION
+--INSERT INTO user_list (pnick,sponsor,userlevel) VALUES ('jester','Munin',1000);
+
+CREATE TABLE round_user_pref (
+id serial,
+user_id integer REFERENCES user_list(id),
+round smallint NOT NULL,
+planet_id integer REFERENCES planet_canon(id) ON DELETE CASCADE,
+stay boolean DEFAULT FALSE,
+fleetcount integer NOT NULL DEFAULT 0,
+fleetcomment varchar(512) NOT NULL DEFAULT '',
+fleetupdated integer NOT NULL DEFAULT 0,
+PRIMARY KEY(id),
+UNIQUE(user_id,round)
+);
+
 
 CREATE TABLE cookie_log (
 id SERIAL PRIMARY KEY,
@@ -192,15 +216,17 @@ receiver integer REFERENCES user_list(id)
 
 CREATE TABLE user_fleet (
 id SERIAL PRIMARY KEY,
+round smallint NOT NULL,
 user_id integer REFERENCES user_list(id),
 ship varchar(30) NOT NULL,
 ship_count integer
 );
 
 DROP FUNCTION IF EXISTS max_tick();
-CREATE FUNCTION max_tick() RETURNS int AS $PROC$
+DROP FUNCTION IF EXISTS max_tick(smallint);
+CREATE FUNCTION max_tick(r smallint) RETURNS smallint AS $PROC$
 BEGIN
-RETURN MAX(tick) FROM updates;
+RETURN MAX(tick) FROM updates WHERE r = round;
 END
 $PROC$ LANGUAGE plpgsql;
 
@@ -210,14 +236,11 @@ taker_id integer REFERENCES user_list(id),
 user_id integer REFERENCES user_list(id),
 ship varchar(30) NOT NULL,
 ship_count integer,
-tick integer REFERENCES updates(tick) DEFAULT max_tick()
+round smallint NOT NULL,
+tick integer DEFAULT max_tick(max_round()),
+FOREIGN KEY(round,tick) REFERENCES updates(round,tick)
 );
 
-
-CREATE UNIQUE INDEX user_list_pnick_case_insensitive_index ON user_list(LOWER(pnick));
-
--- UNCOMMENT THIS IF YOU WANT TO INSERT A SUPERUSER ON DB CREATION
---INSERT INTO user_list (pnick,sponsor,userlevel) VALUES ('jester','Munin',1000);
 
 CREATE TABLE channel_list (
 id SERIAL PRIMARY KEY,
@@ -232,13 +255,16 @@ CREATE TABLE target (
 id serial PRIMARY KEY,
 nick VARCHAR(20) NOT NULL,
 pid integer REFERENCES planet_canon(id) NOT NULL,
+round smallint NOT NULL,
 tick smallint NOT NULL,
 uid integer REFERENCES user_list(id),
 UNIQUE(pid,tick)
 );
+CREATE INDEX target_round_tick_index on target(round,tick);
 
 CREATE TABLE intel (
 id serial PRIMARY KEY,
+round smallint NOT NULL,
 pid integer NOT NULL UNIQUE REFERENCES planet_canon(id),
 nick VARCHAR(20),
 fakenick VARCHAR(20),
@@ -264,7 +290,8 @@ epenis_rank integer NOT NULL
 
 CREATE TABLE ship (
 id SERIAL PRIMARY KEY,
-name VARCHAR(30) UNIQUE NOT NULL,
+round smallint NOT NULL,
+name VARCHAR(30) NOT NULL,
 class VARCHAR(10) NOT NULL CHECK(class in ('Fighter','Corvette','Frigate','Destroyer','Cruiser','Battleship')),
 target_1 VARCHAR(10) NOT NULL CHECK(target_1 in ('Fighter','Corvette','Frigate','Destroyer','Cruiser','Battleship','Roids','Struct','Rs')),
 target_2 VARCHAR(10) CHECK(target_2 in ('Fighter','Corvette','Frigate','Destroyer','Cruiser','Battleship','Roids','Struct',NULL)),
@@ -279,7 +306,8 @@ metal integer NOT NULL,
 crystal integer NOT NULL,
 eonium integer NOT NULL,
 race VARCHAR(10) NOT NULL CHECK(race in ('Terran','Cathaar','Xandathrii','Zikonian','Eitraides')),
-total_cost integer NOT NULL CHECK(total_cost = metal+crystal+eonium)
+total_cost integer NOT NULL CHECK(total_cost = metal+crystal+eonium),
+UNIQUE(round,name)
 );
 
 CREATE TABLE slogan (
@@ -295,6 +323,7 @@ quote VARCHAR(512) NOT NULL
 
 CREATE TABLE scan (
 id bigserial PRIMARY KEY,
+round smallint NOT NULL,
 tick smallint NOT NULL,
 pid integer NOT NULL REFERENCES planet_canon(id),
 nick VARCHAR(15) NOT NULL,
@@ -303,7 +332,8 @@ rand_id VARCHAR(20) NOT NULL,
 group_id VARCHAR(20),
 scantype VARCHAR(11) NOT NULL CHECK(scantype in ('unknown','planet','development','unit','news','jgp','fleet','au')),
 scan_time TIMESTAMP WITHOUT TIME ZONE,
-UNIQUE(rand_id,tick)
+UNIQUE(rand_id,tick,round),
+FOREIGN KEY(round,tick) REFERENCES updates(round,tick)
 );
 
 
@@ -373,10 +403,11 @@ owner_id integer NOT NULL REFERENCES planet_canon(id),
 target integer NOT NULL REFERENCES planet_canon(id),
 fleet_size integer,
 fleet_name VARCHAR(24) NOT NULL,
+round smallint NOT NULL,
 launch_tick smallint,
 landing_tick smallint NOT NULL,
 mission varchar(7) NOT NULL CHECK(mission in ('defend','attack','unknown','return')),
-UNIQUE(owner_id,target,fleet_size,fleet_name,landing_tick,mission)
+UNIQUE(owner_id,target,fleet_size,fleet_name,round,landing_tick,mission)
 );
 
 CREATE TABLE fleet_content (
@@ -409,6 +440,7 @@ CREATE TABLE defcalls
   status integer NOT NULL REFERENCES defcall_status(id),
   "comment" text,
   target integer NOT NULL REFERENCES planet_canon(id),
+  round smallint NOT NULL,
   landing_tick smallint NOT NULL
 );
 
@@ -515,7 +547,6 @@ FOREIGN KEY(poll_id) REFERENCES poll_proposal (id)
 );
 CREATE INDEX poll_answer_answer_index_index ON poll_answer(answer_index);
 
--- TODO: Put this in the commit message.
 ALTER TABLE prop_vote DROP CONSTRAINT prop_vote_vote_check;
 
 
@@ -532,53 +563,58 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
+-- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS gen_planet_id();
-CREATE FUNCTION gen_planet_id() RETURNS void AS $PROC$
+DROP FUNCTION IF EXISTS gen_planet_id(smallint);
+CREATE FUNCTION gen_planet_id(curround smallint) RETURNS void AS $PROC$
 DECLARE
 r RECORD;
 BEGIN
 -- deactive missing
-UPDATE planet_canon SET active=FALSE WHERE ROW(uid) NOT IN (SELECT uid FROM ptmp);
+UPDATE planet_canon SET active=FALSE WHERE round = curround AND ROW(uid) NOT IN (SELECT uid FROM ptmp);
 -- insert new into canonical and update IDs
-INSERT INTO planet_canon (uid) SELECT t1.uid FROM ptmp AS t1 WHERE ROW(t1.uid) NOT IN (SELECT uid FROM planet_canon);
+INSERT INTO planet_canon (round,uid) SELECT curround, t1.uid FROM ptmp AS t1 WHERE ROW(t1.uid) NOT IN (SELECT uid FROM planet_canon WHERE round = curround);
 -- insert IDs for existing
 ALTER TABLE ptmp ADD COLUMN id integer DEFAULT -1;
-UPDATE ptmp SET id=t1.id FROM planet_canon AS t1 WHERE ptmp.uid=t1.uid;
+UPDATE ptmp SET id=t1.id FROM planet_canon AS t1 WHERE ptmp.uid=t1.uid AND t1.round=curround;
 CREATE INDEX ptmp_id_index ON ptmp(id);
 ANALYZE ptmp;
 END
 $PROC$ LANGUAGE plpgsql;
 
 
+-- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS gen_galaxy_id();
-CREATE FUNCTION gen_galaxy_id() RETURNS void AS $PROC$
+DROP FUNCTION IF EXISTS gen_galaxy_id(curround smallint);
+CREATE FUNCTION gen_galaxy_id(curround smallint) RETURNS void AS $PROC$
 DECLARE
 r RECORD;
 BEGIN
 -- deactive missing
-UPDATE galaxy_canon SET active=FALSE WHERE ROW(x,y) NOT IN (SELECT x,y FROM gtmp);
+UPDATE galaxy_canon SET active=FALSE WHERE round = curround AND ROW(x,y) NOT IN (SELECT x,y FROM gtmp);
 -- insert new into canonical and update IDs
-INSERT INTO galaxy_canon (x,y) SELECT x,y FROM gtmp WHERE ROW(x,y) NOT IN (SELECT x,y FROM galaxy_canon);
+INSERT INTO galaxy_canon (round,x,y) SELECT curround,x,y FROM gtmp WHERE ROW(x,y) NOT IN (SELECT x,y FROM galaxy_canon WHERE round = curround);
 -- insert IDs for existing
 ALTER TABLE gtmp ADD COLUMN id integer DEFAULT -1;
-UPDATE gtmp SET id=t1.id FROM galaxy_canon AS t1 WHERE gtmp.x=t1.x AND gtmp.y=t1.y;
+UPDATE gtmp SET id=t1.id FROM galaxy_canon AS t1 WHERE gtmp.x=t1.x AND gtmp.y=t1.y AND t1.round=curround;
 END
 $PROC$ LANGUAGE plpgsql;
 
 
+-- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS gen_alliance_id();
-CREATE FUNCTION gen_alliance_id() RETURNS void AS $PROC$
+DROP FUNCTION IF EXISTS gen_alliance_id(smallint);
+CREATE FUNCTION gen_alliance_id(curround smallint) RETURNS void AS $PROC$
 DECLARE
 r RECORD;
 BEGIN
 -- deactive missing
-UPDATE alliance_canon SET active=FALSE WHERE ROW(name) NOT IN (SELECT name FROM atmp);
+UPDATE alliance_canon SET active=FALSE WHERE round = curround AND ROW(name) NOT IN (SELECT name FROM atmp);
 -- insert new into canonical and update IDs
-INSERT INTO alliance_canon (name) SELECT name FROM atmp WHERE ROW(name) NOT IN (SELECT name FROM alliance_canon);
+INSERT INTO alliance_canon (round,name) SELECT curround,name FROM atmp WHERE ROW(name) NOT IN (SELECT name FROM alliance_canon WHERE round = curround);
 -- insert IDs for existing
 ALTER TABLE atmp ADD COLUMN id integer DEFAULT -1;
-
-UPDATE atmp SET id=t1.id FROM alliance_canon AS t1 WHERE atmp.name=t1.name;
+UPDATE atmp SET id=t1.id FROM alliance_canon AS t1 WHERE atmp.name=t1.name AND t1.round = curround;
 
 END
 $PROC$ LANGUAGE plpgsql;
@@ -683,8 +719,10 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
+-- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS store_planets(smallint);
-CREATE FUNCTION store_planets(curtick smallint) RETURNS void AS $PROC$
+DROP FUNCTION IF EXISTS store_planets(smallint, smallint);
+CREATE FUNCTION store_planets(curround smallint, curtick smallint) RETURNS void AS $PROC$
 DECLARE
 r RECORD;
 BEGIN
@@ -694,7 +732,7 @@ PERFORM trim_quotes('ptmp','rulername');
 PERFORM trim_quotes('ptmp','planetname');
 --generate IDs, insert missing into canonical, deactive missing planets
 
-PERFORM gen_planet_id();
+PERFORM gen_planet_id(curround);
 
 --generate ranks, this will add the appropriate columns to the temp table
 
@@ -705,19 +743,21 @@ PERFORM add_rank_planet_xp();
 PERFORM add_planet_idle_ticks(curtick);
 
 --transfer temporary data into permanent dump
-INSERT INTO planet_dump (tick,x,y,z,planetname,rulername,race,size,score,value,xp,idle,vdiff,size_rank,score_rank,value_rank,xp_rank,id)
-SELECT curtick,x,y,z,planetname,rulername,race,size,score,value,xp,idle,vdiff,size_rank,score_rank,value_rank,xp_rank,id FROM ptmp;
+INSERT INTO planet_dump (round,tick,x,y,z,planetname,rulername,race,size,score,value,xp,idle,vdiff,size_rank,score_rank,value_rank,xp_rank,id)
+SELECT curround,curtick,x,y,z,planetname,rulername,race,size,score,value,xp,idle,vdiff,size_rank,score_rank,value_rank,xp_rank,id FROM ptmp;
 
 END
 $PROC$ LANGUAGE plpgsql;
 
+-- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS store_galaxies(smallint);
-CREATE FUNCTION store_galaxies(curtick smallint) RETURNS void AS $PROC$
+DROP FUNCTION IF EXISTS store_galaxies(smallint, smallint);
+CREATE FUNCTION store_galaxies(curround smallint, curtick smallint) RETURNS void AS $PROC$
 BEGIN
 --remove quotes from names added by the dumpfile generator
 PERFORM trim_quotes('gtmp','name');
 --generate IDs, insert missing into canonical, deactive missing galaxies
-PERFORM gen_galaxy_id();
+PERFORM gen_galaxy_id(curround);
 --generate ranks, this will add the appropriate columns to the temp table (Should we generate averages here? Probably not, hassle (requires grabbing planet info for count) and not worth much)
 
 PERFORM add_rank('gtmp','size');
@@ -726,19 +766,21 @@ PERFORM add_rank('gtmp','value');
 PERFORM add_rank('gtmp','xp');
 
 --transfer tmp to dump
-INSERT INTO galaxy_dump (tick,x,y,name,size,score,value,xp,size_rank,score_rank,value_rank,xp_rank,id)
-SELECT curtick,x,y,name,size,COALESCE(score,0),value,xp,size_rank,score_rank,value_rank,xp_rank,id FROM gtmp;
+INSERT INTO galaxy_dump (round,tick,x,y,name,size,score,value,xp,size_rank,score_rank,value_rank,xp_rank,id)
+SELECT curround,curtick,x,y,name,size,COALESCE(score,0),value,xp,size_rank,score_rank,value_rank,xp_rank,id FROM gtmp;
 
 END
 $PROC$ LANGUAGE plpgsql;
 
+-- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS store_alliances(smallint);
-CREATE FUNCTION store_alliances(curtick smallint) RETURNS void AS $PROC$
+DROP FUNCTION IF EXISTS store_alliances(smallint, smallint);
+CREATE FUNCTION store_alliances(curround smallint, curtick smallint) RETURNS void AS $PROC$
 BEGIN
 --remove quotes from names added by the dumpfile generator
 PERFORM trim_quotes('atmp','name');
 --generate IDs, insert missing into canonical, deactive missing alliances
-PERFORM gen_alliance_id();
+PERFORM gen_alliance_id(curround);
 
 --adding of missing columns done automatically in each add_ sproc
 --generate averages (should we limit members to 70 since that's all that will be counted? Probably, but let's wait for PAteam to finish deciding)
@@ -758,14 +800,16 @@ PERFORM add_rank('atmp','total_score_avg');
 PERFORM add_rank('atmp','total_value_avg');
 
 --transfer tmp to dump
-INSERT INTO alliance_dump (tick,name,size,members,score,size_avg,score_avg,size_rank,members_rank,score_rank,size_avg_rank,score_avg_rank,total_score,total_score_rank,total_score_avg,total_score_avg_rank,total_value,total_value_rank,total_value_avg,total_value_avg_rank,id)
-SELECT curtick,name,size,members,score,size_avg,score_avg,size_rank,members_rank,score_rank,size_avg_rank,score_avg_rank,total_score,total_score_rank,total_score_avg,total_score_avg_rank,total_value,total_value_rank,total_value_avg,total_value_avg_rank,id FROM atmp;
+INSERT INTO alliance_dump (round,tick,name,size,members,score,size_avg,score_avg,size_rank,members_rank,score_rank,size_avg_rank,score_avg_rank,total_score,total_score_rank,total_score_avg,total_score_avg_rank,total_value,total_value_rank,total_value_avg,total_value_avg_rank,id)
+SELECT curround,curtick,name,size,members,score,size_avg,score_avg,size_rank,members_rank,score_rank,size_avg_rank,score_avg_rank,total_score,total_score_rank,total_score_avg,total_score_avg_rank,total_value,total_value_rank,total_value_avg,total_value_avg_rank,id FROM atmp;
 
 END
 $PROC$ LANGUAGE plpgsql;
 
+-- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS analyze_naps();
-CREATE FUNCTION analyze_naps() RETURNS void AS $PROC$
+DROP FUNCTION IF EXISTS analyze_naps(smallint);
+CREATE FUNCTION analyze_naps(curround smallint) RETURNS void AS $PROC$
 BEGIN
 -- NAP start.
 UPDATE utmp as main
@@ -773,20 +817,24 @@ SET relation_type='NAP',
 relation_end_tick = 32767,
 alliance1_id=(SELECT id FROM alliance_canon
               WHERE name = substring(main.text from '(.*) and .* have confirmed they have formed a non-aggression pact')
-              AND tick = main.tick),
+              AND tick = main.tick
+              AND round = curround),
 alliance2_id=(SELECT id FROM alliance_canon
               WHERE name = substring(main.text from '.* and (.*) have confirmed they have formed a non-aggression pact')
-              AND tick = main.tick)
+              AND tick = main.tick
+              AND round = curround)
 WHERE main.text ILIKE '% and % have confirmed they have formed a non-aggression pact%';
 
 -- NAP end.
 UPDATE utmp as main SET
 alliance1_id=(SELECT id FROM alliance_canon
               WHERE name = substring(main.text from '(.*) has decided to end its NAP with .*')
-              AND tick = main.tick),
-alliance2_id=(SELECT id FROM alliance_canon 
+              AND tick = main.tick
+              AND round = curround),
+alliance2_id=(SELECT id FROM alliance_canon
               WHERE name = substring(main.text from '.* has decided to end its NAP with (.*)\.')
-              AND tick = main.tick)
+              AND tick = main.tick
+              AND round = curround)
 WHERE main.text ILIKE '% has decided to end its NAP with %';
 
 -- NAP end tick
@@ -803,9 +851,10 @@ AND other.text ILIKE '% has decided to end its NAP with %';
 END
 $PROC$ LANGUAGE plpgsql;
 
-
+-- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS analyze_alliances();
-CREATE FUNCTION analyze_alliances() RETURNS void AS $PROC$
+DROP FUNCTION IF EXISTS analyze_alliances(smallint);
+CREATE FUNCTION analyze_alliances(curround smallint) RETURNS void AS $PROC$
 BEGIN
 
 -- Ally start.
@@ -814,20 +863,24 @@ SET relation_type='Ally',
 relation_end_tick = 32767,
 alliance1_id=(SELECT id FROM alliance_canon
               WHERE name = substring(main.text from '(.*) and .* have confirmed they are allied')
-              AND tick = main.tick),
+              AND tick = main.tick
+              AND round = curround),
 alliance2_id=(SELECT id FROM alliance_canon
               WHERE name = substring(main.text from '.* and (.*) have confirmed they are allied')
-              AND tick = main.tick)
+              AND tick = main.tick
+              AND round = curround)
 WHERE main.text ILIKE '% and % have confirmed they are allied%';
 
 -- Ally end.
 UPDATE utmp as main SET
 alliance1_id=(SELECT id FROM alliance_canon
               WHERE name = substring(main.text from '(.*) has decided to end its alliance with .*')
-              AND tick = main.tick),
+              AND tick = main.tick
+              AND round = curround),
 alliance2_id=(SELECT id FROM alliance_canon
               WHERE name = substring(main.text from '.* has decided to end its alliance with (.*)\.')
-              AND tick = main.tick)
+              AND tick = main.tick
+              AND round = curround)
 WHERE main.text ILIKE '% has decided to end its alliance with %';
 
 -- Ally end tick
@@ -845,18 +898,22 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
+-- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS analyze_wars();
-CREATE FUNCTION analyze_wars() RETURNS void AS $PROC$
+DROP FUNCTION IF EXISTS analyze_wars(curround smallint);
+CREATE FUNCTION analyze_wars(curround smallint) RETURNS void AS $PROC$
 BEGIN
 
 -- War start and default end tick.
 UPDATE utmp AS main SET relation_type='War',
 alliance1_id=(SELECT id FROM alliance_canon
               WHERE name = substring(text from '(.*) has declared war on .*')
-              AND tick = main.tick),
+              AND tick = main.tick
+              AND round = curround),
 alliance2_id=(SELECT id FROM alliance_canon
               WHERE name = substring(text from '.* has declared war on (.*) !')
-              AND tick = main.tick),
+              AND tick = main.tick
+              AND round = curround),
 relation_end_tick=(tick+48) -- Wars have a fixed length of 48 ticks.
 WHERE text ILIKE '% has declared war on %';
 
@@ -864,10 +921,12 @@ WHERE text ILIKE '% has declared war on %';
 UPDATE utmp AS main SET
 alliance1_id=(SELECT id FROM alliance_canon
               WHERE name = substring(text from '(.*)''s war with .* has expired.')
-              AND tick = main.tick),
+              AND tick = main.tick
+              AND round = curround),
 alliance2_id=(SELECT id FROM alliance_canon
               WHERE name = substring(text from '.*''s war with (.*) has expired.')
-              AND tick = main.tick)
+              AND tick = main.tick
+              AND round = curround)
 WHERE text ILIKE '%''s war with % has expired.';
 
 -- War end tick. Wars have a fixed length of 48 ticks, but just to be safe, see
@@ -886,16 +945,18 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
+-- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS store_userfeed();
-CREATE FUNCTION store_userfeed() RETURNS void AS $PROC$
+DROP FUNCTION IF EXISTS store_userfeed(smallint);
+CREATE FUNCTION store_userfeed(curround smallint) RETURNS void AS $PROC$
 BEGIN
 --remove quotes from names added by the dumpfile generator
 PERFORM trim_quotes('utmp','type');
 PERFORM trim_quotes('utmp','text');
 
 --transfer tmp to dump
-INSERT INTO userfeed_dump (tick,type,text)
-SELECT tick,type,text FROM utmp
+INSERT INTO userfeed_dump (round,tick,type,text)
+SELECT curround,tick,type,text FROM utmp
 ON CONFLICT DO NOTHING;
 
 --extract anarchy data
@@ -911,8 +972,8 @@ ALTER TABLE utmp add COLUMN pid integer DEFAULT NULL;
 UPDATE utmp SET pid=p.id FROM planet_dump AS p WHERE utmp.x = p.x AND utmp.y = p.y AND utmp.z = p.z AND utmp.tick = p.tick;
 
 --transfer anarchy data, exclude exit anarchy entries
-INSERT INTO anarchy (start_tick, end_tick, pid)
-SELECT tick, anarchy_end_tick, pid FROM utmp WHERE anarchy_end_tick IS NOT NULL AND pid IS NOT NULL
+INSERT INTO anarchy (round,start_tick, end_tick, pid)
+SELECT curround, tick, anarchy_end_tick, pid FROM utmp WHERE anarchy_end_tick IS NOT NULL AND pid IS NOT NULL
 ON CONFLICT DO NOTHING;
 
 -- Extract alliance relation data.
@@ -921,25 +982,34 @@ ALTER TABLE utmp ADD COLUMN alliance1_id integer;
 ALTER TABLE utmp ADD COLUMN alliance2_id integer;
 ALTER TABLE utmp ADD COLUMN relation_end_tick smallint DEFAULT 32767;
 
-PERFORM analyze_naps();
-PERFORM analyze_alliances();
-PERFORM analyze_wars();
+PERFORM analyze_naps(curround);
+PERFORM analyze_alliances(curround);
+PERFORM analyze_wars(curround);
 
 -- Transfer alliance relation data. Clear and refill the table every tick.
-TRUNCATE alliance_relation;
-INSERT INTO alliance_relation (start_tick, type, end_tick, initiator, acceptor)
-SELECT tick, relation_type, relation_end_tick, alliance1_id, alliance2_id FROM utmp
+DELETE FROM alliance_relation WHERE round = curround;
+INSERT INTO alliance_relation (round, start_tick, type, end_tick, initiator, acceptor)
+SELECT curround, tick, relation_type, relation_end_tick, alliance1_id, alliance2_id FROM utmp
 WHERE relation_type IS NOT NULL;
 
 END
 $PROC$ LANGUAGE plpgsql;
 
-
+-- Backwards compatibility for pre-userfeed Munin
 DROP FUNCTION IF EXISTS store_update(smallint,text,text,text);
+-- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS store_update(smallint,text,text,text,text);
-CREATE FUNCTION store_update(curtick smallint,ptable text,gtable text,atable text,utable text) RETURNS void AS $PROC$
+DROP FUNCTION IF EXISTS store_update(smallint,smallint,text,text,text,text);
+CREATE FUNCTION store_update(curround smallint,curtick smallint,ptable text,gtable text,atable text,utable text) RETURNS void AS $PROC$
 BEGIN
-INSERT INTO updates (tick,planets,galaxies,alliances,userfeed) VALUES (curtick,(SELECT COUNT(*) FROM quote_ident(ptable)),(SELECT COUNT(*) FROM quote_ident(gtable)),(SELECT COUNT(*) FROM quote_ident(atable)),(SELECT COUNT(*) FROM quote_ident(utable)));
+INSERT INTO updates (round,tick,planets,galaxies,alliances,userfeed)
+VALUES (curround,
+        curtick,
+        (SELECT COUNT(*) FROM quote_ident(ptable)),
+        (SELECT COUNT(*) FROM quote_ident(gtable)),
+        (SELECT COUNT(*) FROM quote_ident(atable)),
+        (SELECT COUNT(*) FROM quote_ident(utable))
+       );
 END
 $PROC$ LANGUAGE plpgsql;
 
@@ -997,7 +1067,7 @@ DROP FUNCTION IF EXISTS gal_value(smallint,smallint);
 CREATE FUNCTION gal_value(gal_x smallint, gal_y smallint) RETURNS int AS $PROC$
 BEGIN
 RETURN sum(value) FROM planet_dump
-WHERE tick=(SELECT max_tick()) AND x=gal_x AND y=gal_y
+WHERE tick=(SELECT max_tick(max_round())) AND x=gal_x AND y=gal_y
 GROUP BY x,y;
 END
 $PROC$ LANGUAGE plpgsql;

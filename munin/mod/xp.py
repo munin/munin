@@ -54,7 +54,7 @@ class xp(loadable.loadable):
         mcs = 0
 
         victim = loadable.planet(x=m.group(1),y=m.group(2),z=m.group(3))
-        if not victim.load_most_recent(self.cursor):
+        if not victim.load_most_recent(self.cursor,irc_msg.round):
             irc_msg.reply("%s:%s:%s is not a valid planet" % (victim.x,victim.y,victim.z))
             return 1
 
@@ -64,12 +64,12 @@ class xp(loadable.loadable):
 
         if m.lastindex >= 6 and m.group(4) and m.group(5) and m.group(6):
             attacker = loadable.planet(x=m.group(4),y=m.group(5),z=m.group(6))
-            if not attacker.load_most_recent(self.cursor):
+            if not attacker.load_most_recent(self.cursor,irc_msg.round):
                 irc_msg.reply("%s:%s:%s is not a valid planet" % (attacker.x,attacker.y,attacker.z))
                 return 1
         if not attacker:
             u=loadable.user(pnick=irc_msg.user)
-            if not u.load_from_db(self.cursor):
+            if not u.load_from_db(self.cursor,irc_msg.round):
                 irc_msg.reply("You must be registered to use the automatic "+self.__class__.__name__+" command (log in with P and set mode +x, then make sure your planet is set with the pref command)")
                 return 1
             if u.planet_id:
@@ -82,16 +82,15 @@ class xp(loadable.loadable):
             mcs = int(m.group(7))
 
         reply="Target %s:%s:%s (%s|%s) "%(victim.x,victim.y,victim.z,
-                                          self.format_value(victim.value*100),self.format_value(victim.score*100))
+                                          self.format_real_value(victim.value),self.format_real_value(victim.score))
         reply+="| Attacker %s:%s:%s (%s|%s) "%(attacker.x,attacker.y,attacker.z,
-                                               self.format_value(attacker.value*100),self.format_value(attacker.score*100))
+                                               self.format_real_value(attacker.value),self.format_real_value(attacker.score))
 
         bravery = attacker.bravery(victim)
         cap = int(attacker.cap_rate(victim)*victim.size)
         xp = int(attacker.calc_xp(victim, mcs))
-        score = self.format_value(100 * 60 * xp)
+        score = self.format_real_value(60 * xp)
 
         reply+="| Bravery: %.2f | Cap: %d | MCs: %d | XP: %d | Score: %s" % (bravery,cap,mcs,xp,score)
         irc_msg.reply(reply)
-
         return 1

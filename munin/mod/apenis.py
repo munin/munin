@@ -56,19 +56,19 @@ class apenis(loadable.loadable):
         u=loadable.user(pnick=irc_msg.user)
         if search is not None:
             a=loadable.alliance(name=search)
-            if not a.load_most_recent(self.cursor):
+            if not a.load_most_recent(self.cursor,irc_msg.round):
                 reply="No alliances match %s" % (search,)
                 irc_msg.reply(reply)
                 return 1
-        elif u.load_from_db(self.cursor) and u.userlevel >= 100:
+        elif u.load_from_db(self.cursor,irc_msg.round) and u.userlevel >= 100:
             a=loadable.alliance(name=self.config.get('Auth', 'alliance'))
-            if not a.load_most_recent(self.cursor):
+            if not a.load_most_recent(self.cursor,irc_msg.round):
                 reply="No alliances match %s" % (search,)
                 irc_msg.reply(reply)
                 return 1
         elif u.id > -1 and u.planet is not None:
             i=loadable.intel(pid=u.planet.id)
-            if (not i.load_from_db(self.cursor)) or i.alliance is None:
+            if (not i.load_from_db(self.cursor,irc_msg.round)) or i.alliance is None:
                 reply="Make sure you've set your planet with !pref and alliance with !intel"
                 irc_msg.reply(reply)
                 return 1
@@ -90,17 +90,17 @@ class apenis(loadable.loadable):
         query="SELECT setval('al_activity_rank',1,false)"
         self.cursor.execute(query)
 
-
         query="CREATE TEMP TABLE apenis AS"
         query+=" (SELECT *,nextval('al_activity_rank') AS activity_rank"
-        query+=" FROM (SELECT t1.name, t1.members, t1.score-t5.score AS activity"
+        query+=" FROM (SELECT t1.name, t1.members, t1.score-t72.score AS activity"
         query+=" FROM alliance_dump AS t1"
-        query+=" INNER JOIN alliance_dump AS t5"
-        query+=" ON t1.id=t5.id AND t1.tick - 72 = t5.tick"
-        query+=" WHERE t1.tick = (select max(tick) from updates)"
+        query+=" INNER JOIN alliance_dump AS t72"
+        query+=" ON t1.id=t72.id AND t1.tick - 72 = t72.tick"
+        query+=" WHERE t1.tick = (select max_tick(%s::smallint))"
+        query+=" AND t1.round = %s"
         query+=" ORDER BY activity DESC) AS t8)"
 
-        self.cursor.execute(query)
+        self.cursor.execute(query, (irc_msg.round, irc_msg.round,))
 
         query="SELECT name,activity,activity_rank,members"
         query+=" FROM apenis"

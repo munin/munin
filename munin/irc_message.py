@@ -22,7 +22,7 @@
 import re
 
 class irc_message(object):
-    def __init__(self,client=None,cursor=None,line=None,nick=None,username=None,host=None,target=None,message=None,prefix=None,command=None):
+    def __init__(self,client=None,cursor=None,line=None,nick=None,username=None,host=None,target=None,message=None,prefix=None,command=None,config=None):
         self.notprefix=r"~|-|\."
         self.pubprefix=r"!"
         self.privprefix='@'
@@ -32,6 +32,7 @@ class irc_message(object):
         self.client=client
         self.cursor=cursor
         self.command=None
+        self.round = config.getint('Planetarion', 'current_round')
 
         m=self.bifrost_privmsgre.search(line)
         if m:
@@ -57,10 +58,27 @@ class irc_message(object):
             com_parts = self.command.split(' ',1)
             self.command_name = com_parts[0]
             self.command_parameters = None
-            if len(com_parts) > 1:
-                self.command_parameters = com_parts[1]
             self.user=self.getpnick(self.host)
             self.access=self.getaccess(self.user,self.target)
+            if len(com_parts) > 1:
+                self.command_parameters = com_parts[1]
+                # !round <number> <command> [params]...
+                if self.command_name == 'round' or self.command_name == 'r':
+                    com_parts = self.command.split(' ', 3)
+                    if len(com_parts) > 2:
+                        try:
+                            self.round = int(com_parts[1])
+                            self.command_name = com_parts[2]
+                            if len(com_parts) > 3:
+                                self.command_parameters = com_parts[3]
+                                self.command = "%s %s"%(com_parts[2], com_parts[3])
+                            else:
+                                self.command_parameters = None
+                                self.command = self.command_name
+
+                        except ValueError, s:
+                            self.reply("Invalid round number %s given"%(com_parts[1]))
+            # print "Round: %s, Command: %s, Parameters: %s"%(self.round,self.command_name,self.command_parameters)
 
     def reply(self,message):
         self.client.reply(prefix,nick,target,message)

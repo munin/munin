@@ -52,17 +52,18 @@ class napfest(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        war_duration = 48
+        war_duration = self.config.getint('Planetarion', 'war_duration')
 
         query = "SELECT tick, text FROM userfeed_dump"
         query += " WHERE type = 'Relation Change'"
-        query += " AND text NOT ILIKE '%''s war with % has expired.'"
+        query += " AND round = %s"
+        query += " AND text NOT ILIKE %s"
         query += " ORDER BY tick DESC"
         query += " LIMIT 10"
-        self.cursor.execute(query)
+        self.cursor.execute(query,(irc_msg.round,"%'s war with % has expired.'",))
 
         if self.cursor.rowcount == 0:
-            reply = 'Nothing has happened yet, go declare war on some fools!'
+            reply = 'Nothing has happened yet, go fight some fools!'
         else:
             events = []
             for row in self.cursor.dictfetchall():
@@ -102,9 +103,10 @@ class napfest(loadable.loadable):
                             m.group(1),
                             m.group(2)))
                 if not m:
-                    print "ERROR: Unknown user feed alliance relation change detected at pt%d: %s" (
+                    reply = "What the hell happened at pt%d? %s? Fuck that." % (
                         row['tick'],
                         row['text'])
+                    break
 
                 reply = 'Most recent 10 alliance relation changes: %s' %(' | '.join(reversed(events)))
         irc_msg.reply(reply)

@@ -42,7 +42,7 @@ class prop(loadable.loadable):
         self.invite_kickre=re.compile(r"^\s+(\S+)(\s+(\S.*))",re.I)
         self.pollre=re.compile(r"\s*([^?]+)\?\s*([^?\"]+)*", re.I)
         self.poll_split_answers = re.compile(r"\s*!+\s*")
-        self.votere=re.compile(r"^\s+(\d+)\s+(yes|no|abstain|[A-J])",re.I)
+        self.votere=re.compile(r"^\s+(\d+)\s+(yes|no|abstain|veto|[A-J])",re.I)
         self.usage=self.__class__.__name__ + " [<invite|kick> <pnick> <comment>] | poll <question>? <answer!>... | [list] | [vote <number> <yes|no|abstain|A..J>] | [expire <number>] | [show <number>] | [cancel <number>] | [recent] | [search <pnick>]"
         self.helptext=["A proposition is a vote to do something. For now, you can raise propositions to invite or kick someone, or to perform a poll. Once raised the proposition will stand until you expire it.  Make sure you give everyone time to have their say. Votes for and against a proposition are weighted by carebears. You must have at least 1 carebear to vote."]
 
@@ -67,8 +67,9 @@ class prop(loadable.loadable):
         prop_type=m.group(1)
 
         if prop_type.lower() == 'invite':
-            irc_msg.reply("No. If you want to invite someone, figure out a different way to make it happen.")
-            return 1
+            if not self.config.getboolean('Alliance', 'allow_prop_invites'):
+                irc_msg.reply("No. If you want to invite someone, figure out a different way to make it happen.")
+                return 1
             m=self.match_or_usage(irc_msg,self.invite_kickre,m.group(2))
             if not m: return 1
             if self.command_not_used_in_home(irc_msg,self.__class__.__name__ + " invite"): return 1
@@ -78,8 +79,9 @@ class prop(loadable.loadable):
             self.process_invite_proposal(irc_msg,u,person,comment)
 
         elif prop_type.lower() == 'kick':
-            irc_msg.reply("No. If you want to kick someone, figure out a different way to make it happen.")
-            return 1
+            if not self.config.getboolean('Alliance', 'allow_prop_kicks'):
+                irc_msg.reply("No. If you want to kick someone, figure out a different way to make it happen.")
+                return 1
             m=self.match_or_usage(irc_msg,self.invite_kickre,m.group(2))
             if not m: return 1
             if self.command_not_used_in_home(irc_msg,self.__class__.__name__ + " kick"): return 1
@@ -89,6 +91,9 @@ class prop(loadable.loadable):
             self.process_kick_proposal(irc_msg,u,person,comment)
 
         elif prop_type.lower() == 'poll':
+            if not self.config.getboolean('Alliance', 'allow_prop_polls'):
+                irc_msg.reply("No. If you want to poll the alliance, figure out a different way to make it happen.")
+                return 1
             m=self.match_or_usage(irc_msg,self.pollre, m.group(2))
             if not m: return 1
             if self.command_not_used_in_home(irc_msg, self.__class__.__name__ + " poll"): return 1
@@ -338,6 +343,11 @@ class prop(loadable.loadable):
             if vote.lower() not in kick_inv_arr:
                 irc_msg.reply("You can only vote %s on a %s prop, you moron" % (', '.join(kick_inv_arr), prop['prop_type']))
                 return
+
+        allow_vetos=self.config.getboolean('Alliance', 'allow_prop_veto')
+        if not allow_vetos and vote.lower() == 'veto':
+            irc_msg.reply("No vetos today, buddy")
+            return
 
         query="SELECT id,vote,carebears, prop_id FROM prop_vote"
         query+=" WHERE prop_id=%s AND voter_id=%s"
@@ -694,7 +704,7 @@ class prop(loadable.loadable):
         return self.cursor.dictfetchone()['id']
 
     def is_already_proposed_kick(self,person_id):
-        query="SELECT id FROM kick_proposal WHERE person_id = %s AND active" 
+        query="SELECT id FROM kick_proposal WHERE person_id = %s AND active"
         self.cursor.execute(query,(person_id,))
         return self.cursor.rowcount > 0
 

@@ -44,6 +44,14 @@ cookies_per_day: 32767
 # Maximum number of people who can be members of the alliance at the same time.
 member_limit: 100
 
+# Whether to allow members to start invites, kicks and polls.
+allow_prop_invites: True
+allow_prop_kicks: True
+allow_prop_polls: True
+
+# Whether to allow members to veto props.
+allow_prop_veto: True
+
 [Url]
 # Don't change these unless they actually change in reality.
 # This is where Hugin finds the data it puts in the database.

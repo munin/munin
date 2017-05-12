@@ -59,9 +59,9 @@ class aids(loadable.loadable):
 
         # do stuff here
 
-        if search.lower() == 'munin':
-            # Hardcoded == bad?
-            irc_msg.reply("I am Munin. I gave aids to all y'all bitches.")
+        mynick=self.config.get('Connection', 'nick')
+        if search.lower() == mynick:
+            irc_msg.reply("I am %s. I gave aids to all y'all bitches."%(mynick,))
             return 1
 
         u=loadable.user(pnick=search)

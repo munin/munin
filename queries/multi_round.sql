@@ -76,6 +76,10 @@ ALTER TABLE alliance_relation ADD COLUMN round smallint NOT NULL DEFAULT 71;
 ALTER TABLE alliance_relation ALTER COLUMN round DROP DEFAULT;
 CREATE INDEX alliance_relation_round_index ON alliance_relation(round);
 
+ALTER TABLE anarchy ADD COLUMN round smallint NOT NULL DEFAULT 71;
+ALTER TABLE anarchy ALTER COLUMN round DROP DEFAULT;
+CREATE INDEX anarchy_round_index ON anarchy(round);
+
 CREATE TABLE round_user_pref (
     id serial,
     user_id integer REFERENCES user_list(id),
@@ -434,8 +438,8 @@ ALTER TABLE utmp add COLUMN pid integer DEFAULT NULL;
 UPDATE utmp SET pid=p.id FROM planet_dump AS p WHERE utmp.x = p.x AND utmp.y = p.y AND utmp.z = p.z AND utmp.tick = p.tick;
 
 --transfer anarchy data, exclude exit anarchy entries
-INSERT INTO anarchy (start_tick, end_tick, pid)
-SELECT tick, anarchy_end_tick, pid FROM utmp WHERE anarchy_end_tick IS NOT NULL AND pid IS NOT NULL
+INSERT INTO anarchy (round, start_tick, end_tick, pid)
+SELECT curround, tick, anarchy_end_tick, pid FROM utmp WHERE anarchy_end_tick IS NOT NULL AND pid IS NOT NULL
 ON CONFLICT DO NOTHING;
 
 -- Extract alliance relation data.
@@ -448,11 +452,15 @@ PERFORM analyze_naps(curround);
 PERFORM analyze_alliances(curround);
 PERFORM analyze_wars(curround);
 
--- Transfer alliance relation data. Clear and refill the table every tick.
+-- Transfer alliance relation data. Clear and refill the data for the round
+-- every tick. If either alliance is unknown (probably because Munin misses
+-- ticks), don't insert.
 DELETE FROM alliance_relation WHERE round = curround;
 INSERT INTO alliance_relation (round, start_tick, type, end_tick, initiator, acceptor)
 SELECT curround, tick, relation_type, relation_end_tick, alliance1_id, alliance2_id FROM utmp
-WHERE relation_type IS NOT NULL;
+WHERE relation_type IS NOT NULL
+AND alliance1_id IS NOT NULL
+AND alliance2_id IS NOT NULL;
 
 END
 $PROC$ LANGUAGE plpgsql;

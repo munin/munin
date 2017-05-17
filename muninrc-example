@@ -99,6 +99,14 @@ war_duration: 48
 # Default round number for multi-round Munin
 current_round: 71
 
+[Dumps]
+# Whether to write dump files retrieved from the web to file.
+write: False
+
+# Directory to write dump files to, if enabled. Sub-directory structure will be:
+# $dir/r<round>/<tick>/files.txt
+dir: .
+
 [clickatell]
 user: username
 pass: password

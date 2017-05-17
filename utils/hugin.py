@@ -25,6 +25,7 @@ import time
 
 import ConfigParser
 import os
+import errno
 from psycopg2 import psycopg1 as psycopg
 import re
 import traceback
@@ -55,16 +56,37 @@ ofile=file("pid.hugin", "w")
 ofile.write("%s" % (os.getpid(),))
 ofile.close()
 
+def write_to_file(data, out):
+    with open(out, 'w') as f:
+        size = 16 * 1024
+        chunk = True
+        while chunk:
+            chunk = data.read(size)
+            if chunk:
+                f.write(chunk)
+
+def overwrite(from_file, to_file):
+    try:
+        os.unlink(to_file)
+    except OSError, e:
+        pass
+    os.rename(from_file, to_file)
+
 while True:
     try:
         conn=psycopg.connect(DSN)
         cursor=conn.cursor()
 
-        cursor.execute("SELECT max_round()")
-        round=int(cursor.fetchone()[0])
-        if not round:
-            round = -1
-
+        round=config.getint('Planetarion', 'current_round')
+        planetlist=config.get("Url", "planetlist")
+        galaxylist=config.get("Url", "galaxylist")
+        alliancelist=config.get("Url", "alliancelist")
+        userfeedlist=config.get("Url", "userfeed")
+        planet_file=planetlist.split('/')[-1]
+        galaxy_file=galaxylist.split('/')[-1]
+        alliance_file=alliancelist.split('/')[-1]
+        userfeed_file=userfeedlist.split('/')[-1]
+        write_dumps=config.getboolean('Dumps', 'write')
         from_web = False
 
         parser = argparse.ArgumentParser(description='Planetarion dumps processor for Munin.',
@@ -73,9 +95,8 @@ while True:
         parser.add_argument('-g', '--galaxies',  type=argparse.FileType('r'), metavar='FILE')
         parser.add_argument('-a', '--alliances', type=argparse.FileType('r'), metavar='FILE')
         parser.add_argument('-u', '--userfeed',  type=argparse.FileType('r'), metavar='FILE')
-        parser.add_argument('-r', '--round',     type=int, default=round, help='Default is the most recent round for which ticks can be found. If this is the first time you run Hugin for a new round, this is a required option.')
         args = parser.parse_args();
-        round=args.round
+
         if args.planets and args.galaxies and args.alliances and args.userfeed:
             # ArgumentParser opens the files for us.
             planets=args.planets
@@ -89,36 +110,48 @@ while True:
             # Read dumps from the web
             from_web = True
             try:
-                req = urllib2.Request(config.get("Url", "planetlist"))
+                req = urllib2.Request(planetlist)
                 req.add_header('User-Agent',useragent)
                 planets = urllib2.urlopen(req)
+                if write_dumps:
+                    write_to_file(planets, planet_file)
+                    planets = open(planet_file, 'r')
             except Exception, e:
                 print "Failed gathering planet listing."
                 print e.__str__()
                 time.sleep(300)
                 continue
             try:
-                req = urllib2.Request(config.get("Url", "galaxylist"))
+                req = urllib2.Request(galaxylist)
                 req.add_header('User-Agent',useragent)
                 galaxies = urllib2.urlopen(req)
+                if write_dumps:
+                    write_to_file(galaxies, galaxy_file)
+                    galaxies = open(galaxy_file, 'r')
             except Exception, e:
                 print "Failed gathering galaxy listing."
                 print e.__str__()
                 time.sleep(300)
                 continue
             try:
-                req = urllib2.Request(config.get("Url", "alliancelist"))
+                req = urllib2.Request(alliancelist)
                 req.add_header('User-Agent',useragent)
                 alliances = urllib2.urlopen(req)
+                if write_dumps:
+                    write_to_file(alliances, alliance_file)
+                    alliances = open(alliance_file, 'r')
             except Exception, e:
                 print "Failed gathering alliance listing."
                 print e.__str__()
                 time.sleep(300)
                 continue
             try:
-                req = urllib2.Request(config.get("Url", "userfeed"))
+                req = urllib2.Request(userfeedlist)
                 req.add_header('User-Agent',useragent)
                 userfeed = urllib2.urlopen(req)
+                if write_dumps:
+                    write_to_file(userfeed, userfeed_file)
+                    userfeed = open(userfeed_file, 'r')
             except Exception, e:
                 print "Failed gathering user feed."
                 print e.__str__()
@@ -303,6 +336,27 @@ while True:
             t2=time.time()-t1
             print "Processed and inserted user feed dumps in %.3f seconds" % (t2,)
             t1=time.time()
+
+            planets.close()
+            galaxies.close()
+            alliances.close()
+            userfeed.close()
+
+            if from_web and write_dumps:
+                # Store the newly retrieved dump files, removing the old ones
+                # first, if they exist.
+                dump_dir=config.get('Dumps', 'dir')
+                tick_dir='%s/r%03d/%04d'%(dump_dir,round,planet_tick)
+                try:
+                    os.makedirs(tick_dir)
+                except OSError, e:
+                    if e.errno != errno.EEXIST:
+                        raise
+                overwrite(planet_file,   '%s/r%03d/%04d/%s'%(dump_dir,round,planet_tick,planet_file))
+                overwrite(galaxy_file,   '%s/r%03d/%04d/%s'%(dump_dir,round,planet_tick,galaxy_file))
+                overwrite(alliance_file, '%s/r%03d/%04d/%s'%(dump_dir,round,planet_tick,alliance_file))
+                overwrite(userfeed_file, '%s/r%03d/%04d/%s'%(dump_dir,round,planet_tick,userfeed_file))
+                print 'Wrote dump files to disk'
 
         except psycopg.IntegrityError:
             raise

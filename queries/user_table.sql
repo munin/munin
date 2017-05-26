@@ -379,7 +379,8 @@ hulls smallint NOT NULL,
 waves smallint NOT NULL,
 core smallint NOT NULL,
 covert_op smallint NOT NULL,
-mining smallint NOT NULL
+mining smallint NOT NULL,
+population smallint NOT NULL
 );
 
 CREATE TABLE unit (

@@ -97,7 +97,7 @@ etd_salvage_bonus: 0.0
 war_duration: 48
 
 # Default round number for multi-round Munin
-current_round: 71
+current_round: 72
 
 [Dumps]
 # Whether to write dump files retrieved from the web to file.

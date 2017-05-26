@@ -111,8 +111,6 @@ class scan(threading.Thread):
             try:
                 self.cursor.execute(nxt_query)
                 next_id=self.cursor.dictfetchone()['nextval']
-                # TODO: Remove this ~mz
-                tick=100
                 self.cursor.execute(query, (next_id, round, tick, p.id, self.nick, self.pnick, scantype, self.rand_id, self.group_id, scan_time))
             except psycopg.IntegrityError, e:
                 print "Scan %s may already exist" %(self.rand_id,)
@@ -404,7 +402,8 @@ class scan(threading.Thread):
         <tr><td[^>]*>Waves</td><td[^>]*>(\d+)\s*<span[^>]*>[^<]*</span></td></tr>\s*
         <tr><td[^>]*>Core\s+Extraction</td><td[^>]*>(\d+)\s*<span[^>]*>[^<]*</span></td></tr>\s*
         <tr><td[^>]*>Covert\s+Ops</td><td[^>]*>(\d+)\s*<span[^>]*>[^<]*</span></td></tr>\s*
-        <tr><td[^>]*>Asteroid\s+Mining</td><td[^>]*>(\d+)\s*<span[^>]*>[^<]*</span></td></tr>
+        <tr><td[^>]*>Asteroid\s+Mining</td><td[^>]*>(\d+)\s*<span[^>]*>[^<]*</span></td></tr>\s*
+        <tr><td[^>]*>Population\s+Management</td><td[^>]*>(\d+)\s*<span[^>]*>[^<]*</span></td></tr>\s*
         """, page,re.VERBOSE)
 
         travel = m.group(1)
@@ -414,14 +413,15 @@ class scan(threading.Thread):
         core = m.group(5)
         covop = m.group(6)
         mining = m.group(7)
+        population = m.group(8)
 
-        args += (travel,inf,hulls,waves,core,covop,mining)
+        args += (travel,inf,hulls,waves,core,covop,mining,population)
 
         query="INSERT INTO development (scan_id,light_factory,medium_factory,heavy_factory"
         query+=",wave_amplifier,wave_distorter,metal_refinery,crystal_refinery,eonium_refinery"
         query+=",research_lab,finance_centre,military_centre,security_centre,structure_defense"
-        query+=",travel,infrastructure,hulls,waves,core,covert_op,mining)"
-        query+=" VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        query+=",travel,infrastructure,hulls,waves,core,covert_op,mining,population)"
+        query+=" VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         self.cursor.execute(query,args)
 
         print 'Development: '+x+':'+y+':'+z

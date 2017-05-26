@@ -70,7 +70,7 @@ class dev(loadable.loadable):
                 return 1
 
             query="SELECT t2.id AS id,t1.tick,nick,scantype,rand_id,travel,infrastructure,hulls,waves,core,covert_op"
-            query+=",mining,light_factory,medium_factory,heavy_factory,wave_amplifier,wave_distorter"
+            query+=",mining,population,light_factory,medium_factory,heavy_factory,wave_amplifier,wave_distorter"
             query+=",metal_refinery,crystal_refinery,eonium_refinery,research_lab,finance_centre,military_centre"
             query+=",security_centre,structure_defense"
             query+=" FROM scan AS t1 INNER JOIN development AS t2 ON t1.id=t2.scan_id"
@@ -86,10 +86,10 @@ class dev(loadable.loadable):
                 total=max(1,self.get_total_cons_from_scan(self.cursor,s['id']))
 
                 reply+="Newest development scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,p.y,p.z,s['rand_id'],s['tick'])
-                reply+=" Travel: %s, Infrajerome: %s, Hulls: %s, Waves: %s, Core: %s, Covop: %s, Mining: %s" % (
+                reply+=" Travel: %s, Infrajerome: %s, Hulls: %s, Waves: %s, Core: %s, Covop: %s, Mining: %s, Population: %s" % (
                     s['travel'],self.infra(s['infrastructure']),self.hulls(s['hulls']),
                     self.waves(s['waves']),self.core(s['core']),self.covop(s['covert_op']),
-                    self.mining(s['mining'])
+                    self.mining(s['mining']),self.population(s['population'])
                 )
 
                 irc_msg.reply(reply)
@@ -274,3 +274,16 @@ class dev(loadable.loadable):
         if level==16:
             return "top10 or dumb"
 
+    def population(self,level):
+        if level==0:
+            return "50%"
+        if level==1:
+            return "60%"
+        if level==2:
+            return "70%"
+        if level==3:
+            return "80%"
+        if level==4:
+            return "90%"
+        if level==5:
+            return "Highly efficient!"

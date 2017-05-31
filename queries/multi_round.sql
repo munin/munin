@@ -466,7 +466,7 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
-DROP FUNCTION store_update(smallint,text,text,text,text);
+DROP FUNCTION IF EXISTS store_update(smallint,text,text,text,text);
 CREATE FUNCTION store_update(curround smallint,curtick smallint,ptable text,gtable text,atable text,utable text) RETURNS void AS $PROC$
 BEGIN
 INSERT INTO updates (round,tick,planets,galaxies,alliances,userfeed)
@@ -479,5 +479,44 @@ VALUES (curround,
        );
 END
 $PROC$ LANGUAGE plpgsql;
+
+
+DROP FUNCTION IF EXISTS defcall_update();
+CREATE OR REPLACE FUNCTION defcall_update()
+RETURNS "trigger" AS
+$BODY$
+DECLARE
+is_friendly boolean;
+defcall_id integer;
+BEGIN
+
+is_friendly := false;
+defcall_id = 0;
+
+SELECT INTO is_friendly COUNT(*)
+FROM alliance_canon a, intel
+WHERE intel.alliance_id = a.id
+AND a.name ILIKE 'ascendancy'
+AND NEW.mission ILIKE 'attack'
+AND intel.pid = NEW.target;
+
+IF is_friendly THEN
+    SELECT INTO defcall_id id
+    FROM defcalls WHERE target=NEW.target
+    AND landing_tick = NEW.landing_tick;
+
+    IF defcall_id > 0 THEN
+        UPDATE defcalls SET status = 3 WHERE id = defcall_id;
+    ELSE
+        INSERT INTO defcalls (status, round, target, landing_tick) VALUES (2, NEW.round, NEW.target, NEW.landing_tick);
+    END IF;
+END IF;
+
+RETURN NEW;
+END
+$BODY$
+LANGUAGE 'plpgsql' VOLATILE;
+ALTER FUNCTION defcall_update() OWNER TO munin;
+
 
 DROP FUNCTION gal_value(smallint,smallint);

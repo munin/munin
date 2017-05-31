@@ -472,7 +472,6 @@ CREATE TABLE froglet_logs (
        acces_time timestamp NOT NULL DEFAULT NOW(),
        page_url VARCHAR(1023) NOT NULL,
        ip CIDR NOT NULL,
---       user_id integer NOT NULL REFERENCES user_list(id),
        pnick VARCHAR(15) NOT NULL
 );
 
@@ -1024,7 +1023,6 @@ $PROC$ LANGUAGE plpgsql;
 -- Function: defcall_update()
 
 DROP FUNCTION IF EXISTS defcall_update();
-
 CREATE OR REPLACE FUNCTION defcall_update()
 RETURNS "trigger" AS
 $BODY$
@@ -1044,15 +1042,15 @@ AND NEW.mission ILIKE 'attack'
 AND intel.pid = NEW.target;
 
 IF is_friendly THEN
-SELECT INTO defcall_id id
-FROM defcalls WHERE target=NEW.target
-AND landing_tick = NEW.landing_TICK;
+    SELECT INTO defcall_id id
+    FROM defcalls WHERE target=NEW.target
+    AND landing_tick = NEW.landing_tick;
 
-IF defcall_id > 0 THEN
-UPDATE defcalls SET status = 3 WHERE id = defcall_id;
-ELSE
-INSERT INTO defcalls (status, target, landing_tick) VALUES(2, NEW.target, NEW.landing_tick);
-END IF;
+    IF defcall_id > 0 THEN
+        UPDATE defcalls SET status = 3 WHERE id = defcall_id;
+    ELSE
+        INSERT INTO defcalls (status, round, target, landing_tick) VALUES (2, NEW.round, NEW.target, NEW.landing_tick);
+    END IF;
 END IF;
 
 RETURN NEW;
@@ -1069,13 +1067,7 @@ EXECUTE PROCEDURE defcall_update();
 
 -- BEGIN MUNIN RELATED FUNCTIONS
 
+-- No longer used.
 DROP FUNCTION IF EXISTS gal_value(smallint,smallint);
-CREATE FUNCTION gal_value(gal_x smallint, gal_y smallint) RETURNS int AS $PROC$
-BEGIN
-RETURN sum(value) FROM planet_dump
-WHERE tick=(SELECT max_tick(max_round())) AND x=gal_x AND y=gal_y
-GROUP BY x,y;
-END
-$PROC$ LANGUAGE plpgsql;
 
 -- END MUNIN RELATED FUNCTIONS

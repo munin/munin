@@ -58,6 +58,7 @@ FOREIGN KEY(tick,round) REFERENCES updates(tick,round)
 );
 CREATE INDEX planet_dump_rn_index ON planet_dump(rulername);
 CREATE INDEX planet_dump_pn_index ON planet_dump(planetname);
+CREATE INDEX planet_dump_id_index ON planet_dump(id);
 
 
 CREATE TABLE galaxy_canon (
@@ -89,6 +90,7 @@ PRIMARY KEY(round, tick, x, y),
 FOREIGN KEY(round,x,y) REFERENCES galaxy_canon (round,x,y),
 FOREIGN KEY(round,tick) REFERENCES updates (round,tick)
 );
+CREATE INDEX galaxy_dump_id_index ON galaxy_dump(id);
 
 
 CREATE TABLE alliance_canon (
@@ -127,6 +129,7 @@ PRIMARY KEY(round, tick, name),
 FOREIGN KEY(name,round) REFERENCES alliance_canon (name,round),
 FOREIGN KEY(round,tick) REFERENCES updates(round,tick)
 );
+CREATE INDEX alliance_dump_id_index ON alliance_dump(id);
 
 
 CREATE TABLE userfeed_dump (

@@ -77,6 +77,26 @@ def overwrite(from_file, to_file):
     os.rename(from_file, to_file)
 
 
+class InvalidTickException(Exception):
+    pass
+
+
+def extract_tick(feed):
+    feed.readline()
+    feed.readline()
+    feed.readline()
+    tick = feed.readline()
+    m = re.search(r"tick:\s+(\d+)", tick, re.I)
+    if not m:
+        raise InvalidTickException("Invalid tick: '%s'" % (tick,))
+    tick = int(m.group(1))
+    feed.readline()
+    feed.readline()
+    feed.readline()
+    feed.readline()
+    return tick
+
+
 while True:
     try:
         cur_round = config.getint('Planetarion', 'current_round')
@@ -161,69 +181,19 @@ while True:
                 time.sleep(300)
                 continue
 
-        planets.readline()
-        planets.readline()
-        planets.readline()
-        tick = planets.readline()
-        m = re.search(r"tick:\s+(\d+)", tick, re.I)
-        if not m:
-            print "Invalid tick: '%s'" % (tick,)
+        try:
+            planet_tick = extract_tick(planets)
+            galaxy_tick = extract_tick(galaxies)
+            alliance_tick = extract_tick(alliances)
+            userfeed_tick = extract_tick(userfeed)
+        except InvalidTickException as e:
+            print e.message
             time.sleep(120)
             continue
-        planet_tick = int(m.group(1))
         print "Planet dump for tick %s" % (planet_tick,)
-        planets.readline()
-        planets.readline()
-        planets.readline()
-        planets.readline()
-
-        galaxies.readline()
-        galaxies.readline()
-        galaxies.readline()
-        tick = galaxies.readline()
-        m = re.search(r"tick:\s+(\d+)", tick, re.I)
-        if not m:
-            print "Invalid tick: '%s'" % (tick,)
-            time.sleep(120)
-            continue
-        galaxy_tick = int(m.group(1))
         print "Galaxy dump for tick %s" % (galaxy_tick,)
-        galaxies.readline()
-        galaxies.readline()
-        galaxies.readline()
-        galaxies.readline()
-
-        alliances.readline()
-        alliances.readline()
-        alliances.readline()
-        alliances.readline()
-        ptick = alliances.readline()
-        m = re.search(r"tick:\s+(\d+)", tick, re.I)
-        if not m:
-            print "Invalid tick: '%s'" % (tick,)
-            time.sleep(120)
-            continue
-        alliance_tick = int(m.group(1))
         print "Alliance dump for tick %s" % (alliance_tick,)
-        alliances.readline()
-        alliances.readline()
-        alliances.readline()
-
-        userfeed.readline()
-        userfeed.readline()
-        userfeed.readline()
-        userfeed.readline()
-        ptick = userfeed.readline()
-        m = re.search(r"tick:\s+(\d+)", tick, re.I)
-        if not m:
-            print "Invalid tick: '%s'" % (tick,)
-            time.sleep(120)
-            continue
-        userfeed_tick = int(m.group(1))
         print "User feed dump for tick %s" % (userfeed_tick,)
-        userfeed.readline()
-        userfeed.readline()
-        userfeed.readline()
 
         if not (planet_tick == galaxy_tick == alliance_tick == userfeed_tick):
             print "Varying ticks found, sleeping"

@@ -85,10 +85,10 @@ def extract_tick(feed):
     feed.readline()
     feed.readline()
     feed.readline()
-    tick = feed.readline()
-    m = re.search(r"tick:\s+(\d+)", tick, re.I)
+    tick_line = feed.readline()
+    m = re.search(r"tick:\s+(\d+)", tick_line, re.I)
     if not m:
-        raise InvalidTickException("Invalid tick: '%s'" % (tick,))
+        raise InvalidTickException("Invalid tick: '%s'" % (tick_line,))
     tick = int(m.group(1))
     feed.readline()
     feed.readline()

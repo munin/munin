@@ -33,6 +33,7 @@ import urllib2
 import StringIO
 import sys
 import argparse
+import datetime
 
 config = ConfigParser.ConfigParser()
 if not config.read("muninrc"):
@@ -78,6 +79,10 @@ def overwrite(from_file, to_file):
 
 
 class InvalidTickException(Exception):
+    pass
+
+
+class AncientStaleTickException(Exception):
     pass
 
 
@@ -220,17 +225,23 @@ while True:
         conn = psycopg.connect(DSN)
         cursor = conn.cursor()
 
-        cursor.execute("SELECT max_tick(%s::smallint)", (cur_round,))
-        last_tick = cursor.fetchone()[0]
-        if last_tick:
-            last_tick = int(last_tick)
+        cursor.execute("SELECT tick,timestamp FROM updates where round = %s and tick = (select max_tick(%s::smallint))", (cur_round, cur_round))
+        last_tick_info = cursor.dictfetchone()
+        if last_tick_info:
+            last_tick = int(last_tick_info['tick'])
         if not last_tick:
             last_tick = -1
 
         if not planet_tick > last_tick:
             if from_web:
-                print "Stale ticks found, sleeping"
-                time.sleep(60)
+                delta = datetime.datetime.now() - last_tick_info['timestamp']
+                wait = 60
+                if delta.days > 1 or delta.seconds >= (6 * 3600):
+                    raise AncientStaleTickException("Stale tick was %d days and %d seconds old, has the round ended?" % (delta.days, delta.seconds))
+                else:
+                    wait = (3600 - delta.seconds) % 900
+                print "Stale ticks found, sleeping %d seconds" % (wait,)
+                time.sleep(wait)
                 continue
             else:
                 print "Warning: stale ticks found, but dump files were passed on command line, continuing"
@@ -360,6 +371,11 @@ while True:
 
         conn.commit()
         break
+    except AncientStaleTickException as a:
+        print "Something random went wrong, crashing out and waiting for cron rerun"
+        print e.__str__()
+        traceback.print_exc()
+        sys.exit(1)
     except Exception as e:
         print "Something random went wrong, sleeping for 15 seconds to hope it improves"
         print e.__str__()

@@ -33,14 +33,15 @@ class sms(loadable.loadable):
     """
     foo
     """
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,100)
-        self.paramre=re.compile(r"^\s+(\S+)\s+(.*)")
-        self.usage=self.__class__.__name__ + " <nick> <message>"
-	self.helptext=['Sends an SMS to the specified user. Your username will be appended to the end of each sms. The user must have their phone correctly added and you must have access to their number.']
 
-    def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 100)
+        self.paramre = re.compile(r"^\s+(\S+)\s+(.*)")
+        self.usage = self.__class__.__name__ + " <nick> <message>"
+        self.helptext = ['Sends an SMS to the specified user. Your username will be appended to the end of each sms. The user must have their phone correctly added and you must have access to their number.']
+
+    def execute(self, user, access, irc_msg):
+        m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
 
@@ -48,18 +49,19 @@ class sms(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        u=self.load_user(user,irc_msg)
-        if not u: return 1
+        u = self.load_user(user, irc_msg)
+        if not u:
+            return 1
 
         rec = m.group(1)
         public_text = m.group(2) + ' - %s' % (user,)
-        text = public_text + '/%s' %(u.phone,)
-        receiver=self.load_user_from_pnick(rec,irc_msg.round)
+        text = public_text + '/%s' % (u.phone,)
+        receiver = self.load_user_from_pnick(rec, irc_msg.round)
         if not receiver:
             irc_msg.reply("Who exactly is %s?" % (rec,))
             return 1
@@ -67,19 +69,25 @@ class sms(loadable.loadable):
             irc_msg.reply("I refuse to talk to that Swedish clown. Use !phone show Valle and send it using your own phone.")
             return
 
-        results=self.phone_query_builder(receiver,"AND t1.friend_id=%s",(u.id,))
+        results = self.phone_query_builder(receiver, "AND t1.friend_id=%s", (u.id,))
 
-        if not (receiver.pubphone or len(results)>0):
-            irc_msg.reply("%s's phone number is private or they have not chosen to share their number with you. Supersecret message not sent." % (receiver.pnick,))
+        if not (receiver.pubphone or len(results) > 0):
+            irc_msg.reply(
+                "%s's phone number is private or they have not chosen to share their number with you. Supersecret message not sent." %
+                (receiver.pnick,))
             return 1
 
         phone = self.prepare_phone_number(receiver.phone)
         if not phone or len(phone) <= 6:
-            irc_msg.reply("%s has no phone number or their phone number is too short to be valid (under 6 digits). Super secret message not sent." % (receiver.pnick,))
+            irc_msg.reply(
+                "%s has no phone number or their phone number is too short to be valid (under 6 digits). Super secret message not sent." %
+                (receiver.pnick,))
             return 1
 
         if len(text) >= 160:
-            irc_msg.reply("Max length for a text is 160 characters. Your text was %i characters long. Super secret message not sent." % (len(text),))
+            irc_msg.reply(
+                "Max length for a text is 160 characters. Your text was %i characters long. Super secret message not sent." %
+                (len(text),))
             return 1
 
         username = self.config.get("clickatell", "user")
@@ -108,22 +116,21 @@ class sms(loadable.loadable):
         if not ret[0]:
             irc_msg.reply("That wasn't supposed to happen. I don't really know what wrong. Maybe your mother dropped you.")
             return 1
-        reply="Successfully processed To: %s Message: %s"
+        reply = "Successfully processed To: %s Message: %s"
         if irc_msg.chan_reply():
-            irc_msg.reply(reply % (receiver.pnick,public_text))
+            irc_msg.reply(reply % (receiver.pnick, public_text))
         else:
-            irc_msg.reply(reply % (receiver.pnick,text))
-        self.log_message(u.id,receiver.id,phone, public_text)
+            irc_msg.reply(reply % (receiver.pnick, text))
+        self.log_message(u.id, receiver.id, phone, public_text)
         return 0
 
-    def prepare_phone_number(self,text):
+    def prepare_phone_number(self, text):
         if not text:
             return text
         s = "".join([c for c in text if c.isdigit()])
         return s.lstrip("00")
 
-    def log_message(self,sender_id,receiver_id,phone,text):
-        query="INSERT INTO sms_log (sender_id,receiver_id,phone,sms_text)"
-        query+=" VALUES (%s,%s,%s,%s)"
-        self.cursor.execute(query,(sender_id,receiver_id,phone,text))
-
+    def log_message(self, sender_id, receiver_id, phone, text):
+        query = "INSERT INTO sms_log (sender_id,receiver_id,phone,sms_text)"
+        query += " VALUES (%s,%s,%s,%s)"
+        self.cursor.execute(query, (sender_id, receiver_id, phone, text))

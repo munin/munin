@@ -29,46 +29,46 @@ Loadable.Loadable subclass
 import re
 from munin import loadable
 
-class slogan(loadable.loadable):
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,1)
-        self.paramre=re.compile(r"^\s+(.*)$")
-        self.usage=self.__class__.__name__ + ""
 
-    def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+class slogan(loadable.loadable):
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 1)
+        self.paramre = re.compile(r"^\s+(.*)$")
+        self.usage = self.__class__.__name__ + ""
+
+    def execute(self, user, access, irc_msg):
+        m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
 
-        m=self.paramre.search(m.group(1))
-        params=None
+        m = self.paramre.search(m.group(1))
+        params = None
         if m:
-            params=m.group(1)
+            params = m.group(1)
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        args=()
-        query="SELECT slogan FROM slogan WHERE 1=1"
+        args = ()
+        query = "SELECT slogan FROM slogan WHERE 1=1"
 
         if params:
-            query+=" AND slogan ILIKE %s"
-            args+=("%"+params+"%",)
+            query += " AND slogan ILIKE %s"
+            args += ("%" + params + "%",)
 
-        query+=" ORDER BY RANDOM()"
-        self.cursor.execute(query,args)
+        query += " ORDER BY RANDOM()"
+        self.cursor.execute(query, args)
 
-        reply=""
+        reply = ""
         if self.cursor.rowcount == 0:
-            reply+="No slogans matching '%s'" % (params,)
+            reply += "No slogans matching '%s'" % (params,)
         else:
-            res=self.cursor.dictfetchone()
-            reply+="%s" %(res['slogan'],)
+            res = self.cursor.dictfetchone()
+            reply += "%s" % (res['slogan'],)
             if self.cursor.rowcount > 1 and params:
-                reply+=" (%d more slogans match this search)" % (self.cursor.rowcount - 1)
+                reply += " (%d more slogans match this search)" % (self.cursor.rowcount - 1)
 
         irc_msg.reply(reply)
 
         return 1
-

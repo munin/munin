@@ -29,14 +29,15 @@ Loadable subclass
 import re
 from munin import loadable
 
-class lookup(loadable.loadable):
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,1)
-        self.paramre=re.compile(r"^\s+(.*)")
-        self.usage=self.__class__.__name__ + " [x:y[:z]|alliancename]"
 
-    def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+class lookup(loadable.loadable):
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 1)
+        self.paramre = re.compile(r"^\s+(.*)")
+        self.usage = self.__class__.__name__ + " [x:y[:z]|alliancename]"
+
+    def execute(self, user, access, irc_msg):
+        m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
         print access, irc_msg.access, irc_msg.target
@@ -44,47 +45,49 @@ class lookup(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
         if not m or not m.group(1):
-            u=loadable.user(pnick=irc_msg.user)
-            if not u.load_from_db(self.cursor,irc_msg.round):
-                irc_msg.reply("You must be registered to use the automatic "+self.__class__.__name__+" command (log in with P and set mode +x, then make sure you've set your planet with the pref command)")
+            u = loadable.user(pnick=irc_msg.user)
+            if not u.load_from_db(self.cursor, irc_msg.round):
+                irc_msg.reply(
+                    "You must be registered to use the automatic " +
+                    self.__class__.__name__ +
+                    " command (log in with P and set mode +x, then make sure you've set your planet with the pref command)")
                 return 1
             if u.planet:
                 irc_msg.reply(str(u.planet))
             else:
                 irc_msg.reply("Usage: %s" % (self.usage,))
             return 1
-        param=m.group(1)
-        m=self.coordre.search(param)
+        param = m.group(1)
+        m = self.coordre.search(param)
         if m:
-            x=m.group(1)
-            y=m.group(2)
-            z=m.group(4)
+            x = m.group(1)
+            y = m.group(2)
+            z = m.group(4)
             # assign param variables
 
             if z:
-                p=loadable.planet(x=x,y=y,z=z)
-                if not p.load_most_recent(self.cursor,irc_msg.round):
-                    irc_msg.reply("No planet matching '%s' found"%(param,))
+                p = loadable.planet(x=x, y=y, z=z)
+                if not p.load_most_recent(self.cursor, irc_msg.round):
+                    irc_msg.reply("No planet matching '%s' found" % (param,))
                     return 1
                 irc_msg.reply(str(p))
                 return 1
             else:
-                g=loadable.galaxy(x=x,y=y)
-                if not g.load_most_recent(self.cursor,irc_msg.round):
-                    irc_msg.reply("No galaxy matching '%s' found"%(param,))
+                g = loadable.galaxy(x=x, y=y)
+                if not g.load_most_recent(self.cursor, irc_msg.round):
+                    irc_msg.reply("No galaxy matching '%s' found" % (param,))
                     return 1
                 irc_msg.reply(str(g))
                 return 1
 
-        #check if this is an alliance
-        a=loadable.alliance(name=param.strip())
-        if a.load_most_recent(self.cursor,irc_msg.round):
+        # check if this is an alliance
+        a = loadable.alliance(name=param.strip())
+        if a.load_most_recent(self.cursor, irc_msg.round):
             irc_msg.reply(str(a))
             return
-        u=self.load_user_from_pnick(param.strip(),irc_msg.round)
+        u = self.load_user_from_pnick(param.strip(), irc_msg.round)
         if u and irc_msg.access >= 100:
             if u.planet:
                 irc_msg.reply(str(u.planet))

@@ -29,18 +29,20 @@ import re
 import string
 import munin.loadable as loadable
 
+
 class orphans(loadable.loadable):
     """
     foo
     """
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,100)
-        self.paramre=re.compile(r"^\s*")
-        self.usage=self.__class__.__name__ + ""
-	self.helptext=['Lists all members whose sponsors are no longer members. Use !adopt to someone\'s sponsor.']
 
-    def execute(self,user,access,irc_msg):
-        m=self.commandre.search(irc_msg.command)
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 100)
+        self.paramre = re.compile(r"^\s*")
+        self.usage = self.__class__.__name__ + ""
+        self.helptext = ['Lists all members whose sponsors are no longer members. Use !adopt to someone\'s sponsor.']
+
+    def execute(self, user, access, irc_msg):
+        m = self.commandre.search(irc_msg.command)
         if not m:
             return 0
 
@@ -48,24 +50,24 @@ class orphans(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables
-        query="SELECT t1.pnick AS pnick FROM user_list t1"
-        query+=" INNER JOIN user_list t2 ON t1.sponsor ilike t2.pnick"
-        query+=" WHERE t1.userlevel >= 100 AND t2.userlevel < 100"
+        query = "SELECT t1.pnick AS pnick FROM user_list t1"
+        query += " INNER JOIN user_list t2 ON t1.sponsor ilike t2.pnick"
+        query += " WHERE t1.userlevel >= 100 AND t2.userlevel < 100"
 
         self.cursor.execute(query)
-        reply=""
+        reply = ""
         if self.cursor.rowcount < 1:
-            reply="There are no orphans. KILL A PARENT NOW."
+            reply = "There are no orphans. KILL A PARENT NOW."
         else:
-            reply="The following members are orphans: "
-            res=self.cursor.dictfetchall()
-            reply+=string.join(map(lambda x:x['pnick'],res),', ')
+            reply = "The following members are orphans: "
+            res = self.cursor.dictfetchall()
+            reply += string.join(map(lambda x: x['pnick'], res), ', ')
 
         irc_msg.reply(reply)
 

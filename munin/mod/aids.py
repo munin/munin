@@ -26,22 +26,23 @@ Loadable.Loadable subclass
 # owners.
 
 
-
 import re
 from munin import loadable
+
 
 class aids(loadable.loadable):
     """
     foo
     """
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,100)
-        self.paramre=re.compile(r"^\s+(\S+)")
-        self.usage=self.__class__.__name__ + " <user>"
-	self.helptext=['Displays who the user has invited to %s'%(self.config.get('Auth','alliance'),)]
 
-    def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 100)
+        self.paramre = re.compile(r"^\s+(\S+)")
+        self.usage = self.__class__.__name__ + " <user>"
+        self.helptext = ['Displays who the user has invited to %s' % (self.config.get('Auth', 'alliance'),)]
+
+    def execute(self, user, access, irc_msg):
+        m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
 
@@ -49,59 +50,57 @@ class aids(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables
-        search=m.group(1)
+        search = m.group(1)
 
         # do stuff here
 
-        mynick=self.config.get('Connection', 'nick')
+        mynick = self.config.get('Connection', 'nick')
         if search.lower() == mynick:
-            irc_msg.reply("I am %s. I gave aids to all y'all bitches."%(mynick,))
+            irc_msg.reply("I am %s. I gave aids to all y'all bitches." % (mynick,))
             return 1
 
-        u=loadable.user(pnick=search)
-        if not u.load_from_db(self.cursor,irc_msg.round):
-            irc_msg.reply("No users matching '%s'"%(search,))
+        u = loadable.user(pnick=search)
+        if not u.load_from_db(self.cursor, irc_msg.round):
+            irc_msg.reply("No users matching '%s'" % (search,))
             return 1
         if u.userlevel < 100:
-            irc_msg.reply("%s is not a member, his aids is worthless."%(u.pnick,))
+            irc_msg.reply("%s is not a member, his aids is worthless." % (u.pnick,))
             return 1
 
-        query="SELECT pnick,sponsor,invites"
-        query+=" FROM user_list"
-        query+=" WHERE sponsor ilike %s"
-        query+=" AND userlevel >= 100"
+        query = "SELECT pnick,sponsor,invites"
+        query += " FROM user_list"
+        query += " WHERE sponsor ilike %s"
+        query += " AND userlevel >= 100"
 
-        self.cursor.execute(query,(u.pnick,))
+        self.cursor.execute(query, (u.pnick,))
 
-        reply=""
-
+        reply = ""
 
         if u.pnick == irc_msg.user:
-            reply+="You are %s." % (u.pnick,)
+            reply += "You are %s." % (u.pnick,)
             if self.cursor.rowcount < 1:
-                reply+=" You have greedily kept your aids all to yourself."
+                reply += " You have greedily kept your aids all to yourself."
             else:
-                reply+=" You have given aids to: "
-                prev=[]
+                reply += " You have given aids to: "
+                prev = []
                 for r in self.cursor.dictfetchall():
                     prev.append(r['pnick'])
-                reply+=", ".join(prev)
+                reply += ", ".join(prev)
         else:
             if self.cursor.rowcount < 1:
-                reply+="%s hasn't given anyone aids, what a selfish prick" %(u.pnick,)
+                reply += "%s hasn't given anyone aids, what a selfish prick" % (u.pnick,)
             else:
-                reply+="%s has given aids to: " % (u.pnick,)
-                prev=[]
+                reply += "%s has given aids to: " % (u.pnick,)
+                prev = []
                 for r in self.cursor.dictfetchall():
                     prev.append(r['pnick'])
-                reply+=", ".join(prev)
-
+                reply += ", ".join(prev)
 
         irc_msg.reply(reply)
 

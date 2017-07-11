@@ -26,14 +26,15 @@ Loadable.Loadable subclass
 import re
 from munin import loadable
 
+
 class cowards(loadable.loadable):
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,1)
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 1)
         self.paramre = re.compile(r"^\s*(.+)")
         self.usage = self.__class__.__name__ + ' <alliance>'
-	self.helptext = ['Lists the currently active relations for the given alliance']
+        self.helptext = ['Lists the currently active relations for the given alliance']
 
-    def execute(self,user,access,irc_msg):
+    def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
@@ -48,8 +49,8 @@ class cowards(loadable.loadable):
             return 0
 
         alliance_name = m.group(1)
-        a=loadable.alliance(name=alliance_name)
-        if not a.load_most_recent(self.cursor,irc_msg.round):
+        a = loadable.alliance(name=alliance_name)
+        if not a.load_most_recent(self.cursor, irc_msg.round):
             irc_msg.reply("No alliance matching '%s' found" % (alliance_name))
             return 0
 
@@ -59,7 +60,7 @@ class cowards(loadable.loadable):
         query += " INNER JOIN alliance_canon AS canon2 ON rel.acceptor = canon2.id"
         query += " WHERE canon1.id = %s OR canon2.id = %s"
         query += " AND rel.end_tick > (SELECT max_tick(%s::smallint))"
-        self.cursor.execute(query, (a.id, a.id,irc_msg.round))
+        self.cursor.execute(query, (a.id, a.id, irc_msg.round))
 
         if self.cursor.rowcount == 0:
             reply = '%s is neutral. Easy targets!' % (a.name)

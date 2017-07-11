@@ -65,11 +65,11 @@ if config.has_option('Database', 'password'):
 if config.has_option('Database', 'host'):
     DSN += ' host=%s' % config.get('Database', 'host')
 
-conn=psycopg.connect(DSN)
-cursor=conn.cursor()
+conn = psycopg.connect(DSN)
+cursor = conn.cursor()
 
-query='SELECT pnick, sponsor FROM user_list'
-query+=" WHERE userlevel >= 100"
+query = 'SELECT pnick, sponsor FROM user_list'
+query += " WHERE userlevel >= 100"
 cursor.execute(query)
-  
-print "\n".join(map(lambda x: '"%s" -> "%s";'%(x['sponsor'],x['pnick']),cursor.dictfetchall()))
+
+print "\n".join(map(lambda x: '"%s" -> "%s";' % (x['sponsor'], x['pnick']), cursor.dictfetchall()))

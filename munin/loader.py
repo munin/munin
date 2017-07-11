@@ -8,6 +8,7 @@ import os
 
 import traceback
 
+
 class Loader(object):
     """Loader class for modules."""
 
@@ -71,7 +72,7 @@ class Loader(object):
             return self.loaded[name]
         except KeyError:
             print self.loaded.keys()
-            return "Module %s not present and could not be loaded."%(name,)
+            return "Module %s not present and could not be loaded." % (name,)
 
     def add_module(self, name, module):
         """Add a module named name to the loaded modules."""
@@ -87,13 +88,13 @@ class Loader(object):
         failure = True
 
         try:
-            self.loaded[name] = __import__(name,fromlist=name.split('.')[-1])
+            self.loaded[name] = __import__(name, fromlist=name.split('.')[-1])
             failure = False
-        except SyntaxError, e:
+        except SyntaxError as e:
             result = "You have a SyntaxError in the module you're trying to load: %s" % (e,)
-        except ImportError, e:
+        except ImportError as e:
             result = "Could not load module %s: %s" % (name, e)
-        except Exception, e:
+        except Exception as e:
             result = "Exception: %s when loading module." % (e,)
 
         if failure:
@@ -118,9 +119,9 @@ class Loader(object):
             failure = False
         except KeyError:
             result = "Module %s not present. Import it first." % (name,)
-        except ImportError, e:
+        except ImportError as e:
             result = "Failed to import module %s: %s" % (name, e)
-        except Exception, e:
+        except Exception as e:
             result = "Exception: %s" % (e,)
 
         if failure:
@@ -132,10 +133,10 @@ class Loader(object):
         for name in self.loaded:
             self.reload(name)
 
-    def populate(self,basedir):
-        os.path.walk(basedir,self.add_directory,None)
+    def populate(self, basedir):
+        os.path.walk(basedir, self.add_directory, None)
 
-    def add_directory(self,arg,directory,files):
+    def add_directory(self, arg, directory, files):
         base_module = '.'.join(directory.split(os.sep))
         module_files = [x for x in files if x[-3:].lower() == '.py' and len(x) > 3 and x != "__init__.py"]
         for m in module_files:
@@ -143,9 +144,9 @@ class Loader(object):
             if not self.imp(module):
                 raise
 
-    def get_submodules(self,name):
-        name_len=len(name)
-        result=[]
+    def get_submodules(self, name):
+        name_len = len(name)
+        result = []
         for k in self.loaded.keys():
             if k[:name_len] == name:
                 result.append(self.loaded[k])

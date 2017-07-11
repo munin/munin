@@ -30,44 +30,47 @@ import re
 from psycopg2 import psycopg1 as psycopg
 from munin import loadable
 
-class galmate(loadable.loadable):
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,50)
-        self.paramre=re.compile(r"^\s+(\S+)")
-        self.usage=self.__class__.__name__ + " <pnick>"
-        self.helptext=None
 
-    def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+class galmate(loadable.loadable):
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 50)
+        self.paramre = re.compile(r"^\s+(\S+)")
+        self.usage = self.__class__.__name__ + " <pnick>"
+        self.helptext = None
+
+    def execute(self, user, access, irc_msg):
+        m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
 
         if not user:
-            irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
+            irc_msg.reply(
+                "You must be registered to use the " +
+                self.__class__.__name__ +
+                " command (log in with P and set mode +x)")
             return 1
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to add galmates")
             return 0
 
-
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        pnick=m.group(1).lower()
+        pnick = m.group(1).lower()
 
-        query="INSERT INTO user_list (pnick,userlevel) VALUES (%s,1)"
+        query = "INSERT INTO user_list (pnick,userlevel) VALUES (%s,1)"
 
         try:
-            self.cursor.execute(query,(pnick,))
-            if self.cursor.rowcount>0:
+            self.cursor.execute(query, (pnick,))
+            if self.cursor.rowcount > 0:
                 irc_msg.reply("Added user %s at level 1" % (pnick,))
         except psycopg.IntegrityError:
             irc_msg.reply("User %s already exists" % (pnick,))
             return 0
-        except:
+        except BaseException:
             raise
 
         return 1

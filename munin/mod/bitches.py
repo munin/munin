@@ -30,14 +30,15 @@ import re
 import string
 from munin import loadable
 
-class bitches(loadable.loadable):
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,100)
-        self.paramre=re.compile(r"^\s+(\d+)")
-        self.usage=self.__class__.__name__ + " [minimum eta]"
 
-    def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+class bitches(loadable.loadable):
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 100)
+        self.paramre = re.compile(r"^\s+(\d+)")
+        self.usage = self.__class__.__name__ + " [minimum eta]"
+
+    def execute(self, user, access, irc_msg):
+        m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
 
@@ -46,64 +47,64 @@ class bitches(loadable.loadable):
             return 0
 
         # do stuff here
-        args=()
-        query="SELECT t3.x AS x, t3.y AS y, count(*) AS number"
-        query+=" FROM target AS t1"
-        query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
-        query+=" LEFT JOIN user_list AS t2 ON t1.uid=t2.id"
+        args = ()
+        query = "SELECT t3.x AS x, t3.y AS y, count(*) AS number"
+        query += " FROM target AS t1"
+        query += " INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
+        query += " LEFT JOIN user_list AS t2 ON t1.uid=t2.id"
 
-        m=self.paramre.search(m.group(1))
-        tick=None
+        m = self.paramre.search(m.group(1))
+        tick = None
         if m:
-            tick=m.group(1)
-            query+=" WHERE t1.tick >= ((SELECT max_tick(%s::smallint))+%s)"
-            args+=(irc_msg.round,m.group(1),)
+            tick = m.group(1)
+            query += " WHERE t1.tick >= ((SELECT max_tick(%s::smallint))+%s)"
+            args += (irc_msg.round, m.group(1),)
         else:
-            query+=" WHERE t1.tick > (SELECT max_tick(%s::smallint))"
-            args+=(irc_msg.round,)
-        query+="  AND t1.round = %s AND t3.tick = (SELECT max_tick(%s::smallint))"
-        query+=" GROUP BY x, y ORDER BY x, y"
-        args+=(irc_msg.round,irc_msg.round,)
+            query += " WHERE t1.tick > (SELECT max_tick(%s::smallint))"
+            args += (irc_msg.round,)
+        query += "  AND t1.round = %s AND t3.tick = (SELECT max_tick(%s::smallint))"
+        query += " GROUP BY x, y ORDER BY x, y"
+        args += (irc_msg.round, irc_msg.round,)
 
-        self.cursor.execute(query,args)
+        self.cursor.execute(query, args)
         if self.cursor.rowcount < 1:
-            reply="No active bookings. This makes Munin sad. Please don't make Munin sad."
+            reply = "No active bookings. This makes Munin sad. Please don't make Munin sad."
             irc_msg.reply(reply)
             return 1
-        reply="Active bookings:"
-        prev=[]
+        reply = "Active bookings:"
+        prev = []
         for b in self.cursor.dictfetchall():
-            prev.append("%s:%s(%s)"%(b['x'],b['y'],b['number']))
+            prev.append("%s:%s(%s)" % (b['x'], b['y'], b['number']))
 
-        reply+=" "+string.join(prev,', ')
+        reply += " " + string.join(prev, ', ')
         irc_msg.reply(reply)
 
-        #begin finding of all alliance targets
+        # begin finding of all alliance targets
 
-        args=()
-        query="SELECT lower(t6.name) AS alliance,count(*) AS number"
-        query+=" FROM target AS t1"
-        query+=" INNER JOIN planet_dump AS t3 on t1.pid=t3.id"
-        query+=" LEFT JOIN intel AS t2 ON t3.id=t2.pid"
-        query+=" LEFT JOIN alliance_canon AS t6 ON t2.alliance_id=t6.id"
+        args = ()
+        query = "SELECT lower(t6.name) AS alliance,count(*) AS number"
+        query += " FROM target AS t1"
+        query += " INNER JOIN planet_dump AS t3 on t1.pid=t3.id"
+        query += " LEFT JOIN intel AS t2 ON t3.id=t2.pid"
+        query += " LEFT JOIN alliance_canon AS t6 ON t2.alliance_id=t6.id"
         if tick:
-            query+=" WHERE t1.tick >= ((SELECT max_tick(%s::smallint))+%s)"
-            args+=(irc_msg.round,tick,)
+            query += " WHERE t1.tick >= ((SELECT max_tick(%s::smallint))+%s)"
+            args += (irc_msg.round, tick,)
         else:
-            query+=" WHERE t1.tick > (SELECT max_tick(%s::smallint))"
-            args+=(irc_msg.round,)
-        query+="  AND t1.round = %s AND t3.tick = (SELECT max_tick(%s::smallint))"
-        args+=(irc_msg.round,irc_msg.round,)
-        query+=" GROUP BY lower(t6.name) ORDER BY lower(t6.name)"
-        self.cursor.execute(query,args)
+            query += " WHERE t1.tick > (SELECT max_tick(%s::smallint))"
+            args += (irc_msg.round,)
+        query += "  AND t1.round = %s AND t3.tick = (SELECT max_tick(%s::smallint))"
+        args += (irc_msg.round, irc_msg.round,)
+        query += " GROUP BY lower(t6.name) ORDER BY lower(t6.name)"
+        self.cursor.execute(query, args)
 
         if self.cursor.rowcount < 1:
             "This should never happen"
-        reply="Active bitches:"
-        prev=[]
+        reply = "Active bitches:"
+        prev = []
         for b in self.cursor.dictfetchall():
-            prev.append("%s (%s)"%(self.cap(b['alliance'] or "Unknown"),b['number']))
-        reply+=" "+string.join(prev,', ')
+            prev.append("%s (%s)" % (self.cap(b['alliance'] or "Unknown"), b['number']))
+        reply += " " + string.join(prev, ', ')
         irc_msg.reply(reply)
 
         return 1

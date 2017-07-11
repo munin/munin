@@ -29,32 +29,32 @@ Loadable subclass
 import re
 from munin import loadable
 
-class remchan(loadable.loadable):
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,100)
-        self.paramre=re.compile(r"^\s+(#\S+)")
-        self.usage=self.__class__.__name__ + " <channels>"
 
-    def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+class remchan(loadable.loadable):
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 100)
+        self.paramre = re.compile(r"^\s+(#\S+)")
+        self.usage = self.__class__.__name__ + " <channels>"
+
+    def execute(self, user, access, irc_msg):
+        m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
 
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        chan=m.group(1).lower()
+        chan = m.group(1).lower()
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to remove channels")
             return 0
 
-
-        query="SELECT chan,userlevel FROM channel_list WHERE chan=%s LIMIT 1"
-        self.cursor.execute(query,(chan,))
-        res=self.cursor.dictfetchone()
+        query = "SELECT chan,userlevel FROM channel_list WHERE chan=%s LIMIT 1"
+        self.cursor.execute(query, (chan,))
+        res = self.cursor.dictfetchone()
         if not res:
             irc_msg.reply("Channel '%s' does not exist" % (chan,))
             return 0
@@ -62,22 +62,22 @@ class remchan(loadable.loadable):
         real_chan = res['chan']
 
         if access_lvl >= access:
-            irc_msg.reply("You may not remove %s, the channel's access (%s) exceeds your own (%s)" % (real_chan, access_lvl, access))
+            irc_msg.reply(
+                "You may not remove %s, the channel's access (%s) exceeds your own (%s)" %
+                (real_chan, access_lvl, access))
             return 0
 
-        query="DELETE FROM channel_list WHERE chan=%s"
+        query = "DELETE FROM channel_list WHERE chan=%s"
 
         try:
-            self.cursor.execute(query,(real_chan,))
-            if self.cursor.rowcount>0:
-                irc_msg.client.privmsg('P',"remuser %s %s" %(real_chan, self.config.get('Connection', 'nick')))
+            self.cursor.execute(query, (real_chan,))
+            if self.cursor.rowcount > 0:
+                irc_msg.client.privmsg('P', "remuser %s %s" % (real_chan, self.config.get('Connection', 'nick')))
                 irc_msg.client.wline("PART %s" % (real_chan,))
                 irc_msg.reply("Removed channel %s" % (real_chan,))
             else:
-                irc_msg.reply("No channel removed" )
-        except:
+                irc_msg.reply("No channel removed")
+        except BaseException:
             raise
 
         return 1
-
-

@@ -32,18 +32,20 @@ import re
 import string
 from munin import loadable
 
+
 class surprisesex(loadable.loadable):
     """
     foo
     """
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,50)
-        self.paramre=re.compile(r"^\s+(.*)")
-        self.usage=self.__class__.__name__ + " [<[x:y[:z]]|[alliancename]>]"
-        self.helptext=None
 
-    def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 50)
+        self.paramre = re.compile(r"^\s+(.*)")
+        self.usage = self.__class__.__name__ + " [<[x:y[:z]]|[alliancename]>]"
+        self.helptext = None
+
+    def execute(self, user, access, irc_msg):
+        m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
 
@@ -51,116 +53,115 @@ class surprisesex(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
         if not m or not m.group(1):
-            u=loadable.user(pnick=irc_msg.user)
-            if not u.load_from_db(self.cursor,irc_msg.round):
+            u = loadable.user(pnick=irc_msg.user)
+            if not u.load_from_db(self.cursor, irc_msg.round):
                 irc_msg.reply("Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
                 return 1
             if u.planet:
-                reply=self.surprise(round=irc_msg.round,x=u.planet.x,y=u.planet.y,z=u.planet.z)
+                reply = self.surprise(round=irc_msg.round, x=u.planet.x, y=u.planet.y, z=u.planet.z)
                 irc_msg.reply(reply)
             else:
                 irc_msg.reply("Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
             return 0
 
         # assign param variables
-        param=m.group(1)
-        m=self.coordre.search(param)
+        param = m.group(1)
+        m = self.coordre.search(param)
         if m:
-            x=m.group(1)
-            y=m.group(2)
-            z=m.group(4)
+            x = m.group(1)
+            y = m.group(2)
+            z = m.group(4)
 
             if z:
-                p=loadable.planet(x=x,y=y,z=z)
-                if not p.load_most_recent(self.cursor,irc_msg.round):
-                    irc_msg.reply("No planet matching '%s' found"%(param,))
+                p = loadable.planet(x=x, y=y, z=z)
+                if not p.load_most_recent(self.cursor, irc_msg.round):
+                    irc_msg.reply("No planet matching '%s' found" % (param,))
                     return 1
-                reply=self.surprise(round=irc_msg.round,x=p.x,y=p.y,z=p.z)
+                reply = self.surprise(round=irc_msg.round, x=p.x, y=p.y, z=p.z)
 
                 irc_msg.reply(reply)
                 return 1
             else:
-                g=loadable.galaxy(x=x,y=y)
-                if not g.load_most_recent(self.cursor,irc_msg.round):
-                    irc_msg.reply("No galaxy matching '%s' found"%(param,))
+                g = loadable.galaxy(x=x, y=y)
+                if not g.load_most_recent(self.cursor, irc_msg.round):
+                    irc_msg.reply("No galaxy matching '%s' found" % (param,))
                     return 1
-                reply=self.surprise(round=irc_msg.round,x=g.x,y=g.y)
+                reply = self.surprise(round=irc_msg.round, x=g.x, y=g.y)
                 irc_msg.reply(reply)
                 return 1
 
-        a=loadable.alliance(name=param.strip())
-        if not a.load_most_recent(self.cursor,irc_msg.round):
+        a = loadable.alliance(name=param.strip())
+        if not a.load_most_recent(self.cursor, irc_msg.round):
             irc_msg.reply("No alliance matching '%s' found" % (param,))
             return 1
-        reply=self.surprise(round=irc_msg.round,alliance=a.name)
+        reply = self.surprise(round=irc_msg.round, alliance=a.name)
         irc_msg.reply(reply)
 
         return 1
 
-    def cap(self,text):
-        if len(text)>3:
-           return text.title()
+    def cap(self, text):
+        if len(text) > 3:
+            return text.title()
         else:
             return text.upper()
 
-    def surprise(self,round,x=None,y=None,z=None,alliance=None):
-        args=(round,round,)
-        query="SELECT COALESCE(lower(t7.name),'unknown') AS alliance,count(COALESCE(lower(t7.name),'unknown')) AS attacks "
-        query+=" FROM planet_canon AS t1"
-        query+=" INNER JOIN fleet AS t3 ON t1.id=t3.owner_id"
-        query+=" LEFT JOIN intel AS t2 ON t3.owner_id=t2.pid"
-        query+=" LEFT JOIN alliance_canon AS t7 ON t2.alliance_id=t7.id"
-        query+=" INNER JOIN planet_dump AS t4 ON t4.id=t3.target"
-        query+=" INNER JOIN intel AS t5 ON t3.target=t5.pid"
-        query+=" LEFT JOIN alliance_canon AS t6 ON t5.alliance_id=t6.id"
-        query+=" WHERE mission = 'attack'"
-        query+=" AND t4.tick=(SELECT max_tick(%s::smallint)) AND t4.round=%s"
+    def surprise(self, round, x=None, y=None, z=None, alliance=None):
+        args = (round, round,)
+        query = "SELECT COALESCE(lower(t7.name),'unknown') AS alliance,count(COALESCE(lower(t7.name),'unknown')) AS attacks "
+        query += " FROM planet_canon AS t1"
+        query += " INNER JOIN fleet AS t3 ON t1.id=t3.owner_id"
+        query += " LEFT JOIN intel AS t2 ON t3.owner_id=t2.pid"
+        query += " LEFT JOIN alliance_canon AS t7 ON t2.alliance_id=t7.id"
+        query += " INNER JOIN planet_dump AS t4 ON t4.id=t3.target"
+        query += " INNER JOIN intel AS t5 ON t3.target=t5.pid"
+        query += " LEFT JOIN alliance_canon AS t6 ON t5.alliance_id=t6.id"
+        query += " WHERE mission = 'attack'"
+        query += " AND t4.tick=(SELECT max_tick(%s::smallint)) AND t4.round=%s"
 
         if x and y:
-            query+=" AND t4.x=%s AND t4.y=%s"
-            args+=(x,y)
+            query += " AND t4.x=%s AND t4.y=%s"
+            args += (x, y)
         if z:
-            query+=" AND t4.z=%s"
-            args+=(z,)
+            query += " AND t4.z=%s"
+            args += (z,)
 
         if alliance:
-            query+=" AND t6.name ilike %s"
-            args+=('%'+alliance+'%',)
+            query += " AND t6.name ilike %s"
+            args += ('%' + alliance + '%',)
 
-        query+=" GROUP BY lower(t7.name)"
-        query+=" ORDER BY count(lower(t7.name)) DESC"
+        query += " GROUP BY lower(t7.name)"
+        query += " ORDER BY count(lower(t7.name)) DESC"
 
-        self.cursor.execute(query,args)
-        attackers=self.cursor.dictfetchall()
+        self.cursor.execute(query, args)
+        attackers = self.cursor.dictfetchall()
         if not len(attackers):
-            reply="No fleets found targeting"
+            reply = "No fleets found targeting"
             if x and y:
-                reply+=" coords %s:%s"%(x,y)
+                reply += " coords %s:%s" % (x, y)
             if z:
-                reply+=":%s"%(z,)
+                reply += ":%s" % (z,)
             if alliance:
-                reply+=" alliance %s"%(alliance,)
+                reply += " alliance %s" % (alliance,)
         else:
-            reply="Top attackers on"
+            reply = "Top attackers on"
             if x and y:
-                reply+=" coords %s:%s"%(x,y)
+                reply += " coords %s:%s" % (x, y)
             if z:
-                reply+=":%s"%(z,)
+                reply += ":%s" % (z,)
             if alliance:
-                reply+=" alliance %s"%(alliance,)
-            reply+=" are (total: %s) "%(sum([d['attacks'] for d in attackers]),)
-            i=0
-            prev=[]
+                reply += " alliance %s" % (alliance,)
+            reply += " are (total: %s) " % (sum([d['attacks'] for d in attackers]),)
+            i = 0
+            prev = []
             for a in attackers:
-               if i>9:
-                   break
-               else:
-                   i+=1
-               prev.append("%s - %s"%(self.cap(a['alliance'] or 'unknown'),a['attacks']))
+                if i > 9:
+                    break
+                else:
+                    i += 1
+                prev.append("%s - %s" % (self.cap(a['alliance'] or 'unknown'), a['attacks']))
 
-            reply+=string.join(prev," | ")
+            reply += string.join(prev, " | ")
 
         return reply

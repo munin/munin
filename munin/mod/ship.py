@@ -31,18 +31,20 @@ Loadable.Loadable subclass
 import re
 from munin import loadable
 
+
 class ship(loadable.loadable):
     """
     foo
     """
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,1)
-        self.paramre=re.compile(r"^\s+(.*)")
-        self.usage=self.__class__.__name__ + " <shipname>"
-        self.helptext=['Shows stats for a ship.']
 
-    def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 1)
+        self.paramre = re.compile(r"^\s+(.*)")
+        self.usage = self.__class__.__name__ + " <shipname>"
+        self.helptext = ['Shows stats for a ship.']
+
+    def execute(self, user, access, irc_msg):
+        m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
 
@@ -50,40 +52,40 @@ class ship(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables
-        ship_name=m.group(1)
+        ship_name = m.group(1)
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         # do stuff here
-        s=self.get_ship_from_db(ship_name,irc_msg.round)
+        s = self.get_ship_from_db(ship_name, irc_msg.round)
         if not s:
             irc_msg.reply("%s is not a ship" % (ship_name))
             return 0
 
-        reply="%s (%s) is class %s | Target 1: %s |"%(s['name'],s['race'][:3],s['class'],s['target_1'])
+        reply = "%s (%s) is class %s | Target 1: %s |" % (s['name'], s['race'][:3], s['class'], s['target_1'])
         if s['target_2'] != "NULL":
-            reply+=" Target 2: %s |"%(s['target_2'],)
+            reply += " Target 2: %s |" % (s['target_2'],)
         if s['target_3'] != "NULL":
-            reply+=" Target 3: %s |"%(s['target_3'],)
+            reply += " Target 3: %s |" % (s['target_3'],)
         type = s['type']
         if type.lower() == 'emp':
             type = '*hugs*'
-        reply+=" Type: %s | Init: %s |"%(type,s['init'])
-        reply+=" HUGres: %s |"%(s['empres'],)
-        if s['type']=='Emp':
-            reply+=" Hugs: %s |" %(s['gun'],)
+        reply += " Type: %s | Init: %s |" % (type, s['init'])
+        reply += " HUGres: %s |" % (s['empres'],)
+        if s['type'] == 'Emp':
+            reply += " Hugs: %s |" % (s['gun'],)
         else:
-            reply+=" D/C: %s |"%((s['damage']*10000)/s['total_cost'],)
+            reply += " D/C: %s |" % ((s['damage'] * 10000) / s['total_cost'],)
 
-        reply+=" A/C: %s"%((s['armor']*10000)/s['total_cost'],)
+        reply += " A/C: %s" % ((s['armor'] * 10000) / s['total_cost'],)
 
         irc_msg.reply(reply)
 

@@ -28,19 +28,21 @@ Loadable.Loadable subclass
 import re
 import munin.loadable as loadable
 
+
 class searchdef(loadable.loadable):
     """
     foo
     """
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,100)
-        self.paramre=re.compile(r"^\s*(\d+(?:\.\d+)?[mk]?)\s+(\S+)")
-        self.ship_classes = ['fi','co','fr','de','cr','bs']
-        self.usage=self.__class__.__name__ + " <number> <ship>"
-	self.helptext=None
 
-    def execute(self,user,access,irc_msg):
-        m=self.commandre.search(irc_msg.command)
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 100)
+        self.paramre = re.compile(r"^\s*(\d+(?:\.\d+)?[mk]?)\s+(\S+)")
+        self.ship_classes = ['fi', 'co', 'fr', 'de', 'cr', 'bs']
+        self.usage = self.__class__.__name__ + " <number> <ship>"
+        self.helptext = None
+
+    def execute(self, user, access, irc_msg):
+        m = self.commandre.search(irc_msg.command)
         if not m:
             return 0
 
@@ -48,41 +50,46 @@ class searchdef(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables
-        count=m.group(1)
-        ship=m.group(2)
+        count = m.group(1)
+        ship = m.group(2)
 
-        count=self.human_readable_number_to_integer(count)
+        count = self.human_readable_number_to_integer(count)
         if ship not in self.ship_classes:
-            ship_lookup = '%'+ship+'%'
+            ship_lookup = '%' + ship + '%'
         else:
             ship_lookup = ship
 
-        query="SELECT u.pnick, p.fleetcount, p.fleetcomment, p.fleetupdated, f.ship, f.ship_count"
-        query+=" FROM       user_fleet      AS f"
-        query+=" INNER JOIN user_list       AS u ON u.id=f.user_id"
-        query+=" LEFT JOIN  round_user_pref AS p ON u.id=p.user_id"
-        query+=" WHERE f.round = %s"
-        query+=" AND p.round = %s"
-        query+=" AND f.ship ILIKE %s"
-        query+=" AND f.ship_count >= %s"
-        query+=" AND p.fleetcount > 0"
-        query+=" ORDER BY f.ship_count DESC"
-        self.cursor.execute(query,(irc_msg.round,irc_msg.round,ship_lookup,count,))
+        query = "SELECT u.pnick, p.fleetcount, p.fleetcomment, p.fleetupdated, f.ship, f.ship_count"
+        query += " FROM       user_fleet      AS f"
+        query += " INNER JOIN user_list       AS u ON u.id=f.user_id"
+        query += " LEFT JOIN  round_user_pref AS p ON u.id=p.user_id"
+        query += " WHERE f.round = %s"
+        query += " AND p.round = %s"
+        query += " AND f.ship ILIKE %s"
+        query += " AND f.ship_count >= %s"
+        query += " AND p.fleetcount > 0"
+        query += " ORDER BY f.ship_count DESC"
+        self.cursor.execute(query, (irc_msg.round, irc_msg.round, ship_lookup, count,))
 
         if self.cursor.rowcount < 1:
-            irc_msg.reply("There are no planets with free fleets and at least %s ships matching '%s'"%(self.format_real_value(count),
-                                                                                                       ship))
+            irc_msg.reply(
+                "There are no planets with free fleets and at least %s ships matching '%s'" %
+                (self.format_real_value(count), ship))
             return
 
-        reply="Fleets matching query: "
-        reply+=", ".join(map(lambda x: "%s(%s) %s: %s %s"%(x['pnick'],x['fleetupdated']-self.current_tick(irc_msg.round),x['fleetcount'],self.format_real_value(x['ship_count']),x['ship']),
-                             self.cursor.dictfetchall()))
+        reply = "Fleets matching query: "
+        reply += ", ".join(map(lambda x: "%s(%s) %s: %s %s" % (x['pnick'],
+                                                               x['fleetupdated'] - self.current_tick(irc_msg.round),
+                                                               x['fleetcount'],
+                                                               self.format_real_value(x['ship_count']),
+                                                               x['ship']),
+                               self.cursor.dictfetchall()))
 
         irc_msg.reply(reply)
 

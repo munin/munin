@@ -29,29 +29,30 @@ Loadable.Loadable subclass
 import re
 from munin import loadable
 
-class roidcost(loadable.loadable):
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,1)
-        self.paramre=re.compile(r"^\s+(\d+)\s+(\d+[km]?)(\s+(\d+))?",re.I)
-        self.usage=self.__class__.__name__ + " <roids> <_value_ cost> [mining_bonus]"
 
-    def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+class roidcost(loadable.loadable):
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 1)
+        self.paramre = re.compile(r"^\s+(\d+)\s+(\d+[km]?)(\s+(\d+))?", re.I)
+        self.usage = self.__class__.__name__ + " <roids> <_value_ cost> [mining_bonus]"
+
+    def execute(self, user, access, irc_msg):
+        m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
 
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables
-        roids=int(m.group(1))
-        cost=m.group(2)
-        bonus=m.group(4) or 0
-        bonus=int(bonus)
+        roids = int(m.group(1))
+        cost = m.group(2)
+        bonus = m.group(4) or 0
+        bonus = int(bonus)
 
-        mining=250
+        mining = 250
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
@@ -61,23 +62,26 @@ class roidcost(loadable.loadable):
             irc_msg.reply("Another NewDawn landing, eh?")
             return 1
 
-        if cost[-1].lower()=='k':
-            cost=1000*int(cost[:-1])
-        elif cost[-1].lower()=='m':
-            cost=1000000*int(cost[:-1])
+        if cost[-1].lower() == 'k':
+            cost = 1000 * int(cost[:-1])
+        elif cost[-1].lower() == 'm':
+            cost = 1000000 * int(cost[:-1])
         else:
-            cost=int(cost)
+            cost = int(cost)
 
-        mining=mining * ((float(bonus)+100)/100)
+        mining = mining * ((float(bonus) + 100) / 100)
 
-        repay=int((cost*100)/(roids*mining))
-        reply="Capping %s roids at %s value with %s%% bonus will repay in %s ticks (%s days)" % (roids,self.format_value(cost*100),bonus,repay,repay/24)
+        repay = int((cost * 100) / (roids * mining))
+        reply = "Capping %s roids at %s value with %s%% bonus will repay in %s ticks (%s days)" % (
+            roids, self.format_value(cost * 100), bonus, repay, repay / 24)
 
-        repay_demo = int((cost*100)/(roids*mining*(1/(1-float(self.config.get('Planetarion', 'democracy_cost_reduction'))))))
-        reply+=" Democracy: %s ticks (%s days)" % (repay_demo,repay_demo/24)
+        repay_demo = int((cost * 100) / (roids * mining *
+                                         (1 / (1 - float(self.config.get('Planetarion', 'democracy_cost_reduction'))))))
+        reply += " Democracy: %s ticks (%s days)" % (repay_demo, repay_demo / 24)
 
-        repay_tota = int((cost*100)/(roids*mining*(1/(1-float(self.config.get('Planetarion', 'totalitarianism_cost_reduction'))))))
-        reply+=" Totalitarianism: %s ticks (%s days)" % (repay_tota,repay_tota/24)
+        repay_tota = int((cost * 100) / (roids * mining *
+                                         (1 / (1 - float(self.config.get('Planetarion', 'totalitarianism_cost_reduction'))))))
+        reply += " Totalitarianism: %s ticks (%s days)" % (repay_tota, repay_tota / 24)
 
         irc_msg.reply(reply)
 

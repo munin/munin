@@ -26,22 +26,23 @@ Loadable.Loadable subclass
 # owners.
 
 
-
 import re
 from munin import loadable
+
 
 class adopt(loadable.loadable):
     """
     foo
     """
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,100)
-        self.paramre=re.compile(r"^\s+(\S+)")
-        self.usage=self.__class__.__name__ + " <pnick>"
-        self.helptext=None
 
-    def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 100)
+        self.paramre = re.compile(r"^\s+(\S+)")
+        self.usage = self.__class__.__name__ + " <pnick>"
+        self.helptext = None
+
+    def execute(self, user, access, irc_msg):
+        m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
 
@@ -49,18 +50,19 @@ class adopt(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        u=self.load_user(user,irc_msg)
-        if not u: return 0
+        u = self.load_user(user, irc_msg)
+        if not u:
+            return 0
 
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables
-        adoptee=m.group(1)
+        adoptee = m.group(1)
 
-        if adoptee.lower() == self.config.get('Connection','nick').lower():
+        if adoptee.lower() == self.config.get('Connection', 'nick').lower():
             irc_msg.reply("Fuck off you stupid twat, stop trying to be a clever shit.")
             return 1
 
@@ -68,26 +70,26 @@ class adopt(loadable.loadable):
             irc_msg.reply("Stop wanking your own dick and find a daddy to do it for you, retard.")
             return 1
 
-        a=loadable.user(pnick=adoptee)
+        a = loadable.user(pnick=adoptee)
         a.load_from_db(self.cursor, irc_msg.round)
         if not a.id or a.userlevel < 100:
-            irc_msg.reply("No members matching '%s'"%(adoptee,))
+            irc_msg.reply("No members matching '%s'" % (adoptee,))
             return 1
 
-        s=loadable.user(pnick=a.sponsor)
+        s = loadable.user(pnick=a.sponsor)
         s.load_from_db(self.cursor, irc_msg.round)
         if s.id and s.userlevel >= 100:
-            irc_msg.reply("%s already has a daddy you filthy would-be kidnapper!"%(a.pnick,))
+            irc_msg.reply("%s already has a daddy you filthy would-be kidnapper!" % (a.pnick,))
             return 1
 
-        if u.has_ancestor(self.cursor,a.pnick,irc_msg.round):
+        if u.has_ancestor(self.cursor, a.pnick, irc_msg.round):
             irc_msg.reply("Ew, incest.")
             return 1
 
-        query="UPDATE user_list"
-        query+=" SET sponsor = %s"
-        query+=" WHERE id = %s"
-        self.cursor.execute(query,(u.pnick,a.id,))
+        query = "UPDATE user_list"
+        query += " SET sponsor = %s"
+        query += " WHERE id = %s"
+        self.cursor.execute(query, (u.pnick, a.id,))
 
-        irc_msg.reply("Congratulations! You're now the proud father of a not-so newly born %s!"%(a.pnick,))
+        irc_msg.reply("Congratulations! You're now the proud father of a not-so newly born %s!" % (a.pnick,))
         return 1

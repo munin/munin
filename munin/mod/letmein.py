@@ -29,47 +29,57 @@ Loadable.Loadable subclass
 import re
 import munin.loadable as loadable
 
+
 class letmein(loadable.loadable):
     """
     foo
     """
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,0)
-        self.paramre=re.compile(r"^\s+(\S+)\s+(\S+)")
-        self.usage=self.__class__.__name__ + " <pnick> <password>"
-	self.helptext=["Give your pnick and password in PM to get invited into #%s. This command is for when P is down."%(self.config.get('Auth','home'),)]
 
-    def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 0)
+        self.paramre = re.compile(r"^\s+(\S+)\s+(\S+)")
+        self.usage = self.__class__.__name__ + " <pnick> <password>"
+        self.helptext = [
+            "Give your pnick and password in PM to get invited into #%s. This command is for when P is down." %
+            (self.config.get(
+                'Auth',
+                'home'),
+             )]
+
+    def execute(self, user, access, irc_msg):
+        m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
 
-        public=re.match(r"(#\S+)",irc_msg.target,re.I)
+        public = re.match(r"(#\S+)", irc_msg.target, re.I)
         if public:
             irc_msg.reply("Don't use this command in public you shit")
 
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables
-        auther=m.group(1)
-        passy=m.group(2)
+        auther = m.group(1)
+        passy = m.group(2)
 
-        query="SELECT pnick, userlevel FROM user_list"
-        query+=" WHERE pnick ilike %s AND passwd = MD5(MD5(salt) || MD5(%s))"
+        query = "SELECT pnick, userlevel FROM user_list"
+        query += " WHERE pnick ilike %s AND passwd = MD5(MD5(salt) || MD5(%s))"
 
-
-        self.cursor.execute(query,(auther,passy))
+        self.cursor.execute(query, (auther, passy))
         if self.cursor.rowcount == 1:
-            r=self.cursor.dictfetchone()
+            r = self.cursor.dictfetchone()
             if r['userlevel'] >= 100:
-                irc_msg.client.wline("INVITE %s #%s"%(irc_msg.nick,self.config.get('Auth','home')))
-                irc_msg.client.privmsg("#%s"%(self.config.get('Auth','home'),),"%s is entering the channel under nick %s, quick everyone, hide!"%(auther,irc_msg.nick))
+                irc_msg.client.wline("INVITE %s #%s" % (irc_msg.nick, self.config.get('Auth', 'home')))
+                irc_msg.client.privmsg(
+                    "#%s" %
+                    (self.config.get(
+                        'Auth', 'home'),), "%s is entering the channel under nick %s, quick everyone, hide!" %
+                    (auther, irc_msg.nick))
                 irc_msg.reply("Now get in, bitch")
         else:
-            irc_msg.reply( "No.")
+            irc_msg.reply("No.")
         # do stuff here
 
         return 1

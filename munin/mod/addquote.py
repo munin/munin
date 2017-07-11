@@ -26,45 +26,46 @@ Loadable.Loadable subclass
 import re
 from munin import loadable
 
-class addquote(loadable.loadable):
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,100)
-        self.paramre=re.compile(r"^\s+(.*)$")
-        self.timestampre=re.compile(r"\s*\[?\s*\d{2}:\d{2}(:\d{2})?\s*\]?\s*")
-        self.usage=self.__class__.__name__ + " <quote goes here>"
 
-    def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+class addquote(loadable.loadable):
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 100)
+        self.paramre = re.compile(r"^\s+(.*)$")
+        self.timestampre = re.compile(r"\s*\[?\s*\d{2}:\d{2}(:\d{2})?\s*\]?\s*")
+        self.usage = self.__class__.__name__ + " <quote goes here>"
+
+    def execute(self, user, access, irc_msg):
+        m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
 
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
 
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
-        params=m.group(1)
+        params = m.group(1)
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        params=self.striptimestamps(params)
-        args=(params,)
+        params = self.striptimestamps(params)
+        args = (params,)
 
-        query="INSERT INTO quote (quote) VALUES (%s)"
-        self.cursor.execute(query,args)
+        query = "INSERT INTO quote (quote) VALUES (%s)"
+        self.cursor.execute(query, args)
         #reply="Added your shitty quote"
-        #irc_msg.reply(reply)
+        # irc_msg.reply(reply)
 
-        irc_msg.reply("Added your shitty quote: "+params)
+        irc_msg.reply("Added your shitty quote: " + params)
         # do stuff here
 
         return 1
 
-    def striptimestamps(self,s):
+    def striptimestamps(self, s):
         """
         strip timestamps from s
         """
-        s=self.timestampre.sub(' ',s)
-        s=s.strip()
+        s = self.timestampre.sub(' ', s)
+        s = s.strip()
         return s

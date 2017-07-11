@@ -31,18 +31,20 @@ Loadable.Loadable subclass
 import re
 from munin import loadable
 
+
 class whois(loadable.loadable):
     """
     foo
     """
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,100)
-        self.paramre=re.compile(r"^\s+(\S+)")
-        self.usage=self.__class__.__name__ + ""
-	self.helptext=None
 
-    def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 100)
+        self.paramre = re.compile(r"^\s+(\S+)")
+        self.usage = self.__class__.__name__ + ""
+        self.helptext = None
+
+    def execute(self, user, access, irc_msg):
+        m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
 
@@ -50,46 +52,47 @@ class whois(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables
-        search=m.group(1)
+        search = m.group(1)
 
         # do stuff here
-        if search.lower() == self.config.get('Connection','nick').lower():
+        if search.lower() == self.config.get('Connection', 'nick').lower():
             irc_msg.reply("I am Munin. Hear me roar.")
             return 1
 
-        query="SELECT pnick,alias_nick,sponsor,invites,carebears"
-        query+=" FROM user_list"
-        query+=" WHERE pnick ilike %s"
-        query+=" AND userlevel >= 100"
+        query = "SELECT pnick,alias_nick,sponsor,invites,carebears"
+        query += " FROM user_list"
+        query += " WHERE pnick ilike %s"
+        query += " AND userlevel >= 100"
 
-        self.cursor.execute(query,(search,))
+        self.cursor.execute(query, (search,))
 
-        reply=""
+        reply = ""
         if self.cursor.rowcount < 1:
-            self.cursor.execute(query,('%'+search+'%',))
+            self.cursor.execute(query, ('%' + search + '%',))
 
-        r=self.cursor.dictfetchone()
+        r = self.cursor.dictfetchone()
 
         if not r:
-            reply+="No members matching '%s'"%(search,)
+            reply += "No members matching '%s'" % (search,)
         else:
-            u=loadable.user(pnick=r['pnick'])
-            u.load_from_db( self.cursor,irc_msg.round)
+            u = loadable.user(pnick=r['pnick'])
+            u.load_from_db(self.cursor, irc_msg.round)
             if r['pnick'] == irc_msg.user:
-                reply+="You are %s. You are also known as %s. Your sponsor is %s. Your Munin number is %s. You have %d %s."
+                reply += "You are %s. You are also known as %s. Your sponsor is %s. Your Munin number is %s. You have %d %s."
             else:
-                reply+="Information about %s: They are also known as %s. Their sponsor is %s. Their Munin number is %s. They have %d %s."
-            reply=reply%(r['pnick'],r['alias_nick'],r['sponsor'],self.munin_number_to_output(u,irc_msg.round),r['carebears'],self.pluralize(r['carebears'],"carebear"))
+                reply += "Information about %s: They are also known as %s. Their sponsor is %s. Their Munin number is %s. They have %d %s."
+            reply = reply % (r['pnick'], r['alias_nick'], r['sponsor'], self.munin_number_to_output(
+                u, irc_msg.round), r['carebears'], self.pluralize(r['carebears'], "carebear"))
 
         irc_msg.reply(reply)
         return 1
 
-    def munin_number_to_output(self,u,round):
-        number=u.munin_number(self.cursor, self.config, round)
+    def munin_number_to_output(self, u, round):
+        number = u.munin_number(self.cursor, self.config, round)
         return number or 'a kabajillion'

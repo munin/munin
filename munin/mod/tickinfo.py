@@ -26,18 +26,20 @@ Loadable.Loadable subclass
 import re
 import munin.loadable as loadable
 
+
 class tickinfo(loadable.loadable):
     """
     foo
     """
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,1)
-        self.paramre=re.compile(r"^\s*")
-        self.usage=self.__class__.__name__ + ""
-	self.helptext=['Shows information about the latest tick.']
 
-    def execute(self,user,access,irc_msg):
-        m=self.commandre.search(irc_msg.command)
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 1)
+        self.paramre = re.compile(r"^\s*")
+        self.usage = self.__class__.__name__ + ""
+        self.helptext = ['Shows information about the latest tick.']
+
+    def execute(self, user, access, irc_msg):
+        m = self.commandre.search(irc_msg.command)
         if not m:
             return 0
 
@@ -45,19 +47,19 @@ class tickinfo(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        query="SELECT tick, age(now(), updates.timestamp) AS tick_age FROM updates WHERE round = %s ORDER BY tick DESC LIMIT 1"
-        self.cursor.execute(query,(irc_msg.round,))
-        reply=""
+        query = "SELECT tick, age(now(), updates.timestamp) AS tick_age FROM updates WHERE round = %s ORDER BY tick DESC LIMIT 1"
+        self.cursor.execute(query, (irc_msg.round,))
+        reply = ""
         if self.cursor.rowcount < 1:
-            reply="Don't be stupid, that doesn't exist."
+            reply = "Don't be stupid, that doesn't exist."
         else:
-            res=self.cursor.dictfetchone()
-            reply="My current tick information is for pt%s, which I retrieved %s ago" % (res['tick'],res['tick_age'])
+            res = self.cursor.dictfetchone()
+            reply = "My current tick information is for pt%s, which I retrieved %s ago" % (res['tick'], res['tick_age'])
         irc_msg.reply(reply)
 
         return 1

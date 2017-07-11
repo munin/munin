@@ -26,14 +26,15 @@ Loadable.Loadable subclass
 import re
 from munin import loadable
 
+
 class anarchy(loadable.loadable):
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,1)
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 1)
         self.paramre = re.compile(r"^\s*(.*)")
         self.usage = self.__class__.__name__ + " [x:y:z]"
-	self.helptext = ['Lists all planets currently in anarchy or anarchy information about a specific planet']
+        self.helptext = ['Lists all planets currently in anarchy or anarchy information about a specific planet']
 
-    def execute(self,user,access,irc_msg):
+    def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
@@ -58,8 +59,8 @@ class anarchy(loadable.loadable):
             y = m.group(2)
             z = m.group(3)
 
-            planet = loadable.planet(x = x,y = y,z = z)
-            if not planet.load_most_recent(self.cursor,irc_msg.round):
+            planet = loadable.planet(x=x, y=y, z=z)
+            if not planet.load_most_recent(self.cursor, irc_msg.round):
                 irc_msg.reply("No planet matching %s:%s:%s found" % (x, y, z))
                 return 0
 
@@ -98,7 +99,7 @@ class anarchy(loadable.loadable):
                 query += " WHERE scan.pid = %s "
                 query += " ORDER BY scan.scan_time DESC"
                 query += " LIMIT 1"
-                self.cursor.execute(query,(planet.id,))
+                self.cursor.execute(query, (planet.id,))
                 if self.cursor.rowcount < 1:
                     needed_scans.append('planet')
                 else:
@@ -114,29 +115,25 @@ class anarchy(loadable.loadable):
                 query += " WHERE scan.pid = %s"
                 query += " ORDER BY scan.scan_time DESC"
                 query += " LIMIT 1"
-                self.cursor.execute(query,(planet.id,))
+                self.cursor.execute(query, (planet.id,))
                 if self.cursor.rowcount < 1:
                     needed_scans.append('development')
 
                 if len(needed_scans) == 0:
                     dev_scan = self.cursor.dictfetchone()
                     sc = dev_scan['security_centre']
-                    total = (dev_scan['light_factory']+dev_scan['medium_factory']+dev_scan['heavy_factory']+
-                             dev_scan['wave_amplifier']+dev_scan['wave_distorter']+
-                             dev_scan['metal_refinery']+dev_scan['crystal_refinery']+dev_scan['eonium_refinery']+
-                             dev_scan['research_lab']+dev_scan['structure_defense']+
-                             dev_scan['finance_centre']+dev_scan['military_centre']+dev_scan['security_centre']
-                    )
+                    total = (dev_scan['light_factory'] + dev_scan['medium_factory'] + dev_scan['heavy_factory'] +
+                             dev_scan['wave_amplifier'] + dev_scan['wave_distorter'] +
+                             dev_scan['metal_refinery'] + dev_scan['crystal_refinery'] + dev_scan['eonium_refinery'] +
+                             dev_scan['research_lab'] + dev_scan['structure_defense'] +
+                             dev_scan['finance_centre'] + dev_scan['military_centre'] + dev_scan['security_centre']
+                             )
                     development_tick = dev_scan['tick']
 
-                    min_alert = (1 - 0.15 +       float(sc) / total) * (50 + 5*float(guards) / float(planet.size + 1))
-                    max_alert = (1 - 0.15 + 0.4 + float(sc) / total) * (50 + 5*float(guards) / float(planet.size + 1))
+                    min_alert = (1 - 0.15 + float(sc) / total) * (50 + 5 * float(guards) / float(planet.size + 1))
+                    max_alert = (1 - 0.15 + 0.4 + float(sc) / total) * (50 + 5 * float(guards) / float(planet.size + 1))
                     reply += ", with a minimum alert of %d and a maximum of %d (planet scan from pt%d, dev scan from pt%d)" % (
-                        int(min_alert),
-                        int(max_alert),
-                        planet_tick,
-                        development_tick
-                    )
+                        int(min_alert), int(max_alert), planet_tick, development_tick)
                 else:
                     reply += ", need a %s scan to calculate alert" % (" and ".join(needed_scans))
             else:

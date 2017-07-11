@@ -26,9 +26,10 @@ Loadable.Loadable subclass
 import re
 from munin import loadable
 
+
 class napfest(loadable.loadable):
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,1)
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 1)
         self.paramre = re.compile(r"^\s*")
         self.usage = self.__class__.__name__
         self.war_start_re = re.compile(r"(.*) has declared war on (.*) !")
@@ -36,9 +37,9 @@ class napfest(loadable.loadable):
         self.nap_end_re = re.compile(r"(.*) has decided to end its NAP with (.*).")
         self.ally_start_re = re.compile(r"(.*) and (.*) have confirmed they are allied.")
         self.ally_end_re = re.compile(r"(.*) has decided to end its alliance with (.*).")
-	self.helptext = ['Lists the most recent 10 alliance relation changes']
+        self.helptext = ['Lists the most recent 10 alliance relation changes']
 
-    def execute(self,user,access,irc_msg):
+    def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
@@ -60,7 +61,7 @@ class napfest(loadable.loadable):
         query += " AND text NOT ILIKE %s"
         query += " ORDER BY tick DESC"
         query += " LIMIT 10"
-        self.cursor.execute(query,(irc_msg.round,"%'s war with % has expired.'",))
+        self.cursor.execute(query, (irc_msg.round, "%'s war with % has expired.'",))
 
         if self.cursor.rowcount == 0:
             reply = 'Nothing has happened yet, go fight some fools!'
@@ -108,6 +109,6 @@ class napfest(loadable.loadable):
                         row['text'])
                     break
 
-                reply = 'Most recent 10 alliance relation changes: %s' %(' | '.join(reversed(events)))
+                reply = 'Most recent 10 alliance relation changes: %s' % (' | '.join(reversed(events)))
         irc_msg.reply(reply)
         return 1

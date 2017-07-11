@@ -29,65 +29,66 @@ Loadable subclass
 import re
 from munin import loadable
 
-class cost(loadable.loadable):
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,1)
-        self.paramre=re.compile(r"^\s+(\d+(?:\.\d+)?[mk]?)\s+(\S+)(?:\s+(\S+))?")
-        self.usage=self.__class__.__name__ + " <number> <shipname> [government]"
 
-    def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+class cost(loadable.loadable):
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 1)
+        self.paramre = re.compile(r"^\s+(\d+(?:\.\d+)?[mk]?)\s+(\S+)(?:\s+(\S+))?")
+        self.usage = self.__class__.__name__ + " <number> <shipname> [government]"
+
+    def execute(self, user, access, irc_msg):
+        m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
 
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        ship_number=m.group(1)
+        ship_number = m.group(1)
 
-        if ship_number[-1].lower()=='k':
-            ship_number=1000*float(ship_number[:-1])
-        elif ship_number[-1].lower()=='m':
-            ship_number=1000000*float(ship_number[:-1])
+        if ship_number[-1].lower() == 'k':
+            ship_number = 1000 * float(ship_number[:-1])
+        elif ship_number[-1].lower() == 'm':
+            ship_number = 1000000 * float(ship_number[:-1])
         else:
-            ship_number=float(ship_number)
-        ship_number=int(ship_number)
-        ship_name=m.group(2)
+            ship_number = float(ship_number)
+        ship_number = int(ship_number)
+        ship_name = m.group(2)
 
-        gov_name=''
-        prod_bonus=1
+        gov_name = ''
+        prod_bonus = 1
         if m.group(3):
-            lower_gov_name=m.group(3).lower()
+            lower_gov_name = m.group(3).lower()
             if lower_gov_name in "totalitarianism":
-                prod_bonus=1-float(self.config.get('Planetarion', 'totalitarianism_cost_reduction'))
-                gov_name="Totalitarianism"
+                prod_bonus = 1 - float(self.config.get('Planetarion', 'totalitarianism_cost_reduction'))
+                gov_name = "Totalitarianism"
             elif lower_gov_name in "democracy":
-                prod_bonus=1-float(self.config.get('Planetarion', 'democracy_cost_reduction'))
-                gov_name="Democracy"
+                prod_bonus = 1 - float(self.config.get('Planetarion', 'democracy_cost_reduction'))
+                gov_name = "Democracy"
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        ship=self.get_ship_from_db(ship_name,irc_msg.round)
+        ship = self.get_ship_from_db(ship_name, irc_msg.round)
         if not ship:
             irc_msg.reply("%s is not a ship" % (ship_name))
             return 0
 
-        metal=int(ship['metal']     * prod_bonus) * ship_number
-        crystal=int(ship['crystal'] * prod_bonus) * ship_number
-        eonium=int(ship['eonium']   * prod_bonus) * ship_number
-        resource_value=(metal+crystal+eonium)/150
-        ship_value=(ship['total_cost'] * ship_number)/100
-        reply="Buying %s %s will cost %s metal, %s crystal and %s eonium"%(
+        metal = int(ship['metal'] * prod_bonus) * ship_number
+        crystal = int(ship['crystal'] * prod_bonus) * ship_number
+        eonium = int(ship['eonium'] * prod_bonus) * ship_number
+        resource_value = (metal + crystal + eonium) / 150
+        ship_value = (ship['total_cost'] * ship_number) / 100
+        reply = "Buying %s %s will cost %s metal, %s crystal and %s eonium" % (
             ship_number, ship['name'], metal, crystal, eonium)
 
         if prod_bonus != 1:
-            reply+=" as %s"%(gov_name)
+            reply += " as %s" % (gov_name)
 
-        reply+=". This gives %s ship value (%s increase)"%(
+        reply += ". This gives %s ship value (%s increase)" % (
             ship_value, ship_value - resource_value)
 
         irc_msg.reply(reply)

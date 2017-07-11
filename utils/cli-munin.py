@@ -29,6 +29,7 @@ from cli import connection
 
 config = ConfigParser.ConfigParser()
 
+
 class munin:
     def __init__(self, command):
         if not config.read("muninrc"):
@@ -40,18 +41,19 @@ class munin:
         self.ircname = config.get("Connection", "name")
 
         self.client = connection(self.server, self.port)
-        self.handler = parser(config, self.client,self)
+        self.handler = parser(config, self.client, self)
         self.client.connect()
         self.run(command)
 
     def run(self, command):
         self.client.wline("NICK %s" % self.nick)
-        self.client.wline("USER %s 0 * : %s" % (self.user,self.ircname))
+        self.client.wline("USER %s 0 * : %s" % (self.user, self.ircname))
 
         # Put this in config?
-        debug=self.handler.parse(':jesterina!sodoff@jester.users.netgamers.org PRIVMSG #ascendancy :!' + command)
+        debug = self.handler.parse(':jesterina!sodoff@jester.users.netgamers.org PRIVMSG #ascendancy :!' + command)
         if debug:
             print debug
+
 
 args = sys.argv
 
@@ -61,7 +63,7 @@ for p in args:
     if flag == 1:
         command = p
     elif flag != 0:
-        command = command + ' '+  p
+        command = command + ' ' + p
     flag = flag + 1
 
 munin(command)

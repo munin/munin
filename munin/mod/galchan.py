@@ -30,15 +30,17 @@ import re
 from psycopg2 import psycopg1 as psycopg
 from munin import loadable
 
-class galchan(loadable.loadable):
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,100)
-        self.paramre=re.compile(r"^\s+(#\S+)")
-        self.usage=self.__class__.__name__ + " <chan> "
-        self.helptext=["This command adds Munin to the designated channel as a galchannel. The access of commands is limited to 1 in that channel (so you don't accidentally do !intel or something 'important'. You must make sure to add Munin to the channel _before_ you perform this command. If you fuck up and add the wrong channel, fuck you because then an HC has to manually remove it for you."]
 
-    def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+class galchan(loadable.loadable):
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 100)
+        self.paramre = re.compile(r"^\s+(#\S+)")
+        self.usage = self.__class__.__name__ + " <chan> "
+        self.helptext = [
+            "This command adds Munin to the designated channel as a galchannel. The access of commands is limited to 1 in that channel (so you don't accidentally do !intel or something 'important'. You must make sure to add Munin to the channel _before_ you perform this command. If you fuck up and add the wrong channel, fuck you because then an HC has to manually remove it for you."]
+
+    def execute(self, user, access, irc_msg):
+        m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
 
@@ -46,29 +48,29 @@ class galchan(loadable.loadable):
             irc_msg.reply("You do not have enough access to add galchannels")
             return 0
 
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        chan=m.group(1).lower()
+        chan = m.group(1).lower()
 
-
-
-        query="INSERT INTO channel_list (chan,userlevel,maxlevel) VALUES (%s,1,1)"
+        query = "INSERT INTO channel_list (chan,userlevel,maxlevel) VALUES (%s,1,1)"
 
         try:
-            self.cursor.execute(query,(chan,))
-            if self.cursor.rowcount>0:
+            self.cursor.execute(query, (chan,))
+            if self.cursor.rowcount > 0:
                 #irc_msg.reply("Added chan %s at level %s" % (chan,access_lvl))
-                irc_msg.reply("Added your galchannel as %s (if you didn't add me to the channel with at least access 24 first, I'm never going to bother joining)" % (chan,))
-                irc_msg.client.privmsg('P',"set %s autoinvite on" %(chan,));
-                irc_msg.client.privmsg('P',"invite %s" %(chan,));
+                irc_msg.reply(
+                    "Added your galchannel as %s (if you didn't add me to the channel with at least access 24 first, I'm never going to bother joining)" %
+                    (chan,))
+                irc_msg.client.privmsg('P', "set %s autoinvite on" % (chan,))
+                irc_msg.client.privmsg('P', "invite %s" % (chan,))
 
         except psycopg.IntegrityError:
             irc_msg.reply("Channel %s already exists" % (chan,))
             return 0
-        except:
+        except BaseException:
             raise
 
         return 1

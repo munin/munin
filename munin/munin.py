@@ -32,8 +32,10 @@ import traceback
 import reboot
 import socket
 
+
 class munin(object):
     IRCU_ROUTER = 'munin.ircu_router'
+
     def __init__(self):
         config = ConfigParser.ConfigParser()
         if not config.read('muninrc'):
@@ -49,26 +51,25 @@ class munin(object):
         self.client.wline("USER %s 0 * : %s" % (config.get("Connection", "user"),
                                                 config.get("Connection", "name")))
         self.config = config
-        router=self.ircu_router.ircu_router(self.client,self.config,self.loader)
+        router = self.ircu_router.ircu_router(self.client, self.config, self.loader)
         while True:
             try:
                 self.reboot()
                 break
-            except socket.error, s:
-                print "Exception during command at %s: %s" %(time.asctime(),s.__str__())
+            except socket.error as s:
+                print "Exception during command at %s: %s" % (time.asctime(), s.__str__())
                 traceback.print_exc()
                 raise
-            except socket.timeout, s:
-                print "Exception during command at %s: %s" %(time.asctime(),s.__str__())
+            except socket.timeout as s:
+                print "Exception during command at %s: %s" % (time.asctime(), s.__str__())
                 traceback.print_exc()
                 raise
-            except reboot.reboot, r:
+            except reboot.reboot as r:
                 continue
-            except Exception, e:
+            except Exception as e:
                 print "Exception during command: " + e.__str__()
                 traceback.print_exc()
                 continue
-
 
     def reboot(self):
         print "Rebooting Munin."
@@ -76,14 +77,13 @@ class munin(object):
         self.loader.populate('munin')
         self.loader.refresh()
         self.ircu_router = self.loader.get_module(self.IRCU_ROUTER)
-        router=self.ircu_router.ircu_router(self.client,self.config,self.loader)
+        router = self.ircu_router.ircu_router(self.client, self.config, self.loader)
         router.run()
 
 
 def run():
-    ofile=file("pid.munin", "w")
+    ofile = file("pid.munin", "w")
     ofile.write("%s" % (os.getpid(),))
     ofile.close()
 
     munin()
-

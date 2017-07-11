@@ -28,18 +28,20 @@ Loadable.Loadable subclass
 import re
 import munin.loadable as loadable
 
+
 class showdef(loadable.loadable):
     """
     foo
     """
-    def __init__(self,cursor):
-        loadable.loadable.__init__(self,cursor,100)
-        self.paramre=re.compile(r"^\s*(\S+)?")
-        self.usage=self.__class__.__name__ + " <pnick>"
-	self.helptext=None
 
-    def execute(self,user,access,irc_msg):
-        m=self.commandre.search(irc_msg.command)
+    def __init__(self, cursor):
+        loadable.loadable.__init__(self, cursor, 100)
+        self.paramre = re.compile(r"^\s*(\S+)?")
+        self.usage = self.__class__.__name__ + " <pnick>"
+        self.helptext = None
+
+    def execute(self, user, access, irc_msg):
+        m = self.commandre.search(irc_msg.command)
         if not m:
             return 0
 
@@ -47,28 +49,31 @@ class showdef(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        name=m.group(1)
+        name = m.group(1)
         if name:
-            u=self.load_user_from_pnick(name,irc_msg.round)
+            u = self.load_user_from_pnick(name, irc_msg.round)
         else:
-            u=self.load_user_from_pnick(irc_msg.user,irc_msg.round)
+            u = self.load_user_from_pnick(irc_msg.user, irc_msg.round)
         if not u or u.userlevel < 100:
-            irc_msg.reply("No members matching %s found"%(name,))
+            irc_msg.reply("No members matching %s found" % (name,))
             return
 
-        ships=u.get_fleets(self.cursor,irc_msg.round)
+        ships = u.get_fleets(self.cursor, irc_msg.round)
 
         if self.cursor.rowcount < 1:
-            irc_msg.reply("%s is either a lazy pile of shit that hasn't entered any ships for def, or a popular whore who's already turned their tricks."%(u.pnick,))
+            irc_msg.reply(
+                "%s is either a lazy pile of shit that hasn't entered any ships for def, or a popular whore who's already turned their tricks." %
+                (u.pnick,))
             return
 
-        reply="%s def info: %s fleets, updated pt%s (%s), ships: " %(u.pnick,u.fleetcount,u.fleetupdated,u.fleetupdated-self.current_tick(irc_msg.round))
-        reply+=", ".join(map(lambda x: "%s %s"%(self.format_real_value(x['ship_count']),x['ship']),ships))
-        reply+=" comment: %s"%(u.fleetcomment,)
+        reply = "%s def info: %s fleets, updated pt%s (%s), ships: " % (
+            u.pnick, u.fleetcount, u.fleetupdated, u.fleetupdated - self.current_tick(irc_msg.round))
+        reply += ", ".join(map(lambda x: "%s %s" % (self.format_real_value(x['ship_count']), x['ship']), ships))
+        reply += " comment: %s" % (u.fleetcomment,)
         irc_msg.reply(reply)
         return 1

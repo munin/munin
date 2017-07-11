@@ -29,29 +29,30 @@ Loadable subclass
 import re
 from munin import loadable
 
-class raw(loadable.loadable):
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,1000)
-        self.paramre=re.compile(r"^\s+(.*)")
-        self.usage=self.__class__.__name__ + ""
 
-    def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+class raw(loadable.loadable):
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 1000)
+        self.paramre = re.compile(r"^\s+(.*)")
+        self.usage = self.__class__.__name__ + ""
+
+    def execute(self, user, access, irc_msg):
+        m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
 
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        irc_command=m.group(1)
+        irc_command = m.group(1)
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to send raw commands")
             return 0
 
-        print "%s sent raw '%s'" % (user,irc_command)
+        print "%s sent raw '%s'" % (user, irc_command)
         irc_msg.client.wline(irc_command)
         irc_msg.reply("Sent raw command '%s'" % (irc_command,))
 

@@ -30,15 +30,16 @@ import re
 import string
 from munin import loadable
 
-class planet(loadable.loadable):
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,50)
-        self.paramre=re.compile(r"^\s+(.*)")
-        self.usage=self.__class__.__name__ + "<<x>:<y>:<z>|<id>>"
-        self.helptext=None
 
-    def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+class planet(loadable.loadable):
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 50)
+        self.paramre = re.compile(r"^\s+(.*)")
+        self.usage = self.__class__.__name__ + "<<x>:<y>:<z>|<id>>"
+        self.helptext = None
+
+    def execute(self, user, access, irc_msg):
+        m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
 
@@ -46,71 +47,74 @@ class planet(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables
-        params=m.group(1)
-        m=self.planet_coordre.search(params)
+        params = m.group(1)
+        m = self.planet_coordre.search(params)
 
-        reply=""
+        reply = ""
         if m:
-            x=m.group(1)
-            y=m.group(2)
-            z=m.group(3)
+            x = m.group(1)
+            y = m.group(2)
+            z = m.group(3)
 
-            p=loadable.planet(x=x,y=y,z=z)
-            if not p.load_most_recent(self.cursor,irc_msg.round):
-                irc_msg.reply("No planet matching '%s:%s:%s' found"%(x,y,z))
+            p = loadable.planet(x=x, y=y, z=z)
+            if not p.load_most_recent(self.cursor, irc_msg.round):
+                irc_msg.reply("No planet matching '%s:%s:%s' found" % (x, y, z))
                 return 1
 
-            query="SELECT tick,nick,scantype,rand_id,timestamp,roid_metal,roid_crystal,roid_eonium,res_metal,res_crystal,res_eonium"
-            query+=", prod_res,agents,guards"
-            query+=" FROM scan AS t1 INNER JOIN planet AS t2 ON t1.id=t2.scan_id"
-            query+=" WHERE t1.pid=%s AND t1.round=%s ORDER BY timestamp DESC"
-            self.cursor.execute(query,(p.id,irc_msg.round,))
+            query = "SELECT tick,nick,scantype,rand_id,timestamp,roid_metal,roid_crystal,roid_eonium,res_metal,res_crystal,res_eonium"
+            query += ", prod_res,agents,guards"
+            query += " FROM scan AS t1 INNER JOIN planet AS t2 ON t1.id=t2.scan_id"
+            query += " WHERE t1.pid=%s AND t1.round=%s ORDER BY timestamp DESC"
+            self.cursor.execute(query, (p.id, irc_msg.round,))
 
             if self.cursor.rowcount < 1:
-                reply+="No planet scans available on %s:%s:%s" % (p.x,p.y,p.z)
+                reply += "No planet scans available on %s:%s:%s" % (p.x, p.y, p.z)
             else:
-                s=self.cursor.dictfetchone()
-                reply+="Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,p.y,p.z,s['rand_id'],s['tick'])
-                reply+=" Roids: (m:%s, c:%s, e:%s) | Resources: (m:%s, c:%s, e:%s)" % (s['roid_metal'],s['roid_crystal'],s['roid_eonium'],s['res_metal'],s['res_crystal'],s['res_eonium'])
-                reply+=" | Hidden: %s | Agents: %s | Guards: %s" % (s['prod_res'],s['agents'],s['guards'])
-                i=0
-                reply+=" | Older scans: "
-                prev=[]
+                s = self.cursor.dictfetchone()
+                reply += "Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (p.x, p.y, p.z, s['rand_id'], s['tick'])
+                reply += " Roids: (m:%s, c:%s, e:%s) | Resources: (m:%s, c:%s, e:%s)" % (
+                    s['roid_metal'], s['roid_crystal'], s['roid_eonium'], s['res_metal'], s['res_crystal'], s['res_eonium'])
+                reply += " | Hidden: %s | Agents: %s | Guards: %s" % (s['prod_res'], s['agents'], s['guards'])
+                i = 0
+                reply += " | Older scans: "
+                prev = []
                 for s in self.cursor.dictfetchall():
-                    i+=1
+                    i += 1
                     if i > 4:
                         break
-                    prev.append("(%s,pt%s)" % (s['rand_id'],s['tick']))
-                reply+=string.join(prev,', ')
+                    prev.append("(%s,pt%s)" % (s['rand_id'], s['tick']))
+                reply += string.join(prev, ', ')
 
         else:
-            m=self.idre.search(params)
+            m = self.idre.search(params)
             if not m:
                 irc_msg.reply("Usage: %s" % (self.usage,))
                 return 0
 
-            rand_id=m.group(1)
+            rand_id = m.group(1)
 
-            query="SELECT x,y,z,t1.tick AS tick,nick,scantype,rand_id,timestamp,roid_metal,roid_crystal,roid_eonium,res_metal,res_crystal,res_eonium"
-            query+=", prod_res,agents,guards"
-            query+=" FROM scan AS t1 INNER JOIN planet AS t2 ON t1.id=t2.scan_id"
-            query+=" INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
-            query+=" WHERE t3.tick=(SELECT max_tick(%s::smallint)) AND t3.round=%s AND t1.rand_id=%s ORDER BY timestamp DESC"
-            self.cursor.execute(query,(irc_msg.round,irc_msg.round,rand_id,))
+            query = "SELECT x,y,z,t1.tick AS tick,nick,scantype,rand_id,timestamp,roid_metal,roid_crystal,roid_eonium,res_metal,res_crystal,res_eonium"
+            query += ", prod_res,agents,guards"
+            query += " FROM scan AS t1 INNER JOIN planet AS t2 ON t1.id=t2.scan_id"
+            query += " INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
+            query += " WHERE t3.tick=(SELECT max_tick(%s::smallint)) AND t3.round=%s AND t1.rand_id=%s ORDER BY timestamp DESC"
+            self.cursor.execute(query, (irc_msg.round, irc_msg.round, rand_id,))
 
             if self.cursor.rowcount < 1:
-                reply+="No planet scans matching ID %s" % (rand_id,)
+                reply += "No planet scans matching ID %s" % (rand_id,)
             else:
-                s=self.cursor.dictfetchone()
-                reply+="Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (s['x'],s['y'],s['z'],s['rand_id'],s['tick'])
-                reply+=" Roids: (m:%s, c:%s, e:%s) | Resources: (m:%s, c:%s, e:%s)" % (s['roid_metal'],s['roid_crystal'],s['roid_eonium'],s['res_metal'],s['res_crystal'],s['res_eonium'])
-                reply+=" | Hidden: %s | Agents: %s | Guards: %s" % (s['prod_res'],s['agents'],s['guards'])
+                s = self.cursor.dictfetchone()
+                reply += "Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (
+                    s['x'], s['y'], s['z'], s['rand_id'], s['tick'])
+                reply += " Roids: (m:%s, c:%s, e:%s) | Resources: (m:%s, c:%s, e:%s)" % (
+                    s['roid_metal'], s['roid_crystal'], s['roid_eonium'], s['res_metal'], s['res_crystal'], s['res_eonium'])
+                reply += " | Hidden: %s | Agents: %s | Guards: %s" % (s['prod_res'], s['agents'], s['guards'])
 
         irc_msg.reply(reply)
         return 1

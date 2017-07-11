@@ -29,17 +29,19 @@ import re
 import munin.loadable as loadable
 from clickatell import Clickatell
 
+
 class showmethemoney(loadable.loadable):
     """
     foo
     """
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,100)
-        self.usage=self.__class__.__name__ + ""
-	self.helptext=None
 
-    def execute(self,user,access,irc_msg):
-        m=self.commandre.search(irc_msg.command)
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 100)
+        self.usage = self.__class__.__name__ + ""
+        self.helptext = None
+
+    def execute(self, user, access, irc_msg):
+        m = self.commandre.search(irc_msg.command)
         if not m:
             return 0
 
@@ -59,9 +61,9 @@ class showmethemoney(loadable.loadable):
         balance = ct.getbalance()
 
         if not balance:
-            reply="Help me help you. I need the kwan. SHOW ME THE MONEY"
+            reply = "Help me help you. I need the kwan. SHOW ME THE MONEY"
         else:
-            reply="Current kwan balance: %d"%(float(balance),)
+            reply = "Current kwan balance: %d" % (float(balance),)
 
         irc_msg.reply(reply)
         return 1

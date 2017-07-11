@@ -29,36 +29,35 @@ Loadable.Loadable subclass
 import re
 from munin import loadable
 
-class addslogan(loadable.loadable):
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,100)
-        self.paramre=re.compile(r"^\s+(.*)$")
-        self.usage=self.__class__.__name__ + " <slogan goes here>"
 
-    def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+class addslogan(loadable.loadable):
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 100)
+        self.paramre = re.compile(r"^\s+(.*)$")
+        self.usage = self.__class__.__name__ + " <slogan goes here>"
+
+    def execute(self, user, access, irc_msg):
+        m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
 
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
 
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
-        params=m.group(1)
+        params = m.group(1)
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        args=(params,)
-        query="INSERT INTO slogan (slogan) VALUES (%s)"
+        args = (params,)
+        query = "INSERT INTO slogan (slogan) VALUES (%s)"
 
-        self.cursor.execute(query,args)
+        self.cursor.execute(query, args)
 
         irc_msg.reply("Added your shitty slogan")
-
 
         # do stuff here
 
         return 1
-

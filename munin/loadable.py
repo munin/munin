@@ -26,7 +26,6 @@ Loadable class
 import re
 import string
 import ConfigParser
-from psycopg2 import psycopg1 as psycopg
 import datetime
 
 
@@ -257,8 +256,6 @@ class defcall(object):
         query = "SELECT status FROM defcall_status WHERE id = %s"
         cursor.execute(query, (self.status,))
         s = cursor.dictfetchone()
-        if not s:
-            irc_msg.reply("foo!")
         self.actual_status = s['status']
 
         return 1
@@ -917,7 +914,7 @@ class booking(object):
     def load_from_db(self, cursor, round):
         query = "SELECT t1.id AS id, t1.nick AS nick, t1.pid AS pid, t1.tick AS tick, t1.uid AS uid FROM target AS t1 WHERE round=%s AND"
 
-        if tick and pid:
+        if self.tick and self.pid:
             query += "pid=%s AND tick=%s "
             cursor.execute(query, (round, self.pnick,))
             b = cursor.dictfetchone()

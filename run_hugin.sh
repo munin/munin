@@ -24,5 +24,5 @@ echo ""
 echo "No Hugin running. Reloading it..."
 echo ""
 #mv -f $botdir/log $botdir/oldlog
-$botexe #> $botdir/log 2>&1 &
+$botexe "$@" #> $botdir/log 2>&1 &
 

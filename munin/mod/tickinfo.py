@@ -60,6 +60,8 @@ class tickinfo(loadable.loadable):
         else:
             res = self.cursor.dictfetchone()
             reply = "My current tick information is for pt%s, which I retrieved %s ago" % (res['tick'], res['tick_age'])
-        irc_msg.reply(reply)
+            if res['tick_age'].total_seconds() > 12 * 3600:
+                reply += ". That's fucking ages ago, %s better go have a look." % self.config.get("Auth", "owner_nick")
+            irc_msg.reply(reply)
 
         return 1

@@ -79,7 +79,7 @@ def overwrite(from_file, to_file):
 
 while True:
     try:
-        round = config.getint('Planetarion', 'current_round')
+        cur_round = config.getint('Planetarion', 'current_round')
         planetlist = config.get("Url", "planetlist")
         galaxylist = config.get("Url", "galaxylist")
         alliancelist = config.get("Url", "alliancelist")
@@ -238,7 +238,7 @@ while True:
             # Store the newly retrieved dump files, removing the old ones
             # first, if they exist.
             dump_dir = config.get('Dumps', 'dir')
-            tick_dir = os.path.join(dump_dir, "r%03d" % round, "%04d" % planet_tick)
+            tick_dir = os.path.join(dump_dir, "r%03d" % cur_round, "%04d" % planet_tick)
             try:
                 os.makedirs(tick_dir)
             except OSError as e:
@@ -253,7 +253,7 @@ while True:
         conn = psycopg.connect(DSN)
         cursor = conn.cursor()
 
-        cursor.execute("SELECT max_tick(%s::smallint)", (round,))
+        cursor.execute("SELECT max_tick(%s::smallint)", (cur_round,))
         last_tick = cursor.fetchone()[0]
         if last_tick:
             last_tick = int(last_tick)
@@ -355,30 +355,30 @@ while True:
         t1 = time.time()
 
         query = "SELECT store_update(%s::smallint,%s::smallint,%s::text,%s::text,%s::text,%s::text)"
-        cursor.execute(query, (round, planet_tick, ptmp, gtmp, atmp, utmp))
+        cursor.execute(query, (cur_round, planet_tick, ptmp, gtmp, atmp, utmp))
 
         try:
 
             query = "SELECT store_planets(%s::smallint,%s::smallint)"
-            cursor.execute(query, (round, planet_tick,))
+            cursor.execute(query, (cur_round, planet_tick,))
             t2 = time.time() - t1
             print "Processed and inserted planet dumps in %.3f seconds" % (t2,)
             t1 = time.time()
 
             query = "SELECT store_galaxies(%s::smallint,%s::smallint)"
-            cursor.execute(query, (round, galaxy_tick,))
+            cursor.execute(query, (cur_round, galaxy_tick,))
             t2 = time.time() - t1
             print "Processed and inserted galaxy dumps in %.3f seconds" % (t2,)
             t1 = time.time()
 
             query = "SELECT store_alliances(%s::smallint,%s::smallint)"
-            cursor.execute(query, (round, alliance_tick,))
+            cursor.execute(query, (cur_round, alliance_tick,))
             t2 = time.time() - t1
             print "Processed and inserted alliance dumps in %.3f seconds" % (t2,)
             t1 = time.time()
 
             query = "SELECT store_userfeed(%s::smallint)"
-            cursor.execute(query, (round,))
+            cursor.execute(query, (cur_round,))
             t2 = time.time() - t1
             print "Processed and inserted user feed dumps in %.3f seconds" % (t2,)
             t1 = time.time()

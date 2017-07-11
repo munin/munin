@@ -239,7 +239,7 @@ while True:
                 if delta.days > 1 or delta.seconds >= (6 * 3600):
                     raise AncientStaleTickException("Stale tick was %d days and %d seconds old, has the round ended?" % (delta.days, delta.seconds))
                 else:
-                    wait = (3600 - delta.seconds) % 900
+                    wait = 1 + (abs(3600 - delta.seconds) % 900)
                 print "Stale ticks found, sleeping %d seconds" % (wait,)
                 time.sleep(wait)
                 continue

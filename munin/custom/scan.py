@@ -38,8 +38,8 @@ class scan(threading.Thread):
         self.nick = nick
         self.pnick = pnick
         self.group_id = group_id
-        self.useragent = "Munin (Python-urllib/%s); BotNick/%s; Admin/%s" % (urllib2.__version__,
-                                                                             config.get("Connection", "nick"), config.get("Auth", "owner_nick"))
+        self.useragent = "Munin (Python-urllib/%s); BotNick/%s; Admin/%s" % (
+            urllib2.__version__,config.get("Connection", "nick"), config.get("Auth", "owner_nick"))
         threading.Thread.__init__(self)
 
     def create_conn(self):
@@ -58,7 +58,6 @@ class scan(threading.Thread):
             self.unsafe_method()
         except Exception as e:
             print "Exception in scan: " + e.__str__()
-            #self.client.privmsg('jesterina',"Exception in scan: "+e.__str__())
             traceback.print_exc()
 
     def unsafe_method(self):
@@ -173,7 +172,7 @@ class scan(threading.Thread):
         if not p.load_most_recent(self.cursor, round):  # really, this should never, ever fail.
             return
     # incoming fleets
-    #<td class=left valign=top>Incoming</td><td valign=top>851</td><td class=left valign=top>We have detected an open jumpgate from Tertiary, located at 18:5:11. The fleet will approach our system in tick 855 and appears to have roughly 95 ships.</td>
+    # <td class=left valign=top>Incoming</td><td valign=top>851</td><td class=left valign=top>We have detected an open jumpgate from Tertiary, located at 18:5:11. The fleet will approach our system in tick 855 and appears to have roughly 95 ships.</td>
         for m in re.finditer(
             '<td class="left" valign="top">Incoming</td><td valign="top">(\d+)</td><td class="left" valign="top">We have detected an open jumpgate from ([^<]+), located at (\d+):(\d+):(\d+). The fleet will approach our system in tick (\d+) and appears to have roughly (\d+) ships.</td>',
                 page):
@@ -199,7 +198,7 @@ class scan(threading.Thread):
             print 'Incoming: ' + newstick + ':' + fleetname + '-' + originx + ':' + originy + ':' + originz + '-' + arrivaltick + '|' + numships
 
     # launched attacking fleets
-    #<td class=left valign=top>Launch</td><td valign=top>848</td><td class=left valign=top>The Disposable Heroes fleet has been launched, heading for 15:9:8, on a mission to Attack. Arrival tick: 857</td>
+    # <td class=left valign=top>Launch</td><td valign=top>848</td><td class=left valign=top>The Disposable Heroes fleet has been launched, heading for 15:9:8, on a mission to Attack. Arrival tick: 857</td>
         for m in re.finditer(
             '<td class="left" valign="top">Launch</td><td valign="top">(\d+)</td><td class="left" valign="top">The ([^,]+) fleet has been launched, heading for (\d+):(\d+):(\d+), on a mission to Attack. Arrival tick: (\d+)</td>',
                 page):
@@ -225,7 +224,7 @@ class scan(threading.Thread):
             print 'Attack:' + newstick + ':' + fleetname + ':' + originx + ':' + originy + ':' + originz + ':' + arrivaltick
 
     # launched defending fleets
-    #<td class=left valign=top>Launch</td><td valign=top>847</td><td class=left valign=top>The Ship Collection fleet has been launched, heading for 2:9:14, on a mission to Defend. Arrival tick: 853</td>
+    # <td class=left valign=top>Launch</td><td valign=top>847</td><td class=left valign=top>The Ship Collection fleet has been launched, heading for 2:9:14, on a mission to Defend. Arrival tick: 853</td>
         for m in re.finditer(
             '<td class="left" valign="top">Launch</td><td valign="top">(\d+)</td><td class="left" valign="top">The ([^<]+) fleet has been launched, heading for (\d+):(\d+):(\d+), on a mission to Defend. Arrival tick: (\d+)</td>',
                 page):
@@ -251,7 +250,7 @@ class scan(threading.Thread):
             print 'Defend:' + newstick + ':' + fleetname + ':' + originx + ':' + originy + ':' + originz + ':' + arrivaltick
 
     # tech report
-    #<td class=left valign=top>Tech</td><td valign=top>838</td><td class=left valign=top>Our scientists report that Portable EMP emitters has been finished. Please drop by the Research area and choose the next area of interest.</td>
+    # <td class=left valign=top>Tech</td><td valign=top>838</td><td class=left valign=top>Our scientists report that Portable EMP emitters has been finished. Please drop by the Research area and choose the next area of interest.</td>
         for m in re.finditer(
             '<td class="left" valign="top">Tech</td><td valign="top">(\d+)</td><td class="left" valign="top">Our scientists report that ([^<]+) has been finished. Please drop by the Research area and choose the next area of interest.</td>',
                 page):
@@ -261,7 +260,7 @@ class scan(threading.Thread):
             print 'Tech:' + newstick + ':' + research
 
     # failed security report
-    #<td class=left valign=top>Security</td><td valign=top>873</td><td class=left valign=top>A covert operation was attempted by Ikaris (2:5:5), but our agents were able to stop them from doing any harm.</td>
+    # <td class=left valign=top>Security</td><td valign=top>873</td><td class=left valign=top>A covert operation was attempted by Ikaris (2:5:5), but our agents were able to stop them from doing any harm.</td>
         for m in re.finditer(
             '<td class="left" valign="top">Security</td><td valign="top">(\d+)</td><td class="left" valign="top">A covert operation was attempted by ([^<]+) \\((\d+):(\d+):(\d+)\\), but our agents were able to stop them from doing any harm.</td>',
                 page):
@@ -287,30 +286,30 @@ class scan(threading.Thread):
             print 'Security:' + newstick + ':' + ruler + ':' + originx + ':' + originy + ':' + originz
 
     # fleet report
-    #<tr bgcolor=#2d2d2d><td class=left valign=top>Fleet</td><td valign=top>881</td><td class=left valign=top><table width=500><tr><th class=left colspan=3>Report of Losses from the Disposable Heroes fighting at 13:10:3</th></tr>
-    #<tr><th class=left width=33%>Ship</th><th class=left width=33%>Arrived</th><th class=left width=33%>Lost</th></tr>
+    # <tr bgcolor=#2d2d2d><td class=left valign=top>Fleet</td><td valign=top>881</td><td class=left valign=top><table width=500><tr><th class=left colspan=3>Report of Losses from the Disposable Heroes fighting at 13:10:3</th></tr>
+    # <tr><th class=left width=33%>Ship</th><th class=left width=33%>Arrived</th><th class=left width=33%>Lost</th></tr>
     #
-    #<tr><td class=left>Syren</td><td class=left>15</td><td class=left>13</td></tr>
-    #<tr><td class=left>Behemoth</td><td class=left>13</td><td class=left>13</td></tr>
-    #<tr><td class=left>Roach</td><td class=left>6</td><td class=left>6</td></tr>
-    #<tr><td class=left>Thief</td><td class=left>1400</td><td class=left>1400</td></tr>
-    #<tr><td class=left>Clipper</td><td class=left>300</td><td class=left>181</td></tr>
+    # <tr><td class=left>Syren</td><td class=left>15</td><td class=left>13</td></tr>
+    # <tr><td class=left>Behemoth</td><td class=left>13</td><td class=left>13</td></tr>
+    # <tr><td class=left>Roach</td><td class=left>6</td><td class=left>6</td></tr>
+    # <tr><td class=left>Thief</td><td class=left>1400</td><td class=left>1400</td></tr>
+    # <tr><td class=left>Clipper</td><td class=left>300</td><td class=left>181</td></tr>
     #
-    #<tr><td class=left>Buccaneer</td><td class=left>220</td><td class=left>102</td></tr>
-    #<tr><td class=left>Rogue</td><td class=left>105</td><td class=left>105</td></tr>
-    #<tr><td class=left>Marauder</td><td class=left>110</td><td class=left>110</td></tr>
-    #<tr><td class=left>Ironclad</td><td class=left>225</td><td class=left>90</td></tr>
-    #</table>
+    # <tr><td class=left>Buccaneer</td><td class=left>220</td><td class=left>102</td></tr>
+    # <tr><td class=left>Rogue</td><td class=left>105</td><td class=left>105</td></tr>
+    # <tr><td class=left>Marauder</td><td class=left>110</td><td class=left>110</td></tr>
+    # <tr><td class=left>Ironclad</td><td class=left>225</td><td class=left>90</td></tr>
+    # </table>
     #
-    #<table width=500><tr><th class=left colspan=3>Report of Ships Stolen by the Disposable Heroes fighting at 13:10:3</th></tr>
-    #<tr><th class=left width=50%>Ship</th><th class=left width=50%>Stolen</th></tr>
-    #<tr><td class=left>Roach</td><td class=left>5</td></tr>
-    #<tr><td class=left>Hornet</td><td class=left>1</td></tr>
-    #<tr><td class=left>Wraith</td><td class=left>36</td></tr>
-    #</table>
-    #<table width=500><tr><th class=left>Asteroids Captured</th><th class=left>Metal : 37</th><th class=left>Crystal : 36</th><th class=left>Eonium : 34</th></tr></table>
+    # <table width=500><tr><th class=left colspan=3>Report of Ships Stolen by the Disposable Heroes fighting at 13:10:3</th></tr>
+    # <tr><th class=left width=50%>Ship</th><th class=left width=50%>Stolen</th></tr>
+    # <tr><td class=left>Roach</td><td class=left>5</td></tr>
+    # <tr><td class=left>Hornet</td><td class=left>1</td></tr>
+    # <tr><td class=left>Wraith</td><td class=left>36</td></tr>
+    # </table>
+    # <table width=500><tr><th class=left>Asteroids Captured</th><th class=left>Metal : 37</th><th class=left>Crystal : 36</th><th class=left>Eonium : 34</th></tr></table>
     #
-    #</td></tr>
+    # </td></tr>
 
         print 'News: ' + x + ':' + y + ':' + z
 
@@ -321,8 +320,8 @@ class scan(threading.Thread):
         z = m.group(3)
         tick = m.group(4)
 
-        #m = re.search('<tr><td class="left">Asteroids</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><td class="left">Resources</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><th>Score</th><td>(\d+)</td><th>Value</th><td>(\d+)</td></tr>', page)
-        #m = re.search(r"""<tr><td class="left">Asteroids</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><td class="left">Resources</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><th>Score</th><td>(\d+)</td><th>Value</th><td>(\d+)</td></tr>""", page)
+        # m = re.search('<tr><td class="left">Asteroids</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><td class="left">Resources</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><th>Score</th><td>(\d+)</td><th>Value</th><td>(\d+)</td></tr>', page)
+        # m = re.search(r"""<tr><td class="left">Asteroids</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><td class="left">Resources</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><th>Score</th><td>(\d+)</td><th>Value</th><td>(\d+)</td></tr>""", page)
 
         page = re.sub(',', '', page)
         m = re.search(r"""
@@ -338,8 +337,8 @@ class scan(threading.Thread):
         res_e = m.group(6)
 
         m = re.search(r"""
-	<tr><th[^>]*>Value</th><th[^>]*>Score</th></tr>\s*
-	<tr><td[^>]*>(\d+)</td><td[^>]*>(\d+)</td></tr>\s*
+        <tr><th[^>]*>Value</th><th[^>]*>Score</th></tr>\s*
+        <tr><td[^>]*>(\d+)</td><td[^>]*>(\d+)</td></tr>\s*
         """, page, re.VERBOSE)
 
         value = m.group(1)
@@ -347,7 +346,7 @@ class scan(threading.Thread):
 
         m = re.search(r"""
             <tr><th[^>]*>Agents</th><th[^>]*>Security\s+Guards</th></tr>\s*
-	    <tr><td[^>]*>([^<]+)</td><td[^>]*>([^<]+)</td></tr>\s*
+            <tr><td[^>]*>([^<]+)</td><td[^>]*>([^<]+)</td></tr>\s*
         """, page, re.VERBOSE)
 
         agents = m.group(1)
@@ -389,7 +388,7 @@ class scan(threading.Thread):
         print 'Planet: ' + x + ':' + y + ':' + z
 
     def parse_development(self, scan_id, page):
-        #m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)</th></tr><tr><td class="left">Light Factory</td><td>(\d*)</td></tr><tr><td class="left">Medium Factory</td><td>(\d*)</td></tr><tr><td class="left">Heavy Factory</td><td>(\d*)</td></tr><tr><td class="left">Wave Amplifier</td><td>(\d*)</td></tr><tr><td class="left">Wave Distorter</td><td>(\d*)</td></tr><tr><td class="left">Metal Refinery</td><td>(\d*)</td></tr><tr><td class="left">Crystal Refinery</td><td>(\d*)</td></tr><tr><td class="left">Eonium Refinery</td><td>(\d*)</td></tr><tr><td class="left">Research Laboratory</td><td>(\d*)</td></tr><tr><td class="left">Finance Centre</td><td>(\d*)</td></tr><tr><td class="left">Security Centre</td><td>(\d*)</td></tr>', page)
+        # m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)</th></tr><tr><td class="left">Light Factory</td><td>(\d*)</td></tr><tr><td class="left">Medium Factory</td><td>(\d*)</td></tr><tr><td class="left">Heavy Factory</td><td>(\d*)</td></tr><tr><td class="left">Wave Amplifier</td><td>(\d*)</td></tr><tr><td class="left">Wave Distorter</td><td>(\d*)</td></tr><tr><td class="left">Metal Refinery</td><td>(\d*)</td></tr><tr><td class="left">Crystal Refinery</td><td>(\d*)</td></tr><tr><td class="left">Eonium Refinery</td><td>(\d*)</td></tr><tr><td class="left">Research Laboratory</td><td>(\d*)</td></tr><tr><td class="left">Finance Centre</td><td>(\d*)</td></tr><tr><td class="left">Security Centre</td><td>(\d*)</td></tr>', page)
         m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)</h2>', page)
 
         x = m.group(1)
@@ -497,10 +496,9 @@ class scan(threading.Thread):
             return
 
         #                     <td class="left">15:7:11            </td><td class="left">Defend </td><td>Ad infinitum</td><td>9</td><td>0</td>
-        #<tr><td class="left">10:4:9</td><td class="left">Return</td><td>They look thirsty</td><td>5</td><td>3000</td></tr>
-        #	<tr><td class="left">4:1:10</td><td class="left">Return</td><td>Or Is It?</td><td>9</td><td>3000</td></tr>
-
-        #<tr><td class="left">10:1:10</td><td class="left">Defend</td><td class="left">Pesticide IV</td><td class="right">1</td><td class="right">0</td></tr>
+        # <tr><td class="left">10:4:9</td><td class="left">Return</td><td>They look thirsty</td><td>5</td><td>3000</td></tr>
+        # <tr><td class="left">4:1:10</td><td class="left">Return</td><td>Or Is It?</td><td>9</td><td>3000</td></tr>
+        # <tr><td class="left">10:1:10</td><td class="left">Defend</td><td class="left">Pesticide IV</td><td class="right">1</td><td class="right">0</td></tr>
 
         for m in re.finditer(
             '<td[^>]*><a[^>]*>(\d+)\:(\d+)\:(\d+)</a> \(<span[^>]*>[^<]*</span>\)</td><td[^>]*>([^<]+)</td><td[^>]*>([^<]+)</td><td[^>]*>(\d+)</td><td[^>]*>(\d+(?:,\d{3})*)</td>',

@@ -79,9 +79,6 @@ def overwrite(from_file, to_file):
 
 while True:
     try:
-        conn = psycopg.connect(DSN)
-        cursor = conn.cursor()
-
         round = config.getint('Planetarion', 'current_round')
         planetlist = config.get("Url", "planetlist")
         galaxylist = config.get("Url", "galaxylist")
@@ -164,13 +161,6 @@ while True:
                 time.sleep(300)
                 continue
 
-        cursor.execute("SELECT max_tick(%s::smallint)", (round,))
-        last_tick = cursor.fetchone()[0]
-        if last_tick:
-            last_tick = int(last_tick)
-        if not last_tick:
-            last_tick = -1
-
         planets.readline()
         planets.readline()
         planets.readline()
@@ -243,6 +233,33 @@ while True:
                                                                            userfeed_tick)
             time.sleep(30)
             continue
+
+        if from_web and write_dumps:
+            # Store the newly retrieved dump files, removing the old ones
+            # first, if they exist.
+            dump_dir = config.get('Dumps', 'dir')
+            tick_dir = '%s/r%03d/%04d' % (dump_dir, round, planet_tick)
+            try:
+                os.makedirs(tick_dir)
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    raise
+            overwrite(planet_file, '%s/r%03d/%04d/%s' % (dump_dir, round, planet_tick, planet_file))
+            overwrite(galaxy_file, '%s/r%03d/%04d/%s' % (dump_dir, round, planet_tick, galaxy_file))
+            overwrite(alliance_file, '%s/r%03d/%04d/%s' % (dump_dir, round, planet_tick, alliance_file))
+            overwrite(userfeed_file, '%s/r%03d/%04d/%s' % (dump_dir, round, planet_tick, userfeed_file))
+            print 'Wrote dump files to disk'
+
+        conn = psycopg.connect(DSN)
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT max_tick(%s::smallint)", (round,))
+        last_tick = cursor.fetchone()[0]
+        if last_tick:
+            last_tick = int(last_tick)
+        if not last_tick:
+            last_tick = -1
+
         if not planet_tick > last_tick:
             if from_web:
                 print "Stale ticks found, sleeping"
@@ -370,22 +387,6 @@ while True:
             galaxies.close()
             alliances.close()
             userfeed.close()
-
-            if from_web and write_dumps:
-                # Store the newly retrieved dump files, removing the old ones
-                # first, if they exist.
-                dump_dir = config.get('Dumps', 'dir')
-                tick_dir = '%s/r%03d/%04d' % (dump_dir, round, planet_tick)
-                try:
-                    os.makedirs(tick_dir)
-                except OSError as e:
-                    if e.errno != errno.EEXIST:
-                        raise
-                overwrite(planet_file, '%s/r%03d/%04d/%s' % (dump_dir, round, planet_tick, planet_file))
-                overwrite(galaxy_file, '%s/r%03d/%04d/%s' % (dump_dir, round, planet_tick, galaxy_file))
-                overwrite(alliance_file, '%s/r%03d/%04d/%s' % (dump_dir, round, planet_tick, alliance_file))
-                overwrite(userfeed_file, '%s/r%03d/%04d/%s' % (dump_dir, round, planet_tick, userfeed_file))
-                print 'Wrote dump files to disk'
 
         except psycopg.IntegrityError:
             raise

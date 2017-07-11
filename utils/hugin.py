@@ -53,7 +53,6 @@ if config.has_option('Database', 'host'):
     DSN += ' host=%s' % config.get('Database', 'host')
 
 t_start = time.time()
-t1 = t_start
 
 ofile = file("pid.hugin", "w")
 ofile.write("%s" % (os.getpid(),))
@@ -124,6 +123,8 @@ while True:
         parser.add_argument('-a', '--alliances', type=argparse.FileType('r'), metavar='FILE')
         parser.add_argument('-u', '--userfeed', type=argparse.FileType('r'), metavar='FILE')
         args = parser.parse_args()
+
+        t1 = time.time()
 
         if args.planets and args.galaxies and args.alliances and args.userfeed:
             planets = args.planets

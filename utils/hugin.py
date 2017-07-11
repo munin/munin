@@ -121,7 +121,6 @@ while True:
         args = parser.parse_args()
 
         if args.planets and args.galaxies and args.alliances and args.userfeed:
-            # ArgumentParser opens the files for us.
             planets = args.planets
             galaxies = args.galaxies
             alliances = args.alliances
@@ -130,7 +129,6 @@ while True:
             print "%s: error: The options --planets, --galaxies, --alliance and --userfeed must either be given together or not at all!\n" % (sys.argv[0])
             exit(3)
         else:
-            # Read dumps from the web
             from_web = True
             try:
                 req = urllib2.Request(planetlist)
@@ -205,8 +203,7 @@ while True:
             continue
 
         if from_web and write_dumps:
-            # Store the newly retrieved dump files, removing the old ones
-            # first, if they exist.
+            # Store the newly retrieved dump files
             dump_dir = config.get('Dumps', 'dir')
             tick_dir = os.path.join(dump_dir, "r%03d" % cur_round, "%04d" % planet_tick)
             try:
@@ -360,10 +357,6 @@ while True:
 
         except psycopg.IntegrityError:
             raise
-        # raise Exception("IntegrityError on dump inserts. Tick number has already
-        # been validated above, so that means something else is not unique on PA's
-        # end that should be and PA team fucked up again. Go and whine in
-        # #support.")
 
         conn.commit()
         break

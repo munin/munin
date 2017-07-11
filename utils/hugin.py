@@ -238,16 +238,16 @@ while True:
             # Store the newly retrieved dump files, removing the old ones
             # first, if they exist.
             dump_dir = config.get('Dumps', 'dir')
-            tick_dir = '%s/r%03d/%04d' % (dump_dir, round, planet_tick)
+            tick_dir = os.path.join(dump_dir, "r%03d" % round, "%04d" % planet_tick)
             try:
                 os.makedirs(tick_dir)
             except OSError as e:
                 if e.errno != errno.EEXIST:
                     raise
-            overwrite(planet_file, '%s/r%03d/%04d/%s' % (dump_dir, round, planet_tick, planet_file))
-            overwrite(galaxy_file, '%s/r%03d/%04d/%s' % (dump_dir, round, planet_tick, galaxy_file))
-            overwrite(alliance_file, '%s/r%03d/%04d/%s' % (dump_dir, round, planet_tick, alliance_file))
-            overwrite(userfeed_file, '%s/r%03d/%04d/%s' % (dump_dir, round, planet_tick, userfeed_file))
+            overwrite(planet_file, os.path.join(tick_dir, planet_file))
+            overwrite(galaxy_file, os.path.join(tick_dir, galaxy_file))
+            overwrite(alliance_file, os.path.join(tick_dir, alliance_file))
+            overwrite(userfeed_file, os.path.join(tick_dir, userfeed_file))
             print 'Wrote dump files to disk'
 
         conn = psycopg.connect(DSN)

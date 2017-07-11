@@ -13,7 +13,7 @@
 * Install instructions
 
 0) Install pgsql, python, etc.
-a) CREATE DATABASE yourdbnamehere WITH ENCODING = 'LATIN1';
+a) CREATE DATABASE yourdbnamehere;
 b) find every reference to the old user and dbname in the config (muninrc) and
    correct them
 c) Add the plpgsql language to your database. This usually requires superuser

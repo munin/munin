@@ -41,7 +41,8 @@ if not config.read("muninrc"):
                      ", not found.")
 
 useragent = "Munin (Python-urllib/%s); BotNick/%s; Admin/%s" % (urllib2.__version__,
-                                                                config.get("Connection", "nick"), config.get("Auth", "owner_nick"))
+                                                                config.get("Connection", "nick"),
+                                                                config.get("Auth", "owner_nick"))
 
 DSN = "dbname=%s user=%s" % (config.get("Database", "dbname"),
                              config.get("Database", "user"))
@@ -71,7 +72,7 @@ def write_to_file(data, out):
 def overwrite(from_file, to_file):
     try:
         os.unlink(to_file)
-    except OSError as e:
+    except OSError:
         pass
     os.rename(from_file, to_file)
 
@@ -236,7 +237,10 @@ while True:
 
         if not (planet_tick == galaxy_tick == alliance_tick == userfeed_tick):
             print "Varying ticks found, sleeping"
-            print "Planet: %s, Galaxy: %s, Alliance: %s, User feed: %s" % (planet_tick, galaxy_tick, alliance_tick, userfeed_tick)
+            print "Planet: %s, Galaxy: %s, Alliance: %s, User feed: %s" % (planet_tick,
+                                                                           galaxy_tick,
+                                                                           alliance_tick,
+                                                                           userfeed_tick)
             time.sleep(30)
             continue
         if not planet_tick > last_tick:

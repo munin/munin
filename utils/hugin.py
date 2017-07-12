@@ -390,39 +390,3 @@ t1 = time.time() - t_start
 print "Commit in %.3f seconds" % (t2,)
 print "Total time taken: %.3f seconds" % (t1,)
 
-while True:
-    try:
-        conn = psycopg.connect(DSN)
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT MIN(tick) FROM updates WHERE tick > 0")
-        min_tick = int(cursor.fetchone()[0])
-        if not min_tick:
-            min_tick = -1
-
-        query = "DELETE FROM epenis_cache"
-        cursor.execute(query)
-        query = "CREATE TEMP SEQUENCE activity_rank"
-        cursor.execute(query)
-
-        query = "INSERT INTO epenis_cache (planet_id, epenis, epenis_rank) "
-        query += " SELECT *,nextval('activity_rank') AS activity_rank"
-        query += " FROM (SELECT t1.id, t1.score-t5.score AS activity"
-        query += " FROM planet_dump AS t1"
-        query += " INNER JOIN planet_dump AS t5"
-        query += " ON t1.id=t5.id"
-        query += " WHERE t1.tick = (select max(tick) from updates)"
-        query += " AND t5.tick = GREATEST(t1.tick - 72, %s)"
-        query += " ORDER BY activity DESC) AS t8;"
-        cursor.execute(query, (min_tick,))
-
-        conn.commit()
-        break
-    except Exception as e:
-        print "Something random went wrong, sleeping for 15 seconds to hope it improves"
-        print e.__str__()
-        traceback.print_exc()
-        time.sleep(15)
-        continue
-
-print "Generated epenis_cache"

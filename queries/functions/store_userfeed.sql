@@ -22,7 +22,7 @@ UPDATE utmp SET z=substring(text from '\d+:\d+:(\d+)')::smallint;
 ALTER TABLE utmp ADD COLUMN anarchy_end_tick smallint;
 UPDATE utmp SET anarchy_end_tick=substring(text from 'until tick (\d+)')::smallint;
 ALTER TABLE utmp add COLUMN pid integer DEFAULT NULL;
-UPDATE utmp SET pid=p.id FROM planet_dump AS p WHERE utmp.x = p.x AND utmp.y = p.y AND utmp.z = p.z AND utmp.tick = p.tick;
+UPDATE utmp SET pid=p.id FROM planet_dump AS p WHERE utmp.x = p.x AND utmp.y = p.y AND utmp.z = p.z AND utmp.tick = p.tick AND p.round = curround;
 
 --transfer anarchy data, exclude exit anarchy entries
 INSERT INTO anarchy (round, start_tick, end_tick, pid)

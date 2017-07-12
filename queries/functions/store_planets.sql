@@ -1,4 +1,3 @@
--- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS store_planets(smallint);
 DROP FUNCTION IF EXISTS store_planets(smallint, smallint);
 CREATE FUNCTION store_planets(curround smallint, curtick smallint) RETURNS void AS $PROC$
@@ -19,7 +18,7 @@ PERFORM add_rank_planet_size();
 PERFORM add_rank_planet_score();
 PERFORM add_rank_planet_value();
 PERFORM add_rank_planet_xp();
-PERFORM add_planet_idle_ticks(curtick);
+PERFORM add_planet_idle_ticks(curround, curtick);
 
 --transfer temporary data into permanent dump
 INSERT INTO planet_dump (round,tick,x,y,z,planetname,rulername,race,size,score,value,xp,idle,vdiff,size_rank,score_rank,value_rank,xp_rank,id)

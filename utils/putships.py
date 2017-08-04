@@ -87,6 +87,8 @@ def main():
             if line[index] not in ('-', '',):
                 ship[key] = line[index]
         ship['total_cost'] = ship['metal'] + ship['crystal'] + ship['eonium']
+        if ship['type'] == 'EMP':
+            ship['type'] = 'Emp'
         fields = ['round']
         params = [args.round]
         for key in ship:

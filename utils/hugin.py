@@ -34,6 +34,7 @@ import StringIO
 import sys
 import argparse
 import datetime
+import shutil
 
 config = ConfigParser.ConfigParser()
 if not config.read("muninrc"):
@@ -74,7 +75,8 @@ def overwrite(from_file, to_file):
         os.unlink(to_file)
     except OSError:
         pass
-    os.rename(from_file, to_file)
+    # Moving a file while it's still open is impossible on Windows.
+    shutil.copy2(from_file, to_file)
 
 
 class InvalidTickException(Exception):
@@ -228,10 +230,9 @@ while True:
 
         cursor.execute("SELECT tick,timestamp FROM updates where round = %s and tick = (select max_tick(%s::smallint))", (cur_round, cur_round))
         last_tick_info = cursor.dictfetchone()
+        last_tick = -1
         if last_tick_info:
             last_tick = int(last_tick_info['tick'])
-        if not last_tick:
-            last_tick = -1
 
         if not planet_tick > last_tick:
             if from_web:
@@ -374,7 +375,7 @@ while True:
         break
     except AncientStaleTickException as a:
         print "Something random went wrong, crashing out and waiting for cron rerun"
-        print e.__str__()
+        print a.__str__()
         traceback.print_exc()
         sys.exit(1)
     except Exception as e:
@@ -389,4 +390,3 @@ t2 = time.time() - t1
 t1 = time.time() - t_start
 print "Commit in %.3f seconds" % (t2,)
 print "Total time taken: %.3f seconds" % (t1,)
-

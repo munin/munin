@@ -130,8 +130,8 @@ class anarchy(loadable.loadable):
                              )
                     development_tick = dev_scan['tick']
 
-                    min_alert = (1 - 0.15 + float(sc) / total) * (50 + 5 * float(guards) / float(planet.size + 1))
-                    max_alert = (1 - 0.15 + 0.4 + float(sc) / total) * (50 + 5 * float(guards) / float(planet.size + 1))
+                    min_alert = (1 - 0.15       + float(sc) / total) * (50 + 5 * float(guards) / float(planet.size + 1))
+                    max_alert = (1 - 0.15 + 0.5 + float(sc) / total) * (50 + 5 * float(guards) / float(planet.size + 1))
                     reply += ", with a minimum alert of %d and a maximum of %d (planet scan from pt%d, dev scan from pt%d)" % (
                         int(min_alert), int(max_alert), planet_tick, development_tick)
                 else:

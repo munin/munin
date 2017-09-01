@@ -61,7 +61,7 @@ class napfest(loadable.loadable):
         query += " AND text NOT ILIKE %s"
         query += " ORDER BY tick DESC"
         query += " LIMIT 10"
-        self.cursor.execute(query, (irc_msg.round, "%'s war with % has expired.'",))
+        self.cursor.execute(query, (irc_msg.round, "%'s war with % has expired.",))
 
         if self.cursor.rowcount == 0:
             reply = 'Nothing has happened yet, go fight some fools!'

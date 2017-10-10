@@ -58,7 +58,7 @@ class cowards(loadable.loadable):
         query += " FROM alliance_relation AS rel"
         query += " INNER JOIN alliance_canon AS canon1 ON rel.initiator = canon1.id"
         query += " INNER JOIN alliance_canon AS canon2 ON rel.acceptor = canon2.id"
-        query += " WHERE canon1.id = %s OR canon2.id = %s"
+        query += " WHERE ( canon1.id = %s OR canon2.id = %s )"
         query += " AND rel.end_tick > (SELECT max_tick(%s::smallint))"
         self.cursor.execute(query, (a.id, a.id, irc_msg.round))
 

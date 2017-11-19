@@ -71,11 +71,12 @@ class xp(loadable.loadable):
                 return 1
         if not attacker:
             u = loadable.user(pnick=irc_msg.user)
-            if not u.load_from_db(self.cursor, irc_msg.round):
+            u.load_from_db(self.cursor, irc_msg.round)
+            if not u.planet:
                 irc_msg.reply(
-                    "You must be registered to use the automatic " +
-                    self.__class__.__name__ +
-                    " command (log in with P and set mode +x, then make sure your planet is set with the pref command)")
+                    "You must be registered to use the automatic %s command (log in with P and "
+                    "set mode +x, then make sure your planet is set with the pref command)" % (
+                        self.__class__.__name__))
                 return 1
             if u.planet_id:
                 attacker = u.planet

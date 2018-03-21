@@ -124,7 +124,10 @@ while True:
         parser.add_argument('-g', '--galaxies', type=argparse.FileType('r'), metavar='FILE')
         parser.add_argument('-a', '--alliances', type=argparse.FileType('r'), metavar='FILE')
         parser.add_argument('-u', '--userfeed', type=argparse.FileType('r'), metavar='FILE')
+        parser.add_argument('-r', '--round', type=int, default=cur_round, metavar='NUMBER')
         args = parser.parse_args()
+
+        cur_round=args.round
 
         t1 = time.time()
 

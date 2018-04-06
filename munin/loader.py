@@ -135,9 +135,10 @@ class Loader(object):
             self.reload(name)
 
     def populate(self, basedir):
-        os.path.walk(basedir, self.add_directory, None)
+        for root, dirs, files in os.walk(basedir):
+            self.add_directory(root,files)
 
-    def add_directory(self, arg, directory, files):
+    def add_directory(self, directory, files):
         base_module = '.'.join(directory.split(os.sep))
         module_files = [x for x in files if x[-3:].lower() == '.py' and len(x) > 3 and x != "__init__.py"]
         for m in module_files:

@@ -70,6 +70,7 @@ class connection:
         line = self.file.readline()
         if not line:
             return line
+        line = line.decode()
         if line[-2:] == CRLF:
             line = line[:-2]
         if line[-1:] in CRLF:

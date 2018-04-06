@@ -31,8 +31,10 @@ class connection:
     PUBLIC_PREFIX = 2
     PRIVATE_PREFIX = 3
 
-    def __init__(self, host, port):
+    def __init__(self, config, command):
         "Connect to an IRC hub"
+        self.config = config
+        self.command = command
 
     def connect(self):
         "do nowt"
@@ -42,7 +44,13 @@ class connection:
         print line
 
     def rline(self):
-        "text"
+        if self.command:
+            command = ":dummy!~un@%s.users.netgamers.org PRIVMSG Munin :.%s" % (self.config.get("Auth","owner_pnick"),self.command)
+            self.command = None
+            return command
+        else:
+            return None
+        return "PRIVMSG jester: %s" % (command,)
 
     def privmsg(self, target, text):
         self.wline("PRIVMSG %s :%s" % (target, text))

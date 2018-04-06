@@ -21,39 +21,17 @@
 # are included in this collective work with permission of the copyright
 # owners.
 
-from parser import parser
+import os
+import ConfigParser
 import sys
 
-import ConfigParser
 from cli import connection
 
-config = ConfigParser.ConfigParser()
 
+if hasattr(os, "getuid") and os.getuid() != 0:
+    sys.path.insert(0, os.path.abspath(os.getcwd()))
 
-class munin:
-    def __init__(self, command):
-        if not config.read("muninrc"):
-            raise ValueError("Found no configuration file.")
-        self.server = config.get("Connection", "server")
-        self.port = int(config.get("Connection", "port"))
-        self.nick = config.get("Connection", "nick")
-        self.user = config.get("Connection", "user")
-        self.ircname = config.get("Connection", "name")
-
-        self.client = connection(self.server, self.port)
-        self.handler = parser(config, self.client, self)
-        self.client.connect()
-        self.run(command)
-
-    def run(self, command):
-        self.client.wline("NICK %s" % self.nick)
-        self.client.wline("USER %s 0 * : %s" % (self.user, self.ircname))
-
-        # Put this in config?
-        debug = self.handler.parse(':jesterina!sodoff@jester.users.netgamers.org PRIVMSG #ascendancy :!' + command)
-        if debug:
-            print debug
-
+from munin.loader import Loader
 
 args = sys.argv
 
@@ -66,4 +44,38 @@ for p in args:
         command = command + ' ' + p
     flag = flag + 1
 
-munin(command)
+class munin(object):
+    IRCU_ROUTER = 'munin.ircu_router'
+
+    def __init__(self):
+        config = ConfigParser.ConfigParser()
+        if not config.read('muninrc'):
+            raise ValueError("Expected configuration in muninrc, not found.")
+
+        self.loader = Loader()
+        self.loader.populate('munin')
+        self.ircu_router = self.loader.get_module(self.IRCU_ROUTER)
+
+        self.client = connection(config, command)
+        self.client.connect()
+        self.client.wline("NICK %s" % config.get("Connection", "nick"))
+        self.client.wline("USER %s 0 * : %s" % (config.get("Connection", "user"),
+                                                config.get("Connection", "name")))
+        self.config = config
+        router = self.ircu_router.ircu_router(self.client, self.config, self.loader)
+        router.run()
+
+    def reboot(self):
+        print "Rebooting Munin."
+        self.config.read('muninrc')
+        self.loader.populate('munin')
+        self.loader.refresh()
+        self.ircu_router = self.loader.get_module(self.IRCU_ROUTER)
+        router = self.ircu_router.ircu_router(self.client, self.config, self.loader)
+        router.run()
+
+
+
+
+
+munin()

@@ -82,7 +82,7 @@ class munin(object):
 
 
 def run():
-    ofile = file("pid.munin", "w")
+    ofile = open("pid.munin", "w")
     ofile.write("%s" % (os.getpid(),))
     ofile.close()
 

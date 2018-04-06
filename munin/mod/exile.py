@@ -104,8 +104,7 @@ class exile(loadable.loadable):
                 self.cursor.execute(query, (irc_msg.round, irc_msg.round, max_planets,))
                 eligible = "Whoops"
                 if self.cursor.rowcount > 0:
-                    eligible = ", ".join(map(lambda x: "%s:%s" % (x['x'], x['y']),
-                                             self.cursor.dictfetchall()))
+                    eligible = ", ".join(["%s:%s" % (x['x'], x['y']) for x in self.cursor.dictfetchall()])
                 reply += ": %s" % (eligible)
             reply += " | Also in the bracket: %s of %s galaxies with %s planets." % (
                 rest_gals, total_rest_gals, rest_planets)

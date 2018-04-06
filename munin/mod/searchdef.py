@@ -84,12 +84,11 @@ class searchdef(loadable.loadable):
             return
 
         reply = "Fleets matching query: "
-        reply += ", ".join(map(lambda x: "%s(%s) %s: %s %s" % (x['pnick'],
+        reply += ", ".join(["%s(%s) %s: %s %s" % (x['pnick'],
                                                                x['fleetupdated'] - self.current_tick(irc_msg.round),
                                                                x['fleetcount'],
                                                                self.format_real_value(x['ship_count']),
-                                                               x['ship']),
-                               self.cursor.dictfetchall()))
+                                                               x['ship']) for x in self.cursor.dictfetchall()])
 
         irc_msg.reply(reply)
 

@@ -89,7 +89,7 @@ class gac(loadable.loadable):
         query += " ORDER BY sum(howmany) %s" % (order,)
         query += " LIMIT 1"
         self.cursor.execute(query)
-        print self.cursor.rowcount
+        print(self.cursor.rowcount)
         return self.cursor.dictfetchone()
 
     def get_last_5_gac(self):
@@ -99,4 +99,4 @@ class gac(loadable.loadable):
         query += " ORDER BY year_number DESC, week_number DESC"
         query += " LIMIT 5"
         self.cursor.execute(query)
-        return map(lambda x: str(x['gac']), self.cursor.dictfetchall())
+        return [str(x['gac']) for x in self.cursor.dictfetchall()]

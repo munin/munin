@@ -62,6 +62,6 @@ class auth(object):
 
     def random_nick(self):
         nick = random.choice(string.ascii_letters)
-        for _ in xrange(14):
+        for _ in range(14):
             nick += random.choice(string.ascii_letters + string.digits)
         return nick

@@ -3,9 +3,9 @@
 Put the ships from url into our database.
 """
 
-import ConfigParser
+import configparser
 from psycopg2 import psycopg1 as psycopg
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import re
 import sys
 import argparse
@@ -45,9 +45,9 @@ sre = re.compile(regex, re.I | re.M)
 def main():
     """Parse url, and put the ships into our database."""
 
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     if not config.read('muninrc'):
-        print >> sys.stderr, "Error: Found no configuration file in ./muninrc."
+        print("Error: Found no configuration file in ./muninrc.", file=sys.stderr)
         return 1
     DSN = "dbname=%s user=%s" % (config.get('Database', 'dbname'),
                                  config.get('Database', 'user'))
@@ -72,9 +72,9 @@ def main():
 
     cursor.execute("DELETE FROM ship WHERE round=%s;", (args.round,))
 
-    req = urllib2.Request(args.url)
+    req = urllib.request.Request(args.url)
     req.add_header('User-Agent', useragent)
-    stats = urllib2.urlopen(req).read()
+    stats = urllib.request.urlopen(req).read()
 
     for line in sre.findall(stats):
         line = list(line)

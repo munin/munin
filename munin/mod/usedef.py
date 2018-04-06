@@ -79,7 +79,7 @@ class usedef(loadable.loadable):
         else:
             reply += "Removed a fleet for %s, they now have %s fleets left." % (u.pnick, u.fleetcount - 1)
         reply += " Used the following ships: "
-        reply += ", ".join(map(lambda x: "%s %s" % (self.format_real_value(removed[x]), x), removed.keys()))
+        reply += ", ".join(["%s %s" % (self.format_real_value(removed[x]), x) for x in list(removed.keys())])
         irc_msg.reply(reply)
         return 1
 

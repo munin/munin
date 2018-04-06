@@ -79,8 +79,8 @@ class mydef(loadable.loadable):
         (ships, comment) = self.reset_ships_and_comment(u, ships, fleetcount, irc_msg.round, comment, reset_ships)
 
         irc_msg.reply("Updated your def info to: fleetcount %s, updated: pt%s ships: %s and comment: %s" %
-                      (fleetcount, self.current_tick(irc_msg.round), ", ".join(map(lambda x: "%s %s" %
-                                                                                   (self.format_real_value(x['ship_count']), x['ship']), ships)), comment))
+                      (fleetcount, self.current_tick(irc_msg.round), ", ".join(["%s %s" %
+                                                                                   (self.format_real_value(x['ship_count']), x['ship']) for x in ships]), comment))
 
         return 1
 
@@ -95,7 +95,7 @@ class mydef(loadable.loadable):
         query = "DELETE FROM user_fleet WHERE user_id = %s AND round = %s"
         self.cursor.execute(query, (user.id, round,))
 
-        for k in ships.keys():
+        for k in list(ships.keys()):
             query = "INSERT INTO user_fleet (user_id,round,ship,ship_count)"
             query += " VALUES (%s,%s,%s,%s)"
             args = (user.id, round, k, ships[k],)

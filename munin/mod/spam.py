@@ -68,8 +68,8 @@ class spam(loadable.loadable):
             irc_msg.reply(reply)
             return 1
 
-        printable = map(lambda d: "%s:%s:%s" % (d['x'], d['y'], d['z']), planets)
-        print printable
+        printable = ["%s:%s:%s" % (d['x'], d['y'], d['z']) for d in planets]
+        print(printable)
         reply = "Spam on alliance %s - " % (planets[0]['alliance'])
         while printable:
             batch = printable[:10]

@@ -64,7 +64,7 @@ class launch(loadable.loadable):
         eta = m.group(1)
         land_tick = int(m.group(2))
 
-        if eta.lower() in self.class_eta.keys():
+        if eta.lower() in list(self.class_eta.keys()):
             eta = self.class_eta[eta.lower()]
         else:
             try:

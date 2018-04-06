@@ -75,7 +75,7 @@ class racism(loadable.loadable):
         else:
             results = self.cursor.dictfetchall()
             reply = "Demographics for %s: " % (alliance,)
-            reply += string.join(map(self.profile, results), ' | ')
+            reply += string.join(list(map(self.profile, results)), ' | ')
         irc_msg.reply(reply)
 
         return 1

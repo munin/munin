@@ -62,8 +62,8 @@ class cookie(loadable.loadable):
         m = self.paramre.search(m.group(1))
 
         if not (m or s):
-            print s
-            print m
+            print(s)
+            print(m)
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         if s:

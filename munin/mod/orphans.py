@@ -67,7 +67,7 @@ class orphans(loadable.loadable):
         else:
             reply = "The following members are orphans: "
             res = self.cursor.dictfetchall()
-            reply += string.join(map(lambda x: x['pnick'], res), ', ')
+            reply += string.join([x['pnick'] for x in res], ', ')
 
         irc_msg.reply(reply)
 

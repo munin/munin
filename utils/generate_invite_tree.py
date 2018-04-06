@@ -49,10 +49,10 @@ from psycopg2 import psycopg1 as psycopg
 # owners.
 
 import sys
-import ConfigParser
+import configparser
 from psycopg2 import psycopg1 as psycopg
 
-config = ConfigParser.ConfigParser()
+config = configparser.ConfigParser()
 if not config.read("muninrc"):
     # No config found.
     raise ValueError("Expected configuration file muninrc"
@@ -72,4 +72,4 @@ query = 'SELECT pnick, sponsor FROM user_list'
 query += " WHERE userlevel >= 100"
 cursor.execute(query)
 
-print "\n".join(map(lambda x: '"%s" -> "%s";' % (x['sponsor'], x['pnick']), cursor.dictfetchall()))
+print("\n".join(['"%s" -> "%s";' % (x['sponsor'], x['pnick']) for x in cursor.dictfetchall()]))

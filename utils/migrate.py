@@ -31,7 +31,7 @@ try:
     old_db = sys.argv[1]
     new_db = sys.argv[2]
 except BaseException:
-    print "Usage: %s <old_db> <new_db>" % (sys.argv[0])
+    print("Usage: %s <old_db> <new_db>" % (sys.argv[0]))
     sys.exit(0)
 
 

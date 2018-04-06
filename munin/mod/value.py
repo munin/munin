@@ -110,15 +110,15 @@ class value(loadable.loadable):
 
                 reply += "Value in the last 15 ticks on %s:%s:%s: " % (p.x, p.y, p.z)
 
-                info = map(lambda x: "pt%s %s (%s%s)" %
+                info = ["pt%s %s (%s%s)" %
                            (x['tick'], self.format_value(x['value'] *
                                                          100), ["+", "-"][x['vdiff'] < 0], self.format_value(abs(x['vdiff'] *
                                                                                                                  100))) +
                            [" roids:" +
                             ["+", "-"][x['sdiff'] < 0] +
-                               str(abs(x['sdiff'])), ""][x['sdiff'] == 0], results)
+                               str(abs(x['sdiff'])), ""][x['sdiff'] == 0] for x in results]
 
-                print info
+                print(info)
                 reply += str.join(' | ', info)
             irc_msg.reply(reply)
         return 1

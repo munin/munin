@@ -99,7 +99,7 @@ class intel(loadable.loadable):
         a = loadable.alliance(name=i.alliance)
         if i.alliance:
             a.load_most_recent(self.cursor, irc_msg.round)
-        for opt, val in opts.items():
+        for opt, val in list(opts.items()):
             if opt == "alliance":
                 if val in self.nulls:
                     a = loadable.alliance(id=None)

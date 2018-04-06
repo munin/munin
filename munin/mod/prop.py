@@ -108,8 +108,7 @@ class prop(loadable.loadable):
             if self.command_not_used_in_home(irc_msg, self.__class__.__name__ + " poll"):
                 return 1
             question = m.group(1)
-            answers = filter(lambda answer: len(answer) > 0,
-                             re.split(self.poll_split_answers, m.group(2)))
+            answers = [answer for answer in re.split(self.poll_split_answers, m.group(2)) if len(answer) > 0]
             self.process_poll_proposal(irc_msg, u, question, answers[:10])
 
         elif prop_type.lower() == 'list':
@@ -293,7 +292,7 @@ class prop(loadable.loadable):
         outcome = self.get_voters_for_prop(prop_id, r['prop_type'])
         if len(outcome['veto']['list']) > 0:
             reply += " Vetoing: "
-            reply += string.join(map(lambda x: x['pnick'], outcome['veto']['list']), ', ')
+            reply += string.join([x['pnick'] for x in outcome['veto']['list']], ', ')
         irc_msg.reply(reply)
 
         if not bool(r['active']):
@@ -317,9 +316,9 @@ class prop(loadable.loadable):
                 elif r['vote_result'].upper() == "cancel".upper():
                     reply = "The prop was cancelled with %s carebears for and %s against" % (yes, no)
                 reply += ". The voters in favor were ("
-                reply += string.join(map(pretty_print, outcome['yes']['list']), ', ')
+                reply += string.join(list(map(pretty_print, outcome['yes']['list'])), ', ')
                 reply += ") and against ("
-                reply += string.join(map(pretty_print, outcome['no']['list']), ', ')
+                reply += string.join(list(map(pretty_print, outcome['no']['list'])), ', ')
                 reply += ")"
             irc_msg.reply(reply)
 
@@ -467,12 +466,12 @@ class prop(loadable.loadable):
                 winner = 'no'
             reply += " with %s carebears for and %s against." % (yes, no)
             reply += " In favor: "
-            reply += string.join(map(pretty_print, outcome['yes']['list']), ', ')
+            reply += string.join(list(map(pretty_print, outcome['yes']['list'])), ', ')
             reply += " Against: "
-            reply += string.join(map(pretty_print, outcome['no']['list']), ', ')
+            reply += string.join(list(map(pretty_print, outcome['no']['list'])), ', ')
             if len(outcome['veto']['list']) > 0:
                 reply += " Veto: "
-                reply += string.join(map(pretty_print, outcome['veto']['list']), ', ')
+                reply += string.join(list(map(pretty_print, outcome['veto']['list'])), ', ')
 
         irc_msg.client.privmsg("#%s" % (self.config.get('Auth', 'home'),), reply)
 

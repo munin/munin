@@ -7,6 +7,7 @@ import sys
 import os
 
 import traceback
+import imp
 
 
 class Loader(object):
@@ -71,7 +72,7 @@ class Loader(object):
         try:
             return self.loaded[name]
         except KeyError:
-            print self.loaded.keys()
+            print(list(self.loaded.keys()))
             return "Module %s not present and could not be loaded." % (name,)
 
     def add_module(self, name, module):
@@ -98,7 +99,7 @@ class Loader(object):
             result = "Exception: %s when loading module." % (e,)
 
         if failure:
-            print result
+            print(result)
             traceback.print_exc(None, sys.stderr)
             return False
         return True
@@ -114,7 +115,7 @@ class Loader(object):
         failure = True
 
         try:
-            newmod = reload(self.loaded[name])
+            newmod = imp.reload(self.loaded[name])
             self.loaded[name] = newmod
             failure = False
         except KeyError:
@@ -147,7 +148,7 @@ class Loader(object):
     def get_submodules(self, name):
         name_len = len(name)
         result = []
-        for k in self.loaded.keys():
+        for k in list(self.loaded.keys()):
             if k[:name_len] == name:
                 result.append(self.loaded[k])
         return result

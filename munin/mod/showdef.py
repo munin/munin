@@ -73,7 +73,7 @@ class showdef(loadable.loadable):
 
         reply = "%s def info: %s fleets, updated pt%s (%s), ships: " % (
             u.pnick, u.fleetcount, u.fleetupdated, u.fleetupdated - self.current_tick(irc_msg.round))
-        reply += ", ".join(map(lambda x: "%s %s" % (self.format_real_value(x['ship_count']), x['ship']), ships))
+        reply += ", ".join(["%s %s" % (self.format_real_value(x['ship_count']), x['ship']) for x in ships])
         reply += " comment: %s" % (u.fleetcomment,)
         irc_msg.reply(reply)
         return 1

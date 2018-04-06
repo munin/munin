@@ -52,7 +52,7 @@ class raw(loadable.loadable):
             irc_msg.reply("You do not have enough access to send raw commands")
             return 0
 
-        print "%s sent raw '%s'" % (user, irc_command)
+        print("%s sent raw '%s'" % (user, irc_command))
         irc_msg.client.wline(irc_command)
         irc_msg.reply("Sent raw command '%s'" % (irc_command,))
 

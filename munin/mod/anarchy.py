@@ -152,8 +152,7 @@ class anarchy(loadable.loadable):
             if self.cursor.rowcount < 1:
                 reply = "There are currently no planets in anarchy. Get to it!"
             else:
-                anarchy_list = map(lambda p: "%d:%d:%d" % (p['x'], p['y'], p['z']),
-                                   self.cursor.dictfetchall())
+                anarchy_list = ["%d:%d:%d" % (p['x'], p['y'], p['z']) for p in self.cursor.dictfetchall()]
                 reply = "Planets currently in anarchy: %s" % (", ".join(anarchy_list))
                 if self.cursor.rowcount == 120:
                     reply += " and a bunch more"

@@ -53,7 +53,7 @@ class connection:
     def wline(self, line):
         "Send a line to the hub"
         if DEBUG:
-            print time.asctime(), ">>>", line
+            print(time.asctime(), ">>>", line)
 
         m = self.pongre.search(line)
         if m:
@@ -75,7 +75,7 @@ class connection:
             line = line[:-1]
 
         if DEBUG:
-            print time.asctime(), "<<<", line
+            print(time.asctime(), "<<<", line)
         m = self.pingre.search(line)
         if m:
             self.wline("PONG :%s" % m.group(1))

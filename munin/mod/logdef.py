@@ -66,8 +66,8 @@ class logdef(loadable.loadable):
 
         if hit:
             cur = self.current_tick(irc_msg.round)
-            reply = ", ".join(map(lambda x: "%s gave %s %s to %s (%s)" % (
-                x['owner'], self.format_real_value(x['ship_count']), x['ship'], x['taker'], x['tick'] - cur), hit))
+            reply = ", ".join(["%s gave %s %s to %s (%s)" % (
+                x['owner'], self.format_real_value(x['ship_count']), x['ship'], x['taker'], x['tick'] - cur) for x in hit])
             irc_msg.reply(reply)
         else:
             irc_msg.reply("No matches found in the deflog for search '%s'" % (search,))

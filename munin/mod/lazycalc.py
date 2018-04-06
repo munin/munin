@@ -39,7 +39,7 @@ def timefunc(f):
         start = time.time()
         result = f(*args, **kwargs)
         end = time.time()
-        print f.__name__, 'took', end - start, 'time'
+        print(f.__name__, 'took', end - start, 'time')
         return result
     return f_timer
 
@@ -203,8 +203,7 @@ class calc_creator(threading.Thread):
     def create_calc(self, target, aus):
         browser = RoboBrowser(user_agent='a python robot', history=False)
         browser.open('https://game.planetarion.com/bcalc.pl')
-        t = filter(lambda a: target.x == a['x'] and target.y == a['y'] and target.z == a['z'],
-                   aus)
+        t = [a for a in aus if target.x == a['x'] and target.y == a['y'] and target.z == a['z']]
         if len(t) == 1:
             self.add_au(browser, t[0])
         for au in sorted(aus, key=operator.itemgetter('x', 'y', 'z')):

@@ -25,7 +25,6 @@ Loadable.Loadable subclass
 # owners.
 
 import re
-import string
 import munin.loadable as loadable
 from robobrowser import RoboBrowser
 import threading
@@ -104,12 +103,12 @@ class lazycalc(loadable.loadable):
                     return 0
                 else:
                     reply = "Ignoring missing AU scans on "
-                    reply += string.join(["%s:%s:%s" % (p['x'], p['y'], p['z']) for p in outdated], ", ")
+                    reply += ', '.join(["%s:%s:%s" % (p['x'], p['y'], p['z']) for p in outdated])
                     if fleet_count > 10:
                         reply += ". This is going to take a moment, %s" % (irc_msg.nick,)
                     irc_msg.reply(reply)
             else:
-                reply = string.join(["%s:%s:%s" % (p['x'], p['y'], p['z']) for p in outdated], ", ")
+                reply = ', '.join(["%s:%s:%s" % (p['x'], p['y'], p['z']) for p in outdated])
                 irc_msg.reply("Get off your ass and give me fresh AUs on: %s" % (reply,))
                 return 1
         elif fleet_count > 10:

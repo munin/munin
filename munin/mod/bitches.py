@@ -27,7 +27,6 @@ Loadable.Loadable subclass
 # qebab, 22/06/08
 
 import re
-import string
 from munin import loadable
 
 
@@ -76,7 +75,7 @@ class bitches(loadable.loadable):
         for b in self.cursor.dictfetchall():
             prev.append("%s:%s(%s)" % (b['x'], b['y'], b['number']))
 
-        reply += " " + string.join(prev, ', ')
+        reply += " " + ', '.join(prev)
         irc_msg.reply(reply)
 
         # begin finding of all alliance targets
@@ -104,7 +103,7 @@ class bitches(loadable.loadable):
         prev = []
         for b in self.cursor.dictfetchall():
             prev.append("%s (%s)" % (self.cap(b['alliance'] or "Unknown"), b['number']))
-        reply += " " + string.join(prev, ', ')
+        reply += " " + ', '.join(prev)
         irc_msg.reply(reply)
 
         return 1

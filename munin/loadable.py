@@ -24,7 +24,6 @@ Loadable class
 # owners.
 
 import re
-import string
 import configparser
 import datetime
 
@@ -813,7 +812,7 @@ class intel(object):
         if self.comment:
             retlist.append("comment=%s" % (self.comment,))
 
-        return string.join(retlist)
+        return ' '.join(retlist)
 
     def change_list(self):
         retlist = []
@@ -842,7 +841,7 @@ class intel(object):
         if self.comment:
             retlist.append("comment=%s")
 
-        return string.join(retlist)
+        return ' '.join(retlist)
 
     def change_tuple(self):
         rettup = ()

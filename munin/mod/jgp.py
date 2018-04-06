@@ -27,7 +27,6 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 import re
-import string
 from munin import loadable
 
 
@@ -100,7 +99,7 @@ class jgp(loadable.loadable):
                     rand_id = s['rand_id']
 
                 reply += " (id: %s, pt: %s) " % (rand_id, tick)
-                reply += string.join(prev, ' | ')
+                reply += ' | '.join(prev)
                 if len(reply) > 450:
                     reply = " Newest JGP scan on %s:%s:%s (pt: %s) " % (x, y, z, tick)
                     reply += "http://game.planetarion.com/showscan.pl?scan_id=%s" % (rand_id,)
@@ -145,7 +144,7 @@ class jgp(loadable.loadable):
                     y = s['targ_y']
                     z = s['targ_z']
                 reply += "%s:%s:%s (id: %s, pt: %s) " % (x, y, z, rand_id, tick)
-                reply += string.join(prev, ' | ')
+                reply += ' | '.join(prev)
         irc_msg.reply(reply)
         return 1
 

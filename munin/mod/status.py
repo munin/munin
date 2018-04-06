@@ -28,7 +28,6 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 import re
-import string
 from munin import loadable
 
 
@@ -134,7 +133,7 @@ class status(loadable.loadable):
                             owner = "user:" + r['pnick']
                         prev.append("(%s %s)" % (r['tick'], owner))
 
-                    reply += " " + string.join(prev, ', ')
+                    reply += " " + ', '.join(prev)
                 irc_msg.reply(reply)
             else:
                 query += " ORDER BY y, z, x, tick"
@@ -156,7 +155,7 @@ class status(loadable.loadable):
                 reply = "Target information for %s:%s (by landing tick) -" % (x, y)
                 sorted_keys = sorted(ticks.keys())
                 for k in sorted_keys:
-                    reply = string.join([reply, "Tick %s (eta %s)" % (k, k - curtick)])
+                    reply = ' '.join([reply, "Tick %s (eta %s)" % (k, k - curtick)])
                     booked_list = ticks[k]
                     prev = []
                     for p in booked_list:
@@ -165,7 +164,7 @@ class status(loadable.loadable):
                             owner = "user:" + p['pnick']
                         prev.append("(%s %s)" % (p['z'], owner))
 
-                    reply += " " + string.join(prev, ', ')
+                    reply += " " + ', '.join(prev)
                     irc_msg.reply(reply.strip())
                     reply = ""
             return 1
@@ -229,7 +228,7 @@ class status(loadable.loadable):
                     tmp += ")"
                     prev.append(tmp)
 
-                reply += " " + string.join(prev, ', ')
+                reply += " " + ', '.join(prev)
 
             else:
                 prev = []
@@ -241,7 +240,7 @@ class status(loadable.loadable):
                         tmp += " nick:%s" % (b['nick'])
                     tmp += ")"
                     prev.append(tmp)
-                reply += " " + string.join(prev, ', ')
+                reply += " " + ', '.join(prev)
             irc_msg.reply(reply)
 
         return 1
@@ -274,6 +273,6 @@ class status(loadable.loadable):
                 tmp += " nick:%s" % (b['nick'])
             tmp += ")"
             prev.append(tmp)
-        reply += " " + string.join(prev, ', ')
+        reply += " " + ', '.join(prev)
         irc_msg.reply(reply)
         return 0

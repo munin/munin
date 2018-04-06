@@ -27,7 +27,6 @@ Loadable.Loadable subclass
 # qebab, 22/06/08
 
 import re
-import string
 from munin import loadable
 
 
@@ -88,7 +87,7 @@ class au(loadable.loadable):
 
                 reply += " (id: %s, age: %s, value diff: %s) " % (rand_id,
                                                                   self.current_tick(irc_msg.round) - tick, p.vdiff(self.cursor, tick, irc_msg.round))
-                reply += string.join(prev, ' | ')
+                reply += ' | '.join(prev)
         else:
             m = self.idre.search(params)
             if not m:
@@ -122,6 +121,6 @@ class au(loadable.loadable):
 
                 reply += "%s:%s:%s (id: %s, age: %s, value diff: %s) " % (x, y, z, rand_id,
                                                                           self.current_tick(irc_msg.round) - tick, vdiff)
-                reply += string.join(prev, ' | ')
+                reply += ' | '.join(prev)
         irc_msg.reply(reply)
         return 1

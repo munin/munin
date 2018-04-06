@@ -27,7 +27,6 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 import re
-import string
 from munin import loadable
 
 
@@ -114,7 +113,7 @@ class dev(loadable.loadable):
                     if i > 4:
                         break
                     prev.append("(%s,pt%s)" % (s['rand_id'], s['tick']))
-                reply += string.join(prev, ', ')
+                reply += ', '.join(prev)
 
         else:
             m = self.idre.search(params)

@@ -25,7 +25,6 @@ Loadable.Loadable subclass
 # owners.
 
 import re
-import string
 
 from munin import loadable
 

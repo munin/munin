@@ -27,7 +27,6 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 import re
-import string
 from munin import loadable
 
 
@@ -87,7 +86,7 @@ class unit(loadable.loadable):
                     rand_id = s['rand_id']
 
                 reply += " (id: %s, pt: %s) " % (rand_id, tick)
-                reply += string.join(prev, ' | ')
+                reply += ' | '.join(prev)
         else:
             m = self.idre.search(params)
             if not m:
@@ -118,6 +117,6 @@ class unit(loadable.loadable):
                     z = s['z']
 
                 reply += "%s:%s:%s (id: %s, pt: %s) " % (x, y, z, rand_id, tick)
-                reply += string.join(prev, ' | ')
+                reply += ' | '.join(prev)
         irc_msg.reply(reply)
         return 1

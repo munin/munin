@@ -27,7 +27,6 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 import re
-import string
 from munin import loadable
 
 
@@ -161,7 +160,7 @@ class unbook(loadable.loadable):
                     if r['pnick']:
                         owner = "user: " + r['pnick']
                     prev.append("(%s %s)" % (r['tick'], owner))
-                reply += " " + string.join(prev, ', ')
+                reply += " " + ', '.join(prev)
 
         irc_msg.reply(reply)
         return 1

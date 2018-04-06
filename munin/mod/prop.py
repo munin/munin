@@ -27,7 +27,6 @@ Loadable.Loadable subclass
 
 
 import re
-import string
 from munin import loadable
 import datetime
 
@@ -242,7 +241,7 @@ class prop(loadable.loadable):
                     prop_info += " (%s,%s)" % (r['vote'][0].upper(), r['carebears'])
             a.append(prop_info)
 
-        reply = "Propositions currently being voted on: %s" % (string.join(a, ", "),)
+        reply = "Propositions currently being voted on: %s" % (", ".join(a),)
         irc_msg.reply(reply)
 
     def process_show_proposal(self, irc_msg, u, prop_id):
@@ -292,7 +291,7 @@ class prop(loadable.loadable):
         outcome = self.get_voters_for_prop(prop_id, r['prop_type'])
         if len(outcome['veto']['list']) > 0:
             reply += " Vetoing: "
-            reply += string.join([x['pnick'] for x in outcome['veto']['list']], ', ')
+            reply += ', '.join([x['pnick'] for x in outcome['veto']['list']])
         irc_msg.reply(reply)
 
         if not bool(r['active']):
@@ -316,9 +315,9 @@ class prop(loadable.loadable):
                 elif r['vote_result'].upper() == "cancel".upper():
                     reply = "The prop was cancelled with %s carebears for and %s against" % (yes, no)
                 reply += ". The voters in favor were ("
-                reply += string.join(list(map(pretty_print, outcome['yes']['list'])), ', ')
+                reply += ', '.join(list(map(pretty_print, outcome['yes']['list'])))
                 reply += ") and against ("
-                reply += string.join(list(map(pretty_print, outcome['no']['list'])), ', ')
+                reply += ', '.join(list(map(pretty_print, outcome['no']['list'])))
                 reply += ")"
             irc_msg.reply(reply)
 
@@ -466,12 +465,12 @@ class prop(loadable.loadable):
                 winner = 'no'
             reply += " with %s carebears for and %s against." % (yes, no)
             reply += " In favor: "
-            reply += string.join(list(map(pretty_print, outcome['yes']['list'])), ', ')
+            reply += ', '.join(list(map(pretty_print, outcome['yes']['list'])))
             reply += " Against: "
-            reply += string.join(list(map(pretty_print, outcome['no']['list'])), ', ')
+            reply += ', '.join(list(map(pretty_print, outcome['no']['list'])))
             if len(outcome['veto']['list']) > 0:
                 reply += " Veto: "
-                reply += string.join(list(map(pretty_print, outcome['veto']['list'])), ', ')
+                reply += ', '.join(list(map(pretty_print, outcome['veto']['list'])))
 
         irc_msg.client.privmsg("#%s" % (self.config.get('Auth', 'home'),), reply)
 
@@ -553,7 +552,7 @@ class prop(loadable.loadable):
                  r['prop_type'],
                     r['person'] or r['question'],
                     r['vote_result'][0].upper() if r['vote_result'] else ""))
-        reply = "Recently expired propositions: %s" % (string.join(a, ", "),)
+        reply = "Recently expired propositions: %s" % (', '.join(a),)
         irc_msg.reply(reply)
 
     def process_search_proposal(self, irc_msg, u, search):
@@ -584,7 +583,7 @@ class prop(loadable.loadable):
                     '?',
                     r['vote_result'][0].upper() if r['vote_result'] else "",
                  ))
-        reply = "Propositions matching '%s': %s" % (search, string.join(a, ", "),)
+        reply = "Propositions matching '%s': %s" % (search, ', '.join(a),)
         irc_msg.reply(reply)
 
     def get_winners_and_losers(self, outcome):

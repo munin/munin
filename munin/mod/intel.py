@@ -26,7 +26,6 @@ Loadable.Loadable subclass
 # Nothing alliance specific in here as far as I can tell.
 # qebab, 24/6/08.
 
-import string
 import re
 from munin import loadable
 
@@ -55,7 +54,7 @@ class intel(loadable.loadable):
         self.nulls = ["<>", ".", "-", "?"]
         self.true = ["1", "yes", "y", "true", "t"]
         self.false = ["0", "no", "n", "false", "f", ""]
-        self.helptext = ["Valid options: %s" % (string.join(self.options, ', '))]
+        self.helptext = ["Valid options: %s" % (', '.join(self.options))]
 
     def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)

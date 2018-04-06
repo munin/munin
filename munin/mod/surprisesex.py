@@ -29,7 +29,6 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 import re
-import string
 from munin import loadable
 
 
@@ -162,6 +161,6 @@ class surprisesex(loadable.loadable):
                     i += 1
                 prev.append("%s - %s" % (self.cap(a['alliance'] or 'unknown'), a['attacks']))
 
-            reply += string.join(prev, " | ")
+            reply += ' | '.join(prev)
 
         return reply

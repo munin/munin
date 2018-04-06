@@ -144,7 +144,7 @@ class Loader(object):
         for m in module_files:
             module = base_module + "." + m[:-3]
             if not self.imp(module):
-                raise
+                raise Exception("Unable to import %s" % (module,))
 
     def get_submodules(self, name):
         name_len = len(name)

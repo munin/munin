@@ -29,8 +29,7 @@ Loadable.Loadable subclass
 
 import re
 from munin import loadable
-from mx import DateTime
-
+from datetime import datetime
 
 class cookie(loadable.loadable):
     """
@@ -114,9 +113,9 @@ class cookie(loadable.loadable):
     def log_cookie(self, howmany, giver, receiver):
         query = "INSERT INTO cookie_log (year_number,week_number,howmany,giver,receiver)"
         query += " VALUES (%s,%s,%s,%s,%s)"
-        now = DateTime.now()
-        year = now.iso_week[0]
-        week_number = now.iso_week[1]
+        iso_week = datetime.now().isocalendar()
+        year = iso_week[0]
+        week_number = iso_week[1]
 
         self.cursor.execute(query, (year, week_number, howmany, giver.id, receiver.id))
 

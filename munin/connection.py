@@ -55,13 +55,14 @@ class connection:
         if DEBUG:
             print(time.asctime(), ">>>", line)
 
+        msg = line + CRLF
         m = self.pongre.search(line)
         if m:
-            self.sock.send(line + CRLF)
+            self.sock.send(msg.encode())
         else:
             while self.lastcommand + 2 >= time.time():
                 time.sleep(0.1)
-            self.sock.send(line + CRLF)
+            self.sock.send(msg.encode())
             self.lastcommand = time.time()
 
     def rline(self):

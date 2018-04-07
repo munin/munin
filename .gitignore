@@ -11,3 +11,8 @@ botlog.*
 clickatell.py
 tags
 dumps
+alliance_listing.txt
+galaxy_listing.txt
+planet_listing.txt
+stale_ticks.txt
+user_feed.txt

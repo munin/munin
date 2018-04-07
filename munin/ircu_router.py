@@ -19,10 +19,10 @@
 # are included in this collective work with permission of the copyright
 # owners.
 
-from listener import auth
-from listener import command
-from listener import custom_runner
-import mod
+from .listener import auth
+from .listener import command
+from .listener import custom_runner
+from . import mod
 from psycopg2 import psycopg1 as psycopg
 
 

@@ -25,7 +25,6 @@ Loadable.Loadable subclass
 # owners.
 
 import re
-import string
 import munin.loadable as loadable
 from robobrowser import RoboBrowser
 import threading
@@ -39,7 +38,7 @@ def timefunc(f):
         start = time.time()
         result = f(*args, **kwargs)
         end = time.time()
-        print f.__name__, 'took', end - start, 'time'
+        print(f.__name__, 'took', end - start, 'time')
         return result
     return f_timer
 
@@ -104,12 +103,12 @@ class lazycalc(loadable.loadable):
                     return 0
                 else:
                     reply = "Ignoring missing AU scans on "
-                    reply += string.join(["%s:%s:%s" % (p['x'], p['y'], p['z']) for p in outdated], ", ")
+                    reply += ', '.join(["%s:%s:%s" % (p['x'], p['y'], p['z']) for p in outdated])
                     if fleet_count > 10:
                         reply += ". This is going to take a moment, %s" % (irc_msg.nick,)
                     irc_msg.reply(reply)
             else:
-                reply = string.join(["%s:%s:%s" % (p['x'], p['y'], p['z']) for p in outdated], ", ")
+                reply = ', '.join(["%s:%s:%s" % (p['x'], p['y'], p['z']) for p in outdated])
                 irc_msg.reply("Get off your ass and give me fresh AUs on: %s" % (reply,))
                 return 1
         elif fleet_count > 10:
@@ -203,8 +202,7 @@ class calc_creator(threading.Thread):
     def create_calc(self, target, aus):
         browser = RoboBrowser(user_agent='a python robot', history=False)
         browser.open('https://game.planetarion.com/bcalc.pl')
-        t = filter(lambda a: target.x == a['x'] and target.y == a['y'] and target.z == a['z'],
-                   aus)
+        t = [a for a in aus if target.x == a['x'] and target.y == a['y'] and target.z == a['z']]
         if len(t) == 1:
             self.add_au(browser, t[0])
         for au in sorted(aus, key=operator.itemgetter('x', 'y', 'z')):

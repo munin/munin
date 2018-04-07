@@ -41,7 +41,7 @@ class connection:
 
     def wline(self, line):
         "Send a line to the hub"
-        print line
+        print(line)
 
     def rline(self):
         if self.command:

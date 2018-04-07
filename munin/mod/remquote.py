@@ -78,7 +78,7 @@ class remquote(loadable.loadable):
             args = (slogan,)
             query = "DELETE FROM quote WHERE quote = %s"
             self.cursor.execute(query, args)
-            print self.cursor.rowcount
+            print(self.cursor.rowcount)
             reply = "Removed: '%s'" % (slogan,)
 
         irc_msg.reply(reply)

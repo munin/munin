@@ -25,7 +25,6 @@ Loadable.Loadable subclass
 # owners.
 
 import re
-import string
 
 from munin import loadable
 
@@ -103,8 +102,8 @@ class tryhards(loadable.loadable):
             irc_msg.reply("lol")
 
         reply = "Alliances trying too hard for %s: " % (ranker.replace("_", " "),)
-        reply += ", ".join(map(lambda x: "%s: %s (%s)" %
-                               (x[rank], x['name'], self.format_real_value(x[ranker])), self.cursor.dictfetchall()))
+        reply += ", ".join(["%s: %s (%s)" %
+                               (x[rank], x['name'], self.format_real_value(x[ranker])) for x in self.cursor.dictfetchall()])
         irc_msg.reply(reply)
 
     def rank_galaxy_by(self, qualifier, irc_msg):
@@ -121,8 +120,8 @@ class tryhards(loadable.loadable):
             irc_msg.reply("lol")
 
         reply = "Galaxies trying too hard for %s: " % (qualifier.replace("_", " "),)
-        reply += ", ".join(map(lambda x: "%s: %s:%s - %s (%s)" %
-                               (x[rank], x['x'], x['y'], x['name'], self.format_real_value(x[qualifier])), self.cursor.dictfetchall()))
+        reply += ", ".join(["%s: %s:%s - %s (%s)" %
+                               (x[rank], x['x'], x['y'], x['name'], self.format_real_value(x[qualifier])) for x in self.cursor.dictfetchall()])
         irc_msg.reply(reply)
 
     def rank_planet_by(self, qualifier, irc_msg):
@@ -141,6 +140,6 @@ class tryhards(loadable.loadable):
             irc_msg.reply("lol")
 
         reply = "Planets trying too hard for %s: " % (qualifier,)
-        reply += ", ".join(map(lambda x: "%s: %s:%s:%s (%s/%s) (%s)" %
-                               (x[rank], x['x'], x['y'], x['z'], x['nick'], x['name'], self.format_real_value(x[qualifier])), self.cursor.dictfetchall()))
+        reply += ", ".join(["%s: %s:%s:%s (%s/%s) (%s)" %
+                               (x[rank], x['x'], x['y'], x['z'], x['nick'], x['name'], self.format_real_value(x[qualifier])) for x in self.cursor.dictfetchall()])
         irc_msg.reply(reply)

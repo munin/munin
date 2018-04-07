@@ -29,7 +29,6 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 import re
-import string
 from munin import loadable
 
 
@@ -165,6 +164,6 @@ class topcunts(loadable.loadable):
                     pass
                 prev.append("%s:%s:%s - %s" % (p.x, p.y, p.z, a['attacks']))
 
-            reply += string.join(prev, " | ")
+            reply += ' | '.join(prev)
 
         return reply

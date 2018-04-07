@@ -27,7 +27,6 @@ Loadable.Loadable subclass
 
 
 import re
-import string
 from munin import loadable
 
 
@@ -75,7 +74,7 @@ class racism(loadable.loadable):
         else:
             results = self.cursor.dictfetchall()
             reply = "Demographics for %s: " % (alliance,)
-            reply += string.join(map(self.profile, results), ' | ')
+            reply += ' | '.join(list(map(self.profile, results)))
         irc_msg.reply(reply)
 
         return 1

@@ -24,7 +24,7 @@ from psycopg2 import psycopg1 as psycopg
 import re
 import threading
 import traceback
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import dateutil.parser
 
 
@@ -57,14 +57,14 @@ class scan(threading.Thread):
         try:
             self.unsafe_method()
         except Exception as e:
-            print "Exception in scan: " + e.__str__()
+            print("Exception in scan: " + e.__str__())
             traceback.print_exc()
 
     def unsafe_method(self):
         if self.group_id:
-            req = urllib2.Request('http://game.planetarion.com/showscan.pl?scan_grp=' + self.group_id + '&inc=1')
+            req = urllib.request.Request('http://game.planetarion.com/showscan.pl?scan_grp=' + self.group_id + '&inc=1')
             req.add_header('User-Agent', self.useragent)
-            page = urllib2.urlopen(req).read()
+            page = urllib.request.urlopen(req).read()
             for scan in page.split("<hr>"):
                 m = re.search('scan_id=([0-9a-zA-Z]+)', scan)
                 if m:
@@ -72,21 +72,21 @@ class scan(threading.Thread):
                     try:
                         self.execute(scan)
                     except Exception as e:
-                        print "Exception in scan: " + e.__str__()
+                        print("Exception in scan: " + e.__str__())
                         traceback.print_exc()
         else:
             self.unsafe_method2()
 
     def unsafe_method2(self):
-        req = urllib2.Request('http://game.planetarion.com/showscan.pl?scan_id=' + self.rand_id + '&inc=1')
+        req = urllib.request.Request('http://game.planetarion.com/showscan.pl?scan_id=' + self.rand_id + '&inc=1')
         req.add_header('User-Agent', self.useragent)
-        page = urllib2.urlopen(req).read()
+        page = urllib.request.urlopen(req).read()
         self.execute(page)
 
     def execute(self, page):
         m = re.search('>([^>]+) on (\d+)\:(\d+)\:(\d+) in tick (\d+)', page)
         if not m:
-            print "Expired/non-matching scan (id: %s)" % (self.rand_id,)
+            print("Expired/non-matching scan (id: %s)" % (self.rand_id,))
             return
 
         round = self.config.getint('Planetarion', 'current_round')
@@ -124,8 +124,8 @@ class scan(threading.Thread):
                      self.group_id,
                      scan_time))
             except psycopg.IntegrityError as e:
-                print "Scan %s may already exist" % (self.rand_id,)
-                print e.__str__()
+                print("Scan %s may already exist" % (self.rand_id,))
+                print(e.__str__())
                 return
             if next_id < 0:
                 raise Exception("Scan id is %s" % (next_id,))
@@ -159,7 +159,7 @@ class scan(threading.Thread):
         elif name == "Advanced Unit Scan":
             return "au"
 
-        print "Name: " + name
+        print("Name: " + name)
 
     def parse_news(self, scan_id, page, round):
         m = re.search('on (\d+)\:(\d+)\:(\d+) in tick (\d+)', page)
@@ -191,11 +191,11 @@ class scan(threading.Thread):
             try:
                 self.cursor.execute(query, (scan_id, owner.id, p.id, numships, fleetname, newstick, arrivaltick))
             except Exception as e:
-                print "Exception in news: " + e.__str__()
+                print("Exception in news: " + e.__str__())
                 traceback.print_exc()
                 continue
 
-            print 'Incoming: ' + newstick + ':' + fleetname + '-' + originx + ':' + originy + ':' + originz + '-' + arrivaltick + '|' + numships
+            print('Incoming: ' + newstick + ':' + fleetname + '-' + originx + ':' + originy + ':' + originz + '-' + arrivaltick + '|' + numships)
 
     # launched attacking fleets
     # <td class=left valign=top>Launch</td><td valign=top>848</td><td class=left valign=top>The Disposable Heroes fleet has been launched, heading for 15:9:8, on a mission to Attack. Arrival tick: 857</td>
@@ -217,11 +217,11 @@ class scan(threading.Thread):
             try:
                 self.cursor.execute(query, (scan_id, p.id, target.id, fleetname, newstick, arrivaltick))
             except Exception as e:
-                print "Exception in news: " + e.__str__()
+                print("Exception in news: " + e.__str__())
                 traceback.print_exc()
                 continue
 
-            print 'Attack:' + newstick + ':' + fleetname + ':' + originx + ':' + originy + ':' + originz + ':' + arrivaltick
+            print('Attack:' + newstick + ':' + fleetname + ':' + originx + ':' + originy + ':' + originz + ':' + arrivaltick)
 
     # launched defending fleets
     # <td class=left valign=top>Launch</td><td valign=top>847</td><td class=left valign=top>The Ship Collection fleet has been launched, heading for 2:9:14, on a mission to Defend. Arrival tick: 853</td>
@@ -243,11 +243,11 @@ class scan(threading.Thread):
             try:
                 self.cursor.execute(query, (scan_id, p.id, target.id, fleetname, newstick, arrivaltick))
             except Exception as e:
-                print "Exception in news: " + e.__str__()
+                print("Exception in news: " + e.__str__())
                 traceback.print_exc()
                 continue
 
-            print 'Defend:' + newstick + ':' + fleetname + ':' + originx + ':' + originy + ':' + originz + ':' + arrivaltick
+            print('Defend:' + newstick + ':' + fleetname + ':' + originx + ':' + originy + ':' + originz + ':' + arrivaltick)
 
     # tech report
     # <td class=left valign=top>Tech</td><td valign=top>838</td><td class=left valign=top>Our scientists report that Portable EMP emitters has been finished. Please drop by the Research area and choose the next area of interest.</td>
@@ -257,7 +257,7 @@ class scan(threading.Thread):
             newstick = m.group(1)
             research = m.group(2)
 
-            print 'Tech:' + newstick + ':' + research
+            print('Tech:' + newstick + ':' + research)
 
     # failed security report
     # <td class=left valign=top>Security</td><td valign=top>873</td><td class=left valign=top>A covert operation was attempted by Ikaris (2:5:5), but our agents were able to stop them from doing any harm.</td>
@@ -279,11 +279,11 @@ class scan(threading.Thread):
             try:
                 self.cursor.execute(query, (scan_id, covopper.id, p.id))
             except Exception as e:
-                print "Exception in unit: " + e.__str__()
+                print("Exception in unit: " + e.__str__())
                 traceback.print_exc()
                 continue
 
-            print 'Security:' + newstick + ':' + ruler + ':' + originx + ':' + originy + ':' + originz
+            print('Security:' + newstick + ':' + ruler + ':' + originx + ':' + originy + ':' + originz)
 
     # fleet report
     # <tr bgcolor=#2d2d2d><td class=left valign=top>Fleet</td><td valign=top>881</td><td class=left valign=top><table width=500><tr><th class=left colspan=3>Report of Losses from the Disposable Heroes fighting at 13:10:3</th></tr>
@@ -311,7 +311,7 @@ class scan(threading.Thread):
     #
     # </td></tr>
 
-        print 'News: ' + x + ':' + y + ':' + z
+        print('News: ' + x + ':' + y + ':' + z)
 
     def parse_planet(self, scan_id, page):
         m = re.search('on (\d+)\:(\d+)\:(\d+) in tick (\d+)', page)
@@ -385,7 +385,7 @@ class scan(threading.Thread):
              agents,
              guards))
 
-        print 'Planet: ' + x + ':' + y + ':' + z
+        print('Planet: ' + x + ':' + y + ':' + z)
 
     def parse_development(self, scan_id, page):
         # m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)</th></tr><tr><td class="left">Light Factory</td><td>(\d*)</td></tr><tr><td class="left">Medium Factory</td><td>(\d*)</td></tr><tr><td class="left">Heavy Factory</td><td>(\d*)</td></tr><tr><td class="left">Wave Amplifier</td><td>(\d*)</td></tr><tr><td class="left">Wave Distorter</td><td>(\d*)</td></tr><tr><td class="left">Metal Refinery</td><td>(\d*)</td></tr><tr><td class="left">Crystal Refinery</td><td>(\d*)</td></tr><tr><td class="left">Eonium Refinery</td><td>(\d*)</td></tr><tr><td class="left">Research Laboratory</td><td>(\d*)</td></tr><tr><td class="left">Finance Centre</td><td>(\d*)</td></tr><tr><td class="left">Security Centre</td><td>(\d*)</td></tr>', page)
@@ -458,7 +458,7 @@ class scan(threading.Thread):
         query += " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         self.cursor.execute(query, args)
 
-        print 'Development: ' + x + ':' + y + ':' + z
+        print('Development: ' + x + ':' + y + ':' + z)
 
     def parse_unit(self, scan_id, page, table, round):
         m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)', page)
@@ -468,7 +468,7 @@ class scan(threading.Thread):
         tick = m.group(4)
 
         for m in re.finditer('(\w+\s?\w*\s?\w*)</td><td[^>]*>(\d+(?:,\d{3})*)</td>', page):
-            print m.groups()
+            print(m.groups())
             shipname = m.group(1)
             amount = m.group(2).replace(',', '')
             query = "INSERT INTO %s" % (table,)
@@ -476,11 +476,11 @@ class scan(threading.Thread):
             try:
                 self.cursor.execute(query, (scan_id, shipname, round, amount,))
             except Exception as e:
-                print "Exception in unit: " + e.__str__()
+                print("Exception in unit: " + e.__str__())
                 traceback.print_exc()
                 continue
 
-        print 'Unit: ' + x + ':' + y + ':' + z
+        print('Unit: ' + x + ':' + y + ':' + z)
 
     def parse_jumpgate(self, scan_id, page, round):
         m = re.search('on (\d+)\:(\d+)\:(\d+) in tick (\d+)', page)
@@ -511,11 +511,11 @@ class scan(threading.Thread):
             eta = m.group(6)
             fleetsize = m.group(7).replace(',', '')
 
-            print "JGP fleet "
+            print("JGP fleet ")
 
             attacker = loadable.planet(originx, originy, originz)
             if not attacker.load_most_recent(self.cursor, round):
-                print "Can't find attacker in db: %s:%s:%s" % (originx, originy, originz)
+                print("Can't find attacker in db: %s:%s:%s" % (originx, originy, originz))
                 continue
             query = "INSERT INTO fleet (round,scan_id,owner_id,target,fleet_size,fleet_name,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
 
@@ -532,9 +532,9 @@ class scan(threading.Thread):
                         int(eta),
                         mission.lower()))
             except psycopg.IntegrityError as e:
-                print "Caught exception in jgp: " + e.__str__()
+                print("Caught exception in jgp: " + e.__str__())
                 traceback.print_exc()
-                print "Trying to update instead"
+                print("Trying to update instead")
                 query = "UPDATE fleet SET scan_id=%s WHERE round=%s owner_id=%s AND target=%s AND fleet_size=%s AND fleet_name=%s AND landing_tick=%s AND mission=%s"
                 try:
                     self.cursor.execute(
@@ -549,12 +549,12 @@ class scan(threading.Thread):
                             int(eta),
                             mission.lower()))
                 except BaseException:
-                    print "Exception trying to update jgp: " + e.__str__()
+                    print("Exception trying to update jgp: " + e.__str__())
                     traceback.print_exc()
                     continue
             except Exception as e:
-                print "Exception in jgp: " + e.__str__()
+                print("Exception in jgp: " + e.__str__())
                 traceback.print_exc()
                 continue
 
-        print 'Jumpgate: ' + x + ':' + y + ':' + z
+        print('Jumpgate: ' + x + ':' + y + ':' + z)

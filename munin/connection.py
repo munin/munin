@@ -53,15 +53,16 @@ class connection:
     def wline(self, line):
         "Send a line to the hub"
         if DEBUG:
-            print time.asctime(), ">>>", line
+            print(time.asctime(), ">>>", line)
 
+        msg = line + CRLF
         m = self.pongre.search(line)
         if m:
-            self.sock.send(line + CRLF)
+            self.sock.send(msg.encode())
         else:
             while self.lastcommand + 2 >= time.time():
                 time.sleep(0.1)
-            self.sock.send(line + CRLF)
+            self.sock.send(msg.encode())
             self.lastcommand = time.time()
 
     def rline(self):
@@ -69,13 +70,14 @@ class connection:
         line = self.file.readline()
         if not line:
             return line
+        line = line.decode()
         if line[-2:] == CRLF:
             line = line[:-2]
         if line[-1:] in CRLF:
             line = line[:-1]
 
         if DEBUG:
-            print time.asctime(), "<<<", line
+            print(time.asctime(), "<<<", line)
         m = self.pingre.search(line)
         if m:
             self.wline("PONG :%s" % m.group(1))

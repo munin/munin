@@ -24,8 +24,7 @@ Loadable class
 # owners.
 
 import re
-import string
-import ConfigParser
+import configparser
 import datetime
 
 
@@ -38,12 +37,12 @@ class loadable(object):
         self.idre = re.compile(r"([0-9A-z]+)")
         self.commandre = re.compile(r"^[A-z0-9]+(\s*.*)", re.I)
         self.helptext = None
-        self.config = ConfigParser.ConfigParser()
+        self.config = configparser.ConfigParser()
         if not self.config.read('muninrc'):
             raise ValueError('Failed to read ./muninrc. Can not run without configuration')
 
     def execute(self, user, access, irc_msg):
-        print "Loadable execute"
+        print("Loadable execute")
         pass
 
     def aliases(self, command_text):
@@ -813,7 +812,7 @@ class intel(object):
         if self.comment:
             retlist.append("comment=%s" % (self.comment,))
 
-        return string.join(retlist)
+        return ' '.join(retlist)
 
     def change_list(self):
         retlist = []
@@ -842,7 +841,7 @@ class intel(object):
         if self.comment:
             retlist.append("comment=%s")
 
-        return string.join(retlist)
+        return ' '.join(retlist)
 
     def change_tuple(self):
         rettup = ()

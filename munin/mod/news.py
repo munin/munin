@@ -75,7 +75,7 @@ class news(loadable.loadable):
         if self.cursor.rowcount > 0:
             s = self.cursor.dictfetchall()
             reply = "Latest news scans on %s:%s:%s - http://game.planetarion.com/showscan.pl?scan_id=%s" % (
-                x, y, z, ", ".join(map(lambda x: "%s (pt %s)" % (x['rand_id'], x['tick']), s)))
+                x, y, z, ", ".join(["%s (pt %s)" % (x['rand_id'], x['tick']) for x in s]))
         else:
             reply = "No news available on %s:%s:%s" % (x, y, z)
         irc_msg.reply(reply)

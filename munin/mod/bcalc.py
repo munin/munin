@@ -27,7 +27,6 @@ Loadable.Loadable subclass
 
 
 import re
-import string
 from munin import loadable
 
 
@@ -55,7 +54,7 @@ class bcalc(loadable.loadable):
                  "http://munin.ascendancy.tv/", "http://kia.cthq.net/index.php",
                  "http://game.planetarion.com/bcalc.pl"]
 
-        reply = "Bcalcs: " + string.join(bcalc, " | ")
+        reply = "Bcalcs: " + ' | '.join(bcalc)
         irc_msg.reply(reply)
 
         return 1

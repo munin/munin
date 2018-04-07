@@ -17,7 +17,7 @@ class command(object):
         for m in modules:
             modname = m.__name__.split('.')[-1]
             if not hasattr(m, modname):
-                print "Warning: Unable to find '%s' in module %s" % (modname, m.__name__)
+                print("Warning: Unable to find '%s' in module %s" % (modname, m.__name__))
             else:
                 result[m.__name__] = getattr(m, modname)(self.cursor)
         return result
@@ -36,7 +36,7 @@ class command(object):
                 elif key == 'munin.mod.help':
                     self.help(irc_msg)
                 else:
-                    for c in self.control.itervalues():
+                    for c in self.control.values():
                         if c.aliases(irc_msg.command_name.lower()):
                             c.execute(irc_msg.user, irc_msg.access, irc_msg)
                             self.log_command(irc_msg)
@@ -87,8 +87,7 @@ class command(object):
                     "") +
                 ">help <command>. Built-in commands: help")
 
-            command_list = sorted(map(lambda x: x.__class__.__name__, filter(
-                lambda x: irc_msg.access >= x.level, self.control.values())))
+            command_list = sorted([x.__class__.__name__ for x in [x for x in list(self.control.values()) if irc_msg.access >= x.level]])
             command_list = ", ".join(command_list)
             irc_msg.reply(command_list)
         pass

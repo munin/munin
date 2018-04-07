@@ -27,7 +27,6 @@ Loadable.Loadable subclass
 # qebab, 22/06/08
 
 import re
-import string
 from psycopg2 import psycopg1 as psycopg
 from munin import loadable
 
@@ -116,7 +115,7 @@ class book(loadable.loadable):
                 if r['pnick']:
                     owner = "user:" + r['pnick']
                     prev.append("(%s %s)" % (r['tick'], owner))
-            reply += " " + string.join(prev, ', ')
+            reply += " " + ', '.join(prev)
             reply += " )"
             irc_msg.reply(reply)
             return 1

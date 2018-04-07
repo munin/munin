@@ -97,7 +97,7 @@ class search(loadable.loadable):
                 if m:
                     param_dict[active_opt] = m.group(1)
             last_act = active_opt
-            for key in self.optionsre.keys():
+            for key in list(self.optionsre.keys()):
                 if s.endswith(" " + key):
                     active_opt = key
             if active_opt == last_act:

@@ -22,14 +22,14 @@
 # owners.
 
 import os
-import ConfigParser
+import configparser
 import time
 
-from connection import connection
+from .connection import connection
 
-from loader import Loader
+from .loader import Loader
 import traceback
-import reboot
+from . import reboot
 import socket
 
 
@@ -37,7 +37,7 @@ class munin(object):
     IRCU_ROUTER = 'munin.ircu_router'
 
     def __init__(self):
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         if not config.read('muninrc'):
             raise ValueError("Expected configuration in muninrc, not found.")
 
@@ -57,22 +57,22 @@ class munin(object):
                 self.reboot()
                 break
             except socket.error as s:
-                print "Exception during command at %s: %s" % (time.asctime(), s.__str__())
+                print("Exception during command at %s: %s" % (time.asctime(), s.__str__()))
                 traceback.print_exc()
                 raise
             except socket.timeout as s:
-                print "Exception during command at %s: %s" % (time.asctime(), s.__str__())
+                print("Exception during command at %s: %s" % (time.asctime(), s.__str__()))
                 traceback.print_exc()
                 raise
             except reboot.reboot as r:
                 continue
             except Exception as e:
-                print "Exception during command: " + e.__str__()
+                print("Exception during command: " + e.__str__())
                 traceback.print_exc()
                 continue
 
     def reboot(self):
-        print "Rebooting Munin."
+        print("Rebooting Munin.")
         self.config.read('muninrc')
         self.loader.populate('munin')
         self.loader.refresh()
@@ -82,7 +82,7 @@ class munin(object):
 
 
 def run():
-    ofile = file("pid.munin", "w")
+    ofile = open("pid.munin", "w")
     ofile.write("%s" % (os.getpid(),))
     ofile.close()
 

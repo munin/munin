@@ -78,7 +78,7 @@ class remslogan(loadable.loadable):
             args = (slogan,)
             query = "DELETE FROM slogan WHERE slogan = %s"
             self.cursor.execute(query, args)
-            print self.cursor.rowcount
+            print(self.cursor.rowcount)
             reply = "Removed: '%s'" % (slogan,)
 
         irc_msg.reply(reply)

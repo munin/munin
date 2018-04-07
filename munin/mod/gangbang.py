@@ -28,7 +28,6 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 import re
-import string
 from munin import loadable
 
 
@@ -120,7 +119,7 @@ class gangbang(loadable.loadable):
             reply += " for landing on tick %s (eta %s):" % (tick, tick - curtick)
         sorted_keys = sorted(ticks.keys())
         for k in sorted_keys:
-            reply = string.join([reply, "Tick %s (eta %s)" % (k, k - curtick)])
+            reply = ' '.join([reply, "Tick %s (eta %s)" % (k, k - curtick)])
             booked_list = ticks[k]
             prev = []
             for p in booked_list:
@@ -129,7 +128,7 @@ class gangbang(loadable.loadable):
                     owner = "user:" + p['pnick']
                 prev.append("(%s:%s:%s %s)" % (p['x'], p['y'], p['z'], owner))
 
-            reply += " " + string.join(prev, ', ')
+            reply += " " + ', '.join(prev)
             irc_msg.reply(reply.strip())
             reply = ""
         return 1

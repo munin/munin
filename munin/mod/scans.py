@@ -27,7 +27,6 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 import re
-import string
 from munin import loadable
 
 
@@ -72,7 +71,7 @@ class scans(loadable.loadable):
                 for p in self.cursor.dictfetchall():
                     prev.append("(%d %s, latest pt%s)" % (p['count'], p['scantype'], p['latest']))
 
-                reply += " " + string.join(prev, ', ')
+                reply += " " + ', '.join(prev)
 
             irc_msg.reply(reply)
 

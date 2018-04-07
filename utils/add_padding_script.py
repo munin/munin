@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # This file is part of Munin.
 
@@ -30,7 +30,7 @@ class migrator:
         self.cursor = cursor
 
     def add_padding(self):
-        for i in xrange(1, 92):
+        for i in range(1, 92):
             prop = self.find_single_prop_by_id(i)
             if not prop or prop['active'] or prop['padding']:
                 continue
@@ -41,10 +41,10 @@ class migrator:
             query += " vote_result=%s,compensation=%s"
             query += " WHERE id=%s"
             args = (['no', 'yes'][yes > no], losing_total, prop['id'])
-            print query % args
+            print(query % args)
             self.cursor.execute(query, args)
             if self.cursor.rowcount < 1:
-                print "argh!"
+                print("argh!")
 
     def find_single_prop_by_id(self, prop_id):
         query = "SELECT id, prop_type, proposer, person, created, padding, comment_text, active, closed FROM ("

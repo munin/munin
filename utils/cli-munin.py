@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # This file is part of Munin.
 
@@ -22,7 +22,7 @@
 # owners.
 
 import os
-import ConfigParser
+import configparser
 import sys
 
 from cli import connection
@@ -48,7 +48,7 @@ class munin(object):
     IRCU_ROUTER = 'munin.ircu_router'
 
     def __init__(self):
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         if not config.read('muninrc'):
             raise ValueError("Expected configuration in muninrc, not found.")
 
@@ -66,7 +66,7 @@ class munin(object):
         router.run()
 
     def reboot(self):
-        print "Rebooting Munin."
+        print("Rebooting Munin.")
         self.config.read('muninrc')
         self.loader.populate('munin')
         self.loader.refresh()

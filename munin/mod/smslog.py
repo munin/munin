@@ -81,7 +81,7 @@ class smslog(loadable.loadable):
         self.cursor.execute(query)
         res = self.cursor.dictfetchall()
         reply = "Last 10 SMSes: "
-        reply += ", ".join(map(lambda x: "id: %s (%s -> %s)" % (x['id'], x['sender'], x['receiver']), res))
+        reply += ", ".join(["id: %s (%s -> %s)" % (x['id'], x['sender'], x['receiver']) for x in res])
         irc_msg.reply(reply)
 
     def base_query(self):

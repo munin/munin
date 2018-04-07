@@ -26,7 +26,6 @@ Loadable.Loadable subclass
 # owners.
 
 import re
-import string
 import munin.loadable as loadable
 
 
@@ -67,7 +66,7 @@ class orphans(loadable.loadable):
         else:
             reply = "The following members are orphans: "
             res = self.cursor.dictfetchall()
-            reply += string.join(map(lambda x: x['pnick'], res), ', ')
+            reply += ', '.join([x['pnick'] for x in res])
 
         irc_msg.reply(reply)
 

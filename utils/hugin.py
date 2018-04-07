@@ -42,7 +42,7 @@ if not config.read("muninrc"):
     raise ValueError("Expected configuration file muninrc"
                      ", not found.")
 
-useragent = "Munin (Python-urllib/%s); BotNick/%s; Admin/%s" % (urllib2.__version__,
+useragent = "Munin (Python-urllib/%s); BotNick/%s; Admin/%s" % (urllib.request.__version__,
                                                                 config.get("Connection", "nick"),
                                                                 config.get("Auth", "owner_nick"))
 
@@ -55,7 +55,7 @@ if config.has_option('Database', 'host'):
 
 t_start = time.time()
 
-ofile = file("pid.hugin", "w")
+ofile = open("pid.hugin", "w")
 ofile.write("%s" % (os.getpid(),))
 ofile.close()
 
@@ -67,7 +67,7 @@ def write_to_file(data, out):
         while chunk:
             chunk = data.read(size)
             if chunk:
-                f.write(chunk)
+                f.write(chunk.decode('iso-8859-1'))
 
 
 def overwrite(from_file, to_file):
@@ -145,9 +145,8 @@ while True:
                 req = urllib.request.Request(planetlist)
                 req.add_header('User-Agent', useragent)
                 planets = urllib.request.urlopen(req)
-                if write_dumps:
-                    write_to_file(planets, planet_file)
-                    planets = open(planet_file, 'r')
+                write_to_file(planets, planet_file)
+                planets = open(planet_file, 'r')
             except Exception as e:
                 print("Failed gathering planet listing.")
                 print(e.__str__())
@@ -157,9 +156,8 @@ while True:
                 req = urllib.request.Request(galaxylist)
                 req.add_header('User-Agent', useragent)
                 galaxies = urllib.request.urlopen(req)
-                if write_dumps:
-                    write_to_file(galaxies, galaxy_file)
-                    galaxies = open(galaxy_file, 'r')
+                write_to_file(galaxies, galaxy_file)
+                galaxies = open(galaxy_file, 'r')
             except Exception as e:
                 print("Failed gathering galaxy listing.")
                 print(e.__str__())
@@ -169,9 +167,8 @@ while True:
                 req = urllib.request.Request(alliancelist)
                 req.add_header('User-Agent', useragent)
                 alliances = urllib.request.urlopen(req)
-                if write_dumps:
-                    write_to_file(alliances, alliance_file)
-                    alliances = open(alliance_file, 'r')
+                write_to_file(alliances, alliance_file)
+                alliances = open(alliance_file, 'r')
             except Exception as e:
                 print("Failed gathering alliance listing.")
                 print(e.__str__())
@@ -181,9 +178,8 @@ while True:
                 req = urllib.request.Request(userfeedlist)
                 req.add_header('User-Agent', useragent)
                 userfeed = urllib.request.urlopen(req)
-                if write_dumps:
-                    write_to_file(userfeed, userfeed_file)
-                    userfeed = open(userfeed_file, 'r')
+                write_to_file(userfeed, userfeed_file)
+                userfeed = open(userfeed_file, 'r')
             except Exception as e:
                 print("Failed gathering user feed.")
                 print(e.__str__())
@@ -281,7 +277,6 @@ while True:
         """ % (ptmp,)
         cursor.execute(query)
         foo = planets.readlines()[:-1]
-        foo = [f.decode('iso-8859-1').encode('utf8') for f in foo]
 
         cursor.copy_from(io.StringIO(''.join(foo)), ptmp, "\t")
 
@@ -298,7 +293,6 @@ while True:
         """ % (gtmp,)
         cursor.execute(query)
         foo = galaxies.readlines()[:-1]
-        foo = [f.decode('iso-8859-1').encode('utf8') for f in foo]
 
         cursor.copy_from(io.StringIO(''.join(foo)), gtmp, "\t", null="")
 
@@ -316,7 +310,6 @@ while True:
         """ % (atmp,)
         cursor.execute(query)
         foo = alliances.readlines()[:-1]
-        foo = [f.decode('iso-8859-1').encode('utf8') for f in foo]
 
         cursor.copy_from(io.StringIO(''.join(foo)), atmp, "\t")
 
@@ -329,7 +322,6 @@ while True:
         """ % (utmp,)
         cursor.execute(query)
         foo = userfeed.readlines()[:-1]
-        foo = [f.decode('iso-8859-1').encode('utf8') for f in foo]
 
         cursor.copy_from(io.StringIO(''.join(foo)), utmp, "\t")
 

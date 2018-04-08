@@ -67,11 +67,11 @@ class loadable(object):
     def format_value(self, cost):
         value = cost / 100
         if value / 1000000 > 9:
-            return str(value / 1000000) + "m"
+            return str(round(value / 1000000)) + "m"
         elif value / 1000 > 9:
-            return str(value / 1000) + "k"
+            return str(round(value / 1000)) + "k"
         else:
-            return str(value)
+            return str(round(value))
 
     def format_real_value(self, value):
         return self.format_value(value * 100)

@@ -81,7 +81,7 @@ class cost(loadable.loadable):
         crystal = int(ship['crystal'] * prod_bonus) * ship_number
         eonium = int(ship['eonium'] * prod_bonus) * ship_number
         resource_value = (metal + crystal + eonium) / 150
-        ship_value = (ship['total_cost'] * ship_number) / 100
+        ship_value = round((ship['total_cost'] * ship_number) / 100)
         reply = "Buying %s %s will cost %s metal, %s crystal and %s eonium" % (
             ship_number, ship['name'], metal, crystal, eonium)
 
@@ -89,7 +89,7 @@ class cost(loadable.loadable):
             reply += " as %s" % (gov_name)
 
         reply += ". This gives %s ship value (%s increase)" % (
-            ship_value, ship_value - resource_value)
+            ship_value, round(ship_value - resource_value))
 
         irc_msg.reply(reply)
 

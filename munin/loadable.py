@@ -405,7 +405,7 @@ class planet(object):
             query += " FROM planet_dump WHERE round=%s AND planetname=%s AND rulername=%s AND tick=(SELECT max_tick(%s::smallint))"
             cursor.execute(query, (round, self.planetname, self.rulername, round,))
             pass
-        elif self.id > 0:
+        elif self.id and self.id > 0:
             query = "SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id"
             query += " FROM planet_dump WHERE round=%s AND id=%s AND tick=(SELECT max_tick(%s::smallint))"
             cursor.execute(query, (round, self.id, round,))
@@ -631,7 +631,7 @@ class user(object):
         if self.pnick:
             query += " ( pnick ILIKE %s OR alias_nick ILIKE %s ) AND userlevel >= %s"
             cursor.execute(query, (self.pnick, self.pnick, self.userlevel))
-        elif self.id > 0:
+        elif self.id and self.id > 0:
             query += " id=%s"
             cursor.execute(query, (self.id,))
         else:
@@ -751,7 +751,7 @@ class intel(object):
         query += " FROM intel AS i"
         query += " LEFT JOIN alliance_canon AS a ON i.alliance_id=a.id "
         query += " WHERE i.round=%s AND "
-        if self.id > 0:
+        if self.id and self.id > 0:
             query += "id=%s"
             cursor.execute(query, (round, self.id,))
         elif self.pid > 0:

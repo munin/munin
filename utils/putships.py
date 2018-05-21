@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Put the ships from url into our database.
 """
@@ -67,14 +67,14 @@ def main():
                         help="Default: %s" % (default_stats))
     args = parser.parse_args()
 
-    useragent = "Munin (Python-urllib/%s); BotNick/%s; Admin/%s" % (urllib2.__version__,
+    useragent = "Munin (Python-urllib/%s); BotNick/%s; Admin/%s" % (urllib.request.__version__,
                                                                     config.get("Connection", "nick"), config.get("Auth", "owner_nick"))
 
     cursor.execute("DELETE FROM ship WHERE round=%s;", (args.round,))
 
     req = urllib.request.Request(args.url)
     req.add_header('User-Agent', useragent)
-    stats = urllib.request.urlopen(req).read()
+    stats = urllib.request.urlopen(req).read().decode()
 
     for line in sre.findall(stats):
         line = list(line)

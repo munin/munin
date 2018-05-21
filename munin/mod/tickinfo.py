@@ -52,16 +52,26 @@ class tickinfo(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
+        current_round = self.config.getint('Planetarion', 'current_round')
+
         query = "SELECT tick, age(now(), updates.timestamp) AS tick_age FROM updates WHERE round = %s ORDER BY tick DESC LIMIT 1"
         self.cursor.execute(query, (irc_msg.round,))
         reply = ""
         if self.cursor.rowcount < 1:
-            reply = "Don't be stupid, that doesn't exist."
+            if irc_msg.round == current_round:
+                reply = "Looks like round %s hasn't quite started yet. Don't forget to sign up!" % (irc_msg.round,)
+            else:
+                reply = "Don't be stupid, round %s doesn't exist." % (irc_msg.round,)
         else:
             res = self.cursor.dictfetchone()
-            reply = "My current tick information is for pt%s, which I retrieved %s ago" % (res['tick'], res['tick_age'])
+            reply = "My current tick information for round %s is for pt%s, which I retrieved %s ago" % (
+                irc_msg.round,
+                res['tick'],
+                res['tick_age']
+            )
             if res['tick_age'].total_seconds() > 12 * 3600:
                 reply += ". That's fucking ages ago, %s better go have a look." % self.config.get("Auth", "owner_nick")
-            irc_msg.reply(reply)
+
+        irc_msg.reply(reply)
 
         return 1

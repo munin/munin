@@ -83,9 +83,9 @@ class ship(loadable.loadable):
         if s['type'] == 'Emp':
             reply += " Hugs: %s |" % (s['gun'],)
         else:
-            reply += " D/C: %s |" % ((s['damage'] * 10000) / s['total_cost'],)
+            reply += " D/C: %0.1f |" % ((s['damage'] * 10000) / s['total_cost'],)
 
-        reply += " A/C: %s" % ((s['armor'] * 10000) / s['total_cost'],)
+        reply += " A/C: %0.1f" % ((s['armor'] * 10000) / s['total_cost'],)
 
         irc_msg.reply(reply)
 

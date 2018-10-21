@@ -62,7 +62,7 @@ class hugin(loadable.loadable):
         ctab=CronTab(user=True)
 
         if not cmd or cmd == "status":
-            irc_msg.reply("Hugin is %s" % (['out spying','home resting'][ctab[0].is_enabled()],))
+            irc_msg.reply("Hugin is %s" % (['home resting','out spying'][ctab[0].is_enabled()],))
         elif cmd == "start":
             return self.start(ctab,irc_msg)
         elif cmd == "stop":

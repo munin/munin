@@ -32,7 +32,7 @@ class hugin(loadable.loadable):
         super(self.__class__, self).__init__(cursor, 1000)
         self.paramre = re.compile(r"^(?:\s+(start|stop|status))?\s*$")
         self.usage = self.__class__.__name__ + " [<start|stop|status>]"
-        self.helptext = ['']
+        self.helptext = ['Allows you to stop, start or view the status of hugin, the dumpfile loader.']
 
     def start(self,ctab,irc_msg):
         job=ctab[0]

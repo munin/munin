@@ -86,23 +86,21 @@ class Loader(object):
 
         Catches exceptions present in modules."""
 
-        failure = True
+        success = False
 
         try:
             self.loaded[name] = __import__(name, fromlist=name.split('.')[-1])
-            failure = False
+            success = True
         except SyntaxError as e:
-            result = "You have a SyntaxError in the module you're trying to load: %s" % (e,)
+            print("You have a SyntaxError in the module you're trying to load: %s" % (e,))
+            traceback.print_exc()
         except ImportError as e:
-            result = "Could not load module %s: %s" % (name, e)
+            print("Could not load module %s: %s" % (name, e))
+            traceback.print_exc()
         except Exception as e:
-            result = "Exception: %s when loading module." % (e,)
-
-        if failure:
-            print(result)
-            traceback.print_exc(None, sys.stderr)
-            return False
-        return True
+            print("Exception: %s when loading module." % (e,))
+            traceback.print_exc()
+        return success
 
     def reload(self, name):
         """Tries to reload the module named name. It is an
@@ -112,23 +110,21 @@ class Loader(object):
         a module. External references to the currently imported module
         will have to be manually updated."""
 
-        failure = True
-
         try:
             newmod = imp.reload(self.loaded[name])
             self.loaded[name] = newmod
-            failure = False
-        except KeyError:
-            result = "Module %s not present. Import it first." % (name,)
+        except KeyError as e:
+            print("Module %s not present. Import it first." % (name,))
+            traceback.print_exc()
         except ImportError as e:
-            result = "Failed to import module %s: %s" % (name, e)
+            print("Failed to import module %s: %s" % (name, e))
+            traceback.print_exc()
+        except SyntaxError as e:
+            print("You have a SyntaxError in the module you're trying to load: %s" % (e,))
+            traceback.print_exc()
         except Exception as e:
-            result = "Exception: %s" % (e,)
-
-        if failure:
-            traceback.print_exc(None, sys.stderr)
-            return result
-        return "Module %s successfully reloaded." % (name,)
+            print("Exception: %s" % (e,))
+            traceback.print_exc()
 
     def refresh(self):
         for name in self.loaded:

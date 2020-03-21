@@ -55,7 +55,7 @@ class slogan(loadable.loadable):
 
         if params:
             query += " AND slogan ILIKE %s"
-            args += ("%" + params + "%",)
+            args += ("%" + params.replace('*','%') + "%",)
 
         query += " ORDER BY RANDOM()"
         self.cursor.execute(query, args)

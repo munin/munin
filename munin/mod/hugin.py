@@ -30,7 +30,7 @@ from crontab import CronTab
 class hugin(loadable.loadable):
     def __init__(self, cursor):
         super(self.__class__, self).__init__(cursor, 1000)
-        self.paramre = re.compile(r"^(?:\s+(start|stop|status))?\s*$")
+        self.paramre = re.compile(r"^(?:\s+(fly|roost|start|stop|status))?\s*$")
         self.usage = self.__class__.__name__ + " [<start|stop|status>]"
         self.helptext = ['Allows you to stop, start or view the status of hugin, the dumpfile loader.']
 
@@ -58,14 +58,18 @@ class hugin(loadable.loadable):
             return 0
 
         m=self.paramre.search(m.group(1))
+        if not m:
+            irc_msg.reply("Usage: %s" % (self.usage,))
+            return 0
+
         cmd=m.group(1)
         ctab=CronTab(user=True)
 
         if not cmd or cmd == "status":
             irc_msg.reply("Hugin is %s" % (['home resting','out spying'][ctab[0].is_enabled()],))
-        elif cmd == "start":
+        elif cmd == "start" or cmd == "fly":
             return self.start(ctab,irc_msg)
-        elif cmd == "stop":
+        elif cmd == "stop" or cmd == "roost":
             return self.stop(ctab,irc_msg)
         else:
             irc_msg.reply("Usage: %s" % (self.usage,))

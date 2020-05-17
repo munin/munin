@@ -110,8 +110,8 @@ class sms(loadable.loadable):
             return 1
 
         hasher = md5()
-        hasher.update(phone)
-        hasher.update(text)
+        hasher.update(phone.encode("utf-8"))
+        hasher.update(text.encode("utf-8"))
         msg_id = hasher.hexdigest()
 
         message = {

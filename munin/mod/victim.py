@@ -213,4 +213,4 @@ class victim(loadable.loadable):
 
         query += " ORDER BY t1.size DESC, t1.value DESC"
         self.cursor.execute(query, args)
-        return self.cursor.dictfetchall()
+        return self.cursor.fetchall()

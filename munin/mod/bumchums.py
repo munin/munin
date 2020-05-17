@@ -88,7 +88,7 @@ class bumchums(loadable.loadable):
             reply += "No galaxies with at least %s bumchums from %s" % (bums, a.name)
         else:
             prev = []
-            for b in self.cursor.dictfetchall():
+            for b in self.cursor.fetchall():
                 prev.append("%s:%s (%s)" % (b["x"], b["y"], b["bums"]))
             reply += "Galaxies with at least %s bums from %s: " % (
                 bums,

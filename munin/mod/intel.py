@@ -217,7 +217,7 @@ class intel(loadable.loadable):
         replied_to_request = False
 
         repls = []
-        for d in self.cursor.dictfetchall():
+        for d in self.cursor.fetchall():
             x = d["x"]
             y = d["y"]
             z = d["z"]

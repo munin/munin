@@ -106,7 +106,7 @@ class gangbang(loadable.loadable):
             return 1
 
         ticks = {}
-        for r in self.cursor.dictfetchall():
+        for r in self.cursor.fetchall():
             if r["tick"] not in ticks:
                 ticks[r["tick"]] = []
             ticks[r["tick"]].append(r)

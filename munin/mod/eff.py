@@ -119,7 +119,7 @@ class eff(loadable.loadable):
         else:
             query = "SELECT * FROM ship WHERE class=%s AND round=%s ORDER BY id"
             self.cursor.execute(query, (ship[target_number], irc_msg.round,))
-            targets = self.cursor.dictfetchall()
+            targets = self.cursor.fetchall()
             if len(targets) == 0:
                 reply = "%s does not have any targets in that category (%s)" % (
                     ship["name"],

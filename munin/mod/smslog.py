@@ -72,7 +72,7 @@ class smslog(loadable.loadable):
         if self.cursor.rowcount < 1:
             irc_msg.reply("There was no SMS sent with ID %s" % (id,))
         else:
-            r = self.cursor.dictfetchone()
+            r = self.cursor.fetchone()
             reply = "SMS with ID %s sent by %s to %s with text: %s" % (
                 r["id"],
                 r["sender"],
@@ -85,7 +85,7 @@ class smslog(loadable.loadable):
         query = self.base_query()
         query += " ORDER BY t1.id DESC LIMIT 10"
         self.cursor.execute(query)
-        res = self.cursor.dictfetchall()
+        res = self.cursor.fetchall()
         reply = "Last 10 SMSes: "
         reply += ", ".join(
             ["id: %s (%s -> %s)" % (x["id"], x["sender"], x["receiver"]) for x in res]

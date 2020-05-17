@@ -72,7 +72,7 @@ class unsponsor(loadable.loadable):
         )
         self.cursor.execute(query, (user, recruit))
 
-        res = self.cursor.dictfetchone()
+        res = self.cursor.fetchone()
 
         if res["success"]:
             reply = "You have unsponsored '%s'. " % (recruit,)

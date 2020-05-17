@@ -55,7 +55,7 @@ class remquote(loadable.loadable):
         query = "SELECT quote FROM quote WHERE quote = %s"
         self.cursor.execute(query, args)
         if self.cursor.rowcount == 1:
-            slogan = self.cursor.dictfetchone()["quote"]
+            slogan = self.cursor.fetchone()["quote"]
             args = (params,)
             query = "DELETE FROM quote WHERE quote=%s"
             self.cursor.execute(query, args)
@@ -76,7 +76,7 @@ class remquote(loadable.loadable):
         elif results == 0:
             reply = "No quote matching '%s'" % (params,)
         else:
-            slogan = self.cursor.dictfetchone()["quote"]
+            slogan = self.cursor.fetchone()["quote"]
             args = (slogan,)
             query = "DELETE FROM quote WHERE quote = %s"
             self.cursor.execute(query, args)

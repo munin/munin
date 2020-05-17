@@ -113,7 +113,7 @@ class stop(loadable.loadable):
             "SELECT * FROM ship WHERE " + target_number + "=%s AND round=%s ORDER BY id"
         )
         self.cursor.execute(query, (ship["class"], irc_msg.round,))
-        attackers = self.cursor.dictfetchall()
+        attackers = self.cursor.fetchall()
 
         reply = ""
 

@@ -82,7 +82,7 @@ class sponsor(loadable.loadable):
         query = "SELECT * FROM sponsor(%s,%s,%s)"  # AS t1(success BOOLEAN, retmessage TEXT)"
         self.cursor.execute(query, (user, recruit, comment))
 
-        res = self.cursor.dictfetchone()
+        res = self.cursor.fetchone()
 
         if res["success"]:
             reply = (

@@ -142,7 +142,7 @@ class defwhore(loadable.loadable):
         query += " ORDER BY count(t2.alliance_id) DESC"
 
         self.cursor.execute(query, args)
-        attackers = self.cursor.dictfetchall()
+        attackers = self.cursor.fetchall()
         if not len(attackers):
             reply = "No fleets found targeting"
             if x and y:

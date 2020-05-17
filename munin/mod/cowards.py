@@ -68,7 +68,7 @@ class cowards(loadable.loadable):
             alliances = []
             naps = []
             wars = []
-            for row in self.cursor.dictfetchall():
+            for row in self.cursor.fetchall():
                 if row["type"] == "Ally":
                     if a.name == row["initiator"]:
                         alliances.append(row["acceptor"])

@@ -142,7 +142,7 @@ class mydef(loadable.loadable):
 
         query = "SELECT fleetcomment FROM round_user_pref WHERE user_id=%s AND round=%s"
         self.cursor.execute(query, (user.id, round,))
-        return self.cursor.dictfetchone()["fleetcomment"]
+        return self.cursor.fetchone()["fleetcomment"]
 
     def parse_garbage(self, garbage, round):
         parts = garbage.split()

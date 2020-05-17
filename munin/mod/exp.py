@@ -71,7 +71,7 @@ class exp(loadable.loadable):
             if self.cursor.rowcount < 1:
                 reply += "No data for %s:%s:%s on tick %s" % (p.x, p.y, p.z, tick)
             else:
-                x = self.cursor.dictfetchone()
+                x = self.cursor.fetchone()
 
                 reply += "Experience on pt%s for %s:%s:%s: " % (tick, p.x, p.y, p.z)
                 reply += "xp: %s (%s%s) " % (
@@ -112,7 +112,7 @@ class exp(loadable.loadable):
             if self.cursor.rowcount < 1:
                 reply += "No data for %s:%s:%s" % (p.x, p.y, p.z)
             else:
-                results = self.cursor.dictfetchall()
+                results = self.cursor.fetchall()
 
                 reply += "Experience in the last 15 ticks on %s:%s:%s: " % (
                     p.x,

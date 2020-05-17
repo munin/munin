@@ -74,7 +74,7 @@ class afford(loadable.loadable):
         if self.cursor.rowcount < 1:
             reply += "No planet scans available on %s:%s:%s" % (p.x, p.y, p.z)
         else:
-            s = self.cursor.dictfetchone()
+            s = self.cursor.fetchone()
             tick = s["tick"]
             res_m = int(s["res_metal"])
             res_c = int(s["res_crystal"])

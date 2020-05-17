@@ -20,7 +20,7 @@
 # owners.
 
 import munin.loadable as loadable
-from psycopg2 import psycopg1 as psycopg
+import psycopg2
 import re
 import threading
 import traceback
@@ -57,7 +57,7 @@ class scan(threading.Thread):
         if self.config.has_option("Database", "host"):
             dsn += " host=%s" % self.config.get("Database", "host")
 
-        conn = psycopg.connect(dsn)
+        conn = psycopg2.connect(dsn)
         conn.autocommit(1)
         return conn
 
@@ -126,7 +126,7 @@ class scan(threading.Thread):
             query = "INSERT INTO scan (id, round, tick, pid, nick, pnick, scantype, rand_id, group_id, scan_time) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             try:
                 self.cursor.execute(nxt_query)
-                next_id = self.cursor.dictfetchone()["nextval"]
+                next_id = self.cursor.fetchone()["nextval"]
                 self.cursor.execute(
                     query,
                     (
@@ -142,7 +142,7 @@ class scan(threading.Thread):
                         scan_time,
                     ),
                 )
-            except psycopg.IntegrityError as e:
+            except psycopg2.IntegrityError as e:
                 print("Scan %s may already exist" % (self.rand_id,))
                 print(e.__str__())
                 return
@@ -674,7 +674,7 @@ class scan(threading.Thread):
                         mission.lower(),
                     ),
                 )
-            except psycopg.IntegrityError as e:
+            except psycopg2.IntegrityError as e:
                 print("Caught exception in jgp: " + e.__str__())
                 traceback.print_exc()
                 print("Trying to update instead")

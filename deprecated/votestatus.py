@@ -70,7 +70,7 @@ class votestatus(loadable.loadable):
             reply="The following users have voted to kick %s:" %(idiot.pnick,)
             
             prev=[]
-            for r in self.cursor.dictfetchall():
+            for r in self.cursor.fetchall():
                 prev.append("%s"%(r['pnick'],))
                 pass
             reply+=" "+string.join(prev,', ')
@@ -84,7 +84,7 @@ class votestatus(loadable.loadable):
 
             reply="The following idiots are considered for a kick:"
             prev=[]
-            for r in self.cursor.dictfetchall():
+            for r in self.cursor.fetchall():
                 prev.append("%s"%(r['pnick'],))
                 pass
             reply+=" "+string.join(prev,', ')

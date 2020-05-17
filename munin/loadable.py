@@ -144,7 +144,7 @@ class loadable(object):
         query += " WHERE id=%s"
 
         self.cursor.execute(query, (scan_id,))
-        return self.cursor.dictfetchone()["total"]
+        return self.cursor.fetchone()["total"]
 
     def pluralize(self, number, text):
         if number == 1:
@@ -186,21 +186,21 @@ class loadable(object):
             args += query_args
 
         self.cursor.execute(query, args)
-        return self.cursor.dictfetchall()
+        return self.cursor.fetchall()
 
     def get_ship_from_db(self, ship_name, round):
         query = "SELECT * FROM ship WHERE name ILIKE %s AND round=%s ORDER BY id"
         self.cursor.execute(query, (ship_name, round))
-        ship = self.cursor.dictfetchone()
+        ship = self.cursor.fetchone()
 
         if not ship:
             self.cursor.execute(query, ("%" + ship_name + "%", round,))
-            ship = self.cursor.dictfetchone()
+            ship = self.cursor.fetchone()
 
         if not ship and ship_name[-1].lower() == "s":
             ship_name = ship_name[0:-1]
             self.cursor.execute(query, ("%" + ship_name + "%", round,))
-            ship = self.cursor.dictfetchone()
+            ship = self.cursor.fetchone()
         return ship
 
 
@@ -258,7 +258,7 @@ class defcall(object):
         query += " FROM defcalls WHERE id=%s"
         args = (self.id,)
         cursor.execute(query, args)
-        d = cursor.dictfetchone()
+        d = cursor.fetchone()
         if not d:
             return 0
         self.bcalc = d["bcalc"]
@@ -281,7 +281,7 @@ class defcall(object):
 
         query = "SELECT status FROM defcall_status WHERE id = %s"
         cursor.execute(query, (self.status,))
-        s = cursor.dictfetchone()
+        s = cursor.fetchone()
         self.actual_status = s["status"]
 
         return 1
@@ -350,7 +350,7 @@ class fleet(object):
             self.id,
         )
         cursor.execute(query, args)
-        d = cursor.dictfetchone()
+        d = cursor.fetchone()
         if not d:
             return 0
         self.id = d["id"]
@@ -382,7 +382,7 @@ class fleet(object):
 
         query = "SELECT rand_id FROM scan WHERE id = %s"
         cursor.execute(query, (self.scan_id,))
-        s = cursor.dictfetchone()
+        s = cursor.fetchone()
         if s:
             self.actual_rand_id = s["rand_id"]
 
@@ -390,7 +390,7 @@ class fleet(object):
             "SELECT id FROM defcalls WHERE target=%s AND landing_tick=%s AND round=%s"
         )
         cursor.execute(query, (self.target_id, self.landing_tick, round,))
-        s = cursor.dictfetchone()
+        s = cursor.fetchone()
         if s:
             defc = defcall(id=s["id"])
             if defc.load_most_recent(cursor, round):
@@ -466,7 +466,7 @@ class planet(object):
             cursor.execute(query, (round, self.id, round,))
         else:
             raise Exception("Tried to load planet with no unique identifiers")
-        p = cursor.dictfetchone()
+        p = cursor.fetchone()
         if not p:
             return None
         self.x = p["x"]
@@ -510,7 +510,7 @@ class planet(object):
         )
         cursor.execute(query, (tick, self.id, round))
         if cursor.rowcount > 0:
-            old_value = cursor.dictfetchone()["value"]
+            old_value = cursor.fetchone()["value"]
             return self.value - old_value
         else:
             return None
@@ -554,7 +554,7 @@ class galaxy(object):
             pass
         else:
             raise Exception("Tried to load planet with no unique identifiers")
-        g = cursor.dictfetchone()
+        g = cursor.fetchone()
         if not g:
             return None
         self.x = g["x"]
@@ -627,7 +627,7 @@ class alliance(object):
             pass
         else:
             raise Exception("Tried to load alliance with no unique identifiers")
-        a = cursor.dictfetchone()
+        a = cursor.fetchone()
         if not a:
             return None
         self.name = a["name"]
@@ -692,7 +692,7 @@ class user(object):
     def count_members(cursor):
         query = "SELECT count(*) as count FROM user_list WHERE userlevel >= 100"
         cursor.execute(query)
-        return cursor.dictfetchone()["count"]
+        return cursor.fetchone()["count"]
 
     def lookup_query(self):
         query = "SELECT id, pnick, sponsor, userlevel, phone, pubphone, invites, available_cookies, last_cookie_date, carebears, alias_nick"
@@ -715,13 +715,13 @@ class user(object):
             cursor.execute(query, (self.id,))
         else:
             return None
-        u = cursor.dictfetchone()
+        u = cursor.fetchone()
         if not u and self.pnick:
             query = self.lookup_query()
             query += " pnick ILIKE %s"
             query += " ORDER BY userlevel DESC"
             cursor.execute(query, ("%" + self.pnick + "%",))
-            u = cursor.dictfetchone()
+            u = cursor.fetchone()
         if u:
             self.id = u["id"]
             self.pnick = u["pnick"]
@@ -739,7 +739,7 @@ class user(object):
             query = self.lookup_round_query()
             cursor.execute(query, (round, u["id"],))
             if cursor.rowcount > 0:
-                u = cursor.dictfetchone()
+                u = cursor.fetchone()
                 if u:
                     self.planet_id = u["planet_id"]
                     if self.planet_id:
@@ -776,7 +776,7 @@ class user(object):
         query += " FROM user_fleet AS t1 "
         query += " WHERE t1.user_id=%s AND t1.round=%s"
         cursor.execute(query, (self.id, round,))
-        return cursor.dictfetchall()
+        return cursor.fetchall()
 
     def check_available_cookies(self, cursor, config):
         now = datetime.datetime.now()
@@ -850,7 +850,7 @@ class intel(object):
         elif self.comment:
             query += "comment=%s LIMIT 1"
             cursor.execute(query, (round, "%" + self.comment + "%",))
-        i = cursor.dictfetchone()
+        i = cursor.fetchone()
         if not i:
             return None
         self.id = i["id"]
@@ -1000,7 +1000,7 @@ class booking(object):
         if self.tick and self.pid:
             query += "pid=%s AND tick=%s "
             cursor.execute(query, (round, self.pnick,))
-            b = cursor.dictfetchone()
+            b = cursor.fetchone()
             if not b:
                 return None
             self.id = b["id"]

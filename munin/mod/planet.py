@@ -75,7 +75,7 @@ class planet(loadable.loadable):
             if self.cursor.rowcount < 1:
                 reply += "No planet scans available on %s:%s:%s" % (p.x, p.y, p.z)
             else:
-                s = self.cursor.dictfetchone()
+                s = self.cursor.fetchone()
                 reply += "Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (
                     p.x,
                     p.y,
@@ -102,7 +102,7 @@ class planet(loadable.loadable):
                 i = 0
                 reply += " | Older scans: "
                 prev = []
-                for s in self.cursor.dictfetchall():
+                for s in self.cursor.fetchall():
                     i += 1
                     if i > 4:
                         break
@@ -127,7 +127,7 @@ class planet(loadable.loadable):
             if self.cursor.rowcount < 1:
                 reply += "No planet scans matching ID %s" % (rand_id,)
             else:
-                s = self.cursor.dictfetchone()
+                s = self.cursor.fetchone()
                 reply += "Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (
                     s["x"],
                     s["y"],

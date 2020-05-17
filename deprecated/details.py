@@ -139,7 +139,7 @@ class details(loadable.loadable):
         else:
             reply = "Status for %s:%s:%s -" % (x, y, z)
             prev = []
-            for r in self.cursor.dictfetchall():
+            for r in self.cursor.fetchall():
                 owner = "nick:" + r["nick"]
                 if r["pnick"]:
                     owner = "user:" + r["pnick"]

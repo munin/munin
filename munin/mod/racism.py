@@ -79,7 +79,7 @@ class racism(loadable.loadable):
         if self.cursor.rowcount < 1:
             reply = "Nothing in intel matches your search '%s'" % (alliance,)
         else:
-            results = self.cursor.dictfetchall()
+            results = self.cursor.fetchall()
             reply = "Demographics for %s: " % (alliance,)
             reply += " | ".join(list(map(self.profile, results)))
         irc_msg.reply(reply)

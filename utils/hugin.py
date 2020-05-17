@@ -26,7 +26,8 @@ import time
 import configparser
 import os
 import errno
-from psycopg2 import psycopg1 as psycopg
+import psycopg2
+import psycopg2.extras
 import re
 import traceback
 import urllib.request, urllib.error, urllib.parse
@@ -241,14 +242,14 @@ while True:
             overwrite(userfeed_file, os.path.join(tick_dir, userfeed_file))
             print("Wrote dump files to disk")
 
-        conn = psycopg.connect(DSN)
-        cursor = conn.cursor()
+        conn = psycopg2.connect(DSN)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
         cursor.execute(
             "SELECT tick,timestamp FROM updates where round = %s and tick = (select max_tick(%s::smallint))",
             (cur_round, cur_round),
         )
-        last_tick_info = cursor.dictfetchone()
+        last_tick_info = cursor.fetchone()
         last_tick = -1
         if last_tick_info:
             last_tick = int(last_tick_info["tick"])
@@ -396,7 +397,7 @@ while True:
             alliances.close()
             userfeed.close()
 
-        except psycopg.IntegrityError:
+        except psycopg2.IntegrityError:
             raise
 
         conn.commit()

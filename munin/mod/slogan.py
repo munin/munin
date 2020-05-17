@@ -55,7 +55,7 @@ class slogan(loadable.loadable):
 
         if params:
             query += " AND slogan ILIKE %s"
-            args += ("%" + params.replace('*','%') + "%",)
+            args += ("%" + params.replace("*", "%") + "%",)
 
         query += " ORDER BY RANDOM()"
         self.cursor.execute(query, args)
@@ -64,7 +64,7 @@ class slogan(loadable.loadable):
         if self.cursor.rowcount == 0:
             reply += "No slogans matching '%s'" % (params,)
         else:
-            res = self.cursor.dictfetchone()
+            res = self.cursor.fetchone()
             reply += "%s" % (res["slogan"],)
             if self.cursor.rowcount > 1 and params:
                 reply += " (%d more slogans match this search)" % (

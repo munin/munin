@@ -27,7 +27,7 @@ Loadable subclass
 # qebab, 22/06/08
 
 import re
-from psycopg2 import psycopg1 as psycopg
+import psycopg2
 from munin import loadable
 
 
@@ -71,7 +71,7 @@ class addchan(loadable.loadable):
                 irc_msg.client.privmsg("P", "set %s autoinvite on" % (chan,))
                 irc_msg.client.privmsg("P", "invite %s" % (chan,))
 
-        except psycopg.IntegrityError:
+        except psycopg2.IntegrityError:
             irc_msg.reply("Channel %s already exists" % (chan,))
             return 0
         except BaseException:

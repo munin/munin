@@ -27,7 +27,7 @@ Loadable.Loadable subclass
 
 
 import re
-from psycopg2 import psycopg1 as psycopg
+import psycopg2
 import datetime
 from munin import loadable
 

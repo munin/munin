@@ -69,7 +69,7 @@ class unkick(loadable.loadable):
 
         self.cursor.execute(query,(voter.id,idiot.id))
         
-        res=self.cursor.dictfetchone()
+        res=self.cursor.fetchone()
 
         if res['success']:
             reply="You have unkickvoted '%s', who now has %s of 7 votes necessary to kick" % (idiot.pnick,res['retmessage'])

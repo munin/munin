@@ -248,7 +248,7 @@ class cunts(loadable.loadable):
 
         query += " ORDER BY p.size DESC, p.value DESC"
         self.cursor.execute(query, args)
-        return self.cursor.dictfetchall()
+        return self.cursor.fetchall()
 
     def attacking(self, pid, round):
         query = "SELECT DISTINCT t2.nick AS nick, t1.fleet_size, t1.landing_tick FROM fleet AS t1"
@@ -257,4 +257,4 @@ class cunts(loadable.loadable):
         query += " AND t1.landing_tick > (select max_tick(%s::smallint))"
         query += " AND t1.round=%s"
         self.cursor.execute(query, (pid, round, round))
-        return self.cursor.dictfetchall()
+        return self.cursor.fetchall()

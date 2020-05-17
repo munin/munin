@@ -119,7 +119,7 @@ class status(loadable.loadable):
                     return 1
                 reply = "Status for %s:%s:%s -" % (x, y, z)
                 if when:
-                    res = self.cursor.dictfetchall()
+                    res = self.cursor.fetchall()
                     type = "nick"
                     owner = res[0]["nick"]
                     if res[0]["pnick"]:
@@ -134,7 +134,7 @@ class status(loadable.loadable):
 
                 else:
                     prev = []
-                    for r in self.cursor.dictfetchall():
+                    for r in self.cursor.fetchall():
                         owner = "nick:" + r["nick"]
                         if r["pnick"]:
                             owner = "user:" + r["pnick"]
@@ -154,7 +154,7 @@ class status(loadable.loadable):
                     irc_msg.reply(reply)
                     return 1
                 ticks = {}
-                for r in self.cursor.dictfetchall():
+                for r in self.cursor.fetchall():
                     if r["tick"] not in ticks:
                         ticks[r["tick"]] = []
                     ticks[r["tick"]].append(r)
@@ -234,7 +234,7 @@ class status(loadable.loadable):
             if when:
                 reply += " for landing on tick %s (eta %s):" % (tick, tick - curtick)
                 prev = []
-                for b in self.cursor.dictfetchall():
+                for b in self.cursor.fetchall():
                     tmp = "(%s:%s:%s as " % (b["x"], b["y"], b["z"])
                     if b["pnick"]:
                         tmp += "user: %s" % (b["pnick"])
@@ -247,7 +247,7 @@ class status(loadable.loadable):
 
             else:
                 prev = []
-                for b in self.cursor.dictfetchall():
+                for b in self.cursor.fetchall():
                     tmp = "(%s:%s:%s landing pt%s/eta %s" % (
                         b["x"],
                         b["y"],
@@ -289,7 +289,7 @@ class status(loadable.loadable):
             irc_msg.reply(reply)
             return 1
         prev = []
-        for b in self.cursor.dictfetchall():
+        for b in self.cursor.fetchall():
             tmp = "(%s:%s:%s landing pt%s/eta %s" % (
                 b["x"],
                 b["y"],

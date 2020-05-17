@@ -91,7 +91,7 @@ class invite(loadable.loadable):
         query = "SELECT * FROM invite(%s,%s,%s::smallint)"  # AS t1(success BOOLEAN, retmessage TEXT)"
         self.cursor.execute(query, (u.pnick, gimp, invites))
 
-        res = self.cursor.dictfetchone()
+        res = self.cursor.fetchone()
 
         if res["success"]:
             self.client.privmsg(

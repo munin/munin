@@ -96,7 +96,7 @@ class range(loadable.loadable):
                 )
 
                 prev = []
-                for s in self.cursor.dictfetchall():
+                for s in self.cursor.fetchall():
                     prev.append("%s %d-%d" % (s["name"], s["min"], s["max"]))
 
                 reply += string.join(prev, " | ")

@@ -66,7 +66,7 @@ class longtel(loadable.loadable):
         self.cursor.execute(query,(x,y))
 
         replied_to_request = False
-        for d in self.cursor.dictfetchall():
+        for d in self.cursor.fetchall():
             x=d['x']
             y=d['y']
             z=d['z']

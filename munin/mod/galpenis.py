@@ -89,7 +89,7 @@ class galpenis(loadable.loadable):
         if self.cursor.rowcount < 1:
             reply = "No galpenis stats matching %s:%s" % (x, y)
 
-        res = self.cursor.dictfetchone()
+        res = self.cursor.fetchone()
         if not res:
             reply = "No galpenis stats matching %s:%s" % (x, y)
         else:

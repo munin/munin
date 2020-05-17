@@ -290,7 +290,7 @@ class prop(loadable.loadable):
         query += " )"
         self.cursor.execute(query, ())
         a = []
-        for r in self.cursor.dictfetchall():
+        for r in self.cursor.fetchall():
             prop_info = "%s: %s %s" % (
                 r["id"],
                 r["prop_type"],
@@ -301,7 +301,7 @@ class prop(loadable.loadable):
                 query += " WHERE t1.prop_id=%s AND t1.voter_id=%s"
                 self.cursor.execute(query, (r["id"], u.id))
                 if self.cursor.rowcount > 0:
-                    r = self.cursor.dictfetchone()
+                    r = self.cursor.fetchone()
                     prop_info += " (%s,%s)" % (r["vote"][0].upper(), r["carebears"])
             a.append(prop_info)
 
@@ -332,7 +332,7 @@ class prop(loadable.loadable):
             query += " WHERE poll_id=%s"
             self.cursor.execute(query, (prop_id,))
             answers = []
-            for a in self.cursor.dictfetchall():
+            for a in self.cursor.fetchall():
                 answers.append(
                     '%s: "%s"' % (a["answer_index"].upper(), a["answer_text"])
                 )
@@ -359,7 +359,7 @@ class prop(loadable.loadable):
             query = "SELECT vote,carebears FROM prop_vote"
             query += " WHERE prop_id=%s AND voter_id=%s"
             self.cursor.execute(query, (prop_id, u.id))
-            s = self.cursor.dictfetchone()
+            s = self.cursor.fetchone()
             if s:
                 vote = s["vote"][:1].upper() + s["vote"][1:]
                 reply += ", you are currently voting '%s'" % (vote,)
@@ -452,7 +452,7 @@ class prop(loadable.loadable):
             query += " WHERE poll_id=%s"
             poll_arr = []
             self.cursor.execute(query, (prop_id,))
-            for a in self.cursor.dictfetchall():
+            for a in self.cursor.fetchall():
                 poll_arr.append(a["answer_index"])
             poll_arr.append("veto")
             poll_arr.append("abstain")
@@ -479,7 +479,7 @@ class prop(loadable.loadable):
         query = "SELECT id,vote,carebears, prop_id FROM prop_vote"
         query += " WHERE prop_id=%s AND voter_id=%s"
         self.cursor.execute(query, (prop_id, u.id))
-        old_vote = self.cursor.dictfetchone()
+        old_vote = self.cursor.fetchone()
 
         if old_vote:
             query = "DELETE FROM prop_vote WHERE id=%s AND voter_id=%s"
@@ -701,7 +701,7 @@ class prop(loadable.loadable):
         query += " ORDER BY closed DESC LIMIT 30"
         self.cursor.execute(query, ())
         a = []
-        for r in self.cursor.dictfetchall():
+        for r in self.cursor.fetchall():
             a.append(
                 "%s: %s %s %s"
                 % (
@@ -733,7 +733,7 @@ class prop(loadable.loadable):
         query += " LIMIT 10"
         self.cursor.execute(query, ("%" + search + "%", "%" + search + "%"))
         a = []
-        for r in self.cursor.dictfetchall():
+        for r in self.cursor.fetchall():
             a.append(
                 "%s: %s %s %s"
                 % (
@@ -772,7 +772,7 @@ class prop(loadable.loadable):
             query += " FROM poll_answer"
             query += " WHERE poll_id=%s"
             self.cursor.execute(query, (prop_id,))
-            for a in self.cursor.dictfetchall():
+            for a in self.cursor.fetchall():
                 index = a["answer_index"]
                 outcome[index] = {}
                 outcome[index]["list"] = []
@@ -793,7 +793,7 @@ class prop(loadable.loadable):
         query += " AND NOT vote='abstain'"
         self.cursor.execute(query, (prop_id,))
 
-        for r in self.cursor.dictfetchall():
+        for r in self.cursor.fetchall():
             vote = r["vote"]
             outcome[vote]["list"].append(r)
             outcome[vote]["count"] += r["carebears"]
@@ -876,7 +876,7 @@ class prop(loadable.loadable):
         query += " WHERE joined.id=%s"
 
         self.cursor.execute(query, (prop_id,))
-        return self.cursor.dictfetchone()
+        return self.cursor.fetchone()
 
     def is_member(self, person):
         query = "SELECT id FROM user_list WHERE pnick ilike %s AND userlevel >= 100"
@@ -900,7 +900,7 @@ class prop(loadable.loadable):
             query += " AND not active"
             query += " ORDER BY closed DESC"
         self.cursor.execute(query, (person_or_person_id,))
-        r = self.cursor.dictfetchone()
+        r = self.cursor.fetchone()
         if r and r["vote_result"] != "yes":
             return r["compensation"]
         return 0
@@ -913,7 +913,7 @@ class prop(loadable.loadable):
         self.cursor.execute(query, (user.id, person, comment, padding))
         query = "SELECT id FROM invite_proposal WHERE proposer_id = %s AND person = %s AND active ORDER BY created DESC"
         self.cursor.execute(query, (user.id, person))
-        return self.cursor.dictfetchone()["id"]
+        return self.cursor.fetchone()["id"]
 
     def create_kick_proposal(self, user, person, comment, padding):
         query = (
@@ -923,7 +923,7 @@ class prop(loadable.loadable):
         self.cursor.execute(query, (user.id, person.id, comment, padding))
         query = "SELECT id FROM kick_proposal WHERE proposer_id = %s AND person_id = %s AND active ORDER BY created DESC"
         self.cursor.execute(query, (user.id, person.id))
-        return self.cursor.dictfetchone()["id"]
+        return self.cursor.fetchone()["id"]
 
     def is_already_proposed_kick(self, person_id):
         query = "SELECT id FROM kick_proposal WHERE person_id = %s AND active"
@@ -937,7 +937,7 @@ class prop(loadable.loadable):
 
         query = "SELECT id FROM poll_proposal WHERE proposer_id = %s AND question = %s AND active ORDER BY created DESC LIMIT 1"
         self.cursor.execute(query, (user.id, question))
-        poll_id = self.cursor.dictfetchone()["id"]
+        poll_id = self.cursor.fetchone()["id"]
 
         # OPTIMIZE: Do this in 1 query.
         for i in range(0, len(answers)):

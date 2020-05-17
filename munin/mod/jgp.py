@@ -87,7 +87,7 @@ class jgp(loadable.loadable):
                 reply += "Newest JGP scan on %s:%s:%s" % (p.x, p.y, p.z)
 
                 prev = []
-                for s in self.cursor.dictfetchall():
+                for s in self.cursor.fetchall():
                     prev.append(
                         "(%s:%s:%s %s | %s %s %s)"
                         % (
@@ -138,7 +138,7 @@ class jgp(loadable.loadable):
                 reply += "Newest JGP scan on "
 
                 prev = []
-                for s in self.cursor.dictfetchall():
+                for s in self.cursor.fetchall():
                     prev.append(
                         "(%s:%s:%s %s | %s %s %s)"
                         % (
@@ -183,7 +183,7 @@ class jgp(loadable.loadable):
 
         if self.cursor.rowcount < 1:
             return 0  # failure
-        s = self.cursor.dictfetchone()
+        s = self.cursor.fetchone()
         irc_msg.reply(
             "I can't see any fleets found matching this scan, but here's a URL you can try anyway: http://game.planetarion.com/showscan.pl?scan_id=%s"
             % (s["rand_id"],)

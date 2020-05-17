@@ -71,7 +71,7 @@ class kick(loadable.loadable):
 
         self.cursor.execute(query,(voter.id,idiot.id))
         
-        res=self.cursor.dictfetchone()
+        res=self.cursor.fetchone()
 
         if res['success']:
             reply="You have kickvoted '%s', who now has %s of 7 votes necessary to kick" % (idiot.pnick,res['retmessage'])
@@ -83,7 +83,7 @@ class kick(loadable.loadable):
 
         query="SELECT * FROM kickloser(%s)"
         self.cursor.execute(query,(idiot.id,))
-        res=self.cursor.dictfetchone()
+        res=self.cursor.fetchone()
         if res['success']:
             self.client.privmsg('p','remuser #ascendancy %s'%(idiot.pnick,))
             self.client.privmsg('p','ban #ascendancy *!*@%s.users.netgamers.org You have been kicked from Ascendancy for being unpopular'%(idiot.pnick,))

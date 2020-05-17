@@ -101,7 +101,7 @@ class bigdicks(loadable.loadable):
             return 1
 
         prev = []
-        for b in self.cursor.dictfetchall():
+        for b in self.cursor.fetchall():
             prev.append(
                 "%d:%s (%s)"
                 % (

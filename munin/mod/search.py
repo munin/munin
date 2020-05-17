@@ -63,7 +63,7 @@ class search(loadable.loadable):
         self.cursor.execute(query, args)
 
         i = 0
-        planets = self.cursor.dictfetchall()
+        planets = self.cursor.fetchall()
         if not len(planets):
             reply = "No planets in intel matching nick or alliance: %s" % (params,)
             irc_msg.reply(reply)

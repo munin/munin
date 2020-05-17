@@ -82,7 +82,7 @@ class dev(loadable.loadable):
             if self.cursor.rowcount < 1:
                 reply += "No dev scans available on %s:%s:%s" % (p.x, p.y, p.z)
             else:
-                s = self.cursor.dictfetchone()
+                s = self.cursor.fetchone()
 
                 total = max(1, self.get_total_cons_from_scan(self.cursor, s["id"]))
 
@@ -132,7 +132,7 @@ class dev(loadable.loadable):
                 i = 0
                 reply += " Older scans: "
                 prev = []
-                for s in self.cursor.dictfetchall():
+                for s in self.cursor.fetchall():
                     i += 1
                     if i > 4:
                         break
@@ -161,7 +161,7 @@ class dev(loadable.loadable):
             if self.cursor.rowcount < 1:
                 reply += "No dev scans matching ID %s" % (rand_id,)
             else:
-                s = self.cursor.dictfetchone()
+                s = self.cursor.fetchone()
 
                 total = (
                     s["light_factory"]

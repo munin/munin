@@ -63,7 +63,7 @@ class exile(loadable.loadable):
         if self.cursor.rowcount < 1:
             reply = "There is no spoon"
         else:
-            res = self.cursor.dictfetchall()
+            res = self.cursor.fetchall()
             gals = 0
             bracket = 0
             base_bracket_gals = 0
@@ -107,7 +107,7 @@ class exile(loadable.loadable):
                 eligible = "Whoops"
                 if self.cursor.rowcount > 0:
                     eligible = ", ".join(
-                        ["%s:%s" % (x["x"], x["y"]) for x in self.cursor.dictfetchall()]
+                        ["%s:%s" % (x["x"], x["y"]) for x in self.cursor.fetchall()]
                     )
                 reply += ": %s" % (eligible)
             reply += " | Also in the bracket: %s of %s galaxies with %s planets." % (

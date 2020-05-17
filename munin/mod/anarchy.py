@@ -80,7 +80,7 @@ class anarchy(loadable.loadable):
             self.cursor.execute(query, (irc_msg.round, current_tick, x, y, z))
             current_end_tick = None
             anarchy_list = []
-            for period in self.cursor.dictfetchall():
+            for period in self.cursor.fetchall():
                 end = period["end_tick"]
                 if end > current_tick:
                     current_end_tick = end
@@ -111,7 +111,7 @@ class anarchy(loadable.loadable):
                 if self.cursor.rowcount < 1:
                     needed_scans.append("planet")
                 else:
-                    planet_scan = self.cursor.dictfetchone()
+                    planet_scan = self.cursor.fetchone()
                     guards = planet_scan["guards"]
                     planet_tick = planet_scan["tick"]
 
@@ -130,7 +130,7 @@ class anarchy(loadable.loadable):
                     needed_scans.append("development")
 
                 if len(needed_scans) == 0:
-                    dev_scan = self.cursor.dictfetchone()
+                    dev_scan = self.cursor.fetchone()
                     sc = dev_scan["security_centre"]
                     total = (
                         dev_scan["light_factory"]
@@ -188,7 +188,7 @@ class anarchy(loadable.loadable):
             else:
                 anarchy_list = [
                     "%d:%d:%d" % (p["x"], p["y"], p["z"])
-                    for p in self.cursor.dictfetchall()
+                    for p in self.cursor.fetchall()
                 ]
                 reply = "Planets currently in anarchy: %s" % (", ".join(anarchy_list))
                 if self.cursor.rowcount == 120:

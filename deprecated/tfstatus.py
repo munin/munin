@@ -126,7 +126,7 @@ class tfstatus(loadable.loadable):
                     return 1
                 reply = "Status for %s:%s:%s -" % (x, y, z)
                 if when:
-                    res = self.cursor.dictfetchall()
+                    res = self.cursor.fetchall()
                     type = "nick"
                     owner = res[0]["nick"]
                     if res[0]["pnick"]:
@@ -141,7 +141,7 @@ class tfstatus(loadable.loadable):
 
                 else:
                     prev = []
-                    for r in self.cursor.dictfetchall():
+                    for r in self.cursor.fetchall():
                         owner = "nick:" + r["nick"]
                         if r["pnick"]:
                             owner = "user:" + r["pnick"]
@@ -161,7 +161,7 @@ class tfstatus(loadable.loadable):
                     self.client.reply(prefix, nick, target, reply)
                     return 1
                 ticks = {}
-                for r in self.cursor.dictfetchall():
+                for r in self.cursor.fetchall():
                     if not ticks.has_key(r["tick"]):
                         ticks[r["tick"]] = []
                     ticks[r["tick"]].append(r)
@@ -241,7 +241,7 @@ class tfstatus(loadable.loadable):
             if when:
                 reply += " for landing on tick %s (eta %s):" % (tick, tick - curtick)
                 prev = []
-                for b in self.cursor.dictfetchall():
+                for b in self.cursor.fetchall():
                     tmp = "(%s:%s:%s as " % (b["x"], b["y"], b["z"])
                     if b["pnick"]:
                         tmp += "user: %s" % (b["pnick"])
@@ -254,7 +254,7 @@ class tfstatus(loadable.loadable):
 
             else:
                 prev = []
-                for b in self.cursor.dictfetchall():
+                for b in self.cursor.fetchall():
                     tmp = "(%s:%s:%s landing pt%s/eta %s" % (
                         b["x"],
                         b["y"],

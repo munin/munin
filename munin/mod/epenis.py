@@ -101,7 +101,7 @@ class epenis(loadable.loadable):
 
             self.cursor.execute(query, ("%" + search + "%",))
 
-        res = self.cursor.dictfetchone()
+        res = self.cursor.fetchone()
         if not res:
             reply = "No epenis stats matching %s" % (search,)
         else:

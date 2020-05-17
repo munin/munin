@@ -23,7 +23,8 @@
 
 import sys
 
-from psycopg2 import psycopg1 as psycopg
+import psycopg2
+import psycopg2.extras
 
 user = "munin"
 
@@ -35,18 +36,18 @@ except BaseException:
     sys.exit(0)
 
 
-old_conn = psycopg.connect("user=%s dbname=%s" % (user, old_db))
-new_conn = psycopg.connect("user=%s dbname=%s" % (user, new_db))
+old_conn = psycopg2.connect("user=%s dbname=%s" % (user, old_db))
+new_conn = psycopg2.connect("user=%s dbname=%s" % (user, new_db))
 
-old_curs = old_conn.cursor()
+old_curs = old_conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-new_curs = new_conn.cursor()
+new_curs = new_conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 old_curs.execute(
     "SELECT id, pnick,userlevel,alias_nick,sponsor, phone, pubphone, passwd, salt, carebears, available_cookies, last_cookie_date  FROM user_list"
 )
 
-for u in old_curs.dictfetchall():
+for u in old_curs.fetchall():
     new_curs.execute(
         "INSERT INTO user_list (id,pnick,userlevel,alias_nick,sponsor,phone,pubphone,passwd,salt,carebears,available_cookies,last_cookie_date) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
         (
@@ -67,7 +68,7 @@ for u in old_curs.dictfetchall():
 
 old_curs.execute("SELECT user_id, friend_id FROM phone")
 
-for u in old_curs.dictfetchall():
+for u in old_curs.fetchall():
     new_curs.execute(
         "INSERT INTO phone (user_id,friend_id) VALUES (%s,%s)",
         (u["user_id"], u["friend_id"]),
@@ -75,12 +76,12 @@ for u in old_curs.dictfetchall():
 
 old_curs.execute("SELECT t1.quote AS quote FROM quote AS t1")
 
-for u in old_curs.dictfetchall():
+for u in old_curs.fetchall():
     new_curs.execute("INSERT INTO quote (quote) VALUES (%s)", (u["quote"],))
 
 old_curs.execute("SELECT t1.slogan AS slogan FROM slogan AS t1")
 
-for u in old_curs.dictfetchall():
+for u in old_curs.fetchall():
     new_curs.execute("INSERT INTO slogan (slogan) VALUES (%s)", (u["slogan"],))
 
 new_curs.execute(
@@ -98,7 +99,7 @@ old_curs.execute(
     "SELECT id,active,proposer_id,person,created,closed,comment_text,vote_result,compensation,padding FROM invite_proposal"
 )
 
-for u in old_curs.dictfetchall():
+for u in old_curs.fetchall():
     new_curs.execute(
         "INSERT INTO invite_proposal (id,active,proposer_id,person,created,closed,comment_text,vote_result,compensation,padding) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
         (
@@ -119,7 +120,7 @@ old_curs.execute(
     "SELECT id,active,proposer_id,person_id,created,closed,comment_text,vote_result,compensation,padding FROM kick_proposal"
 )
 
-for u in old_curs.dictfetchall():
+for u in old_curs.fetchall():
     new_curs.execute(
         "INSERT INTO kick_proposal (id,active,proposer_id,person_id,created,closed,comment_text,vote_result,compensation,padding) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
         (
@@ -142,7 +143,7 @@ new_curs.execute(
 
 old_curs.execute("SELECT vote,carebears,prop_id,voter_id FROM prop_vote")
 
-for u in old_curs.dictfetchall():
+for u in old_curs.fetchall():
     new_curs.execute(
         "INSERT INTO prop_vote (vote,carebears,prop_id,voter_id) VALUES (%s,%s,%s,%s)",
         (u["vote"], u["carebears"], u["prop_id"], u["voter_id"]),
@@ -152,7 +153,7 @@ old_curs.execute(
     "SELECT log_time, year_number, week_number, howmany, giver, receiver FROM cookie_log"
 )
 
-for u in old_curs.dictfetchall():
+for u in old_curs.fetchall():
     new_curs.execute(
         "INSERT INTO cookie_log (log_time, year_number, week_number, howmany, giver, receiver) VALUES (%s,%s,%s,%s,%s,%s)",
         (

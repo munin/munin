@@ -153,7 +153,7 @@ class lazycalc(loadable.loadable):
         self.cursor.execute(query, (p.id, round, round, round))
         if self.cursor.rowcount < 1:
             return None
-        return self.cursor.dictfetchall()
+        return self.cursor.fetchall()
 
     def get_aus(self, target, planets, round):
         return [self.get_au(target.x, target.y, target.z, "defend", round)] + [
@@ -178,7 +178,7 @@ class lazycalc(loadable.loadable):
         if self.cursor.rowcount < 1:
             val = {"age": 1000}
         else:
-            val = self.cursor.dictfetchone()
+            val = self.cursor.fetchone()
         val["x"] = x
         val["y"] = y
         val["z"] = z

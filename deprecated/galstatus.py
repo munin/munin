@@ -120,7 +120,7 @@ class galstatus:
             return
 
         self.cursor.execute("SELECT max_tick() AS max_tick")
-        curtick = self.cursor.dictfetchone()["max_tick"]
+        curtick = self.cursor.fetchone()["max_tick"]
         landing_tick = int(eta) + int(curtick)
 
         query = "INSERT INTO fleet(owner_id,target,fleet_size,fleet_name,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s)"
@@ -148,4 +148,4 @@ class galstatus:
 
         self.cursor.execute(query, (target_id, landing_tick))
 
-        return self.cursor.dictfetchone()
+        return self.cursor.fetchone()

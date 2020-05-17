@@ -73,7 +73,7 @@ class napfest(loadable.loadable):
             reply = "Nothing has happened yet, go fight some fools!"
         else:
             events = []
-            for row in self.cursor.dictfetchall():
+            for row in self.cursor.fetchall():
                 m = self.war_start_re.match(row["text"])
                 if m:
                     events.append(

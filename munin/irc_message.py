@@ -147,7 +147,7 @@ class irc_message(object):
         query = "SELECT userlevel FROM user_list WHERE pnick ilike %s"
         self.cursor.execute(query, (user,))
         if self.cursor.rowcount > 0:
-            return int(self.cursor.dictfetchone()["userlevel"])
+            return int(self.cursor.fetchone()["userlevel"])
         else:
             return 0
 
@@ -157,7 +157,7 @@ class irc_message(object):
         chanlevel = 0
         maxlevel = userlevel
         if self.cursor.rowcount > 0:
-            res = self.cursor.dictfetchone()
+            res = self.cursor.fetchone()
             chanlevel = int(res["userlevel"])
             maxlevel = int(res["maxlevel"])
         return (chanlevel, maxlevel)

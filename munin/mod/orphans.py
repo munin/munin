@@ -67,7 +67,7 @@ class orphans(loadable.loadable):
             reply = "There are no orphans. KILL A PARENT NOW."
         else:
             reply = "The following members are orphans: "
-            res = self.cursor.dictfetchall()
+            res = self.cursor.fetchall()
             reply += ", ".join([x["pnick"] for x in res])
 
         irc_msg.reply(reply)

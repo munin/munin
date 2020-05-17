@@ -86,7 +86,7 @@ class rprod(loadable.loadable):
         query = "SELECT * FROM ship WHERE name ILIKE %s ORDER BY id"
 
         self.cursor.execute(query, ("%" + shipname + "%",))
-        ship = self.cursor.dictfetchone()
+        ship = self.cursor.fetchone()
 
         if not ship:
             irc_msg.reply("%s is not a ship." % shipname)

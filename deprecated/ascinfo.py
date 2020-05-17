@@ -56,7 +56,7 @@ class ascinfo(loadable.loadable):
 
         self.cursor.execute(query)
 
-        res = self.cursor.dictfetchone()
+        res = self.cursor.fetchone()
 
         reply = "Ascendancy Members: %s, Value: %s, Avg: %s," % (
             res["members"],

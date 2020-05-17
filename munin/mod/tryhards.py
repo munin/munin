@@ -110,7 +110,7 @@ class tryhards(loadable.loadable):
         reply += ", ".join(
             [
                 "%s: %s (%s)" % (x[rank], x["name"], self.format_real_value(x[ranker]))
-                for x in self.cursor.dictfetchall()
+                for x in self.cursor.fetchall()
             ]
         )
         irc_msg.reply(reply)
@@ -139,7 +139,7 @@ class tryhards(loadable.loadable):
                     x["name"],
                     self.format_real_value(x[qualifier]),
                 )
-                for x in self.cursor.dictfetchall()
+                for x in self.cursor.fetchall()
             ]
         )
         irc_msg.reply(reply)
@@ -172,7 +172,7 @@ class tryhards(loadable.loadable):
                     x["name"],
                     self.format_real_value(x[qualifier]),
                 )
-                for x in self.cursor.dictfetchall()
+                for x in self.cursor.fetchall()
             ]
         )
         irc_msg.reply(reply)

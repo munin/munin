@@ -4,7 +4,8 @@ import sys
 import time
 
 import os
-from psycopg2 import psycopg1 as psycopg
+import psycopg2
+import psycopg2.extras
 import traceback
 
 sys.path.insert(0, "custom")
@@ -18,18 +19,18 @@ ofile = file("pid.sleipnir", "w")
 ofile.write("%s" % (os.getpid(),))
 ofile.close()
 
-conn = psycopg.connect("dbname=patools27 user=munin")
+conn = psycopg2.connect("dbname=patools27 user=munin")
 conn.serialize()
 conn.autocommit()
 
 
-cursor = conn.cursor()
+cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 
 query = "SELECT rand_id FROM scanparser_queue"
 
 cursor.execute(query)
-result = cursor.dictfetchall()
+result = cursor.fetchall()
 for r in result:
     rid = str(r["rand_id"])
     query = "SELECT rand_id FROM scan WHERE"

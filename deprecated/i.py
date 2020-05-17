@@ -99,7 +99,7 @@ class i(loadable.loadable):
             irc_msg.reply("No fleets found for defcall with ID '%s'" % (call_id,))
             return 1
 
-        all = self.cursor.dictfetchall()
+        all = self.cursor.fetchall()
         reply = "Fleets hitting %s:%s:%s as part of defcall %s" % (
             d.actual_target.x,
             d.actual_target.y,

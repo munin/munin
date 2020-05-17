@@ -213,4 +213,4 @@ class idler(loadable.loadable):
 
         query += " ORDER BY p.idle DESC, p.value DESC"
         self.cursor.execute(query, args)
-        return self.cursor.dictfetchall()
+        return self.cursor.fetchall()

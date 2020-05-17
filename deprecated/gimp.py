@@ -66,7 +66,7 @@ class gimp(loadable.loadable):
                     % (gimp,)
                 )
             else:
-                r = self.cursor.dictfetchone()
+                r = self.cursor.fetchone()
                 reply += (
                     "Gimp: %s, Sponsor: %s, Waiting: %d more hours, Comment: %s"
                     % (r["gimp"], r["sponsor"], r["left"], r["comment"])
@@ -80,7 +80,7 @@ class gimp(loadable.loadable):
                 reply += "Current gimps (with sponsor):"
 
                 prev = []
-                for p in self.cursor.dictfetchall():
+                for p in self.cursor.fetchall():
                     prev.append(
                         "(gimp:%s,sponsor:%s (%d hours left))"
                         % (p["gimp"], p["sponsor"], p["left"])

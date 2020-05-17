@@ -68,7 +68,7 @@ class scans(loadable.loadable):
             else:
                 reply += "scans for %s:%s:%s -" % (p.x, p.y, p.z)
                 prev = []
-                for p in self.cursor.dictfetchall():
+                for p in self.cursor.fetchall():
                     prev.append(
                         "(%d %s, latest pt%s)"
                         % (p["count"], p["scantype"], p["latest"])

@@ -95,7 +95,7 @@ class searchdef(loadable.loadable):
                     self.format_real_value(x["ship_count"]),
                     x["ship"],
                 )
-                for x in self.cursor.dictfetchall()
+                for x in self.cursor.fetchall()
             ]
         )
 

@@ -89,7 +89,7 @@ class defcalls(loadable.loadable):
                 % (defcall_type,)
             )
             return 1
-        c = self.cursor.dictfetchone()
+        c = self.cursor.fetchone()
         reply += "Status '%s' shows %s calls:" % (c["status"], c["count"])
 
         current_tick = self.current_tick()
@@ -104,7 +104,7 @@ class defcalls(loadable.loadable):
 
         self.cursor.execute(query, args)
 
-        calls = self.cursor.dictfetchall()
+        calls = self.cursor.fetchall()
         a = []
         for d in calls:
             a.append(
@@ -132,7 +132,7 @@ class defcalls(loadable.loadable):
 
         total_calls = 0
         reply = ""
-        calls = self.cursor.dictfetchall()
+        calls = self.cursor.fetchall()
         a = []
         for d in calls:
             total_calls += d["count"]

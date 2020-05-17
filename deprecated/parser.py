@@ -25,7 +25,8 @@ Parser class
 
 import irc_message
 import re
-from psycopg2 import psycopg1 as psycopg
+import psycopg2
+import psycopg2.extras
 import sys
 
 # sys.path.insert(0, "custom")
@@ -68,10 +69,10 @@ class parser:
         if config.has_option("Database", "host"):
             self.dsn += " host=%s" % config.get("Database", "host")
         # database connection and cursor
-        self.conn = psycopg.connect(self.dsn)
+        self.conn = psycopg2.connect(self.dsn)
         self.conn.set_isolation_level(0)
 
-        self.cursor = self.conn.cursor()
+        self.cursor = self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
         self.galstatus = galstatus.galstatus(
             self.client, self.conn, self.cursor, config
@@ -156,7 +157,7 @@ class parser:
                     or self.prefix_to_numeric(prefix) == self.client.PRIVATE_PREFIX,
                 ),
             )
-            access = self.cursor.dictfetchone()["access_level"] or 0
+            access = self.cursor.fetchone()["access_level"] or 0
             print "access: %d, user: %s, #channel: %s" % (access, user, target)
 
             com_list = command.split(" ", 1)

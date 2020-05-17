@@ -115,7 +115,7 @@ class apenis(loadable.loadable):
 
             self.cursor.execute(query, (a.name,))
 
-        res = self.cursor.dictfetchone()
+        res = self.cursor.fetchone()
         if not res:
             reply = "No apenis stats matching %s" % (a.name,)
         else:

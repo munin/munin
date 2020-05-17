@@ -23,7 +23,8 @@ from .listener import auth
 from .listener import command
 from .listener import custom_runner
 from . import mod
-from psycopg2 import psycopg1 as psycopg
+import psycopg2
+import psycopg2.extras
 
 
 class ircu_router(object):
@@ -32,7 +33,7 @@ class ircu_router(object):
         self.client = client
         self.config = config
         self.conn = self.create_db_connection(config)
-        self.cursor = self.conn.cursor()
+        self.cursor = self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
         self.listeners = [
             command.command(client, self.cursor, mod, loader, config),
@@ -61,6 +62,6 @@ class ircu_router(object):
         if config.has_option("Database", "host"):
             dsn += " host=%s" % config.get("Database", "host")
 
-        conn = psycopg.connect(dsn)
-        conn.autocommit(1)
+        conn = psycopg2.connect(dsn)
+        conn.autocommit = True
         return conn

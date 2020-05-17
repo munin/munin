@@ -73,7 +73,7 @@ class news(loadable.loadable):
         self.cursor.execute(query, (p.id, irc_msg.round,))
 
         if self.cursor.rowcount > 0:
-            s = self.cursor.dictfetchall()
+            s = self.cursor.fetchall()
             reply = (
                 "Latest news scans on %s:%s:%s - http://game.planetarion.com/showscan.pl?scan_id=%s"
                 % (

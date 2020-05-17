@@ -84,7 +84,7 @@ class au(loadable.loadable):
                 reply += "Newest advanced unit scan on %s:%s:%s" % (p.x, p.y, p.z)
 
                 prev = []
-                for s in self.cursor.dictfetchall():
+                for s in self.cursor.fetchall():
                     prev.append("%s %s" % (s["name"], s["amount"]))
                     tick = s["tick"]
                     rand_id = s["rand_id"]
@@ -118,7 +118,7 @@ class au(loadable.loadable):
                 reply += "Newest advanced unit scan on "
 
                 prev = []
-                for s in self.cursor.dictfetchall():
+                for s in self.cursor.fetchall():
                     prev.append("%s %s" % (s["name"], s["amount"]))
                     tick = s["tick"]
                     x = s["x"]

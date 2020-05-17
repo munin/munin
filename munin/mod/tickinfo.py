@@ -66,7 +66,7 @@ class tickinfo(loadable.loadable):
             else:
                 reply = "Don't be stupid, round %s doesn't exist." % (irc_msg.round,)
         else:
-            res = self.cursor.dictfetchone()
+            res = self.cursor.fetchone()
             reply = (
                 "My current tick information for round %s is for pt%s, which I retrieved %s ago"
                 % (irc_msg.round, res["tick"], res["tick_age"])

@@ -80,7 +80,7 @@ class bitches(loadable.loadable):
             return 1
         reply = "Active bookings:"
         prev = []
-        for b in self.cursor.dictfetchall():
+        for b in self.cursor.fetchall():
             prev.append("%s:%s(%s)" % (b["x"], b["y"], b["number"]))
 
         reply += " " + ", ".join(prev)
@@ -115,7 +115,7 @@ class bitches(loadable.loadable):
             "This should never happen"
         reply = "Active bitches:"
         prev = []
-        for b in self.cursor.dictfetchall():
+        for b in self.cursor.fetchall():
             prev.append("%s (%s)" % (self.cap(b["alliance"] or "Unknown"), b["number"]))
         reply += " " + ", ".join(prev)
         irc_msg.reply(reply)

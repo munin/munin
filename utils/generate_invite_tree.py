@@ -21,36 +21,11 @@
 # are included in this collective work with permission of the copyright
 # owners.
 
-import sys
-
-from psycopg2 import psycopg1 as psycopg
-
-#!/usr/bin/python
-
-# This file is part of Munin.
-
-# Munin is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-
-# Munin is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-# You should have received a copy of the GNU General Public License
-# along with Munin; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-# This work is Copyright (C)2006 by Andreas Jacobsen
-# Individual portions may be copyright by individual contributors, and
-# are included in this collective work with permission of the copyright
-# owners.
 
 import sys
 import configparser
-from psycopg2 import psycopg1 as psycopg
+import psycopg2
+import psycopg2.extras
 
 config = configparser.ConfigParser()
 if not config.read("muninrc"):
@@ -66,15 +41,13 @@ if config.has_option("Database", "password"):
 if config.has_option("Database", "host"):
     DSN += " host=%s" % config.get("Database", "host")
 
-conn = psycopg.connect(DSN)
-cursor = conn.cursor()
+conn = psycopg2.connect(DSN)
+cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 query = "SELECT pnick, sponsor FROM user_list"
 query += " WHERE userlevel >= 100"
 cursor.execute(query)
 
 print(
-    "\n".join(
-        ['"%s" -> "%s";' % (x["sponsor"], x["pnick"]) for x in cursor.dictfetchall()]
-    )
+    "\n".join(['"%s" -> "%s";' % (x["sponsor"], x["pnick"]) for x in cursor.fetchall()])
 )

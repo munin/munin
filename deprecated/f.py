@@ -171,7 +171,7 @@ class f(loadable.loadable):
 
         query = "SELECT id, status FROM defcall_status WHERE status ilike %s"
         self.cursor.execute(query, (s_command + "%",))
-        s = self.cursor.dictfetchone()
+        s = self.cursor.fetchone()
         if not s:
             irc_msg.reply(
                 "%s is not a valid defcall status, defcall was not modified"

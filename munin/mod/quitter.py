@@ -42,7 +42,7 @@ class quitter(loadable.loadable):
         if self.cursor.rowcount == 0:
             reply = "'%s' doesn't match any users" % (quit,)
         else:
-            r = self.cursor.dictfetchone()
+            r = self.cursor.fetchone()
             pnick = r["pnick"]
             count = r["quit"]
             query = "UPDATE user_list SET quit = quit + 1 WHERE pnick = %s"

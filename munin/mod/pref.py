@@ -27,7 +27,7 @@ Loadable.Loadable subclass
 # qebab, 24/6/08.
 
 import re
-from psycopg2 import psycopg1 as psycopg
+import psycopg2
 from munin import loadable
 
 
@@ -139,7 +139,7 @@ class pref(loadable.loadable):
         reply = "Your stay status has been saved as %s" % (status,)
         try:
             self.cursor.execute(query, args)
-        except psycopg.ProgrammingError:
+        except psycopg2.ProgrammingError:
             reply = (
                 "Your stay status '%s' is not a valid value. If you are staying for next round, it should be 'yes'. Otherwise it should be 'no'."
                 % (status,)
@@ -179,7 +179,7 @@ class pref(loadable.loadable):
         reply = "Your pubphone status has been saved as %s" % (status,)
         try:
             self.cursor.execute(query, args)
-        except psycopg.ProgrammingError:
+        except psycopg2.ProgrammingError:
             reply = (
                 "Your pubphone status '%s' is not a valid value. If you want your phone number to be visible to all %s members, it should be 'yes'. Otherwise it should be 'no'."
                 % (status, self.config.get("Auth", "alliance"))

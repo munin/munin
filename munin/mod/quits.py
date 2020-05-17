@@ -42,7 +42,7 @@ class quits(loadable.loadable):
         if self.cursor.rowcount == 0:
             reply = "'%s' does not match any users" % (quit,)
         else:
-            r = self.cursor.dictfetchone()
+            r = self.cursor.fetchone()
             pnick = r["pnick"]
             count = r["quit"]
             self.cursor.execute(query, (pnick,))

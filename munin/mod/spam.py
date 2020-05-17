@@ -66,7 +66,7 @@ class spam(loadable.loadable):
         query += " WHERE t1.tick=(SELECT max_tick(%s::smallint)) AND t1.round=%s AND (t6.name ILIKE %s) ORDER BY x,y,z"
         self.cursor.execute(query, args)
 
-        planets = self.cursor.dictfetchall()
+        planets = self.cursor.fetchall()
         if not len(planets):
             reply = "No planets in intel matching alliance: %s" % (params,)
             irc_msg.reply(reply)

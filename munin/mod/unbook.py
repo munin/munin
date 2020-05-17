@@ -134,7 +134,7 @@ class unbook(loadable.loadable):
                 irc_msg.reply(reply)
                 return 1
 
-            res = self.cursor.dictfetchall()
+            res = self.cursor.fetchall()
 
             query = "DELETE FROM target WHERE pid = %s"
             args = (p.id,)

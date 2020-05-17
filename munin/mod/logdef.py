@@ -94,7 +94,7 @@ class logdef(loadable.loadable):
         self.cursor.execute(query, (round, user.id,))
 
         if self.cursor.rowcount > 0:
-            return self.cursor.dictfetchall()
+            return self.cursor.fetchall()
         return False
 
     def search_by_ship(self, round, ship):
@@ -109,7 +109,7 @@ class logdef(loadable.loadable):
         self.cursor.execute(query, (round, lookup,))
 
         if self.cursor.rowcount > 0:
-            return self.cursor.dictfetchall()
+            return self.cursor.fetchall()
 
         return False
 

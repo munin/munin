@@ -145,7 +145,7 @@ class surprisesex(loadable.loadable):
         query += " ORDER BY count(lower(t7.name)) DESC"
 
         self.cursor.execute(query, args)
-        attackers = self.cursor.dictfetchall()
+        attackers = self.cursor.fetchall()
         if not len(attackers):
             reply = "No fleets found targeting"
             if x and y:

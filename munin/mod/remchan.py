@@ -54,7 +54,7 @@ class remchan(loadable.loadable):
 
         query = "SELECT chan,userlevel FROM channel_list WHERE chan=%s LIMIT 1"
         self.cursor.execute(query, (chan,))
-        res = self.cursor.dictfetchone()
+        res = self.cursor.fetchone()
         if not res:
             irc_msg.reply("Channel '%s' does not exist" % (chan,))
             return 0

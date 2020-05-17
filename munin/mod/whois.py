@@ -76,7 +76,7 @@ class whois(loadable.loadable):
         if self.cursor.rowcount < 1:
             self.cursor.execute(query, ("%" + search + "%",))
 
-        r = self.cursor.dictfetchone()
+        r = self.cursor.fetchone()
 
         if not r:
             reply += "No members matching '%s'" % (search,)

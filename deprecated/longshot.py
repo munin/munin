@@ -36,7 +36,7 @@ class longshot(loadable.loadable):
 	reply=""
 	self.cursor.execute(query)
 	if self.cursor.rowcount>0:
-	    res=self.cursor.dictfetchall()
+	    res=self.cursor.fetchall()
 	    gals=0
 	    bracket=0
 	    max_planets=0

@@ -27,7 +27,7 @@ Loadable subclass
 # qebab, 24/6/08.
 
 import re
-from psycopg2 import psycopg1 as psycopg
+import psycopg2
 from munin import loadable
 
 
@@ -68,7 +68,7 @@ class galmate(loadable.loadable):
             self.cursor.execute(query, (pnick,))
             if self.cursor.rowcount > 0:
                 irc_msg.reply("Added user %s at level 1" % (pnick,))
-        except psycopg.IntegrityError:
+        except psycopg2.IntegrityError:
             irc_msg.reply("User %s already exists" % (pnick,))
             return 0
         except BaseException:

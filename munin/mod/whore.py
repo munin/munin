@@ -214,4 +214,4 @@ class whore(loadable.loadable):
         query += " ORDER BY xp_gain DESC, t1.size DESC, t1.value DESC"
 
         self.cursor.execute(query, args)
-        return self.cursor.dictfetchall()
+        return self.cursor.fetchall()

@@ -92,7 +92,7 @@ class aids(loadable.loadable):
             else:
                 reply += " You have given aids to: "
                 prev = []
-                for r in self.cursor.dictfetchall():
+                for r in self.cursor.fetchall():
                     prev.append(r["pnick"])
                 reply += ", ".join(prev)
         else:
@@ -103,7 +103,7 @@ class aids(loadable.loadable):
             else:
                 reply += "%s has given aids to: " % (u.pnick,)
                 prev = []
-                for r in self.cursor.dictfetchall():
+                for r in self.cursor.fetchall():
                     prev.append(r["pnick"])
                 reply += ", ".join(prev)
 

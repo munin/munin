@@ -87,4 +87,4 @@ class yourmum(loadable.loadable):
         query += " ORDER BY sum(howmany) DESC"
         query += " LIMIT 10"
         self.cursor.execute(query, (receiver,))
-        return self.cursor.dictfetchall()
+        return self.cursor.fetchall()

@@ -55,7 +55,7 @@ class quote(loadable.loadable):
 
         if params:
             query += " AND quote ILIKE %s"
-            args += ("%" + params.replace('*','%') + "%",)
+            args += ("%" + params.replace("*", "%") + "%",)
 
         query += " ORDER BY RANDOM()"
         self.cursor.execute(query, args)
@@ -64,7 +64,7 @@ class quote(loadable.loadable):
         if self.cursor.rowcount == 0:
             reply += "No quotes matching '%s'" % (params,)
         else:
-            res = self.cursor.dictfetchone()
+            res = self.cursor.fetchone()
             reply += "%s" % (res["quote"],)
             if self.cursor.rowcount > 1 and params:
                 reply += " (%d more quotes match this search)" % (

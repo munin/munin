@@ -27,7 +27,7 @@ Loadable.Loadable subclass
 # qebab, 22/06/08
 
 import re
-from psycopg2 import psycopg1 as psycopg
+import psycopg2
 from munin import loadable
 
 
@@ -131,7 +131,7 @@ class book(loadable.loadable):
                 % (x, y, z, tick)
             )
             prev = []
-            for r in self.cursor.dictfetchall():
+            for r in self.cursor.fetchall():
                 owner = "nick:" + r["nick"]
                 if r["pnick"]:
                     owner = "user:" + r["pnick"]
@@ -166,13 +166,13 @@ class book(loadable.loadable):
                     tick,
                     irc_msg.nick,
                 )
-        except psycopg.IntegrityError:
+        except psycopg2.IntegrityError:
             query = "SELECT t1.id AS id, t1.nick AS nick, t1.pid AS pid, t1.tick AS tick, t1.uid AS uid, t2.pnick AS pnick, t2.userlevel AS userlevel "
             query += " FROM target AS t1 LEFT JOIN user_list AS t2 ON t1.uid=t2.id "
             query += " WHERE t1.pid=%s AND t1.tick=%s AND t1.round=%s"
 
             self.cursor.execute(query, (p.id, tick, irc_msg.round,))
-            book = self.cursor.dictfetchone()
+            book = self.cursor.fetchone()
             if not book:
                 raise Exception(
                     "Integrity error? Unable to booking for pid %s and tick %s"

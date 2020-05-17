@@ -88,7 +88,7 @@ class salvage(loadable.loadable):
         if self.cursor.rowcount < 1:
             irc_msg.reply("Error retrieving score of top 20 planets from database")
         top20_average_score = reduce(
-            lambda s, p: s + float(p["score"]) / 20.0, self.cursor.dictfetchall(), 0.0
+            lambda s, p: s + float(p["score"]) / 20.0, self.cursor.fetchall(), 0.0
         )
 
         score_modifier = 0.5 * (1.0 - float(planet.score) / top20_average_score)

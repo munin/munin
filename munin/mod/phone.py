@@ -179,7 +179,7 @@ class phone(loadable.loadable):
         query += " ON t2.id=t1.friend_id"
         query += " WHERE t1.user_id=%s"
         self.cursor.execute(query, args)
-        results = self.cursor.dictfetchall()
+        results = self.cursor.fetchall()
         reply = ""
 
         if len(results) < 1:

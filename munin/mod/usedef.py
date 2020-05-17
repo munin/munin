@@ -102,7 +102,7 @@ class usedef(loadable.loadable):
             else:
                 ship_lookup = ship
             self.cursor.execute(ship_query, (ship_lookup, round, user.id))
-            for result in self.cursor.dictfetchall():
+            for result in self.cursor.fetchall():
                 s = result["ship"]
                 c = result["ship_count"]
                 removed[s] = c

@@ -54,7 +54,7 @@ class remuser(loadable.loadable):
 
         query = "SELECT id,pnick,userlevel FROM user_list WHERE pnick ILIKE %s LIMIT 1"
         self.cursor.execute(query, (pnick,))
-        res = self.cursor.dictfetchone()
+        res = self.cursor.fetchone()
         if not res:
             irc_msg.reply("User '%s' does not exist" % (pnick,))
             return 0

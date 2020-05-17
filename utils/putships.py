@@ -4,7 +4,7 @@ Put the ships from url into our database.
 """
 
 import configparser
-from psycopg2 import psycopg1 as psycopg
+import psycopg2
 import urllib.request, urllib.error, urllib.parse
 import re
 import sys
@@ -73,7 +73,7 @@ def main():
         DSN += " password=%s" % config.get("Database", "password")
     if config.has_option("Database", "host"):
         DSN += " host=%s" % config.get("Database", "host")
-    connection = psycopg.connect(DSN)
+    connection = psycopg2.connect(DSN)
     cursor = connection.cursor()
 
     parser = argparse.ArgumentParser(

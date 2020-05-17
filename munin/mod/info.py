@@ -67,11 +67,11 @@ class info(loadable.loadable):
         if self.cursor.rowcount < 1:
             reply = "Nothing in intel matches your search '%s'" % (alliance,)
         else:
-            res = self.cursor.dictfetchone()
+            res = self.cursor.fetchone()
             if res["members"] > 50:
                 query = self.query_for_info_limit_50(irc_msg.round)
                 self.cursor.execute(query, args)
-                ts = self.cursor.dictfetchone()
+                ts = self.cursor.fetchone()
                 reply += "%s Members: %s (%s)" % (
                     alliance,
                     res["members"],

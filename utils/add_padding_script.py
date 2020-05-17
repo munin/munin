@@ -22,7 +22,8 @@
 # owners.
 
 import sys
-from psycopg2 import psycopg1 as psycopg
+import psycopg2
+import psycopg2.extras
 
 
 class migrator:
@@ -69,7 +70,7 @@ class migrator:
         )
 
         self.cursor.execute(query, (prop_id,))
-        return self.cursor.dictfetchone()
+        return self.cursor.fetchone()
 
     def get_winners_and_losers(self, voters, yes, no):
         if yes > no:
@@ -98,7 +99,7 @@ class migrator:
         yes = 0
         no = 0
 
-        for r in self.cursor.dictfetchall():
+        for r in self.cursor.fetchall():
             if r["vote"] == "yes":
                 yes += r["carebears"]
                 voters["yes"].append(r)
@@ -112,9 +113,9 @@ class migrator:
 
 user = "munin"
 db = "patools30"
-conn = psycopg.connect("user=%s dbname=%s" % (user, db))
+conn = psycopg2.connect("user=%s dbname=%s" % (user, db))
 conn.serialize()
 conn.autocommit()
-curs = conn.cursor()
+curs = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 m = migrator(curs)
 m.add_padding()

@@ -21,7 +21,8 @@
 # are included in this collective work with permission of the copyright
 # owners.
 
-from psycopg2 import psycopg1 as psycopg
+import psycopg2
+import psycopg2.extras
 import sys, pprint
 
 pp = pprint.PrettyPrinter(indent=4)
@@ -37,11 +38,11 @@ except:
     print "Usage: %s <old_db> <new_db>" % (sys.argv[0])
     sys.exit(0)
 
-old_conn = psycopg.connect("user=%s dbname=%s" % (user, old_db))
-new_conn = psycopg.connect("user=%s dbname=%s" % (user, new_db))
+old_conn = psycopg2.connect("user=%s dbname=%s" % (user, old_db))
+new_conn = psycopg2.connect("user=%s dbname=%s" % (user, new_db))
 
-old_curs = old_conn.cursor()
-new_curs = new_conn.cursor()
+old_curs = old_conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+new_curs = new_conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 old_round = int(old_db.split("patools")[1])
 
@@ -78,7 +79,7 @@ def port(table_name, results, map_columns=[], mappings=[], round_nr=old_round):
         new_curs.execute(q, values)
 
         if u.has_key("id"):
-            new_id = new_curs.dictfetchone()["id"]
+            new_id = new_curs.fetchone()["id"]
             mapout[u["id"]] = new_id
         num += 1
         if num % 100000 == 0:
@@ -106,92 +107,90 @@ def port_planet_canon(
 
 
 old_curs.execute("SELECT * FROM updates where tick > -1")
-port("updates", old_curs.dictfetchall())
+port("updates", old_curs.fetchall())
 print "Updates from round %s inserted" % (old_round,)
 
 old_curs.execute("SELECT * FROM planet_canon")
-planet_mapping = port_planet_canon("planet_canon", old_curs.dictfetchall())
+planet_mapping = port_planet_canon("planet_canon", old_curs.fetchall())
 print "planet_canon from round %s inserted" % (old_round,)
 
 old_curs.execute("SELECT * FROM planet_dump")
-port("planet_dump", old_curs.dictfetchall(), ["id"], [planet_mapping])
+port("planet_dump", old_curs.fetchall(), ["id"], [planet_mapping])
 print "planet_dump from round %s inserted" % (old_round,)
 
 old_curs.execute("SELECT * FROM galaxy_canon")
-galaxy_mapping = port("galaxy_canon", old_curs.dictfetchall())
+galaxy_mapping = port("galaxy_canon", old_curs.fetchall())
 print "galaxy_canon from round %s inserted" % (old_round,)
 
 old_curs.execute("SELECT * FROM galaxy_dump")
-port("galaxy_dump", old_curs.dictfetchall(), ["id"], [galaxy_mapping])
+port("galaxy_dump", old_curs.fetchall(), ["id"], [galaxy_mapping])
 print "galaxy_dump from round %s inserted" % (old_round,)
 
 old_curs.execute("SELECT * FROM alliance_canon")
-alliance_mapping = port("alliance_canon", old_curs.dictfetchall())
+alliance_mapping = port("alliance_canon", old_curs.fetchall())
 print "alliance_canon from round %s inserted" % (old_round,)
 
 old_curs.execute("SELECT * FROM alliance_dump")
-port("alliance_dump", old_curs.dictfetchall(), ["id"], [alliance_mapping])
+port("alliance_dump", old_curs.fetchall(), ["id"], [alliance_mapping])
 print "alliance_dump from round %s inserted" % (old_round,)
 
 if old_round > 67:
     old_curs.execute("SELECT * FROM userfeed_dump")
-    port("userfeed_dump", old_curs.dictfetchall())
+    port("userfeed_dump", old_curs.fetchall())
     print "userfeed_dump from round %s inserted" % (old_round,)
 
 if old_round > 67:
     old_curs.execute("SELECT * FROM anarchy")
-    port("anarchy", old_curs.dictfetchall(), ["pid"], [planet_mapping])
+    port("anarchy", old_curs.fetchall(), ["pid"], [planet_mapping])
     print "anarchy from round %s inserted" % (old_round,)
 
 if old_round > 67:
     old_curs.execute("SELECT * FROM alliance_relation")
     port(
         "alliance_relation",
-        old_curs.dictfetchall(),
+        old_curs.fetchall(),
         ["acceptor", "initiator"],
         [alliance_mapping, alliance_mapping],
     )
     print "alliance_relation from round %s inserted" % (old_round,)
 
 old_curs.execute("SELECT * FROM command_log")
-port("command_log", old_curs.dictfetchall(), round_nr=-1)
+port("command_log", old_curs.fetchall(), round_nr=-1)
 print "command_log from round %s inserted" % (old_round,)
 
 old_curs.execute("SELECT id, planet_id FROM user_list")
-port_user_list(
-    "round_user_pref", old_curs.dictfetchall(), ["planet_id"], [planet_mapping]
-)
+port_user_list("round_user_pref", old_curs.fetchall(), ["planet_id"], [planet_mapping])
 print "user_list from round %s inserted" % (old_round,)
 
 old_curs.execute("SELECT * FROM ship")
-ship_mapping = port("ship", old_curs.dictfetchall())
+ship_mapping = port("ship", old_curs.fetchall())
 print "ship from round %s inserted" % (old_round,)
 
 old_curs.execute("SELECT * FROM intel")
 port(
     "intel",
-    old_curs.dictfetchall(),
+    old_curs.fetchall(),
     ["pid", "alliance_id"],
     [planet_mapping, alliance_mapping],
 )
 print "intel from round %s inserted" % (old_round,)
 
 old_curs.execute("SELECT * FROM scan")
-scan_mapping = port("scan", old_curs.dictfetchall(), ["pid"], [planet_mapping])
+scan_mapping = port("scan", old_curs.fetchall(), ["pid"], [planet_mapping])
 print "scan from round %s inserted" % (old_round,)
 
 old_curs.execute("SELECT * FROM planet")
-port("planet", old_curs.dictfetchall(), ["scan_id"], [scan_mapping], round_nr=-1)
+port("planet", old_curs.fetchall(), ["scan_id"], [scan_mapping], round_nr=-1)
 print "planet from round %s inserted" % (old_round,)
 
 old_curs.execute("SELECT * FROM development")
-port("development", old_curs.dictfetchall(), ["scan_id"], [scan_mapping], round_nr=-1)
+port("development", old_curs.fetchall(), ["scan_id"], [scan_mapping], round_nr=-1)
 print "development from round %s inserted" % (old_round,)
 
 old_curs.execute("SELECT * FROM unit")
 port(
     "unit",
-    old_curs.dictfetchall(),
+    old_curs.fetchall(),
     ["scan_id", "ship_id"],
     [scan_mapping, ship_mapping],
     round_nr=-1,
@@ -201,7 +200,7 @@ print "unit from round %s inserted" % (old_round,)
 old_curs.execute("SELECT * FROM au")
 port(
     "au",
-    old_curs.dictfetchall(),
+    old_curs.fetchall(),
     ["scan_id", "ship_id"],
     [scan_mapping, ship_mapping],
     round_nr=-1,
@@ -211,7 +210,7 @@ print "au from round %s inserted" % (old_round,)
 old_curs.execute("SELECT * FROM fleet")
 fleet_mapping = port(
     "fleet",
-    old_curs.dictfetchall(),
+    old_curs.fetchall(),
     ["scan_id", "owner_id", "target"],
     [scan_mapping, planet_mapping, planet_mapping],
 )
@@ -220,7 +219,7 @@ print "fleet from round %s inserted" % (old_round,)
 old_curs.execute("SELECT * FROM fleet_content")
 fleet_content_mapping = port(
     "fleet_content",
-    old_curs.dictfetchall(),
+    old_curs.fetchall(),
     ["fleet_id", "ship_id"],
     [fleet_mapping, ship_mapping],
 )

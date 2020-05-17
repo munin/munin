@@ -130,7 +130,7 @@ class cajbook(loadable.loadable):
                 % (x, y, z, tick)
             )
             prev = []
-            for r in self.cursor.dictfetchall():
+            for r in self.cursor.fetchall():
                 owner = "nick:" + r["nick"]
                 if r["pnick"]:
                     owner = "user:" + r["pnick"]
@@ -171,7 +171,7 @@ class cajbook(loadable.loadable):
             query += " WHERE t1.pid=%s AND t1.tick=%s"
 
             self.cursor.execute(query, (p.id, tick))
-            book = self.cursor.dictfetchone()
+            book = self.cursor.fetchone()
             if not book:
                 raise Exception(
                     "Integrity error? Unable to booking for pid %s and tick %s"

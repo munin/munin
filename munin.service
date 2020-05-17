@@ -1,7 +1,7 @@
 # -*- mode: conf; -*-
 
 [Unit]
-Description = running Munin
+Description = Munin
 After = network.target
 
 [Service]
@@ -9,10 +9,8 @@ Type = simple
 User = your_name_here
 WorkingDirectory = /path/to/munin
 ExecStart = /path/to/munin/run_munin_systemd.sh
-# Auto-reconnect after a !raw quit :
-Restart = always
-# # No auto-reconnect
-# Restart = on-failure
+Restart = on-failure
+RestartSec = 5m
 
 [Install]
 WantedBy = multi-user.target

@@ -2,4 +2,7 @@
 
 set -euo pipefail
 source env/bin/activate
-python3 -u run_munin.py &>> munin.log
+while python3 -u run_munin.py &>> munin.log; do
+     # Restart if Munin returned exit code 0 (ie, after !raw quit)
+    sleep 3
+done

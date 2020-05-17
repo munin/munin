@@ -39,7 +39,8 @@ class alias(loadable.loadable):
         self.paramre = re.compile(r"^\s*(\S{2,15})?")
         self.usage = self.__class__.__name__ + " <alias> (at most 15 characters)"
         self.helptext = [
-            'Set an alias that maps to your pnick, useful if you have a different nick than your pnick and people use autocomplete.']
+            "Set an alias that maps to your pnick, useful if you have a different nick than your pnick and people use autocomplete."
+        ]
 
     def execute(self, user, access, irc_msg):
         m = self.commandre.search(irc_msg.command)
@@ -70,14 +71,20 @@ class alias(loadable.loadable):
         query = "SELECT pnick FROM user_list WHERE pnick ilike %s"
         self.cursor.execute(query, (alias,))
         if self.cursor.rowcount > 0:
-            irc_msg.reply("Your alias is already in use or is someone else's pnick (not allowed). Tough noogies.")
+            irc_msg.reply(
+                "Your alias is already in use or is someone else's pnick (not allowed). Tough noogies."
+            )
             return
         try:
             query = "UPDATE user_list SET alias_nick = %s WHERE pnick ilike %s"
             self.cursor.execute(query, (alias, u.pnick))
             if self.cursor.rowcount > 0:
-                irc_msg.reply("Update alias for %s (that's you) to %s" % (u.pnick, alias))
+                irc_msg.reply(
+                    "Update alias for %s (that's you) to %s" % (u.pnick, alias)
+                )
             else:
                 irc_msg.reply("If you see this message you are a winner. Fuck you.")
         except BaseException:
-            irc_msg.reply("Your alias is already in use or is someone else's pnick (not allowed). Tough noogies.")
+            irc_msg.reply(
+                "Your alias is already in use or is someone else's pnick (not allowed). Tough noogies."
+            )

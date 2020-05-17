@@ -38,8 +38,10 @@ class loadable(object):
         self.commandre = re.compile(r"^[A-z0-9]+(\s*.*)", re.I)
         self.helptext = None
         self.config = configparser.ConfigParser()
-        if not self.config.read('muninrc'):
-            raise ValueError('Failed to read ./muninrc. Can not run without configuration')
+        if not self.config.read("muninrc"):
+            raise ValueError(
+                "Failed to read ./muninrc. Can not run without configuration"
+            )
 
     def execute(self, user, access, irc_msg):
         print("Loadable execute")
@@ -54,7 +56,7 @@ class loadable(object):
 
     def help(self, user, access, irc_msg):
         irc_msg.reply(self.usage)
-        if hasattr(self, 'helptext') and self.helptext:
+        if hasattr(self, "helptext") and self.helptext:
             for h in self.helptext:
                 irc_msg.reply(h)
 
@@ -79,16 +81,16 @@ class loadable(object):
     def split_opts(self, params):
         param_dict = {}
         for s in params.split():
-            a = s.split('=')
+            a = s.split("=")
             if len(a) != 2:
                 return None
             param_dict[a[0].lower()] = a[1]
         return param_dict
 
     def human_readable_number_to_integer(self, number):
-        if number[-1].lower() == 'k':
+        if number[-1].lower() == "k":
             number = 1000 * float(number[:-1])
-        elif number[-1].lower() == 'm':
+        elif number[-1].lower() == "m":
             number = 1000000 * float(number[:-1])
         else:
             number = float(number)
@@ -103,25 +105,28 @@ class loadable(object):
         u = self.load_user(pnick, irc_msg)
         if not u.planet:
             irc_msg.reply(
-                "You must set your planet with the pref command for the " +
-                self.__class__.__name__ +
-                " command to work")
+                "You must set your planet with the pref command for the "
+                + self.__class__.__name__
+                + " command to work"
+            )
             return None
         return u
 
     def load_user(self, pnick, irc_msg):
         if not pnick:
             irc_msg.reply(
-                "You must be registered to use the " +
-                self.__class__.__name__ +
-                " command (log in with P and set mode +x)")
+                "You must be registered to use the "
+                + self.__class__.__name__
+                + " command (log in with P and set mode +x)"
+            )
             return None
         u = self.load_user_from_pnick(pnick, irc_msg.round)
         if not u:
             irc_msg.reply(
-                "You must be registered to use the automatic " +
-                self.__class__.__name__ +
-                " command (log in with P and set mode +x, then make sure you've set your planet with the pref command)")
+                "You must be registered to use the automatic "
+                + self.__class__.__name__
+                + " command (log in with P and set mode +x, then make sure you've set your planet with the pref command)"
+            )
             return None
         return u
 
@@ -139,7 +144,7 @@ class loadable(object):
         query += " WHERE id=%s"
 
         self.cursor.execute(query, (scan_id,))
-        return self.cursor.dictfetchone()['total']
+        return self.cursor.dictfetchone()["total"]
 
     def pluralize(self, number, text):
         if number == 1:
@@ -162,7 +167,10 @@ class loadable(object):
 
     def command_not_used_in_home(self, irc_msg, command_name):
         if irc_msg.target.lower() != "#" + self.config.get("Auth", "home").lower():
-            irc_msg.reply("The %s command may only be used in #%s." % (command_name, self.config.get("Auth", "home"),))
+            irc_msg.reply(
+                "The %s command may only be used in #%s."
+                % (command_name, self.config.get("Auth", "home"),)
+            )
             return True
         False
 
@@ -189,7 +197,7 @@ class loadable(object):
             self.cursor.execute(query, ("%" + ship_name + "%", round,))
             ship = self.cursor.dictfetchone()
 
-        if not ship and ship_name[-1].lower() == 's':
+        if not ship and ship_name[-1].lower() == "s":
             ship_name = ship_name[0:-1]
             self.cursor.execute(query, ("%" + ship_name + "%", round,))
             ship = self.cursor.dictfetchone()
@@ -197,7 +205,16 @@ class loadable(object):
 
 
 class defcall(object):
-    def __init__(self, id=-1, bcalc=None, status=-1, claimed_by=None, comment=None, target=None, landing_tick=-1):
+    def __init__(
+        self,
+        id=-1,
+        bcalc=None,
+        status=-1,
+        claimed_by=None,
+        comment=None,
+        target=None,
+        landing_tick=-1,
+    ):
         self.id = id
         self.bcalc = bcalc
         self.status = status
@@ -212,8 +229,16 @@ class defcall(object):
 
     def __str__(self):
         ret_str = "Defcall with id %s for %s:%s:%s landing %s" % (
-            self.id, self.actual_target.x, self.actual_target.y, self.actual_target.z, self.landing_tick)
-        ret_str += " has status '%s' and was last modified by %s." % (self.actual_status, self.claimed_by or "no one")
+            self.id,
+            self.actual_target.x,
+            self.actual_target.y,
+            self.actual_target.z,
+            self.landing_tick,
+        )
+        ret_str += " has status '%s' and was last modified by %s." % (
+            self.actual_status,
+            self.claimed_by or "no one",
+        )
         ret_str += " It has"
         if self.bcalc:
             ret_str += " a"
@@ -236,15 +261,17 @@ class defcall(object):
         d = cursor.dictfetchone()
         if not d:
             return 0
-        self.bcalc = d['bcalc']
-        self.status = d['status']
-        self.claimed_by = d['claimed_by']
-        self.comment = d['comment']
-        self.target = d['target']
-        self.landing_tick = d['landing_tick']
+        self.bcalc = d["bcalc"]
+        self.status = d["status"]
+        self.claimed_by = d["claimed_by"]
+        self.comment = d["comment"]
+        self.target = d["target"]
+        self.landing_tick = d["landing_tick"]
         p = planet(id=self.target)
         if not p.load_most_recent(cursor, round):
-            raise Exception("Defcall with id %s has no valid planet information. Oops...")
+            raise Exception(
+                "Defcall with id %s has no valid planet information. Oops..."
+            )
         self.actual_target = p
 
         u = user(id=self.claimed_by)
@@ -255,24 +282,25 @@ class defcall(object):
         query = "SELECT status FROM defcall_status WHERE id = %s"
         cursor.execute(query, (self.status,))
         s = cursor.dictfetchone()
-        self.actual_status = s['status']
+        self.actual_status = s["status"]
 
         return 1
 
 
 class fleet(object):
     def __init__(
-            self,
-            id=-1,
-            scan_id=-1,
-            owner_id=-1,
-            target_id=None,
-            fleet_size=-1,
-            fleet_name=None,
-            launch_tick=-1,
-            landing_tick=-1,
-            mission=None,
-            defcall=None):
+        self,
+        id=-1,
+        scan_id=-1,
+        owner_id=-1,
+        target_id=None,
+        fleet_size=-1,
+        fleet_name=None,
+        launch_tick=-1,
+        landing_tick=-1,
+        mission=None,
+        defcall=None,
+    ):
         self.id = id
         self.scan_id = scan_id
         self.owner_id = owner_id
@@ -290,11 +318,19 @@ class fleet(object):
         pass
 
     def __str__(self):
-        reply = "Fleet with id: %s from %s:%s:%s (%s)" % (self.id, self.actual_owner.x,
-                                                          self.actual_owner.y, self.actual_owner.z,
-                                                          self.actual_owner.race)
+        reply = "Fleet with id: %s from %s:%s:%s (%s)" % (
+            self.id,
+            self.actual_owner.x,
+            self.actual_owner.y,
+            self.actual_owner.z,
+            self.actual_owner.race,
+        )
         reply += " named '%s' with %s ships" % (self.fleet_name, self.fleet_size)
-        reply += " headed for %s:%s:%s" % (self.actual_target.x, self.actual_target.y, self.actual_target.z)
+        reply += " headed for %s:%s:%s" % (
+            self.actual_target.x,
+            self.actual_target.y,
+            self.actual_target.z,
+        )
 
         reply += " with eta %s" % (self.eta,)
         if self.launch_tick:
@@ -309,43 +345,54 @@ class fleet(object):
         query = "SELECT id,scan_id,owner_id,target,fleet_size,fleet_name"
         query += ",launch_tick,landing_tick, (landing_tick-(SELECT max_tick(%s::smallint))) AS eta,mission"
         query += " FROM fleet WHERE id=%s"
-        args = (round, self.id,)
+        args = (
+            round,
+            self.id,
+        )
         cursor.execute(query, args)
         d = cursor.dictfetchone()
         if not d:
             return 0
-        self.id = d['id']
-        self.scan_id = d['scan_id']
-        self.owner_id = d['owner_id']
-        self.target_id = d['target']
-        self.fleet_size = d['fleet_size']
-        self.fleet_name = d['fleet_name']
-        self.launch_tick = d['launch_tick']
-        self.landing_tick = d['landing_tick']
-        self.mission = d['mission']
-        self.eta = d['eta']
+        self.id = d["id"]
+        self.scan_id = d["scan_id"]
+        self.owner_id = d["owner_id"]
+        self.target_id = d["target"]
+        self.fleet_size = d["fleet_size"]
+        self.fleet_name = d["fleet_name"]
+        self.launch_tick = d["launch_tick"]
+        self.landing_tick = d["landing_tick"]
+        self.mission = d["mission"]
+        self.eta = d["eta"]
 
         p = planet(id=self.target_id)
         if not p.load_most_recent(cursor, round):
-            raise Exception("Defcall with id %s has no valid target information. Oops..." % (self.id,))
+            raise Exception(
+                "Defcall with id %s has no valid target information. Oops..."
+                % (self.id,)
+            )
         self.actual_target = p
 
         p = planet(id=self.owner_id)
         if not p.load_most_recent(cursor, round):
-            raise Exception("Defcall with id %s has no valid owner information. Oops..." % (self.id,))
+            raise Exception(
+                "Defcall with id %s has no valid owner information. Oops..."
+                % (self.id,)
+            )
         self.actual_owner = p
 
         query = "SELECT rand_id FROM scan WHERE id = %s"
         cursor.execute(query, (self.scan_id,))
         s = cursor.dictfetchone()
         if s:
-            self.actual_rand_id = s['rand_id']
+            self.actual_rand_id = s["rand_id"]
 
-        query = "SELECT id FROM defcalls WHERE target=%s AND landing_tick=%s AND round=%s"
+        query = (
+            "SELECT id FROM defcalls WHERE target=%s AND landing_tick=%s AND round=%s"
+        )
         cursor.execute(query, (self.target_id, self.landing_tick, round,))
         s = cursor.dictfetchone()
         if s:
-            defc = defcall(id=s['id'])
+            defc = defcall(id=s["id"])
             if defc.load_most_recent(cursor, round):
                 self.defcall = defc
         return 1
@@ -353,18 +400,19 @@ class fleet(object):
 
 class planet(object):
     def __init__(
-            self,
-            x=-1,
-            y=-1,
-            z=-1,
-            planetname=None,
-            rulername=None,
-            race=None,
-            size=-1,
-            score=-1,
-            value=-1,
-            id=-1,
-            idle=-1):
+        self,
+        x=-1,
+        y=-1,
+        z=-1,
+        planetname=None,
+        rulername=None,
+        race=None,
+        size=-1,
+        score=-1,
+        value=-1,
+        id=-1,
+        idle=-1,
+    ):
         self.x = int(x)
         self.y = int(y)
         self.z = int(z)
@@ -383,7 +431,14 @@ class planet(object):
         self.idle = idle
 
     def __str__(self):
-        retstr = "%s:%s:%s (%s) '%s' of '%s' " % (self.x, self.y, self.z, self.race, self.rulername, self.planetname)
+        retstr = "%s:%s:%s (%s) '%s' of '%s' " % (
+            self.x,
+            self.y,
+            self.z,
+            self.race,
+            self.rulername,
+            self.planetname,
+        )
         retstr += "Score: %s (%s) " % (self.score, self.score_rank)
         retstr += "Value: %s (%s) " % (self.value, self.value_rank)
         retstr += "Size: %s (%s) " % (self.size, self.size_rank)
@@ -414,22 +469,22 @@ class planet(object):
         p = cursor.dictfetchone()
         if not p:
             return None
-        self.x = p['x']
-        self.y = p['y']
-        self.z = p['z']
-        self.rulername = p['rulername']
-        self.planetname = p['planetname']
-        self.race = p['race']
-        self.size = p['size']
-        self.score = p['score']
-        self.value = p['value']
-        self.score_rank = p['score_rank']
-        self.value_rank = p['value_rank']
-        self.size_rank = p['size_rank']
-        self.xp = p['xp']
-        self.xp_rank = p['xp_rank']
-        self.idle = p['idle']
-        self.id = p['id']
+        self.x = p["x"]
+        self.y = p["y"]
+        self.z = p["z"]
+        self.rulername = p["rulername"]
+        self.planetname = p["planetname"]
+        self.race = p["race"]
+        self.size = p["size"]
+        self.score = p["score"]
+        self.value = p["value"]
+        self.score_rank = p["score_rank"]
+        self.value_rank = p["value_rank"]
+        self.size_rank = p["size_rank"]
+        self.xp = p["xp"]
+        self.xp_rank = p["xp_rank"]
+        self.idle = p["idle"]
+        self.id = p["id"]
         return 1
 
     def calc_xp(self, victim, mcs=0):
@@ -438,18 +493,24 @@ class planet(object):
         return int(bravery * bonus * int(victim.size * self.cap_rate(victim)))
 
     def bravery(self, victim):
-        return max(0.2, min(1.8, float(victim.value) / self.value) - 0.1) * max(0.2, min(2.2,
-                                                                                         float(victim.score) / self.score) - 0.2) / ((6 + max(4, float(self.score) / self.value)) / 10) * 10
+        return (
+            max(0.2, min(1.8, float(victim.value) / self.value) - 0.1)
+            * max(0.2, min(2.2, float(victim.score) / self.score) - 0.2)
+            / ((6 + max(4, float(self.score) / self.value)) / 10)
+            * 10
+        )
 
     def cap_rate(self, victim):
-        modifier = (float(victim.value) / float(self.value))**0.5
-        return max(.15, min(.25 * modifier, .25))
+        modifier = (float(victim.value) / float(self.value)) ** 0.5
+        return max(0.15, min(0.25 * modifier, 0.25))
 
     def vdiff(self, cursor, tick, round):
-        query = "SELECT value FROM planet_dump AS t1 WHERE tick=%s AND id=%s AND round=%s"
+        query = (
+            "SELECT value FROM planet_dump AS t1 WHERE tick=%s AND id=%s AND round=%s"
+        )
         cursor.execute(query, (tick, self.id, round))
         if cursor.rowcount > 0:
-            old_value = cursor.dictfetchone()['value']
+            old_value = cursor.dictfetchone()["value"]
             return self.value - old_value
         else:
             return None
@@ -496,23 +557,25 @@ class galaxy(object):
         g = cursor.dictfetchone()
         if not g:
             return None
-        self.x = g['x']
-        self.y = g['y']
-        self.name = g['name']
-        self.size = g['size']
-        self.score = g['score']
-        self.value = g['value']
-        self.score_rank = g['score_rank']
-        self.value_rank = g['value_rank']
-        self.size_rank = g['size_rank']
-        self.xp = g['xp']
-        self.xp_rank = g['xp_rank']
-        self.id = g['id']
+        self.x = g["x"]
+        self.y = g["y"]
+        self.name = g["name"]
+        self.size = g["size"]
+        self.score = g["score"]
+        self.value = g["value"]
+        self.score_rank = g["score_rank"]
+        self.value_rank = g["value_rank"]
+        self.size_rank = g["size_rank"]
+        self.xp = g["xp"]
+        self.xp_rank = g["xp_rank"]
+        self.id = g["id"]
         return 1
 
 
 class alliance(object):
-    def __init__(self, score_rank=-1, name=None, size=-1, members=-1, score=-1, id=None):
+    def __init__(
+        self, score_rank=-1, name=None, size=-1, members=-1, score=-1, id=None
+    ):
         self.score_rank = int(score_rank)
         self.name = name
         self.size = int(size)
@@ -529,9 +592,24 @@ class alliance(object):
 
     def __str__(self):
         retstr = "'%s' Members: %s (%s) " % (self.name, self.members, self.members_rank)
-        retstr += "Score: %s (%s) Avg: %s (%s) " % (self.score, self.score_rank, self.score_avg, self.score_avg_rank)
-        retstr += "Size: %s (%s) Avg: %s (%s) " % (self.size, self.size_rank, self.size_avg, self.size_avg_rank)
-        retstr += "Value: %s (%s) Avg: %s (%s)" % (self.value, self.value_rank, self.value_avg, self.value_avg_rank)
+        retstr += "Score: %s (%s) Avg: %s (%s) " % (
+            self.score,
+            self.score_rank,
+            self.score_avg,
+            self.score_avg_rank,
+        )
+        retstr += "Size: %s (%s) Avg: %s (%s) " % (
+            self.size,
+            self.size_rank,
+            self.size_avg,
+            self.size_avg_rank,
+        )
+        retstr += "Value: %s (%s) Avg: %s (%s)" % (
+            self.value,
+            self.value_rank,
+            self.value_avg,
+            self.value_avg_rank,
+        )
         return retstr
         pass
 
@@ -552,44 +630,45 @@ class alliance(object):
         a = cursor.dictfetchone()
         if not a:
             return None
-        self.name = a['name']
-        self.size = a['size']
-        self.score = a['score']
-        self.score_rank = a['score_rank']
-        self.size_rank = a['size_rank']
-        self.members = a['members']
-        self.members_rank = a['members_rank']
-        self.score_avg = a['score_avg']
-        self.size_avg = a['size_avg']
-        self.score_avg_rank = a['score_avg_rank']
-        self.size_avg_rank = a['size_avg_rank']
-        self.id = a['id']
-        self.value = a['total_value']
-        self.value_rank = a['total_value_rank']
-        self.value_avg = a['total_value_avg']
-        self.value_avg_rank = a['total_value_avg_rank']
+        self.name = a["name"]
+        self.size = a["size"]
+        self.score = a["score"]
+        self.score_rank = a["score_rank"]
+        self.size_rank = a["size_rank"]
+        self.members = a["members"]
+        self.members_rank = a["members_rank"]
+        self.score_avg = a["score_avg"]
+        self.size_avg = a["size_avg"]
+        self.score_avg_rank = a["score_avg_rank"]
+        self.size_avg_rank = a["size_avg_rank"]
+        self.id = a["id"]
+        self.value = a["total_value"]
+        self.value_rank = a["total_value_rank"]
+        self.value_avg = a["total_value_avg"]
+        self.value_avg_rank = a["total_value_avg_rank"]
         return 1
 
 
 class user(object):
     def __init__(
-            self,
-            id=-1,
-            pnick=None,
-            sponsor=None,
-            userlevel=-1,
-            planet_id=-1,
-            phone=None,
-            pubphone=False,
-            stay=False,
-            invites=-1,
-            available_cookies=-1,
-            last_cookie_date=None,
-            carebears=-1,
-            fleetcount=-1,
-            fleetcomment=None,
-            fleetupdated=-1,
-            alias_nick=None):
+        self,
+        id=-1,
+        pnick=None,
+        sponsor=None,
+        userlevel=-1,
+        planet_id=-1,
+        phone=None,
+        pubphone=False,
+        stay=False,
+        invites=-1,
+        available_cookies=-1,
+        last_cookie_date=None,
+        carebears=-1,
+        fleetcount=-1,
+        fleetcomment=None,
+        fleetupdated=-1,
+        alias_nick=None,
+    ):
         self.id = id
         self.pnick = pnick
         self.sponsor = sponsor
@@ -613,7 +692,7 @@ class user(object):
     def count_members(cursor):
         query = "SELECT count(*) as count FROM user_list WHERE userlevel >= 100"
         cursor.execute(query)
-        return cursor.dictfetchone()['count']
+        return cursor.dictfetchone()["count"]
 
     def lookup_query(self):
         query = "SELECT id, pnick, sponsor, userlevel, phone, pubphone, invites, available_cookies, last_cookie_date, carebears, alias_nick"
@@ -641,37 +720,37 @@ class user(object):
             query = self.lookup_query()
             query += " pnick ILIKE %s"
             query += " ORDER BY userlevel DESC"
-            cursor.execute(query, ('%' + self.pnick + '%',))
+            cursor.execute(query, ("%" + self.pnick + "%",))
             u = cursor.dictfetchone()
         if u:
-            self.id = u['id']
-            self.pnick = u['pnick']
-            self.sponsor = u['sponsor']
-            self.userlevel = u['userlevel']
-            self.phone = u['phone']
-            self.pubphone = u['pubphone']
+            self.id = u["id"]
+            self.pnick = u["pnick"]
+            self.sponsor = u["sponsor"]
+            self.userlevel = u["userlevel"]
+            self.phone = u["phone"]
+            self.pubphone = u["pubphone"]
             self.pref = True
-            self.invites = u['invites']
-            self.available_cookies = u['available_cookies']
-            self.last_cookie_date = u['last_cookie_date']
-            self.carebears = u['carebears']
-            self.alias_nick = u['alias_nick']
+            self.invites = u["invites"]
+            self.available_cookies = u["available_cookies"]
+            self.last_cookie_date = u["last_cookie_date"]
+            self.carebears = u["carebears"]
+            self.alias_nick = u["alias_nick"]
 
             query = self.lookup_round_query()
-            cursor.execute(query, (round, u['id'],))
+            cursor.execute(query, (round, u["id"],))
             if cursor.rowcount > 0:
                 u = cursor.dictfetchone()
                 if u:
-                    self.planet_id = u['planet_id']
+                    self.planet_id = u["planet_id"]
                     if self.planet_id:
                         self.planet = planet(id=self.planet_id)
                         self.planet.load_most_recent(cursor, (round,))
                     else:
                         self.planet = None
-                    self.stay = u['stay']
-                    self.fleetcount = u['fleetcount']
-                    self.fleetcomment = u['fleetcomment']
-                    self.fleetupdated = u['fleetupdated']
+                    self.stay = u["stay"]
+                    self.fleetcount = u["fleetcount"]
+                    self.fleetcomment = u["fleetcomment"]
+                    self.fleetupdated = u["fleetupdated"]
             return 1
         return None
 
@@ -679,7 +758,11 @@ class user(object):
         if self.sponsor.lower() == config.get("Connection", "nick").lower():
             return 1
         u = user(pnick=self.sponsor)
-        if u.load_from_db(cursor, round) and u.userlevel >= 100 and u.pnick.lower() != u.sponsor.lower():
+        if (
+            u.load_from_db(cursor, round)
+            and u.userlevel >= 100
+            and u.pnick.lower() != u.sponsor.lower()
+        ):
             parent_number = u.munin_number(cursor, config, round)
             if parent_number:
                 return parent_number + 1
@@ -716,21 +799,22 @@ class user(object):
 
 class intel(object):
     def __init__(
-            self,
-            id=None,
-            pid=-1,
-            nick=None,
-            gov=None,
-            bg=None,
-            covop=False,
-            defwhore=False,
-            fakenick=None,
-            alliance=None,
-            reportchan=None,
-            scanner=False,
-            distwhore=False,
-            relay=False,
-            comment=None):
+        self,
+        id=None,
+        pid=-1,
+        nick=None,
+        gov=None,
+        bg=None,
+        covop=False,
+        defwhore=False,
+        fakenick=None,
+        alliance=None,
+        reportchan=None,
+        scanner=False,
+        distwhore=False,
+        relay=False,
+        comment=None,
+    ):
         self.id = id
         self.pid = pid
         self.nick = nick
@@ -769,20 +853,20 @@ class intel(object):
         i = cursor.dictfetchone()
         if not i:
             return None
-        self.id = i['id']
-        self.pid = i['pid']
-        self.nick = i['nick']
-        self.gov = i['gov']
-        self.defwhore = i['defwhore'] and True or False
-        self.bg = i['bg']
-        self.covop = i['covop'] and True or False
-        self.fakenick = i['fakenick']
-        self.alliance = i['alliance']
-        self.reportchan = i['reportchan']
-        self.relay = i['relay'] and True or False
-        self.scanner = bool(i['scanner']) and True or False
-        self.distwhore = bool(i['distwhore']) and True or False
-        self.comment = i['comment']
+        self.id = i["id"]
+        self.pid = i["pid"]
+        self.nick = i["nick"]
+        self.gov = i["gov"]
+        self.defwhore = i["defwhore"] and True or False
+        self.bg = i["bg"]
+        self.covop = i["covop"] and True or False
+        self.fakenick = i["fakenick"]
+        self.alliance = i["alliance"]
+        self.reportchan = i["reportchan"]
+        self.relay = i["relay"] and True or False
+        self.scanner = bool(i["scanner"]) and True or False
+        self.distwhore = bool(i["distwhore"]) and True or False
+        self.comment = i["comment"]
         return 1
 
     def __str__(self):
@@ -812,7 +896,7 @@ class intel(object):
         if self.comment:
             retlist.append("comment=%s" % (self.comment,))
 
-        return ' '.join(retlist)
+        return " ".join(retlist)
 
     def change_list(self):
         retlist = []
@@ -841,7 +925,7 @@ class intel(object):
         if self.comment:
             retlist.append("comment=%s")
 
-        return ' '.join(retlist)
+        return " ".join(retlist)
 
     def change_tuple(self):
         rettup = ()
@@ -919,12 +1003,12 @@ class booking(object):
             b = cursor.dictfetchone()
             if not b:
                 return None
-            self.id = b['id']
-            self.pnick = b['pnick']
-            self.nick = b['nick']
-            self.tick = b['tick']
-            self.pid = b['pid']
-            self.uid = b['uid']
+            self.id = b["id"]
+            self.pnick = b["pnick"]
+            self.nick = b["nick"]
+            self.tick = b["tick"]
+            self.pid = b["pid"]
+            self.uid = b["uid"]
             return 1
         else:
             return None

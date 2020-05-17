@@ -74,20 +74,27 @@ class au(loadable.loadable):
             self.cursor.execute(query, (p.id, irc_msg.round, irc_msg.round,))
 
             if self.cursor.rowcount < 1:
-                reply += "No advanced unit scans available on %s:%s:%s" % (p.x, p.y, p.z)
+                reply += "No advanced unit scans available on %s:%s:%s" % (
+                    p.x,
+                    p.y,
+                    p.z,
+                )
             else:
 
                 reply += "Newest advanced unit scan on %s:%s:%s" % (p.x, p.y, p.z)
 
                 prev = []
                 for s in self.cursor.dictfetchall():
-                    prev.append("%s %s" % (s['name'], s['amount']))
-                    tick = s['tick']
-                    rand_id = s['rand_id']
+                    prev.append("%s %s" % (s["name"], s["amount"]))
+                    tick = s["tick"]
+                    rand_id = s["rand_id"]
 
-                reply += " (id: %s, age: %s, value diff: %s) " % (rand_id,
-                                                                  self.current_tick(irc_msg.round) - tick, p.vdiff(self.cursor, tick, irc_msg.round))
-                reply += ' | '.join(prev)
+                reply += " (id: %s, age: %s, value diff: %s) " % (
+                    rand_id,
+                    self.current_tick(irc_msg.round) - tick,
+                    p.vdiff(self.cursor, tick, irc_msg.round),
+                )
+                reply += " | ".join(prev)
         else:
             m = self.idre.search(params)
             if not m:
@@ -112,15 +119,21 @@ class au(loadable.loadable):
 
                 prev = []
                 for s in self.cursor.dictfetchall():
-                    prev.append("%s %s" % (s['name'], s['amount']))
-                    tick = s['tick']
-                    x = s['x']
-                    y = s['y']
-                    z = s['z']
-                    vdiff = s['vdiff']
+                    prev.append("%s %s" % (s["name"], s["amount"]))
+                    tick = s["tick"]
+                    x = s["x"]
+                    y = s["y"]
+                    z = s["z"]
+                    vdiff = s["vdiff"]
 
-                reply += "%s:%s:%s (id: %s, age: %s, value diff: %s) " % (x, y, z, rand_id,
-                                                                          self.current_tick(irc_msg.round) - tick, vdiff)
-                reply += ' | '.join(prev)
+                reply += "%s:%s:%s (id: %s, age: %s, value diff: %s) " % (
+                    x,
+                    y,
+                    z,
+                    rand_id,
+                    self.current_tick(irc_msg.round) - tick,
+                    vdiff,
+                )
+                reply += " | ".join(prev)
         irc_msg.reply(reply)
         return 1

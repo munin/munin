@@ -52,9 +52,9 @@ class stop(loadable.loadable):
 
         ship_number = m.group(1)
 
-        if ship_number[-1].lower() == 'k':
+        if ship_number[-1].lower() == "k":
             ship_number = 1000 * float(ship_number[:-1])
-        elif ship_number[-1].lower() == 'm':
+        elif ship_number[-1].lower() == "m":
             ship_number = 1000000 * float(ship_number[:-1])
         else:
             ship_number = float(ship_number)
@@ -71,10 +71,10 @@ class stop(loadable.loadable):
             user_target = "t1"
         elif user_target == "t2":
             target_number = "target_2"
-            efficiency = .6
+            efficiency = 0.6
         elif user_target == "t3":
             target_number = "target_3"
-            efficiency = .3
+            efficiency = 0.3
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
@@ -83,46 +83,82 @@ class stop(loadable.loadable):
         ship = self.get_ship_from_db(bogey, irc_msg.round)
         if not ship:
             if "asteroids".rfind(bogey) > -1:
-                ship = {'name': 'Asteroid', 'class': 'Roids', 'armor': 50, 'total_cost': 20000}
+                ship = {
+                    "name": "Asteroid",
+                    "class": "Roids",
+                    "armor": 50,
+                    "total_cost": 20000,
+                }
             elif "structures".rfind(bogey) > -1:
-                ship = {'name': 'Structure', 'class': 'Struct', 'armor': 500, 'total_cost': 150000}
+                ship = {
+                    "name": "Structure",
+                    "class": "Struct",
+                    "armor": 500,
+                    "total_cost": 150000,
+                }
             elif "resources".rfind(bogey) > -1:
-                ship = {'name': 'Resources', 'class': 'Rs', 'armor': 0.02, 'total_cost': 1}
+                ship = {
+                    "name": "Resources",
+                    "class": "Rs",
+                    "armor": 0.02,
+                    "total_cost": 1,
+                }
             else:
                 irc_msg.reply("%s is not a ship" % (bogey))
                 return 0
-        total_armor = ship['armor'] * ship_number
+        total_armor = ship["armor"] * ship_number
 
         # do stuff here
-        query = "SELECT * FROM ship WHERE " + target_number + "=%s AND round=%s ORDER BY id"
-        self.cursor.execute(query, (ship['class'], irc_msg.round,))
+        query = (
+            "SELECT * FROM ship WHERE " + target_number + "=%s AND round=%s ORDER BY id"
+        )
+        self.cursor.execute(query, (ship["class"], irc_msg.round,))
         attackers = self.cursor.dictfetchall()
 
         reply = ""
 
         if len(attackers) == 0:
-            reply = "%s is not hit by anything as category %s" % (ship['name'], user_target)
+            reply = "%s is not hit by anything as category %s" % (
+                ship["name"],
+                user_target,
+            )
         else:
-            if ship['class'].lower() == "roids":
+            if ship["class"].lower() == "roids":
                 reply += "Capturing "
-            elif ship['class'].lower() == "struct":
+            elif ship["class"].lower() == "struct":
                 reply += "Destroying "
-            elif ship['class'].lower() == "rs":
+            elif ship["class"].lower() == "rs":
                 reply += "Looting "
             else:
                 reply += "Stopping "
-            reply += "%s %s (%s) as %s requires " % (ship_number,
-                                                     ship['name'],
-                                                     self.format_value(
-                                                         ship_number * ship['total_cost']),
-                                                     user_target)
+            reply += "%s %s (%s) as %s requires " % (
+                ship_number,
+                ship["name"],
+                self.format_value(ship_number * ship["total_cost"]),
+                user_target,
+            )
 
             for a in attackers:
-                if a['type'] == "Emp":
-                    needed = int((math.ceil(ship_number / (float(100 - ship['empres']) / 100) / a['gun'])) / efficiency)
+                if a["type"] == "Emp":
+                    needed = int(
+                        (
+                            math.ceil(
+                                ship_number
+                                / (float(100 - ship["empres"]) / 100)
+                                / a["gun"]
+                            )
+                        )
+                        / efficiency
+                    )
                 else:
-                    needed = int((math.ceil(float(total_armor) / a['damage'])) / efficiency)
-                reply += "%s: %s (%s) " % (a['name'], needed, self.format_value(a['total_cost'] * needed))
+                    needed = int(
+                        (math.ceil(float(total_armor) / a["damage"])) / efficiency
+                    )
+                reply += "%s: %s (%s) " % (
+                    a["name"],
+                    needed,
+                    self.format_value(a["total_cost"] * needed),
+                )
 
         irc_msg.reply(reply.strip())
 

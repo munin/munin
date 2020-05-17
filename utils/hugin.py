@@ -39,19 +39,22 @@ import shutil
 config = configparser.ConfigParser()
 if not config.read("muninrc"):
     # No config found.
-    raise ValueError("Expected configuration file muninrc"
-                     ", not found.")
+    raise ValueError("Expected configuration file muninrc" ", not found.")
 
-useragent = "Munin (Python-urllib/%s); BotNick/%s; Admin/%s" % (urllib.request.__version__,
-                                                                config.get("Connection", "nick"),
-                                                                config.get("Auth", "owner_nick"))
+useragent = "Munin (Python-urllib/%s); BotNick/%s; Admin/%s" % (
+    urllib.request.__version__,
+    config.get("Connection", "nick"),
+    config.get("Auth", "owner_nick"),
+)
 
-DSN = "dbname=%s user=%s" % (config.get("Database", "dbname"),
-                             config.get("Database", "user"))
-if config.has_option('Database', 'password'):
-    DSN += ' password=%s' % config.get('Database', 'password')
-if config.has_option('Database', 'host'):
-    DSN += ' host=%s' % config.get('Database', 'host')
+DSN = "dbname=%s user=%s" % (
+    config.get("Database", "dbname"),
+    config.get("Database", "user"),
+)
+if config.has_option("Database", "password"):
+    DSN += " password=%s" % config.get("Database", "password")
+if config.has_option("Database", "host"):
+    DSN += " host=%s" % config.get("Database", "host")
 
 t_start = time.time()
 
@@ -61,13 +64,13 @@ ofile.close()
 
 
 def write_to_file(data, out):
-    with open(out, 'w') as f:
+    with open(out, "w") as f:
         size = 16 * 1024
         chunk = True
         while chunk:
             chunk = data.read(size)
             if chunk:
-                f.write(chunk.decode('iso-8859-1'))
+                f.write(chunk.decode("iso-8859-1"))
 
 
 def overwrite(from_file, to_file):
@@ -105,29 +108,40 @@ def extract_tick(feed):
 
 while True:
     try:
-        cur_round = config.getint('Planetarion', 'current_round')
+        cur_round = config.getint("Planetarion", "current_round")
         planetlist = config.get("Url", "planetlist")
         galaxylist = config.get("Url", "galaxylist")
         alliancelist = config.get("Url", "alliancelist")
         userfeedlist = config.get("Url", "userfeed")
-        planet_file = planetlist.split('/')[-1]
-        galaxy_file = galaxylist.split('/')[-1]
-        alliance_file = alliancelist.split('/')[-1]
-        userfeed_file = userfeedlist.split('/')[-1]
-        write_dumps = config.getboolean('Dumps', 'write')
+        planet_file = planetlist.split("/")[-1]
+        galaxy_file = galaxylist.split("/")[-1]
+        alliance_file = alliancelist.split("/")[-1]
+        userfeed_file = userfeedlist.split("/")[-1]
+        write_dumps = config.getboolean("Dumps", "write")
         from_web = False
 
         parser = argparse.ArgumentParser(
-            description='Planetarion dumps processor for Munin.',
-            epilog='Note that --planets, --galaxies, --alliances and --userfeed must either be given together, or not at all (in which case the most recent dumps are retrieved from the web)')
-        parser.add_argument('-p', '--planets', type=argparse.FileType('r'), metavar='FILE')
-        parser.add_argument('-g', '--galaxies', type=argparse.FileType('r'), metavar='FILE')
-        parser.add_argument('-a', '--alliances', type=argparse.FileType('r'), metavar='FILE')
-        parser.add_argument('-u', '--userfeed', type=argparse.FileType('r'), metavar='FILE')
-        parser.add_argument('-r', '--round', type=int, default=cur_round, metavar='NUMBER')
+            description="Planetarion dumps processor for Munin.",
+            epilog="Note that --planets, --galaxies, --alliances and --userfeed must either be given together, or not at all (in which case the most recent dumps are retrieved from the web)",
+        )
+        parser.add_argument(
+            "-p", "--planets", type=argparse.FileType("r"), metavar="FILE"
+        )
+        parser.add_argument(
+            "-g", "--galaxies", type=argparse.FileType("r"), metavar="FILE"
+        )
+        parser.add_argument(
+            "-a", "--alliances", type=argparse.FileType("r"), metavar="FILE"
+        )
+        parser.add_argument(
+            "-u", "--userfeed", type=argparse.FileType("r"), metavar="FILE"
+        )
+        parser.add_argument(
+            "-r", "--round", type=int, default=cur_round, metavar="NUMBER"
+        )
         args = parser.parse_args()
 
-        cur_round=args.round
+        cur_round = args.round
 
         t1 = time.time()
 
@@ -137,16 +151,19 @@ while True:
             alliances = args.alliances
             userfeed = args.userfeed
         elif args.planets or args.galaxies or args.alliances or args.userfeed:
-            print("%s: error: The options --planets, --galaxies, --alliance and --userfeed must either be given together or not at all!\n" % (sys.argv[0]))
+            print(
+                "%s: error: The options --planets, --galaxies, --alliance and --userfeed must either be given together or not at all!\n"
+                % (sys.argv[0])
+            )
             exit(3)
         else:
             from_web = True
             try:
                 req = urllib.request.Request(planetlist)
-                req.add_header('User-Agent', useragent)
+                req.add_header("User-Agent", useragent)
                 planets = urllib.request.urlopen(req)
                 write_to_file(planets, planet_file)
-                planets = open(planet_file, 'r')
+                planets = open(planet_file, "r")
             except Exception as e:
                 print("Failed gathering planet listing.")
                 print(e.__str__())
@@ -154,10 +171,10 @@ while True:
                 continue
             try:
                 req = urllib.request.Request(galaxylist)
-                req.add_header('User-Agent', useragent)
+                req.add_header("User-Agent", useragent)
                 galaxies = urllib.request.urlopen(req)
                 write_to_file(galaxies, galaxy_file)
-                galaxies = open(galaxy_file, 'r')
+                galaxies = open(galaxy_file, "r")
             except Exception as e:
                 print("Failed gathering galaxy listing.")
                 print(e.__str__())
@@ -165,10 +182,10 @@ while True:
                 continue
             try:
                 req = urllib.request.Request(alliancelist)
-                req.add_header('User-Agent', useragent)
+                req.add_header("User-Agent", useragent)
                 alliances = urllib.request.urlopen(req)
                 write_to_file(alliances, alliance_file)
-                alliances = open(alliance_file, 'r')
+                alliances = open(alliance_file, "r")
             except Exception as e:
                 print("Failed gathering alliance listing.")
                 print(e.__str__())
@@ -176,10 +193,10 @@ while True:
                 continue
             try:
                 req = urllib.request.Request(userfeedlist)
-                req.add_header('User-Agent', useragent)
+                req.add_header("User-Agent", useragent)
                 userfeed = urllib.request.urlopen(req)
                 write_to_file(userfeed, userfeed_file)
-                userfeed = open(userfeed_file, 'r')
+                userfeed = open(userfeed_file, "r")
             except Exception as e:
                 print("Failed gathering user feed.")
                 print(e.__str__())
@@ -202,16 +219,16 @@ while True:
 
         if not (planet_tick == galaxy_tick == alliance_tick == userfeed_tick):
             print("Varying ticks found, sleeping")
-            print("Planet: %s, Galaxy: %s, Alliance: %s, User feed: %s" % (planet_tick,
-                                                                           galaxy_tick,
-                                                                           alliance_tick,
-                                                                           userfeed_tick))
+            print(
+                "Planet: %s, Galaxy: %s, Alliance: %s, User feed: %s"
+                % (planet_tick, galaxy_tick, alliance_tick, userfeed_tick)
+            )
             time.sleep(30)
             continue
 
         if from_web and write_dumps:
             # Store the newly retrieved dump files
-            dump_dir = config.get('Dumps', 'dir')
+            dump_dir = config.get("Dumps", "dir")
             tick_dir = os.path.join(dump_dir, "r%03d" % cur_round, "%04d" % planet_tick)
             try:
                 os.makedirs(tick_dir)
@@ -222,30 +239,38 @@ while True:
             overwrite(galaxy_file, os.path.join(tick_dir, galaxy_file))
             overwrite(alliance_file, os.path.join(tick_dir, alliance_file))
             overwrite(userfeed_file, os.path.join(tick_dir, userfeed_file))
-            print('Wrote dump files to disk')
+            print("Wrote dump files to disk")
 
         conn = psycopg.connect(DSN)
         cursor = conn.cursor()
 
-        cursor.execute("SELECT tick,timestamp FROM updates where round = %s and tick = (select max_tick(%s::smallint))", (cur_round, cur_round))
+        cursor.execute(
+            "SELECT tick,timestamp FROM updates where round = %s and tick = (select max_tick(%s::smallint))",
+            (cur_round, cur_round),
+        )
         last_tick_info = cursor.dictfetchone()
         last_tick = -1
         if last_tick_info:
-            last_tick = int(last_tick_info['tick'])
+            last_tick = int(last_tick_info["tick"])
 
         if not planet_tick > last_tick:
             if from_web:
-                delta = datetime.datetime.now() - last_tick_info['timestamp']
+                delta = datetime.datetime.now() - last_tick_info["timestamp"]
                 wait = 60
                 if delta.days > 1 or delta.seconds >= (6 * 3600):
-                    raise AncientStaleTickException("Stale tick was %d days and %d seconds old, has the round ended?" % (delta.days, delta.seconds))
+                    raise AncientStaleTickException(
+                        "Stale tick was %d days and %d seconds old, has the round ended?"
+                        % (delta.days, delta.seconds)
+                    )
                 else:
                     wait = 1 + (abs(3600 - delta.seconds) % 900)
                 print("Stale ticks found, sleeping %d seconds" % (wait,))
                 time.sleep(wait)
                 continue
             else:
-                print("Warning: stale ticks found, but dump files were passed on command line, continuing")
+                print(
+                    "Warning: stale ticks found, but dump files were passed on command line, continuing"
+                )
 
         t2 = time.time() - t1
         if from_web:
@@ -254,10 +279,10 @@ while True:
             print("Loaded dumps from file in %.3f seconds" % (t2,))
         t1 = time.time()
 
-        ptmp = 'ptmp'
-        gtmp = 'gtmp'
-        atmp = 'atmp'
-        utmp = 'utmp'
+        ptmp = "ptmp"
+        gtmp = "gtmp"
+        atmp = "atmp"
+        utmp = "utmp"
 
         query = """
         CREATE TEMP TABLE %s (
@@ -274,11 +299,13 @@ while True:
          xp integer NOT NULL,
          special varchar(10) NOT NULL
          )
-        """ % (ptmp,)
+        """ % (
+            ptmp,
+        )
         cursor.execute(query)
         foo = planets.readlines()[:-1]
 
-        cursor.copy_from(io.StringIO(''.join(foo)), ptmp, "\t")
+        cursor.copy_from(io.StringIO("".join(foo)), ptmp, "\t")
 
         query = """
         CREATE TEMP TABLE %s (
@@ -290,11 +317,13 @@ while True:
          value bigint NOT NULL,
          xp integer NOT NULL
         )
-        """ % (gtmp,)
+        """ % (
+            gtmp,
+        )
         cursor.execute(query)
         foo = galaxies.readlines()[:-1]
 
-        cursor.copy_from(io.StringIO(''.join(foo)), gtmp, "\t", null="")
+        cursor.copy_from(io.StringIO("".join(foo)), gtmp, "\t", null="")
 
         query = """
         CREATE TEMP TABLE %s (
@@ -307,11 +336,13 @@ while True:
          total_score bigint NOT NULL,
          total_value bigint NOT NULL
         )
-        """ % (atmp,)
+        """ % (
+            atmp,
+        )
         cursor.execute(query)
         foo = alliances.readlines()[:-1]
 
-        cursor.copy_from(io.StringIO(''.join(foo)), atmp, "\t")
+        cursor.copy_from(io.StringIO("".join(foo)), atmp, "\t")
 
         query = """
         CREATE TEMP TABLE %s (
@@ -319,11 +350,13 @@ while True:
          type varchar(32) NOT NULL,
          text varchar(255) NOT NULL
         )
-        """ % (utmp,)
+        """ % (
+            utmp,
+        )
         cursor.execute(query)
         foo = userfeed.readlines()[:-1]
 
-        cursor.copy_from(io.StringIO(''.join(foo)), utmp, "\t")
+        cursor.copy_from(io.StringIO("".join(foo)), utmp, "\t")
 
         t2 = time.time() - t1
         print("Copied dumps in %.3f seconds" % (t2,))
@@ -374,7 +407,9 @@ while True:
         traceback.print_exc()
         sys.exit(1)
     except Exception as e:
-        print("Something random went wrong, sleeping for 15 seconds to hope it improves")
+        print(
+            "Something random went wrong, sleeping for 15 seconds to hope it improves"
+        )
         print(e.__str__())
         traceback.print_exc()
         time.sleep(15)

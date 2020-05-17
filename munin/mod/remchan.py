@@ -58,13 +58,14 @@ class remchan(loadable.loadable):
         if not res:
             irc_msg.reply("Channel '%s' does not exist" % (chan,))
             return 0
-        access_lvl = res['userlevel']
-        real_chan = res['chan']
+        access_lvl = res["userlevel"]
+        real_chan = res["chan"]
 
         if access_lvl >= access:
             irc_msg.reply(
-                "You may not remove %s, the channel's access (%s) exceeds your own (%s)" %
-                (real_chan, access_lvl, access))
+                "You may not remove %s, the channel's access (%s) exceeds your own (%s)"
+                % (real_chan, access_lvl, access)
+            )
             return 0
 
         query = "DELETE FROM channel_list WHERE chan=%s"
@@ -72,7 +73,11 @@ class remchan(loadable.loadable):
         try:
             self.cursor.execute(query, (real_chan,))
             if self.cursor.rowcount > 0:
-                irc_msg.client.privmsg('P', "remuser %s %s" % (real_chan, self.config.get('Connection', 'nick')))
+                irc_msg.client.privmsg(
+                    "P",
+                    "remuser %s %s"
+                    % (real_chan, self.config.get("Connection", "nick")),
+                )
                 irc_msg.client.wline("PART %s" % (real_chan,))
                 irc_msg.reply("Removed channel %s" % (real_chan,))
             else:

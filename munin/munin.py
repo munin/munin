@@ -34,22 +34,24 @@ import socket
 
 
 class munin(object):
-    IRCU_ROUTER = 'munin.ircu_router'
+    IRCU_ROUTER = "munin.ircu_router"
 
     def __init__(self):
         config = configparser.ConfigParser()
-        if not config.read('muninrc'):
+        if not config.read("muninrc"):
             raise ValueError("Expected configuration in muninrc, not found.")
 
         self.loader = Loader()
-        self.loader.populate('munin')
+        self.loader.populate("munin")
         self.ircu_router = self.loader.get_module(self.IRCU_ROUTER)
 
         self.client = connection(config)
         self.client.connect()
         self.client.wline("NICK %s" % config.get("Connection", "nick"))
-        self.client.wline("USER %s 0 * : %s" % (config.get("Connection", "user"),
-                                                config.get("Connection", "name")))
+        self.client.wline(
+            "USER %s 0 * : %s"
+            % (config.get("Connection", "user"), config.get("Connection", "name"))
+        )
         self.config = config
         router = self.ircu_router.ircu_router(self.client, self.config, self.loader)
         while True:
@@ -57,11 +59,15 @@ class munin(object):
                 self.reboot()
                 break
             except socket.error as s:
-                print("Exception during command at %s: %s" % (time.asctime(), s.__str__()))
+                print(
+                    "Exception during command at %s: %s" % (time.asctime(), s.__str__())
+                )
                 traceback.print_exc()
                 raise
             except socket.timeout as s:
-                print("Exception during command at %s: %s" % (time.asctime(), s.__str__()))
+                print(
+                    "Exception during command at %s: %s" % (time.asctime(), s.__str__())
+                )
                 traceback.print_exc()
                 raise
             except reboot.reboot as r:
@@ -73,8 +79,8 @@ class munin(object):
 
     def reboot(self):
         print("Rebooting Munin.")
-        self.config.read('muninrc')
-        self.loader.populate('munin')
+        self.config.read("muninrc")
+        self.loader.populate("munin")
         self.loader.refresh()
         self.ircu_router = self.loader.get_module(self.IRCU_ROUTER)
         router = self.ircu_router.ircu_router(self.client, self.config, self.loader)

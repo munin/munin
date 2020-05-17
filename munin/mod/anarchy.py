@@ -32,7 +32,9 @@ class anarchy(loadable.loadable):
         super(self.__class__, self).__init__(cursor, 1)
         self.paramre = re.compile(r"^\s*(.*)")
         self.usage = self.__class__.__name__ + " [x:y:z]"
-        self.helptext = ['Lists all planets currently in anarchy or anarchy information about a specific planet']
+        self.helptext = [
+            "Lists all planets currently in anarchy or anarchy information about a specific planet"
+        ]
 
     def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
@@ -79,18 +81,24 @@ class anarchy(loadable.loadable):
             current_end_tick = None
             anarchy_list = []
             for period in self.cursor.dictfetchall():
-                end = period['end_tick']
+                end = period["end_tick"]
                 if end > current_tick:
                     current_end_tick = end
                 else:
-                    anarchy_list.append("%d-%d" % (period['start_tick'], period['end_tick']))
+                    anarchy_list.append(
+                        "%d-%d" % (period["start_tick"], period["end_tick"])
+                    )
             if len(anarchy_list) == 0:
                 reply += " has had no previous periods of anarchy"
             else:
-                reply += " was previously in anarchy between ticks: %s" % (", ".join(anarchy_list))
+                reply += " was previously in anarchy between ticks: %s" % (
+                    ", ".join(anarchy_list)
+                )
 
             if current_end_tick:
-                reply += " and is currently in anarchy until tick %d" % (current_end_tick)
+                reply += " and is currently in anarchy until tick %d" % (
+                    current_end_tick
+                )
                 needed_scans = []
 
                 # Get guards from planet scan.
@@ -101,41 +109,65 @@ class anarchy(loadable.loadable):
                 query += " LIMIT 1"
                 self.cursor.execute(query, (planet.id,))
                 if self.cursor.rowcount < 1:
-                    needed_scans.append('planet')
+                    needed_scans.append("planet")
                 else:
                     planet_scan = self.cursor.dictfetchone()
-                    guards = planet_scan['guards']
-                    planet_tick = planet_scan['tick']
+                    guards = planet_scan["guards"]
+                    planet_tick = planet_scan["tick"]
 
                 # Get SCs and total number of constructions from development
                 # scan.
                 query = "SELECT scan.tick, light_factory, medium_factory, heavy_factory, wave_amplifier, wave_distorter, metal_refinery,"
                 query += " crystal_refinery, eonium_refinery, research_lab, finance_centre, military_centre, security_centre, structure_defense"
-                query += " FROM scan INNER JOIN development ON scan.id = development.scan_id"
+                query += (
+                    " FROM scan INNER JOIN development ON scan.id = development.scan_id"
+                )
                 query += " WHERE scan.pid = %s"
                 query += " ORDER BY scan.scan_time DESC"
                 query += " LIMIT 1"
                 self.cursor.execute(query, (planet.id,))
                 if self.cursor.rowcount < 1:
-                    needed_scans.append('development')
+                    needed_scans.append("development")
 
                 if len(needed_scans) == 0:
                     dev_scan = self.cursor.dictfetchone()
-                    sc = dev_scan['security_centre']
-                    total = (dev_scan['light_factory'] + dev_scan['medium_factory'] + dev_scan['heavy_factory'] +
-                             dev_scan['wave_amplifier'] + dev_scan['wave_distorter'] +
-                             dev_scan['metal_refinery'] + dev_scan['crystal_refinery'] + dev_scan['eonium_refinery'] +
-                             dev_scan['research_lab'] + dev_scan['structure_defense'] +
-                             dev_scan['finance_centre'] + dev_scan['military_centre'] + dev_scan['security_centre']
-                             )
-                    development_tick = dev_scan['tick']
+                    sc = dev_scan["security_centre"]
+                    total = (
+                        dev_scan["light_factory"]
+                        + dev_scan["medium_factory"]
+                        + dev_scan["heavy_factory"]
+                        + dev_scan["wave_amplifier"]
+                        + dev_scan["wave_distorter"]
+                        + dev_scan["metal_refinery"]
+                        + dev_scan["crystal_refinery"]
+                        + dev_scan["eonium_refinery"]
+                        + dev_scan["research_lab"]
+                        + dev_scan["structure_defense"]
+                        + dev_scan["finance_centre"]
+                        + dev_scan["military_centre"]
+                        + dev_scan["security_centre"]
+                    )
+                    development_tick = dev_scan["tick"]
 
-                    min_alert = (1 - 0.15       + float(sc) / total) * (50 + 5 * float(guards) / float(planet.size + 1))
-                    max_alert = (1 - 0.15 + 0.5 + float(sc) / total) * (50 + 5 * float(guards) / float(planet.size + 1))
-                    reply += ", with a minimum alert of %d and a maximum of %d (planet scan from pt%d, dev scan from pt%d)" % (
-                        int(min_alert), int(max_alert), planet_tick, development_tick)
+                    min_alert = (1 - 0.15 + float(sc) / total) * (
+                        50 + 5 * float(guards) / float(planet.size + 1)
+                    )
+                    max_alert = (1 - 0.15 + 0.5 + float(sc) / total) * (
+                        50 + 5 * float(guards) / float(planet.size + 1)
+                    )
+                    reply += (
+                        ", with a minimum alert of %d and a maximum of %d (planet scan from pt%d, dev scan from pt%d)"
+                        % (
+                            int(min_alert),
+                            int(max_alert),
+                            planet_tick,
+                            development_tick,
+                        )
+                    )
                 else:
-                    reply += ", need a %s scan to calculate alert" % (" and ".join(needed_scans))
+                    reply += ", need a %s scan to calculate alert" % (
+                        " and ".join(needed_scans)
+                    )
             else:
                 reply += " and is not currently in anarchy"
         else:
@@ -148,11 +180,16 @@ class anarchy(loadable.loadable):
             query += " AND p.tick = %s"
             query += " ORDER BY p.x ASC, p.y ASC, p.z ASC"
             query += " LIMIT 120"
-            self.cursor.execute(query, (irc_msg.round, current_tick, current_tick, current_tick))
+            self.cursor.execute(
+                query, (irc_msg.round, current_tick, current_tick, current_tick)
+            )
             if self.cursor.rowcount < 1:
                 reply = "There are currently no planets in anarchy. Get to it!"
             else:
-                anarchy_list = ["%d:%d:%d" % (p['x'], p['y'], p['z']) for p in self.cursor.dictfetchall()]
+                anarchy_list = [
+                    "%d:%d:%d" % (p["x"], p["y"], p["z"])
+                    for p in self.cursor.dictfetchall()
+                ]
                 reply = "Planets currently in anarchy: %s" % (", ".join(anarchy_list))
                 if self.cursor.rowcount == 120:
                     reply += " and a bunch more"

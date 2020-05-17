@@ -69,9 +69,12 @@ class scans(loadable.loadable):
                 reply += "scans for %s:%s:%s -" % (p.x, p.y, p.z)
                 prev = []
                 for p in self.cursor.dictfetchall():
-                    prev.append("(%d %s, latest pt%s)" % (p['count'], p['scantype'], p['latest']))
+                    prev.append(
+                        "(%d %s, latest pt%s)"
+                        % (p["count"], p["scantype"], p["latest"])
+                    )
 
-                reply += " " + ', '.join(prev)
+                reply += " " + ", ".join(prev)
 
             irc_msg.reply(reply)
 

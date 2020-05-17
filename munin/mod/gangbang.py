@@ -70,12 +70,9 @@ class gangbang(loadable.loadable):
             tick = curtick + when
         elif when and when < curtick:
             irc_msg.reply(
-                "Can not check status on the past. You wanted tick %s, but current tick is %s. (If you really need to know, poke %s.)" %
-                (when,
-                 curtick,
-                 self.config.get(
-                     'Auth',
-                     'owner_nick')))
+                "Can not check status on the past. You wanted tick %s, but current tick is %s. (If you really need to know, poke %s.)"
+                % (when, curtick, self.config.get("Auth", "owner_nick"))
+            )
             return 1
         elif when:
             tick = when
@@ -110,25 +107,25 @@ class gangbang(loadable.loadable):
 
         ticks = {}
         for r in self.cursor.dictfetchall():
-            if r['tick'] not in ticks:
-                ticks[r['tick']] = []
-            ticks[r['tick']].append(r)
+            if r["tick"] not in ticks:
+                ticks[r["tick"]] = []
+            ticks[r["tick"]].append(r)
 
         reply = "Target information for %s" % (a.name)
         if when:
             reply += " for landing on tick %s (eta %s):" % (tick, tick - curtick)
         sorted_keys = sorted(ticks.keys())
         for k in sorted_keys:
-            reply = ' '.join([reply, "Tick %s (eta %s)" % (k, k - curtick)])
+            reply = " ".join([reply, "Tick %s (eta %s)" % (k, k - curtick)])
             booked_list = ticks[k]
             prev = []
             for p in booked_list:
-                owner = "nick:" + p['nick']
-                if p['pnick']:
-                    owner = "user:" + p['pnick']
-                prev.append("(%s:%s:%s %s)" % (p['x'], p['y'], p['z'], owner))
+                owner = "nick:" + p["nick"]
+                if p["pnick"]:
+                    owner = "user:" + p["pnick"]
+                prev.append("(%s:%s:%s %s)" % (p["x"], p["y"], p["z"], owner))
 
-            reply += " " + ', '.join(prev)
+            reply += " " + ", ".join(prev)
             irc_msg.reply(reply.strip())
             reply = ""
         return 1

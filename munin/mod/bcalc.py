@@ -50,11 +50,15 @@ class bcalc(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        bcalc = ["http://www.clawofdarkness.com/pawiki", "http://parser.5th-element.org/",
-                 "http://munin.ascendancy.tv/", "http://kia.cthq.net/index.php",
-                 "http://game.planetarion.com/bcalc.pl"]
+        bcalc = [
+            "http://www.clawofdarkness.com/pawiki",
+            "http://parser.5th-element.org/",
+            "http://munin.ascendancy.tv/",
+            "http://kia.cthq.net/index.php",
+            "http://game.planetarion.com/bcalc.pl",
+        ]
 
-        reply = "Bcalcs: " + ' | '.join(bcalc)
+        reply = "Bcalcs: " + " | ".join(bcalc)
         irc_msg.reply(reply)
 
         return 1

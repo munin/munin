@@ -56,13 +56,21 @@ class topcunts(loadable.loadable):
         if not m or not m.group(1):
             u = loadable.user(pnick=irc_msg.user)
             if not u.load_from_db(self.cursor, irc_msg.round,):
-                irc_msg.reply("Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
+                irc_msg.reply(
+                    "Usage: %s (you must be registered for automatic lookup)"
+                    % (self.usage,)
+                )
                 return 1
             if u.planet:
-                reply = self.surprise(round=irc_msg.round, x=u.planet.x, y=u.planet.y, z=u.planet.z)
+                reply = self.surprise(
+                    round=irc_msg.round, x=u.planet.x, y=u.planet.y, z=u.planet.z
+                )
                 irc_msg.reply(reply)
             else:
-                irc_msg.reply("Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
+                irc_msg.reply(
+                    "Usage: %s (you must be registered for automatic lookup)"
+                    % (self.usage,)
+                )
             return 0
 
         # assign param variables
@@ -107,7 +115,10 @@ class topcunts(loadable.loadable):
             return text.upper()
 
     def surprise(self, round, x=None, y=None, z=None, alliance=None):
-        args = (round, round,)
+        args = (
+            round,
+            round,
+        )
         query = "SELECT t1.id AS attacker,count(t1.id) AS attacks "
         query += " FROM planet_canon AS t1"
         query += " INNER JOIN fleet AS t3 ON t1.id=t3.owner_id"
@@ -126,7 +137,7 @@ class topcunts(loadable.loadable):
 
         if alliance:
             query += " AND t6.name ilike %s"
-            args += ('%' + alliance + '%',)
+            args += ("%" + alliance + "%",)
 
         query += " GROUP BY t1.id"
         query += " ORDER BY count(t1.id) DESC"
@@ -158,12 +169,12 @@ class topcunts(loadable.loadable):
                 else:
                     i += 1
 
-                p = loadable.planet(id=a['attacker'])
+                p = loadable.planet(id=a["attacker"])
                 if not p.load_most_recent(self.cursor, round):
                     i -= 1
                     pass
-                prev.append("%s:%s:%s - %s" % (p.x, p.y, p.z, a['attacks']))
+                prev.append("%s:%s:%s - %s" % (p.x, p.y, p.z, a["attacks"]))
 
-            reply += ' | '.join(prev)
+            reply += " | ".join(prev)
 
         return reply

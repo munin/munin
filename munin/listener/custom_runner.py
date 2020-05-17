@@ -1,4 +1,5 @@
 from munin.custom import scan
+
 # from munin.custom import galstatus
 import re
 
@@ -10,7 +11,9 @@ class custom_runner(object):
         self.config = config
         # self.galstatus=galstatus.galstatus(self.client,self.cursor,self.config)
         self.scanre = re.compile("https?://[^/]+/showscan.pl\?scan_id=([0-9a-zA-Z]+)")
-        self.scangrpre = re.compile("https?://[^/]+/showscan.pl\?scan_grp=([0-9a-zA-Z]+)")
+        self.scangrpre = re.compile(
+            "https?://[^/]+/showscan.pl\?scan_grp=([0-9a-zA-Z]+)"
+        )
         self.privmsgre = re.compile(r"^:(\S+)!(\S+)@(\S+)\s+PRIVMSG\s+(\S+)\s+:(.*)")
         self.pnickre = re.compile(r"(\S{2,15})\.users\.netgamers\.org")
 

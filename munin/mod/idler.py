@@ -39,8 +39,11 @@ class idler(loadable.loadable):
         self.rangere = re.compile(r"^(<|>)?(\d+)$")
         self.bashre = re.compile(r"^(bash)$", re.I)
         self.clusterre = re.compile(r"^c(\d+)$", re.I)
-        self.usage = self.__class__.__name__ + \
-            " [alliance] [race] [<|>][size] [<|>][value] [bash]" + " (must include at least one search criteria, order doesn't matter)"
+        self.usage = (
+            self.__class__.__name__
+            + " [alliance] [race] [<|>][size] [<|>][value] [bash]"
+            + " (must include at least one search criteria, order doesn't matter)"
+        )
 
     def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
@@ -84,12 +87,12 @@ class idler(loadable.loadable):
                 continue
             m = self.rangere.search(p)
             if m and not size and int(m.group(2)) < 32768:
-                size_mod = m.group(1) or '>'
+                size_mod = m.group(1) or ">"
                 size = m.group(2)
                 continue
             m = self.rangere.search(p)
             if m and not value:
-                value_mod = m.group(1) or '<'
+                value_mod = m.group(1) or "<"
                 value = m.group(2)
                 continue
             m = self.alliancere.search(p)
@@ -100,26 +103,40 @@ class idler(loadable.loadable):
         if bash:
             if not user:
                 irc_msg.reply(
-                    "You must be registered to use the " +
-                    self.__class__.__name__ +
-                    " command's bash option (log in with P and set mode +x)")
+                    "You must be registered to use the "
+                    + self.__class__.__name__
+                    + " command's bash option (log in with P and set mode +x)"
+                )
                 return 1
 
             u = loadable.user(pnick=irc_msg.user)
             if not u.load_from_db(self.cursor, irc_msg.round):
                 irc_msg.reply(
-                    "Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))" %
-                    (self.usage,))
+                    "Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))"
+                    % (self.usage,)
+                )
                 return 1
             if u.planet_id:
                 attacker = u.planet
             else:
                 irc_msg.reply(
-                    "Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))" %
-                    (self.usage,))
+                    "Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))"
+                    % (self.usage,)
+                )
                 return 1
 
-        victims = self.victim(irc_msg.round, alliance, race, size_mod, size, value_mod, value, attacker, bash, cluster)
+        victims = self.victim(
+            irc_msg.round,
+            alliance,
+            race,
+            size_mod,
+            size,
+            value_mod,
+            value,
+            attacker,
+            bash,
+            cluster,
+        )
         i = 0
         if not len(victims):
             reply = "No"
@@ -136,12 +153,12 @@ class idler(loadable.loadable):
                 reply += " Value %s %s" % (value_mod, value)
             irc_msg.reply(reply)
         for v in victims:
-            reply = "%s:%s:%s (%s)" % (v['x'], v['y'], v['z'], v['race'])
-            reply += " Value: %s Size: %s Idle: %s" % (v['value'], v['size'], v['idle'])
-            if v['nick']:
-                reply += " Nick: %s" % (v['nick'],)
-            if not alliance and v['alliance']:
-                reply += " Alliance: %s" % (v['alliance'],)
+            reply = "%s:%s:%s (%s)" % (v["x"], v["y"], v["z"], v["race"])
+            reply += " Value: %s Size: %s Idle: %s" % (v["value"], v["size"], v["idle"])
+            if v["nick"]:
+                reply += " Nick: %s" % (v["nick"],)
+            if not alliance and v["alliance"]:
+                reply += " Alliance: %s" % (v["alliance"],)
             i += 1
             if i > 4 and len(victims) > 4:
                 reply += " (Too many idlers to list, please refine your search)"
@@ -152,28 +169,32 @@ class idler(loadable.loadable):
         return 1
 
     def victim(
-            self,
-            round,
-            alliance=None,
-            race=None,
-            size_mod='>',
-            size=None,
-            value_mod='<',
-            value=None,
-            attacker=None,
-            bash=False,
-            cluster=None):
+        self,
+        round,
+        alliance=None,
+        race=None,
+        size_mod=">",
+        size=None,
+        value_mod="<",
+        value=None,
+        attacker=None,
+        bash=False,
+        cluster=None,
+    ):
         query = "SELECT p.x AS x,p.y AS y,p.z AS z,p.size AS size,p.size_rank AS size_rank,p.value AS value,p.value_rank AS value_rank,p.race AS race,p.idle AS idle,a.name AS alliance,i.nick AS nick"
         query += " FROM       planet_dump    AS p"
         query += " INNER JOIN planet_canon   AS c ON p.id=c.id"
         query += " LEFT JOIN  intel          AS i ON p.id=i.pid"
         query += " LEFT JOIN  alliance_canon AS a ON a.id=i.alliance_id"
         query += " WHERE p.x<200 AND p.tick=(SELECT max_tick(%s::smallint)) AND p.round=%s AND p.vdiff<>0"
-        args = (round, round,)
+        args = (
+            round,
+            round,
+        )
 
         if alliance:
             query += " AND a.name ILIKE %s"
-            args += ('%' + alliance + '%',)
+            args += ("%" + alliance + "%",)
         if race:
             query += " AND race ILIKE %s"
             args += (race,)
@@ -185,7 +206,7 @@ class idler(loadable.loadable):
             args += (value,)
         if bash:
             query += " AND (value > %s OR score > %s)"
-            args += (attacker.value * .4, attacker.score * .6)
+            args += (attacker.value * 0.4, attacker.score * 0.6)
         if cluster:
             query += " AND x = %s::smallint"
             args += (cluster,)

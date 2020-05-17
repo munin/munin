@@ -40,10 +40,15 @@ class mydef(loadable.loadable):
         self.countre = re.compile(r"^(\d+(?:\.\d+)?[mk]?)$", re.I)
         self.shipre = re.compile(r"^(\w+),?$")
         self.nulls = ["<>", ".", "-", "?"]
-        self.ship_classes = ['fi', 'co', 'fr', 'de', 'cr', 'bs']
-        self.usage = self.__class__.__name__ + " [fleets] x <[ship count] [ship name]> [comment]"
-        self.helptext = ["Add your fleets for defense listing. Ship can be a shipclass. For example !" + \
-            self.__class__.__name__ + " 2x 20k Barghest 30k Harpy 20k BS Call me any time for hot shipsex."]
+        self.ship_classes = ["fi", "co", "fr", "de", "cr", "bs"]
+        self.usage = (
+            self.__class__.__name__ + " [fleets] x <[ship count] [ship name]> [comment]"
+        )
+        self.helptext = [
+            "Add your fleets for defense listing. Ship can be a shipclass. For example !"
+            + self.__class__.__name__
+            + " 2x 20k Barghest 30k Harpy 20k BS Call me any time for hot shipsex."
+        ]
 
     def execute(self, user, access, irc_msg):
         m = self.commandre.search(irc_msg.command)
@@ -76,16 +81,33 @@ class mydef(loadable.loadable):
         else:
             (ships, comment) = self.parse_garbage(garbage, irc_msg.round)
 
-        (ships, comment) = self.reset_ships_and_comment(u, ships, fleetcount, irc_msg.round, comment, reset_ships)
+        (ships, comment) = self.reset_ships_and_comment(
+            u, ships, fleetcount, irc_msg.round, comment, reset_ships
+        )
 
-        irc_msg.reply("Updated your def info to: fleetcount %s, updated: pt%s ships: %s and comment: %s" %
-                      (fleetcount, self.current_tick(irc_msg.round), ", ".join(["%s %s" %
-                                                                                   (self.format_real_value(x['ship_count']), x['ship']) for x in ships]), comment))
+        irc_msg.reply(
+            "Updated your def info to: fleetcount %s, updated: pt%s ships: %s and comment: %s"
+            % (
+                fleetcount,
+                self.current_tick(irc_msg.round),
+                ", ".join(
+                    [
+                        "%s %s" % (self.format_real_value(x["ship_count"]), x["ship"])
+                        for x in ships
+                    ]
+                ),
+                comment,
+            )
+        )
 
         return 1
 
-    def reset_ships_and_comment(self, user, ships, fleetcount, round, fleetcomment, reset_ships):
-        comment = self.update_comment_and_fleetcount(user, round, fleetcount, fleetcomment)
+    def reset_ships_and_comment(
+        self, user, ships, fleetcount, round, fleetcomment, reset_ships
+    ):
+        comment = self.update_comment_and_fleetcount(
+            user, round, fleetcount, fleetcomment
+        )
         if len(ships) > 0 or reset_ships:
             self.update_fleets(user, ships, round)
         ships = user.get_fleets(self.cursor, round)
@@ -98,7 +120,12 @@ class mydef(loadable.loadable):
         for k in list(ships.keys()):
             query = "INSERT INTO user_fleet (user_id,round,ship,ship_count)"
             query += " VALUES (%s,%s,%s,%s)"
-            args = (user.id, round, k, ships[k],)
+            args = (
+                user.id,
+                round,
+                k,
+                ships[k],
+            )
             self.cursor.execute(query, args)
 
     def update_comment_and_fleetcount(self, user, round, fleetcount, fleetcomment):
@@ -115,7 +142,7 @@ class mydef(loadable.loadable):
 
         query = "SELECT fleetcomment FROM round_user_pref WHERE user_id=%s AND round=%s"
         self.cursor.execute(query, (user.id, round,))
-        return self.cursor.dictfetchone()['fleetcomment']
+        return self.cursor.dictfetchone()["fleetcomment"]
 
     def parse_garbage(self, garbage, round):
         parts = garbage.split()
@@ -132,7 +159,7 @@ class mydef(loadable.loadable):
             s = self.get_ship_from_db(ship, round)
 
             if ship.lower() not in self.ship_classes and s:
-                ship = s['name']
+                ship = s["name"]
             elif ship.lower() not in self.ship_classes:
                 break
 

@@ -37,7 +37,7 @@ class logdef(loadable.loadable):
     def __init__(self, cursor):
         super(self.__class__, self).__init__(cursor, 100)
         self.paramre = re.compile(r"^\s*(.*)")
-        self.ship_classes = ['fi', 'co', 'fr', 'de', 'cr', 'bs']
+        self.ship_classes = ["fi", "co", "fr", "de", "cr", "bs"]
         self.usage = self.__class__.__name__ + ""
         self.helptext = None
 
@@ -66,8 +66,19 @@ class logdef(loadable.loadable):
 
         if hit:
             cur = self.current_tick(irc_msg.round)
-            reply = ", ".join(["%s gave %s %s to %s (%s)" % (
-                x['owner'], self.format_real_value(x['ship_count']), x['ship'], x['taker'], x['tick'] - cur) for x in hit])
+            reply = ", ".join(
+                [
+                    "%s gave %s %s to %s (%s)"
+                    % (
+                        x["owner"],
+                        self.format_real_value(x["ship_count"]),
+                        x["ship"],
+                        x["taker"],
+                        x["tick"] - cur,
+                    )
+                    for x in hit
+                ]
+            )
             irc_msg.reply(reply)
         else:
             irc_msg.reply("No matches found in the deflog for search '%s'" % (search,))
@@ -89,7 +100,7 @@ class logdef(loadable.loadable):
     def search_by_ship(self, round, ship):
         lookup = ship
         if ship not in self.ship_classes:
-            lookup = '%' + ship + '%'
+            lookup = "%" + ship + "%"
         query = self.base_query()
         query += " AND t1.ship ilike %s"
         query += " ORDER BY t1.tick DESC"
@@ -103,7 +114,9 @@ class logdef(loadable.loadable):
         return False
 
     def base_query(self):
-        query = "SELECT t2.pnick AS taker,t3.pnick AS owner,t1.ship,t1.ship_count,t1.tick"
+        query = (
+            "SELECT t2.pnick AS taker,t3.pnick AS owner,t1.ship,t1.ship_count,t1.tick"
+        )
         query += " FROM fleet_log AS t1"
         query += " INNER JOIN user_list AS t2 ON t2.id=t1.taker_id"
         query += " INNER JOIN user_list AS t3 ON t3.id=t1.user_id"

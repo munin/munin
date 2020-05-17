@@ -32,65 +32,77 @@ Loadable.Loadable subclass
 import re
 from munin import loadable
 
+
 class b(loadable.loadable):
     """
     foo
     """
-    def __init__(self,cursor):
-        super(self.__class__,self).__init__(cursor,100)
-        self.commandre=re.compile(r"^"+self.__class__.__name__+"\s+(.*)")
-        self.paramre=re.compile(r"^(\d+)(\s+(http.+))?")
 
-        self.usage=self.__class__.__name__ + " <id> [bcalc]"
-        self.helptext=["Show or set the battle calc URL for a defence call. "]
+    def __init__(self, cursor):
+        super(self.__class__, self).__init__(cursor, 100)
+        self.commandre = re.compile(r"^" + self.__class__.__name__ + "\s+(.*)")
+        self.paramre = re.compile(r"^(\d+)(\s+(http.+))?")
 
-    def execute(self,user,access,irc_msg):
-        m=irc_msg.match_command(self.commandre)
+        self.usage = self.__class__.__name__ + " <id> [bcalc]"
+        self.helptext = ["Show or set the battle calc URL for a defence call. "]
+
+    def execute(self, user, access, irc_msg):
+        m = irc_msg.match_command(self.commandre)
         if not m:
             return 0
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        u=loadable.user(pnick=irc_msg.user)
+        u = loadable.user(pnick=irc_msg.user)
         if not u.load_from_db(self.cursor):
-            irc_msg.reply("You must be registered to use the "+self.__class__.__name__+" command (log in with P and set mode +x)")
+            irc_msg.reply(
+                "You must be registered to use the "
+                + self.__class__.__name__
+                + " command (log in with P and set mode +x)"
+            )
             return 1
 
-        m=self.paramre.search(m.group(1))
+        m = self.paramre.search(m.group(1))
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         # assign param variables
-        call_id=m.group(1)
-        new_bcalc=m.group(3)
+        call_id = m.group(1)
+        new_bcalc = m.group(3)
 
         # do stuff here
-        d=loadable.defcall(call_id)
+        d = loadable.defcall(call_id)
         if not d.load_most_recent(self.cursor):
-            irc_msg.reply("No defcall matching id %s found" %(call_id,))
+            irc_msg.reply("No defcall matching id %s found" % (call_id,))
             return 0
 
-        c=d.bcalc
+        c = d.bcalc
 
         if not new_bcalc:
             if not c:
-                reply="Defcall %s has no bcalc"%(d.id,)
+                reply = "Defcall %s has no bcalc" % (d.id,)
             else:
-                reply="Defcall %s has bcalc '%s'"%(d.id,c)
+                reply = "Defcall %s has bcalc '%s'" % (d.id, c)
             irc_msg.reply(reply)
             return 1
 
-        query="UPDATE defcalls SET bcalc=%s WHERE id=%s"
-        args=(new_bcalc,d.id)
+        query = "UPDATE defcalls SET bcalc=%s WHERE id=%s"
+        args = (new_bcalc, d.id)
 
-        self.cursor.execute(query,args)
+        self.cursor.execute(query, args)
 
         if self.cursor.rowcount < 1:
-            irc_msg.reply("Something went wrong. Defcall id was %s and new bcalc was '%s'"%(d.id,new_bcalc))
+            irc_msg.reply(
+                "Something went wrong. Defcall id was %s and new bcalc was '%s'"
+                % (d.id, new_bcalc)
+            )
         else:
-            p=d.actual_target
-            irc_msg.reply("Updated defcall %s on %s:%s:%s landing pt %s with bcalc '%s'"%(d.id,p.x,p.y,p.z,d.landing_tick,new_bcalc))
+            p = d.actual_target
+            irc_msg.reply(
+                "Updated defcall %s on %s:%s:%s landing pt %s with bcalc '%s'"
+                % (d.id, p.x, p.y, p.z, d.landing_tick, new_bcalc)
+            )
 
         return 1

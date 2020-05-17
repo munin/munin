@@ -40,11 +40,9 @@ class letmein(loadable.loadable):
         self.paramre = re.compile(r"^\s+(\S+)\s+(\S+)")
         self.usage = self.__class__.__name__ + " <pnick> <password>"
         self.helptext = [
-            "Give your pnick and password in PM to get invited into #%s. This command is for when P is down." %
-            (self.config.get(
-                'Auth',
-                'home'),
-             )]
+            "Give your pnick and password in PM to get invited into #%s. This command is for when P is down."
+            % (self.config.get("Auth", "home"),)
+        ]
 
     def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
@@ -70,13 +68,15 @@ class letmein(loadable.loadable):
         self.cursor.execute(query, (auther, passy))
         if self.cursor.rowcount == 1:
             r = self.cursor.dictfetchone()
-            if r['userlevel'] >= 100:
-                irc_msg.client.wline("INVITE %s #%s" % (irc_msg.nick, self.config.get('Auth', 'home')))
+            if r["userlevel"] >= 100:
+                irc_msg.client.wline(
+                    "INVITE %s #%s" % (irc_msg.nick, self.config.get("Auth", "home"))
+                )
                 irc_msg.client.privmsg(
-                    "#%s" %
-                    (self.config.get(
-                        'Auth', 'home'),), "%s is entering the channel under nick %s, quick everyone, hide!" %
-                    (auther, irc_msg.nick))
+                    "#%s" % (self.config.get("Auth", "home"),),
+                    "%s is entering the channel under nick %s, quick everyone, hide!"
+                    % (auther, irc_msg.nick),
+                )
                 irc_msg.reply("Now get in, bitch")
         else:
             irc_msg.reply("No.")

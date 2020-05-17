@@ -69,13 +69,24 @@ class seagal(loadable.loadable):
             return 1
 
         res = u.planet.resources_per_agent(p)
-        reply = "Your Seagals will ninja %s resources from %s:%s:%s - 13: %s, 35: %s." % (
-            res, p.x, p.y, p.z, self.format_real_value(res * 13), self.format_real_value(res * 35))
+        reply = (
+            "Your Seagals will ninja %s resources from %s:%s:%s - 13: %s, 35: %s."
+            % (
+                res,
+                p.x,
+                p.y,
+                p.z,
+                self.format_real_value(res * 13),
+                self.format_real_value(res * 35),
+            )
+        )
         if sum:
             sum = self.human_readable_number_to_integer(sum)
             agents = int(math.ceil((float(sum)) / res))
-            reply += " You need %s Seagals to ninja %s res." % (agents,
-                                                                self.format_real_value(sum))
+            reply += " You need %s Seagals to ninja %s res." % (
+                agents,
+                self.format_real_value(sum),
+            )
         irc_msg.reply(reply)
 
         return 1

@@ -39,7 +39,10 @@ class aids(loadable.loadable):
         super(self.__class__, self).__init__(cursor, 100)
         self.paramre = re.compile(r"^\s+(\S+)")
         self.usage = self.__class__.__name__ + " <user>"
-        self.helptext = ['Displays who the user has invited to %s' % (self.config.get('Auth', 'alliance'),)]
+        self.helptext = [
+            "Displays who the user has invited to %s"
+            % (self.config.get("Auth", "alliance"),)
+        ]
 
     def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
@@ -60,7 +63,7 @@ class aids(loadable.loadable):
 
         # do stuff here
 
-        mynick = self.config.get('Connection', 'nick')
+        mynick = self.config.get("Connection", "nick")
         if search.lower() == mynick:
             irc_msg.reply("I am %s. I gave aids to all y'all bitches." % (mynick,))
             return 1
@@ -90,16 +93,18 @@ class aids(loadable.loadable):
                 reply += " You have given aids to: "
                 prev = []
                 for r in self.cursor.dictfetchall():
-                    prev.append(r['pnick'])
+                    prev.append(r["pnick"])
                 reply += ", ".join(prev)
         else:
             if self.cursor.rowcount < 1:
-                reply += "%s hasn't given anyone aids, what a selfish prick" % (u.pnick,)
+                reply += "%s hasn't given anyone aids, what a selfish prick" % (
+                    u.pnick,
+                )
             else:
                 reply += "%s has given aids to: " % (u.pnick,)
                 prev = []
                 for r in self.cursor.dictfetchall():
-                    prev.append(r['pnick'])
+                    prev.append(r["pnick"])
                 reply += ", ".join(prev)
 
         irc_msg.reply(reply)

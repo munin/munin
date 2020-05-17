@@ -30,7 +30,9 @@ class auth(object):
         self.config = config
         self.welcomre = re.compile(r"\S+\s+(001)\s+(\S+).*", re.I)
         self.nicktakenre = re.compile(r"\S+\s+(433)\s+(\S+)\s+(\S+).*", re.I)
-        self.pinvitere = re.compile(r"^:P!cservice@netgamers.org\s+INVITE\s+\S+\s+:?#(\S+)", re.I)
+        self.pinvitere = re.compile(
+            r"^:P!cservice@netgamers.org\s+INVITE\s+\S+\s+:?#(\S+)", re.I
+        )
         self.desired_nick = config.get("Connection", "nick")
 
     def message(self, line):
@@ -38,10 +40,17 @@ class auth(object):
         if m:
             accepted_nick = m.group(2)
             if self.config.has_option("IRC", "modes"):
-                self.client.wline("MODE %s +%s" % (accepted_nick, self.config.get("IRC", "modes")))
+                self.client.wline(
+                    "MODE %s +%s" % (accepted_nick, self.config.get("IRC", "modes"))
+                )
             if self.config.has_option("IRC", "auth"):
-                self.client.wline("PRIVMSG P@cservice.netgamers.org :auth %s" % (self.config.get("IRC", "auth")))
-            if accepted_nick != self.desired_nick and self.config.has_option("IRC", "auth"):
+                self.client.wline(
+                    "PRIVMSG P@cservice.netgamers.org :auth %s"
+                    % (self.config.get("IRC", "auth"))
+                )
+            if accepted_nick != self.desired_nick and self.config.has_option(
+                "IRC", "auth"
+            ):
                 self.client.wline("PRIVMSG P@cservice.netgamers.org :recover")
                 self.client.wline("NICK %s" % self.desired_nick)
             return
@@ -53,11 +62,15 @@ class auth(object):
         if m:
             actual_nick = m.group(2)
             denied_nick = m.group(3)
-            if actual_nick == '*':  # not registered with server yet; take a random nick, we'll deal with this later
+            if (
+                actual_nick == "*"
+            ):  # not registered with server yet; take a random nick, we'll deal with this later
                 self.client.wline("NICK %s" % self.random_nick())
             elif denied_nick == self.desired_nick:  # just try harder
-                self.client.wline("PRIVMSG P@cservice.netgamers.org :recover %s %s " %
-                                  (self.desired_nick, self.config.get("IRC", "auth")))
+                self.client.wline(
+                    "PRIVMSG P@cservice.netgamers.org :recover %s %s "
+                    % (self.desired_nick, self.config.get("IRC", "auth"))
+                )
                 self.client.wline("NICK %s" % self.desired_nick)
 
     def random_nick(self):

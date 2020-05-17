@@ -53,20 +53,26 @@ class salvage(loadable.loadable):
         if m.lastindex == 3 and m.group(1) and m.group(2) and m.group(3):
             planet = loadable.planet(x=m.group(1), y=m.group(2), z=m.group(3))
             if not planet.load_most_recent(self.cursor, irc_msg.round):
-                irc_msg.reply("%s:%s:%s is not a valid planet" % (planet.x, planet.y, planet.z))
+                irc_msg.reply(
+                    "%s:%s:%s is not a valid planet" % (planet.x, planet.y, planet.z)
+                )
                 return 1
         else:
             u = loadable.user(pnick=irc_msg.user)
             if not u.load_from_db(self.cursor, irc_msg.round):
                 irc_msg.reply(
-                    "You must be registered to use the automatic " +
-                    self.__class__.__name__ +
-                    " command (log in with P and set mode +x, then make sure your planet is set with the pref command)")
+                    "You must be registered to use the automatic "
+                    + self.__class__.__name__
+                    + " command (log in with P and set mode +x, then make sure your planet is set with the pref command)"
+                )
                 return 1
             if u.planet_id:
                 planet = u.planet
             else:
-                irc_msg.reply("Usage: %s (make sure your planet is set with the pref command)" % (self.usage,))
+                irc_msg.reply(
+                    "Usage: %s (make sure your planet is set with the pref command)"
+                    % (self.usage,)
+                )
                 return 1
 
         if not planet:
@@ -81,14 +87,20 @@ class salvage(loadable.loadable):
         self.cursor.execute(query, (irc_msg.round, irc_msg.round,))
         if self.cursor.rowcount < 1:
             irc_msg.reply("Error retrieving score of top 20 planets from database")
-        top20_average_score = reduce(lambda s, p: s + float(p['score']) / 20.0,
-                                     self.cursor.dictfetchall(),
-                                     0.0)
+        top20_average_score = reduce(
+            lambda s, p: s + float(p["score"]) / 20.0, self.cursor.dictfetchall(), 0.0
+        )
 
         score_modifier = 0.5 * (1.0 - float(planet.score) / top20_average_score)
-        race_bonus = self.config.getfloat('Planetarion', planet.race + '_salvage_bonus')
+        race_bonus = self.config.getfloat("Planetarion", planet.race + "_salvage_bonus")
         salvage_rate = 0.3 * (1.0 + race_bonus) * (1.0 + score_modifier)
-        reply = "%s:%s:%s (%s|%s) gets a defense salvage rate of %2.1f%%" % (planet.x, planet.y, planet.z, self.format_value(
-            planet.value * 100), self.format_value(planet.score * 100), 100 * salvage_rate)
+        reply = "%s:%s:%s (%s|%s) gets a defense salvage rate of %2.1f%%" % (
+            planet.x,
+            planet.y,
+            planet.z,
+            self.format_value(planet.value * 100),
+            self.format_value(planet.score * 100),
+            100 * salvage_rate,
+        )
         irc_msg.reply(reply)
         return 1

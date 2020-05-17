@@ -35,7 +35,7 @@ class quitter(loadable.loadable):
 
         # do stuff here
         query = "SELECT pnick, quit FROM user_list WHERE pnick ILIKE %s"
-        self.cursor.execute(query, ('%' + quit + '%',))
+        self.cursor.execute(query, ("%" + quit + "%",))
 
         reply = ""
 
@@ -43,8 +43,8 @@ class quitter(loadable.loadable):
             reply = "'%s' doesn't match any users" % (quit,)
         else:
             r = self.cursor.dictfetchone()
-            pnick = r['pnick']
-            count = r['quit']
+            pnick = r["pnick"]
+            count = r["quit"]
             query = "UPDATE user_list SET quit = quit + 1 WHERE pnick = %s"
             self.cursor.execute(query, (pnick,))
             reply = "That whining loser %s has now quit %d times." % (pnick, count + 1)

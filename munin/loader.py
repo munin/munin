@@ -24,8 +24,10 @@ class Loader(object):
             self.loaded = {}
         else:
             if not isinstance(loaded, dict):
-                raise TypeError("__init__ in %s excepts dictionary but was given %s." % (
-                    self.__class__, loaded.__class__))
+                raise TypeError(
+                    "__init__ in %s excepts dictionary but was given %s."
+                    % (self.__class__, loaded.__class__)
+                )
             self.loaded = loaded
 
     def __getitem__(self, key):
@@ -89,10 +91,12 @@ class Loader(object):
         success = False
 
         try:
-            self.loaded[name] = __import__(name, fromlist=name.split('.')[-1])
+            self.loaded[name] = __import__(name, fromlist=name.split(".")[-1])
             success = True
         except SyntaxError as e:
-            print("You have a SyntaxError in the module you're trying to load: %s" % (e,))
+            print(
+                "You have a SyntaxError in the module you're trying to load: %s" % (e,)
+            )
             traceback.print_exc()
         except ImportError as e:
             print("Could not load module %s: %s" % (name, e))
@@ -120,7 +124,9 @@ class Loader(object):
             print("Failed to import module %s: %s" % (name, e))
             traceback.print_exc()
         except SyntaxError as e:
-            print("You have a SyntaxError in the module you're trying to load: %s" % (e,))
+            print(
+                "You have a SyntaxError in the module you're trying to load: %s" % (e,)
+            )
             traceback.print_exc()
         except Exception as e:
             print("Exception: %s" % (e,))
@@ -132,11 +138,15 @@ class Loader(object):
 
     def populate(self, basedir):
         for root, dirs, files in os.walk(basedir):
-            self.add_directory(root,files)
+            self.add_directory(root, files)
 
     def add_directory(self, directory, files):
-        base_module = '.'.join(directory.split(os.sep))
-        module_files = [x for x in files if x[-3:].lower() == '.py' and len(x) > 3 and x != "__init__.py"]
+        base_module = ".".join(directory.split(os.sep))
+        module_files = [
+            x
+            for x in files
+            if x[-3:].lower() == ".py" and len(x) > 3 and x != "__init__.py"
+        ]
         for m in module_files:
             module = base_module + "." + m[:-3]
             if not self.imp(module):

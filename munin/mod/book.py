@@ -37,7 +37,8 @@ class book(loadable.loadable):
         self.paramre = re.compile(r"^\s+(\d+)[. :-](\d+)[. :-](\d+)\s+(\d+)(\s+(yes))?")
         self.usage = self.__class__.__name__ + " <x:y:z> (<eta>|<landing tick>)"
         self.helptext = [
-            "Book a target for attack. You should always book your targets, someone doesn't inadvertedly piggy your attack."]
+            "Book a target for attack. You should always book your targets, someone doesn't inadvertedly piggy your attack."
+        ]
 
     def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
@@ -60,7 +61,9 @@ class book(loadable.loadable):
             return 0
 
         if access < 100 and not irc_msg.user:
-            irc_msg.reply("I don't trust you. You have to set mode +x to book a target.")
+            irc_msg.reply(
+                "I don't trust you. You have to set mode +x to book a target."
+            )
             return 0
 
         p = loadable.planet(x=x, y=y, z=z)
@@ -72,9 +75,22 @@ class book(loadable.loadable):
             if not i.load_from_db(self.cursor, irc_msg.round):
                 pass
             else:
-                if i and i.alliance and i.alliance.lower() == self.config.get("Auth", "alliance").lower():
-                    irc_msg.reply("%s:%s:%s is %s in %s. Quick, launch before they notice the highlight." %
-                                  (x, y, z, i.nick or 'someone', self.config.get('Auth', 'alliance')))
+                if (
+                    i
+                    and i.alliance
+                    and i.alliance.lower()
+                    == self.config.get("Auth", "alliance").lower()
+                ):
+                    irc_msg.reply(
+                        "%s:%s:%s is %s in %s. Quick, launch before they notice the highlight."
+                        % (
+                            x,
+                            y,
+                            z,
+                            i.nick or "someone",
+                            self.config.get("Auth", "alliance"),
+                        )
+                    )
                     return 0
         curtick = self.current_tick(irc_msg.round)
         tick = -1
@@ -85,8 +101,9 @@ class book(loadable.loadable):
             eta = when
         elif when < curtick:
             irc_msg.reply(
-                "Can not book targets in the past. You wanted tick %s, but current tick is %s." %
-                (when, curtick))
+                "Can not book targets in the past. You wanted tick %s, but current tick is %s."
+                % (when, curtick)
+            )
             return 1
         else:
             tick = when
@@ -105,17 +122,21 @@ class book(loadable.loadable):
         self.cursor.execute(query, (tick, irc_msg.round, irc_msg.round, x, y, z,))
 
         if self.cursor.rowcount > 0 and not override:
-            reply = "There are already bookings for that target after landing pt %s (eta %s). To see status on this target, do !status %s:%s:%s." % (
-                tick, eta, x, y, z)
-            reply += " To force booking at your desired eta/landing tick, use !book %s:%s:%s %s yes (Bookers:" % (
-                x, y, z, tick)
+            reply = (
+                "There are already bookings for that target after landing pt %s (eta %s). To see status on this target, do !status %s:%s:%s."
+                % (tick, eta, x, y, z)
+            )
+            reply += (
+                " To force booking at your desired eta/landing tick, use !book %s:%s:%s %s yes (Bookers:"
+                % (x, y, z, tick)
+            )
             prev = []
             for r in self.cursor.dictfetchall():
-                owner = "nick:" + r['nick']
-                if r['pnick']:
-                    owner = "user:" + r['pnick']
-                    prev.append("(%s %s)" % (r['tick'], owner))
-            reply += " " + ', '.join(prev)
+                owner = "nick:" + r["nick"]
+                if r["pnick"]:
+                    owner = "user:" + r["pnick"]
+                    prev.append("(%s %s)" % (r["tick"], owner))
+            reply += " " + ", ".join(prev)
             reply += " )"
             irc_msg.reply(reply)
             return 1
@@ -130,9 +151,21 @@ class book(loadable.loadable):
         try:
             self.cursor.execute(query, (irc_msg.nick, p.id, tick, irc_msg.round, uid,))
             if uid:
-                reply = "Booked landing on %s:%s:%s tick %s for user %s" % (p.x, p.y, p.z, tick, irc_msg.user)
+                reply = "Booked landing on %s:%s:%s tick %s for user %s" % (
+                    p.x,
+                    p.y,
+                    p.z,
+                    tick,
+                    irc_msg.user,
+                )
             else:
-                reply = "Booked landing on %s:%s:%s tick %s for nick %s" % (p.x, p.y, p.z, tick, irc_msg.nick)
+                reply = "Booked landing on %s:%s:%s tick %s for nick %s" % (
+                    p.x,
+                    p.y,
+                    p.z,
+                    tick,
+                    irc_msg.nick,
+                )
         except psycopg.IntegrityError:
             query = "SELECT t1.id AS id, t1.nick AS nick, t1.pid AS pid, t1.tick AS tick, t1.uid AS uid, t2.pnick AS pnick, t2.userlevel AS userlevel "
             query += " FROM target AS t1 LEFT JOIN user_list AS t2 ON t1.uid=t2.id "
@@ -141,13 +174,20 @@ class book(loadable.loadable):
             self.cursor.execute(query, (p.id, tick, irc_msg.round,))
             book = self.cursor.dictfetchone()
             if not book:
-                raise Exception("Integrity error? Unable to booking for pid %s and tick %s" % (p.id, tick))
-            if book['pnick']:
-                reply = "Target %s:%s:%s is already booked for landing tick %s by user %s" % (
-                    p.x, p.y, p.z, book['tick'], book['pnick'])
+                raise Exception(
+                    "Integrity error? Unable to booking for pid %s and tick %s"
+                    % (p.id, tick)
+                )
+            if book["pnick"]:
+                reply = (
+                    "Target %s:%s:%s is already booked for landing tick %s by user %s"
+                    % (p.x, p.y, p.z, book["tick"], book["pnick"])
+                )
             else:
-                reply = "Target %s:%s:%s is already booked for landing tick %s by nick %s" % (
-                    p.x, p.y, p.z, book['tick'], book['nick'])
+                reply = (
+                    "Target %s:%s:%s is already booked for landing tick %s by nick %s"
+                    % (p.x, p.y, p.z, book["tick"], book["nick"])
+                )
         except BaseException:
             raise
 

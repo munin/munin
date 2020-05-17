@@ -39,11 +39,9 @@ class gac(loadable.loadable):
         self.paramre = re.compile(r"^\s*(.*)")
         self.usage = self.__class__.__name__ + ""
         self.helptext = [
-            'Displays stats about the Gross Alliance Cookies. Similar to the Gross Domestic Product, GAC covers how many %s cookies changed hands in a given week.' %
-            (self.config.get(
-                'Auth',
-                'alliance'),
-             )]
+            "Displays stats about the Gross Alliance Cookies. Similar to the Gross Domestic Product, GAC covers how many %s cookies changed hands in a given week."
+            % (self.config.get("Auth", "alliance"),)
+        ]
 
     def execute(self, user, access, irc_msg):
         m = self.commandre.search(irc_msg.command)
@@ -64,11 +62,19 @@ class gac(loadable.loadable):
         max_gac = self.get_max_gac()
         min_gac = self.get_min_gac()
         reply = "Gross Alliance Cookies for %s for last 5 weeks (current first): %s" % (
-            self.config.get('Auth', 'alliance'), ', '.join(last_5_gac))
+            self.config.get("Auth", "alliance"),
+            ", ".join(last_5_gac),
+        )
         reply += " | Highest ever GAC: %s in week %s/%s." % (
-            max_gac['gac'], max_gac['week_number'], max_gac['year_number'])
-        reply += " | Lowest ever GAC: %s in week %s/%s." % (min_gac['gac'],
-                                                            min_gac['week_number'], min_gac['year_number'])
+            max_gac["gac"],
+            max_gac["week_number"],
+            max_gac["year_number"],
+        )
+        reply += " | Lowest ever GAC: %s in week %s/%s." % (
+            min_gac["gac"],
+            min_gac["week_number"],
+            min_gac["year_number"],
+        )
         irc_msg.reply(reply)
         return 1
 
@@ -99,4 +105,4 @@ class gac(loadable.loadable):
         query += " ORDER BY year_number DESC, week_number DESC"
         query += " LIMIT 5"
         self.cursor.execute(query)
-        return [str(x['gac']) for x in self.cursor.dictfetchall()]
+        return [str(x["gac"]) for x in self.cursor.dictfetchall()]

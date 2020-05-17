@@ -62,9 +62,9 @@ class roidcost(loadable.loadable):
             irc_msg.reply("Another NewDawn landing, eh?")
             return 1
 
-        if cost[-1].lower() == 'k':
+        if cost[-1].lower() == "k":
             cost = 1000 * int(cost[:-1])
-        elif cost[-1].lower() == 'm':
+        elif cost[-1].lower() == "m":
             cost = 1000000 * int(cost[:-1])
         else:
             cost = int(cost)
@@ -72,16 +72,51 @@ class roidcost(loadable.loadable):
         mining = mining * ((float(bonus) + 100) / 100)
 
         repay = int((cost * 100) / (roids * mining))
-        reply = "Capping %s roids at %s value with %s%% bonus will repay in %s ticks (%s days)" % (
-            roids, self.format_value(cost * 100), bonus, repay, round(repay / 24))
+        reply = (
+            "Capping %s roids at %s value with %s%% bonus will repay in %s ticks (%s days)"
+            % (roids, self.format_value(cost * 100), bonus, repay, round(repay / 24))
+        )
 
-        repay_demo = int((cost * 100) / (roids * mining *
-                                         (1 / (1 - float(self.config.get('Planetarion', 'democracy_cost_reduction'))))))
+        repay_demo = int(
+            (cost * 100)
+            / (
+                roids
+                * mining
+                * (
+                    1
+                    / (
+                        1
+                        - float(
+                            self.config.get("Planetarion", "democracy_cost_reduction")
+                        )
+                    )
+                )
+            )
+        )
         reply += " Democracy: %s ticks (%s days)" % (repay_demo, round(repay_demo / 24))
 
-        repay_tota = int((cost * 100) / (roids * mining *
-                                         (1 / (1 - float(self.config.get('Planetarion', 'totalitarianism_cost_reduction'))))))
-        reply += " Totalitarianism: %s ticks (%s days)" % (repay_tota, round(repay_tota / 24))
+        repay_tota = int(
+            (cost * 100)
+            / (
+                roids
+                * mining
+                * (
+                    1
+                    / (
+                        1
+                        - float(
+                            self.config.get(
+                                "Planetarion", "totalitarianism_cost_reduction"
+                            )
+                        )
+                    )
+                )
+            )
+        )
+        reply += " Totalitarianism: %s ticks (%s days)" % (
+            repay_tota,
+            round(repay_tota / 24),
+        )
 
         irc_msg.reply(reply)
 

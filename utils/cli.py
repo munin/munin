@@ -45,7 +45,10 @@ class connection:
 
     def rline(self):
         if self.command:
-            command = ":dummy!~un@%s.users.netgamers.org PRIVMSG Munin :.%s" % (self.config.get("Auth","owner_pnick"),self.command)
+            command = ":dummy!~un@%s.users.netgamers.org PRIVMSG Munin :.%s" % (
+                self.config.get("Auth", "owner_pnick"),
+                self.command,
+            )
             self.command = None
             return command
         else:

@@ -74,9 +74,16 @@ class exp(loadable.loadable):
                 x = self.cursor.dictfetchone()
 
                 reply += "Experience on pt%s for %s:%s:%s: " % (tick, p.x, p.y, p.z)
-                reply += "xp: %s (%s%s) " % (x['xp'], ["+", "-"][x['vdiff'] < 0], abs(x['vdiff']))
-                if x['sdiff'] != 0:
-                    reply += "roids: %s%s" % (["+", "-"][x['sdiff'] < 0], abs(x['sdiff']))
+                reply += "xp: %s (%s%s) " % (
+                    x["xp"],
+                    ["+", "-"][x["vdiff"] < 0],
+                    abs(x["vdiff"]),
+                )
+                if x["sdiff"] != 0:
+                    reply += "roids: %s%s" % (
+                        ["+", "-"][x["sdiff"] < 0],
+                        abs(x["sdiff"]),
+                    )
             irc_msg.reply(reply)
             return 1
 
@@ -107,17 +114,28 @@ class exp(loadable.loadable):
             else:
                 results = self.cursor.dictfetchall()
 
-                reply += "Experience in the last 15 ticks on %s:%s:%s: " % (p.x, p.y, p.z)
+                reply += "Experience in the last 15 ticks on %s:%s:%s: " % (
+                    p.x,
+                    p.y,
+                    p.z,
+                )
 
-                info = ["pt%s %s (%s%s)" %
-                           (x['tick'], self.format_value(x['xp'] *
-                                                         100), ["+", "-"][x['vdiff'] < 0], self.format_value(abs(x['vdiff'] *
-                                                                                                                 100))) +
-                           [" roids:" +
-                            ["+", "-"][x['sdiff'] < 0] +
-                               str(abs(x['sdiff'])), ""][x['sdiff'] == 0] for x in results]
+                info = [
+                    "pt%s %s (%s%s)"
+                    % (
+                        x["tick"],
+                        self.format_value(x["xp"] * 100),
+                        ["+", "-"][x["vdiff"] < 0],
+                        self.format_value(abs(x["vdiff"] * 100)),
+                    )
+                    + [
+                        " roids:" + ["+", "-"][x["sdiff"] < 0] + str(abs(x["sdiff"])),
+                        "",
+                    ][x["sdiff"] == 0]
+                    for x in results
+                ]
 
-                reply += str.join(' | ', info)
+                reply += str.join(" | ", info)
             irc_msg.reply(reply)
 
         return 1

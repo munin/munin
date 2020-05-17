@@ -55,7 +55,7 @@ class remslogan(loadable.loadable):
         query = "SELECT slogan FROM slogan WHERE slogan = %s"
         self.cursor.execute(query, args)
         if self.cursor.rowcount == 1:
-            slogan = self.cursor.dictfetchone()['slogan']
+            slogan = self.cursor.dictfetchone()["slogan"]
             args = (params,)
             query = "DELETE FROM slogan WHERE slogan=%s"
             self.cursor.execute(query, args)
@@ -69,12 +69,14 @@ class remslogan(loadable.loadable):
         results = self.cursor.rowcount
 
         if results > 1:
-            reply = "There were %d slogans matching your search, I can only be bothered to delete one slogan at a time you demanding fuckwit" % (
-                results,)
+            reply = (
+                "There were %d slogans matching your search, I can only be bothered to delete one slogan at a time you demanding fuckwit"
+                % (results,)
+            )
         elif results == 0:
             reply = "No slogans matching '%s'" % (params,)
         else:
-            slogan = self.cursor.dictfetchone()['slogan']
+            slogan = self.cursor.dictfetchone()["slogan"]
             args = (slogan,)
             query = "DELETE FROM slogan WHERE slogan = %s"
             self.cursor.execute(query, args)

@@ -32,9 +32,10 @@ class basher(loadable.loadable):
             u = loadable.user(pnick=irc_msg.user)
             if not u.load_from_db(self.cursor, irc_msg.round):
                 irc_msg.reply(
-                    "You must be registered to use the automatic " +
-                    self.__class__.__name__ +
-                    " command (log in with P and set mode +x, then make sure you've set your planet with the pref command)")
+                    "You must be registered to use the automatic "
+                    + self.__class__.__name__
+                    + " command (log in with P and set mode +x, then make sure you've set your planet with the pref command)"
+                )
                 #
                 return 1
             if u.planet:
@@ -56,11 +57,22 @@ class basher(loadable.loadable):
                         return 1
                     planet = p
             else:
-                irc_msg.reply("Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
+                irc_msg.reply(
+                    "Usage: %s (you must be registered for automatic lookup)"
+                    % (self.usage,)
+                )
                 return 1
         if planet:
-            reply = "%s:%s:%s can hit planets with value %d or above or score %d or above" % (
-                planet.x, planet.y, planet.z, int(planet.value * .4), int(planet.score * .6))
+            reply = (
+                "%s:%s:%s can hit planets with value %d or above or score %d or above"
+                % (
+                    planet.x,
+                    planet.y,
+                    planet.z,
+                    int(planet.value * 0.4),
+                    int(planet.score * 0.6),
+                )
+            )
 
         irc_msg.reply(reply)
         return 1

@@ -46,7 +46,9 @@ class maxcap(loadable.loadable):
         if m:
             victim = loadable.planet(x=m.group(1), y=m.group(2), z=m.group(3))
             if not victim.load_most_recent(self.cursor, irc_msg.round):
-                irc_msg.reply("%s:%s:%s is not a valid planet" % (victim.x, victim.y, victim.z))
+                irc_msg.reply(
+                    "%s:%s:%s is not a valid planet" % (victim.x, victim.y, victim.z)
+                )
                 return 1
             total_roids = victim.size
         else:
@@ -63,7 +65,7 @@ class maxcap(loadable.loadable):
 
         reply = ""
         cap = 0
-        cap_rate = .25
+        cap_rate = 0.25
         u = self.load_user_from_pnick(user, irc_msg.round)
         if u and u.planet and victim:
             cap_rate = u.planet.cap_rate(victim)
@@ -71,6 +73,6 @@ class maxcap(loadable.loadable):
             cap += int(total_roids * cap_rate)
             reply += "Wave %d: %d (%d), " % (i, int(total_roids * cap_rate), cap)
             total_roids = total_roids - int(total_roids * cap_rate)
-        irc_msg.reply("Caprate: %s%% %s" % (int(cap_rate * 100), reply.strip(', ')))
+        irc_msg.reply("Caprate: %s%% %s" % (int(cap_rate * 100), reply.strip(", ")))
 
         return 1

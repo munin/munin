@@ -70,8 +70,12 @@ class yourmum(loadable.loadable):
 
     def show_mums_for_user(self, u, irc_msg):
         most_given = self.get_ten_biggest_mums(u.id)
-        reply = "%s is %s carebears fat. These people care most for %s: " % (u.pnick, u.carebears, u.pnick)
-        reply += ", ".join(["%s (%s)" % (x['giver'], x['cookies']) for x in most_given])
+        reply = "%s is %s carebears fat. These people care most for %s: " % (
+            u.pnick,
+            u.carebears,
+            u.pnick,
+        )
+        reply += ", ".join(["%s (%s)" % (x["giver"], x["cookies"]) for x in most_given])
         irc_msg.reply(reply)
 
     def get_ten_biggest_mums(self, receiver):

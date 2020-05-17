@@ -37,7 +37,7 @@ class ircu_router(object):
         self.listeners = [
             command.command(client, self.cursor, mod, loader, config),
             custom_runner.custom_runner(client, self.cursor, config),
-            auth.auth(client, config)
+            auth.auth(client, config),
         ]
 
     def run(self):
@@ -52,11 +52,14 @@ class ircu_router(object):
             l.message(line)
 
     def create_db_connection(self, config):
-        dsn = 'user=%s dbname=%s' % (config.get("Database", "user"), config.get("Database", "dbname"))
+        dsn = "user=%s dbname=%s" % (
+            config.get("Database", "user"),
+            config.get("Database", "dbname"),
+        )
         if config.has_option("Database", "password"):
-            dsn += ' password=%s' % config.get("Database", "password")
+            dsn += " password=%s" % config.get("Database", "password")
         if config.has_option("Database", "host"):
-            dsn += ' host=%s' % config.get("Database", "host")
+            dsn += " host=%s" % config.get("Database", "host")
 
         conn = psycopg.connect(dsn)
         conn.autocommit(1)

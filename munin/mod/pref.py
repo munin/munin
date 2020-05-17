@@ -36,7 +36,9 @@ class pref(loadable.loadable):
         super(self.__class__, self).__init__(cursor, 1)
         self.paramre = re.compile(r"^\s+(.*)")
         self.usage = self.__class__.__name__ + " [option=value]+"
-        self.helptext = ['Options: planet=x.y.z | password=OnlyWorksInPM | phone=+1-800-HOT-BIRD | pubphone=T|F']
+        self.helptext = [
+            "Options: planet=x.y.z | password=OnlyWorksInPM | phone=+1-800-HOT-BIRD | pubphone=T|F"
+        ]
 
     def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
@@ -51,9 +53,10 @@ class pref(loadable.loadable):
         u = loadable.user(pnick=irc_msg.user)
         if not u.load_from_db(self.cursor, irc_msg.round):
             irc_msg.reply(
-                "You must be registered to use the " +
-                self.__class__.__name__ +
-                " command (log in with P and set mode +x)")
+                "You must be registered to use the "
+                + self.__class__.__name__
+                + " command (log in with P and set mode +x)"
+            )
             return 1
 
         param_dict = self.split_opts(m.group(1))
@@ -74,11 +77,13 @@ class pref(loadable.loadable):
                     y = m.group(2)
                     z = m.group(3)
                 else:
-                    irc_msg.reply("You must provide coordinates (x:y:z) for the planet option")
+                    irc_msg.reply(
+                        "You must provide coordinates (x:y:z) for the planet option"
+                    )
                     continue
                 pid = self.save_planet(irc_msg, u, x, y, z, irc_msg.round)
                 if pid > 0 and u.userlevel >= 100:
-                    a = loadable.alliance(name=self.config.get('Auth', 'alliance'))
+                    a = loadable.alliance(name=self.config.get("Auth", "alliance"))
                     if a.load_most_recent(self.cursor, irc_msg.round):
                         i = loadable.intel(pid=pid)
                         i.load_from_db(self.cursor, irc_msg.round)
@@ -89,7 +94,9 @@ class pref(loadable.loadable):
                             self.cursor.execute(query, (user, a.id, i.id))
                         else:
                             query = "INSERT INTO intel (pid,nick,alliance_id,round) VALUES (%s,%s,%s,%s)"
-                            self.cursor.execute(query, (pid, user, a.id, irc_msg.round,))
+                            self.cursor.execute(
+                                query, (pid, user, a.id, irc_msg.round,)
+                            )
             if opt == "stay":
                 self.save_stay(irc_msg, u, val, access, irc_msg.round)
             if opt == "pubphone":
@@ -124,36 +131,46 @@ class pref(loadable.loadable):
             query = "INSERT INTO round_user_pref (user_id,round,stay) VALUES (%s,%s,%s)"
             query += " ON CONFLICT (user_id,round) DO"
             query += " UPDATE SET stay=EXCLUDED.stay"
-            args += (u.id, round, status,)
+            args += (
+                u.id,
+                round,
+                status,
+            )
         reply = "Your stay status has been saved as %s" % (status,)
         try:
             self.cursor.execute(query, args)
         except psycopg.ProgrammingError:
-            reply = "Your stay status '%s' is not a valid value. If you are staying for next round, it should be 'yes'. Otherwise it should be 'no'." % (
-                status,)
+            reply = (
+                "Your stay status '%s' is not a valid value. If you are staying for next round, it should be 'yes'. Otherwise it should be 'no'."
+                % (status,)
+            )
         irc_msg.reply(reply)
 
     def save_phone(self, irc_msg, u, passwd):
         if len(passwd) > 32:
             irc_msg.reply(
-                "Your phone number may not be longer than 32 characters (if you need more than 32 characters poke %s)." %
-                (self.config.get(
-                    'Auth',
-                    'owner_nick')))
+                "Your phone number may not be longer than 32 characters (if you need more than 32 characters poke %s)."
+                % (self.config.get("Auth", "owner_nick"))
+            )
             return
         query = "UPDATE user_list SET phone = %s"
         query += " WHERE id = %s"
 
         self.cursor.execute(query, (passwd, u.id))
         if self.cursor.rowcount > 0:
-            irc_msg.reply("Updated your phone number. Remember to set your phone to public (!pref pubphone=yes) or allow some people to see your phone number (!phone allow stalker) or no one will be able to see your number.")
+            irc_msg.reply(
+                "Updated your phone number. Remember to set your phone to public (!pref pubphone=yes) or allow some people to see your phone number (!phone allow stalker) or no one will be able to see your number."
+            )
         else:
             irc_msg.reply("Something went wrong. Go whine to your sponsor.")
 
     def save_pubphone(self, irc_msg, u, status, access):
         if access < 100:
-            alliance = self.config.get('Auth', 'alliance'),
-            irc_msg.reply("Only %s members can allow all members of %s to view their phone" % (alliance, alliance))
+            alliance = (self.config.get("Auth", "alliance"),)
+            irc_msg.reply(
+                "Only %s members can allow all members of %s to view their phone"
+                % (alliance, alliance)
+            )
             return 0
         query = ""
         args = ()
@@ -163,8 +180,10 @@ class pref(loadable.loadable):
         try:
             self.cursor.execute(query, args)
         except psycopg.ProgrammingError:
-            reply = "Your pubphone status '%s' is not a valid value. If you want your phone number to be visible to all %s members, it should be 'yes'. Otherwise it should be 'no'." % (
-                status, self.config.get('Auth', 'alliance'))
+            reply = (
+                "Your pubphone status '%s' is not a valid value. If you want your phone number to be visible to all %s members, it should be 'yes'. Otherwise it should be 'no'."
+                % (status, self.config.get("Auth", "alliance"))
+            )
         irc_msg.reply(reply)
 
     def save_password(self, irc_msg, u, passwd):

@@ -38,7 +38,9 @@ class smslog(loadable.loadable):
         super(self.__class__, self).__init__(cursor, 100)
         self.paramre = re.compile(r"^\s*(\d+)?")
         self.usage = self.__class__.__name__ + " [id]"
-        self.helptext = ['Show the last ten SMS sent, or the text of a specific SMS sender.']
+        self.helptext = [
+            "Show the last ten SMS sent, or the text of a specific SMS sender."
+        ]
 
     def execute(self, user, access, irc_msg):
         m = self.commandre.search(irc_msg.command)
@@ -72,7 +74,11 @@ class smslog(loadable.loadable):
         else:
             r = self.cursor.dictfetchone()
             reply = "SMS with ID %s sent by %s to %s with text: %s" % (
-                r['id'], r['sender'], r['receiver'], r['sms_text'])
+                r["id"],
+                r["sender"],
+                r["receiver"],
+                r["sms_text"],
+            )
             irc_msg.reply(reply)
 
     def show_all(self, irc_msg):
@@ -81,7 +87,9 @@ class smslog(loadable.loadable):
         self.cursor.execute(query)
         res = self.cursor.dictfetchall()
         reply = "Last 10 SMSes: "
-        reply += ", ".join(["id: %s (%s -> %s)" % (x['id'], x['sender'], x['receiver']) for x in res])
+        reply += ", ".join(
+            ["id: %s (%s -> %s)" % (x["id"], x["sender"], x["receiver"]) for x in res]
+        )
         irc_msg.reply(reply)
 
     def base_query(self):

@@ -24,6 +24,7 @@
 import sys
 
 from psycopg2 import psycopg1 as psycopg
+
 #!/usr/bin/python
 
 # This file is part of Munin.
@@ -54,21 +55,26 @@ from psycopg2 import psycopg1 as psycopg
 config = configparser.ConfigParser()
 if not config.read("muninrc"):
     # No config found.
-    raise ValueError("Expected configuration file muninrc"
-                     ", not found.")
+    raise ValueError("Expected configuration file muninrc" ", not found.")
 
-DSN = "dbname=%s user=%s" % (config.get("Database", "dbname"),
-                             config.get("Database", "user"))
-if config.has_option('Database', 'password'):
-    DSN += ' password=%s' % config.get('Database', 'password')
-if config.has_option('Database', 'host'):
-    DSN += ' host=%s' % config.get('Database', 'host')
+DSN = "dbname=%s user=%s" % (
+    config.get("Database", "dbname"),
+    config.get("Database", "user"),
+)
+if config.has_option("Database", "password"):
+    DSN += " password=%s" % config.get("Database", "password")
+if config.has_option("Database", "host"):
+    DSN += " host=%s" % config.get("Database", "host")
 
 conn = psycopg.connect(DSN)
 cursor = conn.cursor()
 
-query = 'SELECT pnick, sponsor FROM user_list'
+query = "SELECT pnick, sponsor FROM user_list"
 query += " WHERE userlevel >= 100"
 cursor.execute(query)
 
-print("\n".join(['"%s" -> "%s";' % (x['sponsor'], x['pnick']) for x in cursor.dictfetchall()]))
+print(
+    "\n".join(
+        ['"%s" -> "%s";' % (x["sponsor"], x["pnick"]) for x in cursor.dictfetchall()]
+    )
+)

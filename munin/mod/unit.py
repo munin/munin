@@ -81,12 +81,12 @@ class unit(loadable.loadable):
 
                 prev = []
                 for s in self.cursor.dictfetchall():
-                    prev.append("%s %s" % (s['name'], s['amount']))
-                    tick = s['tick']
-                    rand_id = s['rand_id']
+                    prev.append("%s %s" % (s["name"], s["amount"]))
+                    tick = s["tick"]
+                    rand_id = s["rand_id"]
 
                 reply += " (id: %s, pt: %s) " % (rand_id, tick)
-                reply += ' | '.join(prev)
+                reply += " | ".join(prev)
         else:
             m = self.idre.search(params)
             if not m:
@@ -95,7 +95,9 @@ class unit(loadable.loadable):
 
             rand_id = m.group(1)
 
-            query = "SELECT x,y,z,t1.tick,t1.nick,t1.scantype,t1.rand_id,t3.name,t2.amount"
+            query = (
+                "SELECT x,y,z,t1.tick,t1.nick,t1.scantype,t1.rand_id,t3.name,t2.amount"
+            )
             query += " FROM scan AS t1"
             query += " INNER JOIN unit AS t2 ON t1.id=t2.scan_id"
             query += " INNER JOIN ship AS t3 ON t2.ship_id=t3.id"
@@ -110,13 +112,13 @@ class unit(loadable.loadable):
 
                 prev = []
                 for s in self.cursor.dictfetchall():
-                    prev.append("%s %s" % (s['name'], s['amount']))
-                    tick = s['tick']
-                    x = s['x']
-                    y = s['y']
-                    z = s['z']
+                    prev.append("%s %s" % (s["name"], s["amount"]))
+                    tick = s["tick"]
+                    x = s["x"]
+                    y = s["y"]
+                    z = s["z"]
 
                 reply += "%s:%s:%s (id: %s, pt: %s) " % (x, y, z, rand_id, tick)
-                reply += ' | '.join(prev)
+                reply += " | ".join(prev)
         irc_msg.reply(reply)
         return 1

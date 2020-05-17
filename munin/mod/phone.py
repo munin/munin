@@ -52,9 +52,10 @@ class phone(loadable.loadable):
         u = loadable.user(pnick=irc_msg.user)
         if not u.load_from_db(self.cursor, irc_msg.round):
             irc_msg.reply(
-                "You must be registered to use the " +
-                self.__class__.__name__ +
-                " command (log in with P and set mode +x)")
+                "You must be registered to use the "
+                + self.__class__.__name__
+                + " command (log in with P and set mode +x)"
+            )
             return 0
 
         m = self.paramre.search(m.group(1))
@@ -96,7 +97,10 @@ class phone(loadable.loadable):
                 query = "INSERT INTO phone (user_id,friend_id) VALUES (%s,%s)"
                 args = (u.id, t_user.id)
                 self.cursor.execute(query, args)
-                reply = "Added %s to the list of people able to view your phone number." % (t_user.pnick,)
+                reply = (
+                    "Added %s to the list of people able to view your phone number."
+                    % (t_user.pnick,)
+                )
             irc_msg.reply(reply)
             return 1
         elif "deny".find(cmd) > -1:
@@ -106,36 +110,59 @@ class phone(loadable.loadable):
 
             reply = ""
             if self.cursor.rowcount < 1:
-                reply = "Could not find %s among the people allowed to see your phone number." % (t_user.pnick,)
+                reply = (
+                    "Could not find %s among the people allowed to see your phone number."
+                    % (t_user.pnick,)
+                )
             else:
-                reply = "Removed %s from the list of people allowed to see your phone number." % (t_user.pnick,)
+                reply = (
+                    "Removed %s from the list of people allowed to see your phone number."
+                    % (t_user.pnick,)
+                )
             irc_msg.reply(reply)
             return 1
         elif "show".find(cmd) > -1:
             if u.id == t_user.id:
                 if u.phone:
                     reply = "Your phone number is %s." % (u.phone,)
-                    reply += " Your pubphone setting is: %s" % (["off", "on"][u.pubphone],)
+                    reply += " Your pubphone setting is: %s" % (
+                        ["off", "on"][u.pubphone],
+                    )
                 else:
                     reply = "You haven't set your phone number. To set your phone number, do !pref phone=1-800-HOT-BIRD."
                 irc_msg.reply(reply)
                 return 1
 
             if irc_msg.chan_reply():
-                irc_msg.reply("Don't look up phone numbers in public, Alki might see them")
+                irc_msg.reply(
+                    "Don't look up phone numbers in public, Alki might see them"
+                )
                 return 1
             if t_user.pubphone and u.userlevel >= 100:
-                reply = "%s says their phone number is %s" % (t_user.pnick, t_user.phone)
+                reply = "%s says their phone number is %s" % (
+                    t_user.pnick,
+                    t_user.phone,
+                )
             else:
-                results = self.phone_query_builder(t_user, "AND t1.friend_id=%s", (u.id,))
+                results = self.phone_query_builder(
+                    t_user, "AND t1.friend_id=%s", (u.id,)
+                )
                 if len(results) < 1:
-                    reply = "%s won't let you see their phone number. That paranoid cunt just doesn't trust you I guess." % (
-                        t_user.pnick,)
+                    reply = (
+                        "%s won't let you see their phone number. That paranoid cunt just doesn't trust you I guess."
+                        % (t_user.pnick,)
+                    )
                 else:
                     if t_user.phone:
-                        reply = "%s says their phone number is %s" % (t_user.pnick, t_user.phone)
+                        reply = "%s says their phone number is %s" % (
+                            t_user.pnick,
+                            t_user.phone,
+                        )
                     else:
-                        reply = "%s hasn't shared their phone number. What a paranoid cunt ." % (t_user.pnick,)
+                        reply = (
+                            "%s hasn't shared their phone number. What a paranoid cunt ."
+                            % (t_user.pnick,)
+                        )
 
             irc_msg.reply(reply)
             return 1
@@ -166,7 +193,7 @@ class phone(loadable.loadable):
             people = []
 
             for b in results:
-                people.append(b['pnick'])
+                people.append(b["pnick"])
 
             reply = "The following people can view %s phone number: "
             if second_person:

@@ -70,22 +70,24 @@ class exile(loadable.loadable):
             max_planets = 0
 
             for r in res:
-                gals += r['count']
-            bracket = int(gals * .2)
+                gals += r["count"]
+            bracket = int(gals * 0.2)
             for r in res:
-                bracket -= r['count']
+                bracket -= r["count"]
                 if bracket < 0:
-                    rest_gals = bracket + r['count']
-                    total_rest_gals = r['count']
-                    rest_planets = r['planets']
+                    rest_gals = bracket + r["count"]
+                    total_rest_gals = r["count"]
+                    rest_planets = r["planets"]
                     if max_planets == 0:
-                        max_planets = r['planets'] - 1
+                        max_planets = r["planets"] - 1
                     break
-                max_planets = r['planets']
-                base_bracket_gals += r['count']
+                max_planets = r["planets"]
+                base_bracket_gals += r["count"]
 
-            reply = "Total galaxies: %s | %s galaxies with a maximum of %s planets guaranteed to be in the exile bracket" % (
-                gals, base_bracket_gals, max_planets)
+            reply = (
+                "Total galaxies: %s | %s galaxies with a maximum of %s planets guaranteed to be in the exile bracket"
+                % (gals, base_bracket_gals, max_planets)
+            )
 
             if base_bracket_gals > 0:
                 # >0 galaxies are guaranteed to be in the bracket. List them.
@@ -104,10 +106,15 @@ class exile(loadable.loadable):
                 self.cursor.execute(query, (irc_msg.round, irc_msg.round, max_planets,))
                 eligible = "Whoops"
                 if self.cursor.rowcount > 0:
-                    eligible = ", ".join(["%s:%s" % (x['x'], x['y']) for x in self.cursor.dictfetchall()])
+                    eligible = ", ".join(
+                        ["%s:%s" % (x["x"], x["y"]) for x in self.cursor.dictfetchall()]
+                    )
                 reply += ": %s" % (eligible)
             reply += " | Also in the bracket: %s of %s galaxies with %s planets." % (
-                rest_gals, total_rest_gals, rest_planets)
+                rest_gals,
+                total_rest_gals,
+                rest_planets,
+            )
 
         irc_msg.reply(reply)
 

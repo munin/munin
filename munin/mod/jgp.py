@@ -71,7 +71,9 @@ class jgp(loadable.loadable):
             query += " INNER JOIN fleet AS t2 ON t1.id=t2.scan_id"
             query += " INNER JOIN planet_dump AS t3 ON t2.owner_id=t3.id"
             query += " WHERE t1.pid=%s AND t3.tick=(SELECT max_tick(%s::smallint)) AND t3.round=%s"
-            query += " AND t1.id=(SELECT id FROM scan WHERE pid=t1.pid AND scantype='jgp'"
+            query += (
+                " AND t1.id=(SELECT id FROM scan WHERE pid=t1.pid AND scantype='jgp'"
+            )
             query += " ORDER BY tick DESC, id DESC LIMIT 1) ORDER BY eta ASC"
             self.cursor.execute(query, (p.id, irc_msg.round, irc_msg.round,))
 
@@ -87,22 +89,27 @@ class jgp(loadable.loadable):
                 prev = []
                 for s in self.cursor.dictfetchall():
                     prev.append(
-                        "(%s:%s:%s %s | %s %s %s)" %
-                        (s['x'],
-                         s['y'],
-                            s['z'],
-                            s['fleet_name'],
-                            s['fleet_size'],
-                            s['mission'],
-                            s['eta']))
-                    tick = s['tick']
-                    rand_id = s['rand_id']
+                        "(%s:%s:%s %s | %s %s %s)"
+                        % (
+                            s["x"],
+                            s["y"],
+                            s["z"],
+                            s["fleet_name"],
+                            s["fleet_size"],
+                            s["mission"],
+                            s["eta"],
+                        )
+                    )
+                    tick = s["tick"]
+                    rand_id = s["rand_id"]
 
                 reply += " (id: %s, pt: %s) " % (rand_id, tick)
-                reply += ' | '.join(prev)
+                reply += " | ".join(prev)
                 if len(reply) > 450:
                     reply = " Newest JGP scan on %s:%s:%s (pt: %s) " % (x, y, z, tick)
-                    reply += "http://game.planetarion.com/showscan.pl?scan_id=%s" % (rand_id,)
+                    reply += "http://game.planetarion.com/showscan.pl?scan_id=%s" % (
+                        rand_id,
+                    )
         else:
             m = self.idre.search(params)
             if not m:
@@ -116,7 +123,9 @@ class jgp(loadable.loadable):
             query += " FROM scan AS t1"
             query += " INNER JOIN fleet AS t2 ON t1.id=t2.scan_id"
             query += " INNER JOIN planet_dump AS t4 ON t1.pid=t4.id"
-            query += " INNER JOIN planet_dump AS t5 ON t4.tick=t5.tick AND t2.owner_id=t5.id"
+            query += (
+                " INNER JOIN planet_dump AS t5 ON t4.tick=t5.tick AND t2.owner_id=t5.id"
+            )
             query += " WHERE t4.tick=(SELECT max_tick(%s::smallint)) AND t4.round=%s AND t1.rand_id=%s"
             self.cursor.execute(query, (irc_msg.round, irc_msg.round, rand_id,))
 
@@ -131,20 +140,23 @@ class jgp(loadable.loadable):
                 prev = []
                 for s in self.cursor.dictfetchall():
                     prev.append(
-                        "(%s:%s:%s %s | %s %s %s)" %
-                        (s['x'],
-                         s['y'],
-                            s['z'],
-                            s['fleet_name'],
-                            s['fleet_size'],
-                            s['mission'],
-                            s['eta']))
-                    tick = s['tick']
-                    x = s['targ_x']
-                    y = s['targ_y']
-                    z = s['targ_z']
+                        "(%s:%s:%s %s | %s %s %s)"
+                        % (
+                            s["x"],
+                            s["y"],
+                            s["z"],
+                            s["fleet_name"],
+                            s["fleet_size"],
+                            s["mission"],
+                            s["eta"],
+                        )
+                    )
+                    tick = s["tick"]
+                    x = s["targ_x"]
+                    y = s["targ_y"]
+                    z = s["targ_z"]
                 reply += "%s:%s:%s (id: %s, pt: %s) " % (x, y, z, rand_id, tick)
-                reply += ' | '.join(prev)
+                reply += " | ".join(prev)
         irc_msg.reply(reply)
         return 1
 
@@ -153,7 +165,10 @@ class jgp(loadable.loadable):
         query += " INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
         query += " WHERE t3.tick = (SELECT max_tick(%s::smallint)) AND t3.round=%s"
 
-        args = (round, round,)
+        args = (
+            round,
+            round,
+        )
         if planet:
             query += " AND t3.id=%s"
             args += (planet.id,)
@@ -170,7 +185,8 @@ class jgp(loadable.loadable):
             return 0  # failure
         s = self.cursor.dictfetchone()
         irc_msg.reply(
-            "I can't see any fleets found matching this scan, but here's a URL you can try anyway: http://game.planetarion.com/showscan.pl?scan_id=%s" %
-            (s['rand_id'],))
+            "I can't see any fleets found matching this scan, but here's a URL you can try anyway: http://game.planetarion.com/showscan.pl?scan_id=%s"
+            % (s["rand_id"],)
+        )
 
         return 1

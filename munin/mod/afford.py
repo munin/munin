@@ -64,7 +64,9 @@ class afford(loadable.loadable):
             return 1
 
         query = "SELECT tick,nick,scantype,rand_id,timestamp,roid_metal,roid_crystal,roid_eonium,res_metal,res_crystal,res_eonium"
-        query += ", factory_usage_light, factory_usage_medium, factory_usage_heavy, prod_res"
+        query += (
+            ", factory_usage_light, factory_usage_medium, factory_usage_heavy, prod_res"
+        )
         query += " FROM scan AS t1 INNER JOIN planet AS t2 ON t1.id=t2.scan_id"
         query += " WHERE t1.pid=%s ORDER BY timestamp DESC"
         self.cursor.execute(query, (p.id,))
@@ -73,65 +75,87 @@ class afford(loadable.loadable):
             reply += "No planet scans available on %s:%s:%s" % (p.x, p.y, p.z)
         else:
             s = self.cursor.dictfetchone()
-            tick = s['tick']
-            res_m = int(s['res_metal'])
-            res_c = int(s['res_crystal'])
-            res_e = int(s['res_eonium'])
-            prod_res = int(s['prod_res'])
-            rand_id = s['rand_id']
+            tick = s["tick"]
+            res_m = int(s["res_metal"])
+            res_c = int(s["res_crystal"])
+            res_e = int(s["res_eonium"])
+            prod_res = int(s["prod_res"])
+            rand_id = s["rand_id"]
 
             query = "SELECT name,class,metal,crystal,eonium,total_cost"
             query += " FROM ship WHERE name ilike %s AND round = %s LIMIT 1"
-            self.cursor.execute(query, ('%' + ship_name + '%', irc_msg.round,))
+            self.cursor.execute(query, ("%" + ship_name + "%", irc_msg.round,))
 
             ship = self.get_ship_from_db(ship_name, irc_msg.round)
             if not ship:
                 reply = "%s is not a ship" % (ship_name)
             else:
-                cost_m = ship['metal']
-                cost_c = ship['crystal']
-                cost_e = ship['eonium']
-                total_cost = ship['total_cost']
+                cost_m = ship["metal"]
+                cost_c = ship["crystal"]
+                cost_e = ship["eonium"]
+                total_cost = ship["total_cost"]
                 class_factory_table = {
-                    'Fighter': 'factory_usage_light',
-                    'Corvette': 'factory_usage_light',
-                    'Frigate': 'factory_usage_medium',
-                    'Destroyer': 'factory_usage_medium',
-                    'Cruiser': 'factory_usage_heavy',
-                    'Battleship': 'factory_usage_heavy'}
-                prod_modifier_table = {'None': 0, 'Low': 33, 'Medium': 66, 'High': 100}
+                    "Fighter": "factory_usage_light",
+                    "Corvette": "factory_usage_light",
+                    "Frigate": "factory_usage_medium",
+                    "Destroyer": "factory_usage_medium",
+                    "Cruiser": "factory_usage_heavy",
+                    "Battleship": "factory_usage_heavy",
+                }
+                prod_modifier_table = {"None": 0, "Low": 33, "Medium": 66, "High": 100}
 
                 capped_number = min(res_m / cost_m, res_c / cost_c, res_e / cost_e)
-                overflow = res_m + res_c + res_e - (capped_number * (cost_m + cost_c + cost_e))
-                buildable = capped_number + ((overflow * .95) / total_cost)
+                overflow = (
+                    res_m + res_c + res_e - (capped_number * (cost_m + cost_c + cost_e))
+                )
+                buildable = capped_number + ((overflow * 0.95) / total_cost)
 
-                demo_modifier = 1 / (1 - float(self.config.get('Planetarion', 'democracy_cost_reduction')))
-                tota_modifier = 1 / (1 - float(self.config.get('Planetarion', 'totalitarianism_cost_reduction')))
-                reply = "Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (p.x, p.y, p.z, rand_id, tick)
+                demo_modifier = 1 / (
+                    1
+                    - float(self.config.get("Planetarion", "democracy_cost_reduction"))
+                )
+                tota_modifier = 1 / (
+                    1
+                    - float(
+                        self.config.get("Planetarion", "totalitarianism_cost_reduction")
+                    )
+                )
+                reply = "Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (
+                    p.x,
+                    p.y,
+                    p.z,
+                    rand_id,
+                    tick,
+                )
 
                 buildable_from_prod = 0
 
                 if prod_res == 0:
                     reply += " has nothing in production. Can afford from stockpile:"
                 else:
-                    factory_usage = s[class_factory_table[ship['class']]]
+                    factory_usage = s[class_factory_table[ship["class"]]]
                     max_prod_modifier = prod_modifier_table[factory_usage]
                     if max_prod_modifier == 0:
                         reply += " only has production in wrong factory type(s). Can afford from stockpile:"
                     else:
-                        buildable_from_prod = max_prod_modifier * prod_res / 100 / total_cost
+                        buildable_from_prod = (
+                            max_prod_modifier * prod_res / 100 / total_cost
+                        )
 
-                        reply += " has %d res in production at %s usage: %s: %d | Democracy: %d | Totalitarianism: %d. Counting stockpile:" % (
-                            prod_res,
-                            factory_usage,
-                            ship['name'],
-                            int(buildable_from_prod),
-                            int(buildable_from_prod * demo_modifier),
-                            int(buildable_from_prod * tota_modifier)
+                        reply += (
+                            " has %d res in production at %s usage: %s: %d | Democracy: %d | Totalitarianism: %d. Counting stockpile:"
+                            % (
+                                prod_res,
+                                factory_usage,
+                                ship["name"],
+                                int(buildable_from_prod),
+                                int(buildable_from_prod * demo_modifier),
+                                int(buildable_from_prod * tota_modifier),
+                            )
                         )
 
                 reply += " %s: %d | Democracy: %d | Totalitarianism: %d" % (
-                    ship['name'],
+                    ship["name"],
                     int(buildable_from_prod + buildable),
                     int((buildable_from_prod + buildable) * demo_modifier),
                     int((buildable_from_prod + buildable) * demo_modifier),

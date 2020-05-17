@@ -33,7 +33,9 @@ from munin import loadable
 class unbook(loadable.loadable):
     def __init__(self, cursor):
         super(self.__class__, self).__init__(cursor, 50)
-        self.paramre = re.compile(r"^\s+(\d+)[. :-](\d+)[. :-](\d+)(\s+(\d+))?(\s+(yes))?")
+        self.paramre = re.compile(
+            r"^\s+(\d+)[. :-](\d+)[. :-](\d+)(\s+(\d+))?(\s+(yes))?"
+        )
         self.usage = self.__class__.__name__ + " <x:y:z> [<eta>|<landing tick>] [yes]"
 
     def execute(self, user, access, irc_msg):
@@ -76,8 +78,9 @@ class unbook(loadable.loadable):
             tick = curtick + when
         elif when and when < curtick:
             irc_msg.reply(
-                "Can not unbook targets in the past. You wanted tick %s, but current tick is %s." %
-                (when, curtick))
+                "Can not unbook targets in the past. You wanted tick %s, but current tick is %s."
+                % (when, curtick)
+            )
             return 1
         elif when:
             tick = when
@@ -146,21 +149,25 @@ class unbook(loadable.loadable):
 
             reply = "You have unbooked %s:%s:%s" % (p.x, p.y, p.z)
             if when:
-                owner = res[0]['nick']
+                owner = res[0]["nick"]
                 type = "nick"
-                if res[0]['pnick']:
-                    owner = res[0]['pnick']
+                if res[0]["pnick"]:
+                    owner = res[0]["pnick"]
                     type = "user"
-                reply += " for landing pt %s (previously held by %s %s)" % (res[0]['tick'], type, owner)
+                reply += " for landing pt %s (previously held by %s %s)" % (
+                    res[0]["tick"],
+                    type,
+                    owner,
+                )
             else:
                 reply += " for %d booking(s):" % (self.cursor.rowcount)
                 prev = []
                 for r in res:
-                    owner = "nick: " + r['nick']
-                    if r['pnick']:
-                        owner = "user: " + r['pnick']
-                    prev.append("(%s %s)" % (r['tick'], owner))
-                reply += " " + ', '.join(prev)
+                    owner = "nick: " + r["nick"]
+                    if r["pnick"]:
+                        owner = "user: " + r["pnick"]
+                    prev.append("(%s %s)" % (r["tick"], owner))
+                reply += " " + ", ".join(prev)
 
         irc_msg.reply(reply)
         return 1

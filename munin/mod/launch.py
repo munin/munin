@@ -38,14 +38,10 @@ class launch(loadable.loadable):
         self.paramre = re.compile(r"^\s+(\S+|\d+)\s+(\d+)")
         self.usage = self.__class__.__name__ + " <class|eta> <land_tick>"
         self.helptext = [
-            "Calculate launch tick, launch time, prelaunch tick and prelaunch modifier for a given ship class or eta, and land tick."]
+            "Calculate launch tick, launch time, prelaunch tick and prelaunch modifier for a given ship class or eta, and land tick."
+        ]
 
-        self.class_eta = {"fi": 8,
-                          "co": 8,
-                          "fr": 9,
-                          "de": 9,
-                          "cr": 10,
-                          "bs": 10}
+        self.class_eta = {"fi": 8, "co": 8, "fr": 9, "de": 9, "cr": 10, "bs": 10}
 
     def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
@@ -77,18 +73,23 @@ class launch(loadable.loadable):
 
         current_time = datetime.datetime.utcnow()
         launch_tick = land_tick - eta
-        launch_time = current_time + datetime.timedelta(hours=(launch_tick - current_tick))
+        launch_time = current_time + datetime.timedelta(
+            hours=(launch_tick - current_tick)
+        )
         prelaunch_tick = land_tick - eta + 1
         prelaunch_mod = launch_tick - current_tick
 
         irc_msg.reply(
-            "eta %d landing pt %d (currently %d) must launch at pt %d (%s), or with prelaunch tick %d (currently %+d)" %
-            (eta,
-             land_tick,
-             current_tick,
-             launch_tick,
-             (launch_time.strftime("%m-%d %H:55")),
+            "eta %d landing pt %d (currently %d) must launch at pt %d (%s), or with prelaunch tick %d (currently %+d)"
+            % (
+                eta,
+                land_tick,
+                current_tick,
+                launch_tick,
+                (launch_time.strftime("%m-%d %H:55")),
                 prelaunch_tick,
-                prelaunch_mod))
+                prelaunch_mod,
+            )
+        )
 
         return 1

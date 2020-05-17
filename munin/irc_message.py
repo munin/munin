@@ -24,32 +24,35 @@ import re
 
 class irc_message(object):
     def __init__(
-            self,
-            client=None,
-            cursor=None,
-            line=None,
-            nick=None,
-            username=None,
-            host=None,
-            target=None,
-            message=None,
-            prefix=None,
-            command=None,
-            config=None):
+        self,
+        client=None,
+        cursor=None,
+        line=None,
+        nick=None,
+        username=None,
+        host=None,
+        target=None,
+        message=None,
+        prefix=None,
+        command=None,
+        config=None,
+    ):
         self.notprefix = r"~|-|\."
         self.pubprefix = r"!"
-        self.privprefix = '@'
+        self.privprefix = "@"
         self.privmsgre = re.compile(
-            r"^:(\S+)!(\S+)@(\S+)\s+PRIVMSG\s+(\S+)\s+:(\s*(%s|%s|%s)(.*?)\s*)$" %
-            (self.notprefix, self.pubprefix, self.privprefix))
+            r"^:(\S+)!(\S+)@(\S+)\s+PRIVMSG\s+(\S+)\s+:(\s*(%s|%s|%s)(.*?)\s*)$"
+            % (self.notprefix, self.pubprefix, self.privprefix)
+        )
         self.bifrost_privmsgre = re.compile(
-            r"^:bifrost!\S+@bifrost.users.netgamers.org\s+PRIVMSG\s+(\S+)\s+:<(\S+)>(\s*(%s|%s|%s)(.*?)\s*)$" %
-            (self.notprefix, self.pubprefix, self.privprefix))
+            r"^:bifrost!\S+@bifrost.users.netgamers.org\s+PRIVMSG\s+(\S+)\s+:<(\S+)>(\s*(%s|%s|%s)(.*?)\s*)$"
+            % (self.notprefix, self.pubprefix, self.privprefix)
+        )
         self.pnickre = re.compile(r"(\S{2,15})\.users\.netgamers\.org")
         self.client = client
         self.cursor = cursor
         self.command = None
-        self.round = config.getint('Planetarion', 'current_round')
+        self.round = config.getint("Planetarion", "current_round")
 
         m = self.bifrost_privmsgre.search(line)
         if m:
@@ -58,7 +61,7 @@ class irc_message(object):
             self.host = m.group(2) + ".users.netgamers.org"
             self.target = m.group(1)
             self.message = m.group(3)
-            self.prefix = '!'
+            self.prefix = "!"
             self.command = m.group(5)
         else:
             m = self.privmsgre.search(line)
@@ -72,7 +75,7 @@ class irc_message(object):
                 self.command = m.group(7)
 
         if self.command:
-            com_parts = self.command.split(' ', 1)
+            com_parts = self.command.split(" ", 1)
             self.command_name = com_parts[0]
             self.command_parameters = None
             self.user = self.getpnick(self.host)
@@ -80,8 +83,8 @@ class irc_message(object):
             if len(com_parts) > 1:
                 self.command_parameters = com_parts[1]
                 # !round <number> <command> [params]...
-                if self.command_name == 'round' or self.command_name == 'r':
-                    com_parts = self.command.split(' ', 3)
+                if self.command_name == "round" or self.command_name == "r":
+                    com_parts = self.command.split(" ", 3)
                     if len(com_parts) > 2:
                         try:
                             self.round = int(com_parts[1])
@@ -144,7 +147,7 @@ class irc_message(object):
         query = "SELECT userlevel FROM user_list WHERE pnick ilike %s"
         self.cursor.execute(query, (user,))
         if self.cursor.rowcount > 0:
-            return int(self.cursor.dictfetchone()['userlevel'])
+            return int(self.cursor.dictfetchone()["userlevel"])
         else:
             return 0
 
@@ -155,8 +158,8 @@ class irc_message(object):
         maxlevel = userlevel
         if self.cursor.rowcount > 0:
             res = self.cursor.dictfetchone()
-            chanlevel = int(res['userlevel'])
-            maxlevel = int(res['maxlevel'])
+            chanlevel = int(res["userlevel"])
+            maxlevel = int(res["maxlevel"])
         return (chanlevel, maxlevel)
 
     def getaccess(self, user, target):

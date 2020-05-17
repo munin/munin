@@ -42,7 +42,7 @@ class bumchums(loadable.loadable):
         super(self.__class__, self).__init__(cursor, 50)
         self.paramre = re.compile(r"^\s+(.+)\s+(\d+)\s*$")
         self.usage = self.__class__.__name__ + " <alliance> <number>"
-        self.helptext = ['Pies']
+        self.helptext = ["Pies"]
 
     def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
@@ -89,8 +89,11 @@ class bumchums(loadable.loadable):
         else:
             prev = []
             for b in self.cursor.dictfetchall():
-                prev.append("%s:%s (%s)" % (b['x'], b['y'], b['bums']))
-            reply += "Galaxies with at least %s bums from %s: " % (bums, a.name) + ' | '.join(prev)
+                prev.append("%s:%s (%s)" % (b["x"], b["y"], b["bums"]))
+            reply += "Galaxies with at least %s bums from %s: " % (
+                bums,
+                a.name,
+            ) + " | ".join(prev)
 
         irc_msg.reply(reply)
 

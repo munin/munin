@@ -87,18 +87,18 @@ class connection:
 
     def privmsg(self, target, text):
         while len(text) > 0:
-            self.wline("PRIVMSG %s :%s" % (target, text[:self.MAX_LINE_LEN]))
-            text = text[self.MAX_LINE_LEN:]
+            self.wline("PRIVMSG %s :%s" % (target, text[: self.MAX_LINE_LEN]))
+            text = text[self.MAX_LINE_LEN :]
 
     def notice(self, target, text):
         while len(text) > 0:
-            self.wline("NOTICE %s :%s" % (target, text[:self.MAX_LINE_LEN]))
-            text = text[self.MAX_LINE_LEN:]
+            self.wline("NOTICE %s :%s" % (target, text[: self.MAX_LINE_LEN]))
+            text = text[self.MAX_LINE_LEN :]
 
     def cnotice(self, target, nick, text):
         while len(text) > 0:
-            self.wline("CNOTICE %s %s :%s" % (nick, target, text[:self.MAX_LINE_LEN]))
-            text = text[self.MAX_LINE_LEN:]
+            self.wline("CNOTICE %s %s :%s" % (nick, target, text[: self.MAX_LINE_LEN]))
+            text = text[self.MAX_LINE_LEN :]
 
     def reply(self, prefix, nick, target, text):
         if prefix == self.NOTICE_PREFIX:

@@ -33,7 +33,9 @@ class rollback(loadable.loadable):
         self.paramre = re.compile(r"^\s+([1-9][0-9]*)")
         self.selectre = re.compile(r"^SELECT [^ ]+ FROM")
         self.usage = self.__class__.__name__ + " <tick>"
-        self.helptext = ['Remove all tick information from the given tick from the database. Only the latest tick may be removed.']
+        self.helptext = [
+            "Remove all tick information from the given tick from the database. Only the latest tick may be removed."
+        ]
 
     def delete_if_any(self, select_query, args_tuple):
         """Delete the rows returned by the given SELECT query and arguments.
@@ -49,7 +51,7 @@ class rollback(loadable.loadable):
         # print("Select query: %s" %(select_query,))
         self.cursor.execute(select_query, args_tuple)
         if self.cursor.rowcount > 0:
-            delete_query = self.selectre.sub('DELETE FROM', select_query);
+            delete_query = self.selectre.sub("DELETE FROM", select_query)
             # print("Delete query: %s" %(delete_query,))
             self.cursor.execute(delete_query, args_tuple)
             if self.cursor.rowcount < 1:
@@ -77,11 +79,16 @@ class rollback(loadable.loadable):
             return 0
 
         if from_tick > to_tick:
-            irc_msg.reply("It's tick %s, tick %s hasn't occurred yet. What are you trying to achieve?" % (to_tick, from_tick,))
+            irc_msg.reply(
+                "It's tick %s, tick %s hasn't occurred yet. What are you trying to achieve?"
+                % (to_tick, from_tick,)
+            )
             return 0
 
         if from_tick != to_tick:
-            irc_msg.reply("That's way too many ticks to remove at once, go one at a time")
+            irc_msg.reply(
+                "That's way too many ticks to remove at once, go one at a time"
+            )
             # We ask for a tick (even though only 1 value is valid) because the
             # last thing we need is a command that deletes data if you don't
             # pass it any arguments.
@@ -92,31 +99,31 @@ class rollback(loadable.loadable):
 
         try:
 
-            query  = "SELECT id FROM fleet_content"
+            query = "SELECT id FROM fleet_content"
             query += " WHERE fleet_id IN ("
             query += "     SELECT id FROM fleet"
             query += "     WHERE round = %s"
             query += "     AND launch_tick >= %s"
             query += " )"
-            if not self.delete_if_any(query, (irc_msg.round, from_tick, )):
+            if not self.delete_if_any(query, (irc_msg.round, from_tick,)):
                 return 0
 
             scan_tables = [
-                'planet',
-                'development',
-                'unit',
-                'au',
-                'covop',
-                'fleet',
+                "planet",
+                "development",
+                "unit",
+                "au",
+                "covop",
+                "fleet",
             ]
             for scan_table in scan_tables:
-                query  = "SELECT id FROM %s" % (scan_table,)
+                query = "SELECT id FROM %s" % (scan_table,)
                 query += " WHERE scan_id IN ("
                 query += "     SELECT id FROM scan"
                 query += "     WHERE round = %s"
                 query += "     AND tick >= %s"
                 query += " )"
-                if not self.delete_if_any(query, (irc_msg.round, from_tick, )):
+                if not self.delete_if_any(query, (irc_msg.round, from_tick,)):
                     return 0
 
             # Information in the user feed is not reported in the dumps until
@@ -124,37 +131,37 @@ class rollback(loadable.loadable):
             # additional tick of information from tables that source data from
             # the user feed.
             userfeed_tables = [
-                'alliance_relation',
-                'anarchy',
+                "alliance_relation",
+                "anarchy",
             ]
             for userfeed_table in userfeed_tables:
-                query  = "SELECT start_tick FROM %s" %(userfeed_table)
+                query = "SELECT start_tick FROM %s" % (userfeed_table)
                 query += " WHERE round = %s"
                 query += " AND start_tick >= %s - 1"
-                if not self.delete_if_any(query, (irc_msg.round, from_tick, )):
+                if not self.delete_if_any(query, (irc_msg.round, from_tick,)):
                     return 0
 
-            query  = "SELECT launch_tick FROM fleet"
+            query = "SELECT launch_tick FROM fleet"
             query += " WHERE round = %s"
             query += " AND launch_tick >= %s"
-            if not self.delete_if_any(query, (irc_msg.round, from_tick, )):
+            if not self.delete_if_any(query, (irc_msg.round, from_tick,)):
                 return 0
 
             tick_tables = [
-                'scan',
-                'fleet_log',
-                'target',
-                'planet_dump',
-                'galaxy_dump',
-                'alliance_dump',
-                'userfeed_dump',
-                'updates',
+                "scan",
+                "fleet_log",
+                "target",
+                "planet_dump",
+                "galaxy_dump",
+                "alliance_dump",
+                "userfeed_dump",
+                "updates",
             ]
             for tick_table in tick_tables:
-                query  = "SELECT tick FROM %s"%(tick_table,)
+                query = "SELECT tick FROM %s" % (tick_table,)
                 query += " WHERE round = %s"
                 query += " AND tick >= %s"
-                if not self.delete_if_any(query, (irc_msg.round, from_tick, )):
+                if not self.delete_if_any(query, (irc_msg.round, from_tick,)):
                     return 0
 
         except Exception as e:

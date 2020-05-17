@@ -1,4 +1,3 @@
-
 """
 Loadable.Loadable subclass
 """
@@ -94,9 +93,11 @@ class galpenis(loadable.loadable):
         if not res:
             reply = "No galpenis stats matching %s:%s" % (x, y)
         else:
-            person = res['name'] or res['x'] + res['y']
-            reply = "galpenis for '%s' is %s score long. This makes %s:%s rank: %s for galpenis in the universe!" % (
-                person, res['activity'], x, y, res['activity_rank'])
+            person = res["name"] or res["x"] + res["y"]
+            reply = (
+                "galpenis for '%s' is %s score long. This makes %s:%s rank: %s for galpenis in the universe!"
+                % (person, res["activity"], x, y, res["activity_rank"])
+            )
 
         irc_msg.reply(reply)
 

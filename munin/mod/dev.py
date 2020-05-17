@@ -84,26 +84,50 @@ class dev(loadable.loadable):
             else:
                 s = self.cursor.dictfetchone()
 
-                total = max(1, self.get_total_cons_from_scan(self.cursor, s['id']))
+                total = max(1, self.get_total_cons_from_scan(self.cursor, s["id"]))
 
-                reply += "Newest development scan on %s:%s:%s (id: %s, pt: %s)" % (p.x,
-                                                                                   p.y, p.z, s['rand_id'], s['tick'])
-                reply += " Travel: %s, Infrajerome: %s, Hulls: %s, Waves: %s, Core: %s, Covop: %s, Mining: %s, Population: %s" % (
-                    s['travel'], self.infra(s['infrastructure']), self.hulls(s['hulls']),
-                    self.waves(s['waves']), self.core(s['core']), self.covop(s['covert_op']),
-                    self.mining(s['mining']), self.population(s['population'])
+                reply += "Newest development scan on %s:%s:%s (id: %s, pt: %s)" % (
+                    p.x,
+                    p.y,
+                    p.z,
+                    s["rand_id"],
+                    s["tick"],
+                )
+                reply += (
+                    " Travel: %s, Infrajerome: %s, Hulls: %s, Waves: %s, Core: %s, Covop: %s, Mining: %s, Population: %s"
+                    % (
+                        s["travel"],
+                        self.infra(s["infrastructure"]),
+                        self.hulls(s["hulls"]),
+                        self.waves(s["waves"]),
+                        self.core(s["core"]),
+                        self.covop(s["covert_op"]),
+                        self.mining(s["mining"]),
+                        self.population(s["population"]),
+                    )
                 )
 
                 irc_msg.reply(reply)
-                reply = "Structures: LFac: %s, MFac: %s, HFac: %s, Amp: %s, Dist: %s, MRef: %s, CRef: %s, ERef: %s, ResLab: %s (%s%%), FC: %s, Milf: %s, Sec: %s (%s%%), SD: %s (%s%%) " % (
-                    s['light_factory'], s['medium_factory'], s['heavy_factory'],
-                    s['wave_amplifier'], s['wave_distorter'],
-                    s['metal_refinery'], s['crystal_refinery'], s['eonium_refinery'],
-                    s['research_lab'], int(float(s['research_lab']) / total * 100),
-                    s['finance_centre'],
-                    s['military_centre'],
-                    s['security_centre'], int(float(s['security_centre']) / total * 100),
-                    s['structure_defense'], int(float(s['structure_defense']) / total * 100)
+                reply = (
+                    "Structures: LFac: %s, MFac: %s, HFac: %s, Amp: %s, Dist: %s, MRef: %s, CRef: %s, ERef: %s, ResLab: %s (%s%%), FC: %s, Milf: %s, Sec: %s (%s%%), SD: %s (%s%%) "
+                    % (
+                        s["light_factory"],
+                        s["medium_factory"],
+                        s["heavy_factory"],
+                        s["wave_amplifier"],
+                        s["wave_distorter"],
+                        s["metal_refinery"],
+                        s["crystal_refinery"],
+                        s["eonium_refinery"],
+                        s["research_lab"],
+                        int(float(s["research_lab"]) / total * 100),
+                        s["finance_centre"],
+                        s["military_centre"],
+                        s["security_centre"],
+                        int(float(s["security_centre"]) / total * 100),
+                        s["structure_defense"],
+                        int(float(s["structure_defense"]) / total * 100),
+                    )
                 )
                 i = 0
                 reply += " Older scans: "
@@ -112,8 +136,8 @@ class dev(loadable.loadable):
                     i += 1
                     if i > 4:
                         break
-                    prev.append("(%s,pt%s)" % (s['rand_id'], s['tick']))
-                reply += ', '.join(prev)
+                    prev.append("(%s,pt%s)" % (s["rand_id"], s["tick"]))
+                reply += ", ".join(prev)
 
         else:
             m = self.idre.search(params)
@@ -128,7 +152,9 @@ class dev(loadable.loadable):
             query += ",security_centre,structure_defense"
             query += " FROM scan AS t1"
             query += " INNER JOIN development AS t2 ON t1.id=t2.scan_id"
-            query += " INNER JOIN planet_dump AS t3 ON t1.pid=t3.id AND t1.round=t3.round"
+            query += (
+                " INNER JOIN planet_dump AS t3 ON t1.pid=t3.id AND t1.round=t3.round"
+            )
             query += " WHERE t3.tick=(SELECT max_tick(%s::smallint)) AND t1.rand_id=%s AND t1.round=%s ORDER BY t1.tick DESC"
             self.cursor.execute(query, (irc_msg.round, rand_id, irc_msg.round))
 
@@ -137,31 +163,63 @@ class dev(loadable.loadable):
             else:
                 s = self.cursor.dictfetchone()
 
-                total = (s['light_factory'] + s['medium_factory'] + s['heavy_factory'] +
-                         s['wave_amplifier'] + s['wave_distorter'] +
-                         s['metal_refinery'] + s['crystal_refinery'] + s['eonium_refinery'] +
-                         s['research_lab'] + s['structure_defense'] +
-                         s['finance_centre'] + s['military_centre'] + s['security_centre']
-                         )
+                total = (
+                    s["light_factory"]
+                    + s["medium_factory"]
+                    + s["heavy_factory"]
+                    + s["wave_amplifier"]
+                    + s["wave_distorter"]
+                    + s["metal_refinery"]
+                    + s["crystal_refinery"]
+                    + s["eonium_refinery"]
+                    + s["research_lab"]
+                    + s["structure_defense"]
+                    + s["finance_centre"]
+                    + s["military_centre"]
+                    + s["security_centre"]
+                )
 
                 reply += "Development scan on %s:%s:%s (id: %s, pt: %s)" % (
-                    s['x'], s['y'], s['z'], s['rand_id'], s['tick'])
-                reply += " Travel: -%s, Infrajerome: %s, Hulls: %s, Waves: %s, Core: %s, Covop: %s, Mining: %s" % (
-                    s['travel'], self.infra(s['infrastructure']), self.hulls(s['hulls']),
-                    self.waves(s['waves']), self.core(s['core']), self.covop(s['covert_op']),
-                    self.mining(s['mining'])
+                    s["x"],
+                    s["y"],
+                    s["z"],
+                    s["rand_id"],
+                    s["tick"],
+                )
+                reply += (
+                    " Travel: -%s, Infrajerome: %s, Hulls: %s, Waves: %s, Core: %s, Covop: %s, Mining: %s"
+                    % (
+                        s["travel"],
+                        self.infra(s["infrastructure"]),
+                        self.hulls(s["hulls"]),
+                        self.waves(s["waves"]),
+                        self.core(s["core"]),
+                        self.covop(s["covert_op"]),
+                        self.mining(s["mining"]),
+                    )
                 )
 
                 irc_msg.reply(reply)
-                reply = "Structures: LFac: %s, MFac: %s, HFac: %s, Amp: %s, Dist: %s, MRef: %s, CRef: %s, ERef: %s, ResLab: %s (%s%%), FC: %s, Milf: %s, Sec: %s (%s%%), SD: %s (%s%%) " % (
-                    s['light_factory'], s['medium_factory'], s['heavy_factory'],
-                    s['wave_amplifier'], s['wave_distorter'],
-                    s['metal_refinery'], s['crystal_refinery'], s['eonium_refinery'],
-                    s['research_lab'], int(float(s['research_lab']) / total * 100),
-                    s['finance_centre'],
-                    s['military_centre'],
-                    s['security_centre'], int(float(s['security_centre']) / total * 100),
-                    s['structure_defense'], int(float(s['structure_defense']) / total * 100)
+                reply = (
+                    "Structures: LFac: %s, MFac: %s, HFac: %s, Amp: %s, Dist: %s, MRef: %s, CRef: %s, ERef: %s, ResLab: %s (%s%%), FC: %s, Milf: %s, Sec: %s (%s%%), SD: %s (%s%%) "
+                    % (
+                        s["light_factory"],
+                        s["medium_factory"],
+                        s["heavy_factory"],
+                        s["wave_amplifier"],
+                        s["wave_distorter"],
+                        s["metal_refinery"],
+                        s["crystal_refinery"],
+                        s["eonium_refinery"],
+                        s["research_lab"],
+                        int(float(s["research_lab"]) / total * 100),
+                        s["finance_centre"],
+                        s["military_centre"],
+                        s["security_centre"],
+                        int(float(s["security_centre"]) / total * 100),
+                        s["structure_defense"],
+                        int(float(s["structure_defense"]) / total * 100),
+                    )
                 )
 
         irc_msg.reply(reply)

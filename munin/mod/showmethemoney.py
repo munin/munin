@@ -55,7 +55,9 @@ class showmethemoney(loadable.loadable):
 
         ct = Clickatell(username, password, api_id)
         if not ct.auth():
-            irc_msg.reply("Could not authenticate with server. Super secret message not sent.")
+            irc_msg.reply(
+                "Could not authenticate with server. Super secret message not sent."
+            )
             return 1
 
         balance = ct.getbalance()

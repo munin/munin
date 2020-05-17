@@ -33,11 +33,17 @@ class napfest(loadable.loadable):
         self.paramre = re.compile(r"^\s*")
         self.usage = self.__class__.__name__
         self.war_start_re = re.compile(r"(.*) has declared war on (.*) !")
-        self.nap_start_re = re.compile(r"(.*) and (.*) have confirmed they have formed a non-aggression pact.")
+        self.nap_start_re = re.compile(
+            r"(.*) and (.*) have confirmed they have formed a non-aggression pact."
+        )
         self.nap_end_re = re.compile(r"(.*) has decided to end its NAP with (.*).")
-        self.ally_start_re = re.compile(r"(.*) and (.*) have confirmed they are allied.")
-        self.ally_end_re = re.compile(r"(.*) has decided to end its alliance with (.*).")
-        self.helptext = ['Lists the most recent 10 alliance relation changes']
+        self.ally_start_re = re.compile(
+            r"(.*) and (.*) have confirmed they are allied."
+        )
+        self.ally_end_re = re.compile(
+            r"(.*) has decided to end its alliance with (.*)."
+        )
+        self.helptext = ["Lists the most recent 10 alliance relation changes"]
 
     def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
@@ -53,7 +59,7 @@ class napfest(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        war_duration = self.config.getint('Planetarion', 'war_duration')
+        war_duration = self.config.getint("Planetarion", "war_duration")
 
         query = "SELECT tick, text FROM userfeed_dump"
         query += " WHERE type = 'Relation Change'"
@@ -64,51 +70,56 @@ class napfest(loadable.loadable):
         self.cursor.execute(query, (irc_msg.round, "%'s war with % has expired.",))
 
         if self.cursor.rowcount == 0:
-            reply = 'Nothing has happened yet, go fight some fools!'
+            reply = "Nothing has happened yet, go fight some fools!"
         else:
             events = []
             for row in self.cursor.dictfetchall():
-                m = self.war_start_re.match(row['text'])
+                m = self.war_start_re.match(row["text"])
                 if m:
-                    events.append('pt%d-%d: War between %s and %s' % (
-                        row['tick'],
-                        war_duration + row['tick'],
-                        m.group(1),
-                        m.group(2)))
-                if not m:
-                    m = self.nap_start_re.match(row['text'])
-                    if m:
-                        events.append('pt%d: %s NAPed %s' % (
-                            row['tick'],
+                    events.append(
+                        "pt%d-%d: War between %s and %s"
+                        % (
+                            row["tick"],
+                            war_duration + row["tick"],
                             m.group(1),
-                            m.group(2)))
+                            m.group(2),
+                        )
+                    )
                 if not m:
-                    m = self.nap_end_re.match(row['text'])
+                    m = self.nap_start_re.match(row["text"])
                     if m:
-                        events.append('pt%d: %s ended its NAP with %s' % (
-                            row['tick'],
-                            m.group(1),
-                            m.group(2)))
+                        events.append(
+                            "pt%d: %s NAPed %s" % (row["tick"], m.group(1), m.group(2))
+                        )
                 if not m:
-                    m = self.ally_start_re.match(row['text'])
+                    m = self.nap_end_re.match(row["text"])
                     if m:
-                        events.append('pt%d: %s allied %s' % (
-                            row['tick'],
-                            m.group(1),
-                            m.group(2)))
+                        events.append(
+                            "pt%d: %s ended its NAP with %s"
+                            % (row["tick"], m.group(1), m.group(2))
+                        )
                 if not m:
-                    m = self.ally_end_re.match(row['text'])
+                    m = self.ally_start_re.match(row["text"])
                     if m:
-                        events.append('pt%d: %s ended its alliance with %s' % (
-                            row['tick'],
-                            m.group(1),
-                            m.group(2)))
+                        events.append(
+                            "pt%d: %s allied %s" % (row["tick"], m.group(1), m.group(2))
+                        )
+                if not m:
+                    m = self.ally_end_re.match(row["text"])
+                    if m:
+                        events.append(
+                            "pt%d: %s ended its alliance with %s"
+                            % (row["tick"], m.group(1), m.group(2))
+                        )
                 if not m:
                     reply = "What the hell happened at pt%d? %s? Fuck that." % (
-                        row['tick'],
-                        row['text'])
+                        row["tick"],
+                        row["text"],
+                    )
                     break
 
-                reply = 'Most recent 10 alliance relation changes: %s' % (' | '.join(reversed(events)))
+                reply = "Most recent 10 alliance relation changes: %s" % (
+                    " | ".join(reversed(events))
+                )
         irc_msg.reply(reply)
         return 1

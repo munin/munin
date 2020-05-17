@@ -39,22 +39,23 @@ class intel(loadable.loadable):
         self.planet_coordre = re.compile(r"(\d+)[. :-](\d+)[. :-](\d+)(.*)")
         self.gal_coordre = re.compile(r"(\d+)[. :-](\d+)")
         self.options = [
-            'alliance',
-            'nick',
-            'fakenick',
-            'defwhore',
-            'covop',
-            'scanner',
-            'distwhore',
-            'bg',
-            'gov',
-            'relay',
-            'reportchan',
-            'comment']
+            "alliance",
+            "nick",
+            "fakenick",
+            "defwhore",
+            "covop",
+            "scanner",
+            "distwhore",
+            "bg",
+            "gov",
+            "relay",
+            "reportchan",
+            "comment",
+        ]
         self.nulls = ["<>", ".", "-", "?"]
         self.true = ["1", "yes", "y", "true", "t"]
         self.false = ["0", "no", "n", "false", "f", ""]
-        self.helptext = ["Valid options: %s" % (', '.join(self.options))]
+        self.helptext = ["Valid options: %s" % (", ".join(self.options))]
 
     def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
@@ -94,7 +95,7 @@ class intel(loadable.loadable):
             pass
 
         opts = self.split_opts(params)
-        opts['pid'] = p.id
+        opts["pid"] = p.id
         a = loadable.alliance(name=i.alliance)
         if i.alliance:
             a.load_most_recent(self.cursor, irc_msg.round)
@@ -105,10 +106,13 @@ class intel(loadable.loadable):
                     continue
                 a = loadable.alliance(name=val)
                 if not a.load_most_recent(self.cursor, irc_msg.round):
-                    irc_msg.reply("'%s' is not a valid alliance, your information was not added." % (val,))
+                    irc_msg.reply(
+                        "'%s' is not a valid alliance, your information was not added."
+                        % (val,)
+                    )
                     return 1
                 else:
-                    opts['alliance'] = a.name
+                    opts["alliance"] = a.name
             if (opt in self.options) and (val in self.nulls):
                 opts[opt] = None
                 continue
@@ -131,31 +135,61 @@ class intel(loadable.loadable):
             query += "pid=%s,nick=%s,fakenick=%s,defwhore=%s,gov=%s,bg=%s,covop=%s,alliance_id=%s,relay=%s,reportchan=%s,"
             query += "scanner=%s,distwhore=%s,comment=%s"
             query += " WHERE id=%s"
-            self.cursor.execute(query, (opts['pid'], opts['nick'],
-                                        opts['fakenick'], opts['defwhore'], opts['gov'], opts['bg'],
-                                        opts['covop'], a.id, opts['relay'], opts['reportchan'],
-                                        opts['scanner'], opts['distwhore'], opts['comment'], i.id))
+            self.cursor.execute(
+                query,
+                (
+                    opts["pid"],
+                    opts["nick"],
+                    opts["fakenick"],
+                    opts["defwhore"],
+                    opts["gov"],
+                    opts["bg"],
+                    opts["covop"],
+                    a.id,
+                    opts["relay"],
+                    opts["reportchan"],
+                    opts["scanner"],
+                    opts["distwhore"],
+                    opts["comment"],
+                    i.id,
+                ),
+            )
         elif params:
             query = "INSERT INTO intel (round,pid,nick,fakenick,defwhore,gov,bg,covop,relay,reportchan,scanner,distwhore,comment,alliance_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-            self.cursor.execute(query, (irc_msg.round, opts['pid'], opts['nick'],
-                                        opts['fakenick'], opts['defwhore'], opts['gov'], opts['bg'],
-                                        opts['covop'], opts['relay'], opts['reportchan'],
-                                        opts['scanner'], opts['distwhore'],
-                                        opts['comment'], a.id))
+            self.cursor.execute(
+                query,
+                (
+                    irc_msg.round,
+                    opts["pid"],
+                    opts["nick"],
+                    opts["fakenick"],
+                    opts["defwhore"],
+                    opts["gov"],
+                    opts["bg"],
+                    opts["covop"],
+                    opts["relay"],
+                    opts["reportchan"],
+                    opts["scanner"],
+                    opts["distwhore"],
+                    opts["comment"],
+                    a.id,
+                ),
+            )
         i = loadable.intel(
-            pid=opts['pid'],
-            nick=opts['nick'],
-            fakenick=opts['fakenick'],
-            defwhore=opts['defwhore'],
-            gov=opts['gov'],
-            bg=opts['bg'],
-            covop=opts['covop'],
-            alliance=opts['alliance'],
-            relay=opts['relay'],
-            reportchan=opts['reportchan'],
-            scanner=opts['scanner'],
-            distwhore=opts['distwhore'],
-            comment=opts['comment'])
+            pid=opts["pid"],
+            nick=opts["nick"],
+            fakenick=opts["fakenick"],
+            defwhore=opts["defwhore"],
+            gov=opts["gov"],
+            bg=opts["bg"],
+            covop=opts["covop"],
+            alliance=opts["alliance"],
+            relay=opts["relay"],
+            reportchan=opts["reportchan"],
+            scanner=opts["scanner"],
+            distwhore=opts["distwhore"],
+            comment=opts["comment"],
+        )
 
         reply = "Information stored for %s:%s:%s - " % (p.x, p.y, p.z)
         reply += i.__str__()
@@ -166,7 +200,7 @@ class intel(loadable.loadable):
     def split_opts(self, params):
         param_dict = {}
         for s in params.split():
-            a = s.split('=')
+            a = s.split("=")
             if len(a) != 2:
                 continue
             param_dict[a[0].lower()] = a[1]
@@ -184,23 +218,24 @@ class intel(loadable.loadable):
 
         repls = []
         for d in self.cursor.dictfetchall():
-            x = d['x']
-            y = d['y']
-            z = d['z']
+            x = d["x"]
+            y = d["y"]
+            z = d["z"]
             i = loadable.intel(
-                pid=d['pid'],
-                nick=d['nick'],
-                fakenick=d['fakenick'],
-                defwhore=d['defwhore'],
-                gov=d['gov'],
-                bg=d['bg'],
-                covop=d['covop'],
-                alliance=d['alliance'],
-                relay=d['relay'],
-                reportchan=d['reportchan'],
-                scanner=d['scanner'],
-                distwhore=d['distwhore'],
-                comment=d['comment'])
+                pid=d["pid"],
+                nick=d["nick"],
+                fakenick=d["fakenick"],
+                defwhore=d["defwhore"],
+                gov=d["gov"],
+                bg=d["bg"],
+                covop=d["covop"],
+                alliance=d["alliance"],
+                relay=d["relay"],
+                reportchan=d["reportchan"],
+                scanner=d["scanner"],
+                distwhore=d["distwhore"],
+                comment=d["comment"],
+            )
             if i.nick or i.alliance:
                 replied_to_request = True
                 r = "#%d " % (z,)
@@ -225,4 +260,8 @@ class intel(loadable.loadable):
     def gal_info(self, x, y, round):
         g = loadable.galaxy(x=x, y=y)
         g.load_most_recent(self.cursor, round)
-        return "Score (%d) Value (%d) Size (%d)" % (g.score_rank, g.value_rank, g.size_rank)
+        return "Score (%d) Value (%d) Size (%d)" % (
+            g.score_rank,
+            g.value_rank,
+            g.size_rank,
+        )

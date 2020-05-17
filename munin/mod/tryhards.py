@@ -37,8 +37,13 @@ class tryhards(loadable.loadable):
     def __init__(self, cursor):
         super(self.__class__, self).__init__(cursor, 1)
         self.paramre = re.compile(r"^\s*(\S+)\s*(\S+)")
-        self.usage = self.__class__.__name__ + " <alliances|galaxy|planet> [score|total_score|value|xp|size]"
-        self.helptext = ['Shows top5 for alliances, galaxies or planets ranked by score, total_score, value, xp or size']
+        self.usage = (
+            self.__class__.__name__
+            + " <alliances|galaxy|planet> [score|total_score|value|xp|size]"
+        )
+        self.helptext = [
+            "Shows top5 for alliances, galaxies or planets ranked by score, total_score, value, xp or size"
+        ]
 
     def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
@@ -54,23 +59,23 @@ class tryhards(loadable.loadable):
         p1 = m.group(1).lower()
         p2 = m.group(2).lower()
 
-        a = ['alliances', 'galaxy', 'galaxies', 'planets']
+        a = ["alliances", "galaxy", "galaxies", "planets"]
 
-        if p2 in 'score':
-            p2 = 'score'
-        elif p2 in 'total_score':
-            p2 = 'total_score'
-        elif p2 in 'value':
-            p2 = 'value'
-        elif p2 in 'xp':
-            p2 = 'xp'
-        elif p2 in 'size':
-            p2 = 'size'
+        if p2 in "score":
+            p2 = "score"
+        elif p2 in "total_score":
+            p2 = "total_score"
+        elif p2 in "value":
+            p2 = "value"
+        elif p2 in "xp":
+            p2 = "xp"
+        elif p2 in "size":
+            p2 = "size"
         else:
             return self.reply_usage(irc_msg)
 
         if p1 in "alliances":
-            if p2 in 'xp':
+            if p2 in "xp":
                 return self.reply_usage(irc_msg)
             self.rank_alliance_by(p2, irc_msg)
         elif p1 in "planets":
@@ -102,8 +107,12 @@ class tryhards(loadable.loadable):
             irc_msg.reply("lol")
 
         reply = "Alliances trying too hard for %s: " % (ranker.replace("_", " "),)
-        reply += ", ".join(["%s: %s (%s)" %
-                               (x[rank], x['name'], self.format_real_value(x[ranker])) for x in self.cursor.dictfetchall()])
+        reply += ", ".join(
+            [
+                "%s: %s (%s)" % (x[rank], x["name"], self.format_real_value(x[ranker]))
+                for x in self.cursor.dictfetchall()
+            ]
+        )
         irc_msg.reply(reply)
 
     def rank_galaxy_by(self, qualifier, irc_msg):
@@ -120,8 +129,19 @@ class tryhards(loadable.loadable):
             irc_msg.reply("lol")
 
         reply = "Galaxies trying too hard for %s: " % (qualifier.replace("_", " "),)
-        reply += ", ".join(["%s: %s:%s - %s (%s)" %
-                               (x[rank], x['x'], x['y'], x['name'], self.format_real_value(x[qualifier])) for x in self.cursor.dictfetchall()])
+        reply += ", ".join(
+            [
+                "%s: %s:%s - %s (%s)"
+                % (
+                    x[rank],
+                    x["x"],
+                    x["y"],
+                    x["name"],
+                    self.format_real_value(x[qualifier]),
+                )
+                for x in self.cursor.dictfetchall()
+            ]
+        )
         irc_msg.reply(reply)
 
     def rank_planet_by(self, qualifier, irc_msg):
@@ -140,6 +160,19 @@ class tryhards(loadable.loadable):
             irc_msg.reply("lol")
 
         reply = "Planets trying too hard for %s: " % (qualifier,)
-        reply += ", ".join(["%s: %s:%s:%s (%s/%s) (%s)" %
-                               (x[rank], x['x'], x['y'], x['z'], x['nick'], x['name'], self.format_real_value(x[qualifier])) for x in self.cursor.dictfetchall()])
+        reply += ", ".join(
+            [
+                "%s: %s:%s:%s (%s/%s) (%s)"
+                % (
+                    x[rank],
+                    x["x"],
+                    x["y"],
+                    x["z"],
+                    x["nick"],
+                    x["name"],
+                    self.format_real_value(x[qualifier]),
+                )
+                for x in self.cursor.dictfetchall()
+            ]
+        )
         irc_msg.reply(reply)

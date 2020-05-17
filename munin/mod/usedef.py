@@ -37,7 +37,7 @@ class usedef(loadable.loadable):
     def __init__(self, cursor):
         super(self.__class__, self).__init__(cursor, 100)
         self.paramre = re.compile(r"^\s*(\S+)\s+(.*)")
-        self.ship_classes = ['fi', 'co', 'fr', 'de', 'cr', 'bs']
+        self.ship_classes = ["fi", "co", "fr", "de", "cr", "bs"]
         self.usage = self.__class__.__name__ + " <pnick> <ship>"
         self.helptext = None
 
@@ -74,12 +74,22 @@ class usedef(loadable.loadable):
         removed = self.drop_ships(u, taker, ships, irc_msg.round)
         reply = ""
         if u.fleetcount == 0:
-            reply += "%s's fleetcount was already 0, please ensure that they actually had a fleet free to launch." % (
-                u.pnick,)
+            reply += (
+                "%s's fleetcount was already 0, please ensure that they actually had a fleet free to launch."
+                % (u.pnick,)
+            )
         else:
-            reply += "Removed a fleet for %s, they now have %s fleets left." % (u.pnick, u.fleetcount - 1)
+            reply += "Removed a fleet for %s, they now have %s fleets left." % (
+                u.pnick,
+                u.fleetcount - 1,
+            )
         reply += " Used the following ships: "
-        reply += ", ".join(["%s %s" % (self.format_real_value(removed[x]), x) for x in list(removed.keys())])
+        reply += ", ".join(
+            [
+                "%s %s" % (self.format_real_value(removed[x]), x)
+                for x in list(removed.keys())
+            ]
+        )
         irc_msg.reply(reply)
         return 1
 
@@ -93,14 +103,16 @@ class usedef(loadable.loadable):
                 ship_lookup = ship
             self.cursor.execute(ship_query, (ship_lookup, round, user.id))
             for result in self.cursor.dictfetchall():
-                s = result['ship']
-                c = result['ship_count']
+                s = result["ship"]
+                c = result["ship_count"]
                 removed[s] = c
                 self.delete_ships(user, taker, s, c, round)
         return removed
 
     def delete_ships(self, user, taker, ship, count, round):
-        delete_query = "DELETE FROM user_fleet WHERE ship ilike %s AND round = %s AND user_id = %s"
+        delete_query = (
+            "DELETE FROM user_fleet WHERE ship ilike %s AND round = %s AND user_id = %s"
+        )
         self.cursor.execute(delete_query, (ship, round, user.id))
         log_query = "INSERT INTO fleet_log (taker_id,user_id,ship,ship_count,round)"
         log_query += " VALUES (%s,%s,%s,%s,%s)"

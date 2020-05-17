@@ -65,9 +65,11 @@ class quote(loadable.loadable):
             reply += "No quotes matching '%s'" % (params,)
         else:
             res = self.cursor.dictfetchone()
-            reply += "%s" % (res['quote'],)
+            reply += "%s" % (res["quote"],)
             if self.cursor.rowcount > 1 and params:
-                reply += " (%d more quotes match this search)" % (self.cursor.rowcount - 1)
+                reply += " (%d more quotes match this search)" % (
+                    self.cursor.rowcount - 1
+                )
 
         irc_msg.reply(reply)
 

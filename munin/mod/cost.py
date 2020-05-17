@@ -48,24 +48,28 @@ class cost(loadable.loadable):
 
         ship_number = m.group(1)
 
-        if ship_number[-1].lower() == 'k':
+        if ship_number[-1].lower() == "k":
             ship_number = 1000 * float(ship_number[:-1])
-        elif ship_number[-1].lower() == 'm':
+        elif ship_number[-1].lower() == "m":
             ship_number = 1000000 * float(ship_number[:-1])
         else:
             ship_number = float(ship_number)
         ship_number = int(ship_number)
         ship_name = m.group(2)
 
-        gov_name = ''
+        gov_name = ""
         prod_bonus = 1
         if m.group(3):
             lower_gov_name = m.group(3).lower()
             if lower_gov_name in "totalitarianism":
-                prod_bonus = 1 - float(self.config.get('Planetarion', 'totalitarianism_cost_reduction'))
+                prod_bonus = 1 - float(
+                    self.config.get("Planetarion", "totalitarianism_cost_reduction")
+                )
                 gov_name = "Totalitarianism"
             elif lower_gov_name in "democracy":
-                prod_bonus = 1 - float(self.config.get('Planetarion', 'democracy_cost_reduction'))
+                prod_bonus = 1 - float(
+                    self.config.get("Planetarion", "democracy_cost_reduction")
+                )
                 gov_name = "Democracy"
 
         if access < self.level:
@@ -77,19 +81,26 @@ class cost(loadable.loadable):
             irc_msg.reply("%s is not a ship" % (ship_name))
             return 0
 
-        metal = int(ship['metal'] * prod_bonus) * ship_number
-        crystal = int(ship['crystal'] * prod_bonus) * ship_number
-        eonium = int(ship['eonium'] * prod_bonus) * ship_number
+        metal = int(ship["metal"] * prod_bonus) * ship_number
+        crystal = int(ship["crystal"] * prod_bonus) * ship_number
+        eonium = int(ship["eonium"] * prod_bonus) * ship_number
         resource_value = (metal + crystal + eonium) / 150
-        ship_value = round((ship['total_cost'] * ship_number) / 100)
+        ship_value = round((ship["total_cost"] * ship_number) / 100)
         reply = "Buying %s %s will cost %s metal, %s crystal and %s eonium" % (
-            ship_number, ship['name'], metal, crystal, eonium)
+            ship_number,
+            ship["name"],
+            metal,
+            crystal,
+            eonium,
+        )
 
         if prod_bonus != 1:
             reply += " as %s" % (gov_name)
 
         reply += ". This gives %s ship value (%s increase)" % (
-            ship_value, round(ship_value - resource_value))
+            ship_value,
+            round(ship_value - resource_value),
+        )
 
         irc_msg.reply(reply)
 

@@ -31,6 +31,7 @@ import re
 from munin import loadable
 from datetime import datetime
 
+
 class cookie(loadable.loadable):
     """
     foo
@@ -41,7 +42,9 @@ class cookie(loadable.loadable):
         self.paramre = re.compile(r"^\s+((\d+)\s+)?(\S+)\s+(\S.+)")
         self.statre = re.compile(r"^\s+statu?s?")
         self.usage = self.__class__.__name__ + " [howmany] <receiver> <reason> | [stat]"
-        self.helptext = ["Cookies are used to give out carebears. Carebears are rewards for carefaces. Give cookies to people when you think they've done something beneficial for you or for the alliance in general."]
+        self.helptext = [
+            "Cookies are used to give out carebears. Carebears are rewards for carefaces. Give cookies to people when you think they've done something beneficial for you or for the alliance in general."
+        ]
 
     def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
@@ -87,17 +90,23 @@ class cookie(loadable.loadable):
 
         # rec=load_user
 
-        if receiver.lower() == self.config.get('Connection', 'nick').lower():
+        if receiver.lower() == self.config.get("Connection", "nick").lower():
             irc_msg.reply("Cookies? Pah! I only eat carrion.")
             return 1
 
         minimum_userlevel = 100
         rec = self.load_user_from_pnick(receiver, minimum_userlevel)
         if not rec:
-            irc_msg.reply("I don't know who '%s' is, so I can't very well give them any cookies can I?" % (receiver,))
+            irc_msg.reply(
+                "I don't know who '%s' is, so I can't very well give them any cookies can I?"
+                % (receiver,)
+            )
             return 1
         if u.pnick == rec.pnick:
-            irc_msg.reply("Fuck you, %s. You can't have your cookies and eat them, you selfish dicksuck." % (u.pnick,))
+            irc_msg.reply(
+                "Fuck you, %s. You can't have your cookies and eat them, you selfish dicksuck."
+                % (u.pnick,)
+            )
             return 1
 
         query = "UPDATE user_list SET carebears = carebears + %s WHERE id = %s"
@@ -106,12 +115,23 @@ class cookie(loadable.loadable):
         query = "UPDATE user_list SET available_cookies = available_cookies - %s WHERE id = %s"
         self.cursor.execute(query, (howmany, u.id))
         self.log_cookie(howmany, u, rec)
-        irc_msg.reply("%s said '%s' and gave %d %s to %s, who stuffed their face and now has %d carebears" %
-                      (u.pnick, reason, howmany, self.pluralize(howmany, "cookie"), rec.pnick, rec.carebears + howmany))
+        irc_msg.reply(
+            "%s said '%s' and gave %d %s to %s, who stuffed their face and now has %d carebears"
+            % (
+                u.pnick,
+                reason,
+                howmany,
+                self.pluralize(howmany, "cookie"),
+                rec.pnick,
+                rec.carebears + howmany,
+            )
+        )
         return 1
 
     def log_cookie(self, howmany, giver, receiver):
-        query = "INSERT INTO cookie_log (year_number,week_number,howmany,giver,receiver)"
+        query = (
+            "INSERT INTO cookie_log (year_number,week_number,howmany,giver,receiver)"
+        )
         query += " VALUES (%s,%s,%s,%s,%s)"
         iso_week = datetime.now().isocalendar()
         year = iso_week[0]
@@ -123,8 +143,10 @@ class cookie(loadable.loadable):
         available_cookies = u.check_available_cookies(self.cursor, self.config)
 
         if howmany > available_cookies:
-            reply = "Silly, %s. You currently only have %s cookies to give out, but are trying to give out %s cookies. I'll bake you some new cookies tomorrow morning." % (
-                u.pnick, u.available_cookies, howmany)
+            reply = (
+                "Silly, %s. You currently only have %s cookies to give out, but are trying to give out %s cookies. I'll bake you some new cookies tomorrow morning."
+                % (u.pnick, u.available_cookies, howmany)
+            )
             irc_msg.reply(reply)
             return False
         return True
@@ -132,5 +154,8 @@ class cookie(loadable.loadable):
     def show_status(self, irc_msg, u):
         available_cookies = u.check_available_cookies(self.cursor, self.config)
 
-        reply = "You have %d cookies left until next bakeday, %s" % (available_cookies, u.pnick)
+        reply = "You have %d cookies left until next bakeday, %s" % (
+            available_cookies,
+            u.pnick,
+        )
         irc_msg.reply(reply)

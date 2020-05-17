@@ -37,7 +37,8 @@ class galchan(loadable.loadable):
         self.paramre = re.compile(r"^\s+(#\S+)")
         self.usage = self.__class__.__name__ + " <chan> "
         self.helptext = [
-            "This command adds Munin to the designated channel as a galchannel. The access of commands is limited to 1 in that channel (so you don't accidentally do !intel or something 'important'. You must make sure to add Munin to the channel _before_ you perform this command. If you fuck up and add the wrong channel, fuck you because then an HC has to manually remove it for you."]
+            "This command adds Munin to the designated channel as a galchannel. The access of commands is limited to 1 in that channel (so you don't accidentally do !intel or something 'important'. You must make sure to add Munin to the channel _before_ you perform this command. If you fuck up and add the wrong channel, fuck you because then an HC has to manually remove it for you."
+        ]
 
     def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
@@ -60,12 +61,13 @@ class galchan(loadable.loadable):
         try:
             self.cursor.execute(query, (chan,))
             if self.cursor.rowcount > 0:
-                #irc_msg.reply("Added chan %s at level %s" % (chan,access_lvl))
+                # irc_msg.reply("Added chan %s at level %s" % (chan,access_lvl))
                 irc_msg.reply(
-                    "Added your galchannel as %s (if you didn't add me to the channel with at least access 24 first, I'm never going to bother joining)" %
-                    (chan,))
-                irc_msg.client.privmsg('P', "set %s autoinvite on" % (chan,))
-                irc_msg.client.privmsg('P', "invite %s" % (chan,))
+                    "Added your galchannel as %s (if you didn't add me to the channel with at least access 24 first, I'm never going to bother joining)"
+                    % (chan,)
+                )
+                irc_msg.client.privmsg("P", "set %s autoinvite on" % (chan,))
+                irc_msg.client.privmsg("P", "invite %s" % (chan,))
 
         except psycopg.IntegrityError:
             irc_msg.reply("Channel %s already exists" % (chan,))

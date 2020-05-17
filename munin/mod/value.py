@@ -35,7 +35,9 @@ class value(loadable.loadable):
         super(self.__class__, self).__init__(cursor, 1)
         self.paramre = re.compile(r"^\s+(\d+)[. :-](\d+)[. :-](\d+)\s+(\d+)")
         self.usage = self.__class__.__name__ + " <x:y:z> [tick]"
-        self.helptext = ["Show how the given planet's value changed in the last 15 ticks, or in the given tick"]
+        self.helptext = [
+            "Show how the given planet's value changed in the last 15 ticks, or in the given tick"
+        ]
 
     def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
@@ -58,7 +60,9 @@ class value(loadable.loadable):
                 irc_msg.reply("No planet matching '%s:%s:%s' found" % (x, y, z))
                 return 1
 
-            query = "SELECT t1.value,t1.value-t2.value AS vdiff,t1.size-t2.size AS sdiff"
+            query = (
+                "SELECT t1.value,t1.value-t2.value AS vdiff,t1.size-t2.size AS sdiff"
+            )
             query += " FROM planet_dump AS t1"
             query += " INNER JOIN planet_dump AS t2"
             query += " ON t1.id=t2.id AND t1.tick-1=t2.tick"
@@ -73,9 +77,16 @@ class value(loadable.loadable):
                 x = self.cursor.dictfetchone()
 
                 reply += "Value on pt%s for %s:%s:%s: " % (tick, p.x, p.y, p.z)
-                reply += "value: %s (%s%s) " % (x['value'], ["+", "-"][x['vdiff'] < 0], abs(x['vdiff']))
-                if x['sdiff'] != 0:
-                    reply += "roids: %s%s" % (["+", "-"][x['sdiff'] < 0], abs(x['sdiff']))
+                reply += "value: %s (%s%s) " % (
+                    x["value"],
+                    ["+", "-"][x["vdiff"] < 0],
+                    abs(x["vdiff"]),
+                )
+                if x["sdiff"] != 0:
+                    reply += "roids: %s%s" % (
+                        ["+", "-"][x["sdiff"] < 0],
+                        abs(x["sdiff"]),
+                    )
             irc_msg.reply(reply)
             return 1
 
@@ -110,15 +121,22 @@ class value(loadable.loadable):
 
                 reply += "Value in the last 15 ticks on %s:%s:%s: " % (p.x, p.y, p.z)
 
-                info = ["pt%s %s (%s%s)" %
-                           (x['tick'], self.format_value(x['value'] *
-                                                         100), ["+", "-"][x['vdiff'] < 0], self.format_value(abs(x['vdiff'] *
-                                                                                                                 100))) +
-                           [" roids:" +
-                            ["+", "-"][x['sdiff'] < 0] +
-                               str(abs(x['sdiff'])), ""][x['sdiff'] == 0] for x in results]
+                info = [
+                    "pt%s %s (%s%s)"
+                    % (
+                        x["tick"],
+                        self.format_value(x["value"] * 100),
+                        ["+", "-"][x["vdiff"] < 0],
+                        self.format_value(abs(x["vdiff"] * 100)),
+                    )
+                    + [
+                        " roids:" + ["+", "-"][x["sdiff"] < 0] + str(abs(x["sdiff"])),
+                        "",
+                    ][x["sdiff"] == 0]
+                    for x in results
+                ]
 
                 print(info)
-                reply += str.join(' | ', info)
+                reply += str.join(" | ", info)
             irc_msg.reply(reply)
         return 1

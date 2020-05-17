@@ -38,7 +38,9 @@ class orphans(loadable.loadable):
         super(self.__class__, self).__init__(cursor, 100)
         self.paramre = re.compile(r"^\s*")
         self.usage = self.__class__.__name__ + ""
-        self.helptext = ['Lists all members whose sponsors are no longer members. Use !adopt to someone\'s sponsor.']
+        self.helptext = [
+            "Lists all members whose sponsors are no longer members. Use !adopt to someone's sponsor."
+        ]
 
     def execute(self, user, access, irc_msg):
         m = self.commandre.search(irc_msg.command)
@@ -66,7 +68,7 @@ class orphans(loadable.loadable):
         else:
             reply = "The following members are orphans: "
             res = self.cursor.dictfetchall()
-            reply += ', '.join([x['pnick'] for x in res])
+            reply += ", ".join([x["pnick"] for x in res])
 
         irc_msg.reply(reply)
 

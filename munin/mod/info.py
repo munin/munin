@@ -34,8 +34,10 @@ class info(loadable.loadable):
     def __init__(self, cursor):
         super(self.__class__, self).__init__(cursor, 50)
         self.paramre = re.compile(r"^\s+(.+)")
-        self.usage = self.__class__.__name__ + \
-            " [alliance] (All information taken from intel, for tag information use the lookup command)"
+        self.usage = (
+            self.__class__.__name__
+            + " [alliance] (All information taken from intel, for tag information use the lookup command)"
+        )
 
     def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
@@ -54,44 +56,68 @@ class info(loadable.loadable):
 
         alliance = m.group(1)
         query = self.query_for_info()
-        args = (irc_msg.round, irc_msg.round, '%' + alliance + '%', '%' + alliance + '%')
+        args = (
+            irc_msg.round,
+            irc_msg.round,
+            "%" + alliance + "%",
+            "%" + alliance + "%",
+        )
         self.cursor.execute(query, args)
         reply = ""
         if self.cursor.rowcount < 1:
             reply = "Nothing in intel matches your search '%s'" % (alliance,)
         else:
             res = self.cursor.dictfetchone()
-            if res['members'] > 50:
+            if res["members"] > 50:
                 query = self.query_for_info_limit_50(irc_msg.round)
                 self.cursor.execute(query, args)
                 ts = self.cursor.dictfetchone()
-                reply += "%s Members: %s (%s)" % (alliance, res['members'], ts['members'])
-                reply += ", Value: %s (%s), Avg: %s (%s)" % (res['tot_value'],
-                                                             ts['tot_value'],
-                                                             res['tot_value'] / res['members'],
-                                                             ts['tot_value'] / ts['members'])
-                reply += ", Score: %s (%s), Avg: %s (%s)" % (res['tot_score'],
-                                                             ts['tot_score'],
-                                                             res['tot_score'] / res['members'],
-                                                             ts['tot_score'] / ts['members'])
-                reply += ", Size: %s (%s), Avg: %s (%s)" % (res['tot_size'],
-                                                            ts['tot_size'],
-                                                            res['tot_size'] / res['members'],
-                                                            ts['tot_size'] / ts['members'])
-                reply += ", XP: %s (%s), Avg: %s (%s)" % (res['tot_xp'],
-                                                          ts['tot_xp'],
-                                                          res['tot_xp'] / res['members'],
-                                                          ts['tot_xp'] / ts['members'])
+                reply += "%s Members: %s (%s)" % (
+                    alliance,
+                    res["members"],
+                    ts["members"],
+                )
+                reply += ", Value: %s (%s), Avg: %s (%s)" % (
+                    res["tot_value"],
+                    ts["tot_value"],
+                    res["tot_value"] / res["members"],
+                    ts["tot_value"] / ts["members"],
+                )
+                reply += ", Score: %s (%s), Avg: %s (%s)" % (
+                    res["tot_score"],
+                    ts["tot_score"],
+                    res["tot_score"] / res["members"],
+                    ts["tot_score"] / ts["members"],
+                )
+                reply += ", Size: %s (%s), Avg: %s (%s)" % (
+                    res["tot_size"],
+                    ts["tot_size"],
+                    res["tot_size"] / res["members"],
+                    ts["tot_size"] / ts["members"],
+                )
+                reply += ", XP: %s (%s), Avg: %s (%s)" % (
+                    res["tot_xp"],
+                    ts["tot_xp"],
+                    res["tot_xp"] / res["members"],
+                    ts["tot_xp"] / ts["members"],
+                )
             else:
-                reply += "%s Members: %s, Value: %s, Avg: %s," % (alliance,
-                                                                  res['members'],
-                                                                  res['tot_value'],
-                                                                  res['tot_value'] / res['members'])
-                reply += " Score: %s, Avg: %s," % (res['tot_score'], res['tot_score'] / res['members'])
-                reply += " Size: %s, Avg: %s, XP: %s, Avg: %s" % (res['tot_size'],
-                                                                  res['tot_size'] / res['members'],
-                                                                  res['tot_xp'],
-                                                                  res['tot_xp'] / res['members'])
+                reply += "%s Members: %s, Value: %s, Avg: %s," % (
+                    alliance,
+                    res["members"],
+                    res["tot_value"],
+                    res["tot_value"] / res["members"],
+                )
+                reply += " Score: %s, Avg: %s," % (
+                    res["tot_score"],
+                    res["tot_score"] / res["members"],
+                )
+                reply += " Size: %s, Avg: %s, XP: %s, Avg: %s" % (
+                    res["tot_size"],
+                    res["tot_size"] / res["members"],
+                    res["tot_xp"],
+                    res["tot_xp"] / res["members"],
+                )
         irc_msg.reply(reply)
 
         return 1

@@ -37,7 +37,7 @@ class searchdef(loadable.loadable):
     def __init__(self, cursor):
         super(self.__class__, self).__init__(cursor, 100)
         self.paramre = re.compile(r"^\s*(\d+(?:\.\d+)?[mk]?)\s+(\S+)")
-        self.ship_classes = ['fi', 'co', 'fr', 'de', 'cr', 'bs']
+        self.ship_classes = ["fi", "co", "fr", "de", "cr", "bs"]
         self.usage = self.__class__.__name__ + " <number> <ship>"
         self.helptext = None
 
@@ -61,7 +61,7 @@ class searchdef(loadable.loadable):
 
         count = self.human_readable_number_to_integer(count)
         if ship not in self.ship_classes:
-            ship_lookup = '%' + ship + '%'
+            ship_lookup = "%" + ship + "%"
         else:
             ship_lookup = ship
 
@@ -79,16 +79,25 @@ class searchdef(loadable.loadable):
 
         if self.cursor.rowcount < 1:
             irc_msg.reply(
-                "There are no planets with free fleets and at least %s ships matching '%s'" %
-                (self.format_real_value(count), ship))
+                "There are no planets with free fleets and at least %s ships matching '%s'"
+                % (self.format_real_value(count), ship)
+            )
             return
 
         reply = "Fleets matching query: "
-        reply += ", ".join(["%s(%s) %s: %s %s" % (x['pnick'],
-                                                               x['fleetupdated'] - self.current_tick(irc_msg.round),
-                                                               x['fleetcount'],
-                                                               self.format_real_value(x['ship_count']),
-                                                               x['ship']) for x in self.cursor.dictfetchall()])
+        reply += ", ".join(
+            [
+                "%s(%s) %s: %s %s"
+                % (
+                    x["pnick"],
+                    x["fleetupdated"] - self.current_tick(irc_msg.round),
+                    x["fleetcount"],
+                    self.format_real_value(x["ship_count"]),
+                    x["ship"],
+                )
+                for x in self.cursor.dictfetchall()
+            ]
+        )
 
         irc_msg.reply(reply)
 

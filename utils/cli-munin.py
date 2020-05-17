@@ -35,47 +35,47 @@ from munin.loader import Loader
 
 args = sys.argv
 
-command = ''
+command = ""
 flag = 0
 for p in args:
     if flag == 1:
         command = p
     elif flag != 0:
-        command = command + ' ' + p
+        command = command + " " + p
     flag = flag + 1
 
+
 class munin(object):
-    IRCU_ROUTER = 'munin.ircu_router'
+    IRCU_ROUTER = "munin.ircu_router"
 
     def __init__(self):
         config = configparser.ConfigParser()
-        if not config.read('muninrc'):
+        if not config.read("muninrc"):
             raise ValueError("Expected configuration in muninrc, not found.")
 
         self.loader = Loader()
-        self.loader.populate('munin')
+        self.loader.populate("munin")
         self.ircu_router = self.loader.get_module(self.IRCU_ROUTER)
 
         self.client = connection(config, command)
         self.client.connect()
         self.client.wline("NICK %s" % config.get("Connection", "nick"))
-        self.client.wline("USER %s 0 * : %s" % (config.get("Connection", "user"),
-                                                config.get("Connection", "name")))
+        self.client.wline(
+            "USER %s 0 * : %s"
+            % (config.get("Connection", "user"), config.get("Connection", "name"))
+        )
         self.config = config
         router = self.ircu_router.ircu_router(self.client, self.config, self.loader)
         router.run()
 
     def reboot(self):
         print("Rebooting Munin.")
-        self.config.read('muninrc')
-        self.loader.populate('munin')
+        self.config.read("muninrc")
+        self.loader.populate("munin")
         self.loader.refresh()
         self.ircu_router = self.loader.get_module(self.IRCU_ROUTER)
         router = self.ircu_router.ircu_router(self.client, self.config, self.loader)
         router.run()
-
-
-
 
 
 munin()

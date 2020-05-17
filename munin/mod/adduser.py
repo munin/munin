@@ -56,7 +56,9 @@ class adduser(loadable.loadable):
         access_lvl = int(m.group(2))
 
         if access_lvl >= access:
-            irc_msg.reply("You may not add a user with equal or higher access to your own")
+            irc_msg.reply(
+                "You may not add a user with equal or higher access to your own"
+            )
             return 0
 
         added = []
@@ -65,7 +67,11 @@ class adduser(loadable.loadable):
             if not pnick:
                 continue
             gimp = self.load_user_from_pnick(pnick, irc_msg.round)
-            if not gimp or gimp.pnick.lower() != pnick.lower() or gimp.userlevel < access_lvl:
+            if (
+                not gimp
+                or gimp.pnick.lower() != pnick.lower()
+                or gimp.userlevel < access_lvl
+            ):
                 if not gimp or gimp.pnick.lower() != pnick.lower():
                     query = "INSERT INTO user_list (userlevel,sponsor,pnick) VALUES (%s,%s,%s)"
                 elif gimp.userlevel < access_lvl:
@@ -75,10 +81,20 @@ class adduser(loadable.loadable):
             else:
                 exists.append(pnick)
         if len(added):
-            irc_msg.reply("Added users (%s) at level %s" % (",".join(added), access_lvl))
-            irc_msg.client.privmsg('P', "adduser #%s %s 399" % (self.config.get('Auth', 'home'), ",".join(added),))
+            irc_msg.reply(
+                "Added users (%s) at level %s" % (",".join(added), access_lvl)
+            )
+            irc_msg.client.privmsg(
+                "P",
+                "adduser #%s %s 399"
+                % (self.config.get("Auth", "home"), ",".join(added),),
+            )
             for nick in added:
-                irc_msg.client.privmsg('P', "modinfo #%s automode %s op" % (self.config.get('Auth', 'home'), nick,))
+                irc_msg.client.privmsg(
+                    "P",
+                    "modinfo #%s automode %s op"
+                    % (self.config.get("Auth", "home"), nick,),
+                )
         if len(exists):
             irc_msg.reply("Users (%s) already exist" % (",".join(exists),))
 

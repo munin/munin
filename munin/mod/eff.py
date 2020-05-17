@@ -56,14 +56,14 @@ class eff(loadable.loadable):
             user_target = "t1"
         elif user_target == "t2":
             target_number = "target_2"
-            efficiency = .7
+            efficiency = 0.7
         elif user_target == "t3":
             target_number = "target_3"
-            efficiency = .5
+            efficiency = 0.5
         # assign param variables
-        if ship_number[-1].lower() == 'k':
+        if ship_number[-1].lower() == "k":
             ship_number = 1000 * float(ship_number[:-1])
-        elif ship_number[-1].lower() == 'm':
+        elif ship_number[-1].lower() == "m":
             ship_number = 1000000 * float(ship_number[:-1])
         else:
             ship_number = float(ship_number)
@@ -77,69 +77,85 @@ class eff(loadable.loadable):
         if not ship:
             irc_msg.reply("%s is not a ship" % (ship_name))
             return 0
-        if ship['damage']:
-            total_damage = ship['damage'] * ship_number
+        if ship["damage"]:
+            total_damage = ship["damage"] * ship_number
 
-        if ship['target_1'] == 'Roids':
+        if ship["target_1"] == "Roids":
             killed = total_damage / 50
             irc_msg.reply(
-                "%s %s (%s) will capture Asteroid: %s (%s)" %
-                (ship_number,
-                 ship['name'],
-                    self.format_value(
-                     ship_number *
-                     ship['total_cost']),
+                "%s %s (%s) will capture Asteroid: %s (%s)"
+                % (
+                    ship_number,
+                    ship["name"],
+                    self.format_value(ship_number * ship["total_cost"]),
                     killed,
-                    self.format_value(
-                     killed *
-                     20000)))
-        elif ship['target_1'] == 'Struct':
+                    self.format_value(killed * 20000),
+                )
+            )
+        elif ship["target_1"] == "Struct":
             killed = total_damage / 500
             irc_msg.reply(
-                "%s %s (%s) will destroy Structure: %s (%s)" %
-                (ship_number,
-                 ship['name'],
-                    self.format_value(
-                     ship_number *
-                     ship['total_cost']),
+                "%s %s (%s) will destroy Structure: %s (%s)"
+                % (
+                    ship_number,
+                    ship["name"],
+                    self.format_value(ship_number * ship["total_cost"]),
                     killed,
-                    self.format_value(
-                     killed *
-                     150000)))
-        elif ship['target_1'] == 'Rs':
+                    self.format_value(killed * 150000),
+                )
+            )
+        elif ship["target_1"] == "Rs":
             killed = total_damage * 50
             irc_msg.reply(
-                "%s %s (%s) will loot Resources: %s (%s)" %
-                (ship_number,
-                 ship['name'],
-                    self.format_value(
-                     ship_number *
-                     ship['total_cost']),
+                "%s %s (%s) will loot Resources: %s (%s)"
+                % (
+                    ship_number,
+                    ship["name"],
+                    self.format_value(ship_number * ship["total_cost"]),
                     killed,
-                    self.format_value(killed)))
+                    self.format_value(killed),
+                )
+            )
         else:
             query = "SELECT * FROM ship WHERE class=%s AND round=%s ORDER BY id"
             self.cursor.execute(query, (ship[target_number], irc_msg.round,))
             targets = self.cursor.dictfetchall()
             if len(targets) == 0:
-                reply = "%s does not have any targets in that category (%s)" % (ship['name'], user_target)
+                reply = "%s does not have any targets in that category (%s)" % (
+                    ship["name"],
+                    user_target,
+                )
             else:
                 reply = "%s %s (%s) hitting %s will " % (
-                    ship_number, ship['name'], self.format_value(ship_number * ship['total_cost']), user_target)
-                if ship['type'].lower() == "norm" or ship['type'].lower() == 'cloak':
+                    ship_number,
+                    ship["name"],
+                    self.format_value(ship_number * ship["total_cost"]),
+                    user_target,
+                )
+                if ship["type"].lower() == "norm" or ship["type"].lower() == "cloak":
                     reply += "destroy "
-                elif ship['type'].lower() == "emp":
+                elif ship["type"].lower() == "emp":
                     reply += "hug "
-                elif ship['type'].lower() == "steal":
+                elif ship["type"].lower() == "steal":
                     reply += "steal "
                 else:
-                    raise Exception("Erroneous type %s" % (ship['type'],))
+                    raise Exception("Erroneous type %s" % (ship["type"],))
                 for t in targets:
-                    if ship['type'].lower() == "emp":
-                        killed = int(efficiency * ship['gun'] * ship_number * float(100 - t['empres']) / 100)
+                    if ship["type"].lower() == "emp":
+                        killed = int(
+                            efficiency
+                            * ship["gun"]
+                            * ship_number
+                            * float(100 - t["empres"])
+                            / 100
+                        )
                     else:
-                        killed = int(efficiency * total_damage / t['armor'])
-                    reply += "%s: %s (%s) " % (t['name'], killed, self.format_value(t['total_cost'] * killed))
+                        killed = int(efficiency * total_damage / t["armor"])
+                    reply += "%s: %s (%s) " % (
+                        t["name"],
+                        killed,
+                        self.format_value(t["total_cost"] * killed),
+                    )
             irc_msg.reply(reply.strip())
 
         return 1

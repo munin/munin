@@ -72,12 +72,9 @@ class status(loadable.loadable):
                 tick = curtick + when
             elif when and when < curtick:
                 irc_msg.reply(
-                    "Can not check status on the past. You wanted tick %s, but current tick is %s. (If you really need to know, poke %s.)" %
-                    (when,
-                     curtick,
-                     self.config.get(
-                         'Auth',
-                         'owner_nick')))
+                    "Can not check status on the past. You wanted tick %s, but current tick is %s. (If you really need to know, poke %s.)"
+                    % (when, curtick, self.config.get("Auth", "owner_nick"))
+                )
                 return 1
             elif when:
                 tick = when
@@ -94,9 +91,15 @@ class status(loadable.loadable):
                 args += (tick, irc_msg.round)
             else:
                 query += " t1.tick > (SELECT max_tick(%s::smallint)) AND t1.round = %s"
-                args += (irc_msg.round, irc_msg.round,)
+                args += (
+                    irc_msg.round,
+                    irc_msg.round,
+                )
             query += " AND t3.tick = (SELECT max_tick(%s::smallint)) AND t3.round = %s AND t3.x=%s AND t3.y=%s"
-            args += (irc_msg.round, irc_msg.round,)
+            args += (
+                irc_msg.round,
+                irc_msg.round,
+            )
 
             if z:
                 p = loadable.planet(x=x, y=y, z=z)
@@ -118,22 +121,26 @@ class status(loadable.loadable):
                 if when:
                     res = self.cursor.dictfetchall()
                     type = "nick"
-                    owner = res[0]['nick']
-                    if res[0]['pnick']:
-                        owner = res[0]['pnick']
+                    owner = res[0]["nick"]
+                    if res[0]["pnick"]:
+                        owner = res[0]["pnick"]
                         type = "user"
                     reply += " booked for landing pt %s (eta %s) by %s %s" % (
-                        res[0]['tick'], res[0]['tick'] - curtick, type, owner)
+                        res[0]["tick"],
+                        res[0]["tick"] - curtick,
+                        type,
+                        owner,
+                    )
 
                 else:
                     prev = []
                     for r in self.cursor.dictfetchall():
-                        owner = "nick:" + r['nick']
-                        if r['pnick']:
-                            owner = "user:" + r['pnick']
-                        prev.append("(%s %s)" % (r['tick'], owner))
+                        owner = "nick:" + r["nick"]
+                        if r["pnick"]:
+                            owner = "user:" + r["pnick"]
+                        prev.append("(%s %s)" % (r["tick"], owner))
 
-                    reply += " " + ', '.join(prev)
+                    reply += " " + ", ".join(prev)
                 irc_msg.reply(reply)
             else:
                 query += " ORDER BY y, z, x, tick"
@@ -148,23 +155,23 @@ class status(loadable.loadable):
                     return 1
                 ticks = {}
                 for r in self.cursor.dictfetchall():
-                    if r['tick'] not in ticks:
-                        ticks[r['tick']] = []
-                    ticks[r['tick']].append(r)
+                    if r["tick"] not in ticks:
+                        ticks[r["tick"]] = []
+                    ticks[r["tick"]].append(r)
 
                 reply = "Target information for %s:%s (by landing tick) -" % (x, y)
                 sorted_keys = sorted(ticks.keys())
                 for k in sorted_keys:
-                    reply = ' '.join([reply, "Tick %s (eta %s)" % (k, k - curtick)])
+                    reply = " ".join([reply, "Tick %s (eta %s)" % (k, k - curtick)])
                     booked_list = ticks[k]
                     prev = []
                     for p in booked_list:
-                        owner = "nick:" + p['nick']
-                        if p['pnick']:
-                            owner = "user:" + p['pnick']
-                        prev.append("(%s %s)" % (p['z'], owner))
+                        owner = "nick:" + p["nick"]
+                        if p["pnick"]:
+                            owner = "user:" + p["pnick"]
+                        prev.append("(%s %s)" % (p["z"], owner))
 
-                    reply += " " + ', '.join(prev)
+                    reply += " " + ", ".join(prev)
                     irc_msg.reply(reply.strip())
                     reply = ""
             return 1
@@ -182,12 +189,9 @@ class status(loadable.loadable):
                 tick = curtick + when
             elif when and when < curtick:
                 irc_msg.reply(
-                    "Can not check status on the past. You wanted tick %s, but current tick is %s. (If you really need to know, poke %s.)" %
-                    (when,
-                     curtick,
-                     self.config.get(
-                         'Auth',
-                         'owner_nick')))
+                    "Can not check status on the past. You wanted tick %s, but current tick is %s. (If you really need to know, poke %s.)"
+                    % (when, curtick, self.config.get("Auth", "owner_nick"))
+                )
                 return 1
             elif when:
                 tick = when
@@ -204,13 +208,24 @@ class status(loadable.loadable):
 
             if when:
                 query += " t1.tick = %s AND t1.round = %s"
-                args += (tick, irc_msg.round,)
+                args += (
+                    tick,
+                    irc_msg.round,
+                )
             else:
                 query += " t1.tick > (SELECT max_tick(%s::smallint)) AND t1.round = %s"
-                args += (irc_msg.round, irc_msg.round,)
+                args += (
+                    irc_msg.round,
+                    irc_msg.round,
+                )
             query += " AND t3.tick = (SELECT max_tick(%s::smallint)) AND t3.round = %s AND (t1.nick ILIKE %s OR t2.pnick ILIKE %s)"
-            args += (irc_msg.round, irc_msg.round,)
-            self.cursor.execute(query, args + ('%' + subject + '%', '%' + subject + '%'))
+            args += (
+                irc_msg.round,
+                irc_msg.round,
+            )
+            self.cursor.execute(
+                query, args + ("%" + subject + "%", "%" + subject + "%")
+            )
             if self.cursor.rowcount < 1:
                 reply = "No active bookings matching nick/user %s" % (subject)
                 irc_msg.reply(reply)
@@ -220,27 +235,33 @@ class status(loadable.loadable):
                 reply += " for landing on tick %s (eta %s):" % (tick, tick - curtick)
                 prev = []
                 for b in self.cursor.dictfetchall():
-                    tmp = "(%s:%s:%s as " % (b['x'], b['y'], b['z'])
-                    if b['pnick']:
-                        tmp += "user: %s" % (b['pnick'])
+                    tmp = "(%s:%s:%s as " % (b["x"], b["y"], b["z"])
+                    if b["pnick"]:
+                        tmp += "user: %s" % (b["pnick"])
                     else:
-                        tmp += "nick: %s" % (b['nick'])
+                        tmp += "nick: %s" % (b["nick"])
                     tmp += ")"
                     prev.append(tmp)
 
-                reply += " " + ', '.join(prev)
+                reply += " " + ", ".join(prev)
 
             else:
                 prev = []
                 for b in self.cursor.dictfetchall():
-                    tmp = "(%s:%s:%s landing pt%s/eta %s" % (b['x'], b['y'], b['z'], b['tick'], b['tick'] - curtick)
-                    if b['pnick']:
-                        tmp += " user:%s" % (b['pnick'])
+                    tmp = "(%s:%s:%s landing pt%s/eta %s" % (
+                        b["x"],
+                        b["y"],
+                        b["z"],
+                        b["tick"],
+                        b["tick"] - curtick,
+                    )
+                    if b["pnick"]:
+                        tmp += " user:%s" % (b["pnick"])
                     else:
-                        tmp += " nick:%s" % (b['nick'])
+                        tmp += " nick:%s" % (b["nick"])
                     tmp += ")"
                     prev.append(tmp)
-                reply += " " + ', '.join(prev)
+                reply += " " + ", ".join(prev)
             irc_msg.reply(reply)
 
         return 1
@@ -259,20 +280,29 @@ class status(loadable.loadable):
         query += " t1.tick > (SELECT max_tick(%s::smallint)) AND t1.round = %s"
         query += " AND t3.tick = (SELECT max_tick(%s::smallint)) AND t3.round = %s"
         query += " AND t2.pnick ILIKE %s"
-        self.cursor.execute(query, (irc_msg.round, irc_msg.round, irc_msg.round, irc_msg.round, irc_msg.user,))
+        self.cursor.execute(
+            query,
+            (irc_msg.round, irc_msg.round, irc_msg.round, irc_msg.round, irc_msg.user,),
+        )
         if self.cursor.rowcount < 1:
             reply = "No active bookings matching user %s" % (irc_msg.user,)
             irc_msg.reply(reply)
             return 1
         prev = []
         for b in self.cursor.dictfetchall():
-            tmp = "(%s:%s:%s landing pt%s/eta %s" % (b['x'], b['y'], b['z'], b['tick'], b['tick'] - curtick)
-            if b['pnick']:
-                tmp += " user:%s" % (b['pnick'])
+            tmp = "(%s:%s:%s landing pt%s/eta %s" % (
+                b["x"],
+                b["y"],
+                b["z"],
+                b["tick"],
+                b["tick"] - curtick,
+            )
+            if b["pnick"]:
+                tmp += " user:%s" % (b["pnick"])
             else:
-                tmp += " nick:%s" % (b['nick'])
+                tmp += " nick:%s" % (b["nick"])
             tmp += ")"
             prev.append(tmp)
-        reply += " " + ', '.join(prev)
+        reply += " " + ", ".join(prev)
         irc_msg.reply(reply)
         return 0

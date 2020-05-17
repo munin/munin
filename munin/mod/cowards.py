@@ -31,8 +31,8 @@ class cowards(loadable.loadable):
     def __init__(self, cursor):
         super(self.__class__, self).__init__(cursor, 1)
         self.paramre = re.compile(r"^\s*(.+)")
-        self.usage = self.__class__.__name__ + ' <alliance>'
-        self.helptext = ['Lists the currently active relations for the given alliance']
+        self.usage = self.__class__.__name__ + " <alliance>"
+        self.helptext = ["Lists the currently active relations for the given alliance"]
 
     def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
@@ -63,44 +63,48 @@ class cowards(loadable.loadable):
         self.cursor.execute(query, (a.id, a.id, irc_msg.round))
 
         if self.cursor.rowcount == 0:
-            reply = '%s is neutral. Easy targets!' % (a.name)
+            reply = "%s is neutral. Easy targets!" % (a.name)
         else:
             alliances = []
             naps = []
             wars = []
             for row in self.cursor.dictfetchall():
-                if row['type'] == 'Ally':
-                    if a.name == row['initiator']:
-                        alliances.append(row['acceptor'])
+                if row["type"] == "Ally":
+                    if a.name == row["initiator"]:
+                        alliances.append(row["acceptor"])
                     else:
-                        alliances.append(row['initiator'])
-                elif row['type'] == 'NAP':
-                    if a.name == row['initiator']:
-                        naps.append(row['acceptor'])
+                        alliances.append(row["initiator"])
+                elif row["type"] == "NAP":
+                    if a.name == row["initiator"]:
+                        naps.append(row["acceptor"])
                     else:
-                        naps.append(row['initiator'])
-                elif row['type'] == 'War':
-                    if a.name == row['initiator']:
-                        wars.append("%s (until pt%d)" % (row['acceptor'], row['end_tick']))
+                        naps.append(row["initiator"])
+                elif row["type"] == "War":
+                    if a.name == row["initiator"]:
+                        wars.append(
+                            "%s (until pt%d)" % (row["acceptor"], row["end_tick"])
+                        )
                     else:
-                        wars.append("%s (until pt%d)" % (row['initiator'], row['end_tick']))
+                        wars.append(
+                            "%s (until pt%d)" % (row["initiator"], row["end_tick"])
+                        )
 
             # <alliance> is allied with: X, Y, Z | <alliance> has a NAP with A, B, C | <alliance> is at war with: H
             # <alliance> is not allied with anyone | <alliance> does not have any NAPs | <alliance> is not at war with anyone
             reply = a.name
             if len(alliances) == 0:
-                reply += ' is not allied with anyone'
+                reply += " is not allied with anyone"
             else:
-                reply += ' is allied with ' + ', '.join(alliances)
-            reply += ' | ' + a.name
+                reply += " is allied with " + ", ".join(alliances)
+            reply += " | " + a.name
             if len(naps) == 0:
-                reply += ' does not have any NAPs'
+                reply += " does not have any NAPs"
             else:
-                reply += ' has NAPs with ' + ', '.join(naps)
-            reply += ' | ' + a.name
+                reply += " has NAPs with " + ", ".join(naps)
+            reply += " | " + a.name
             if len(wars) == 0:
-                reply += ' is not at war with anyone'
+                reply += " is not at war with anyone"
             else:
-                reply += ' is at war with ' + ', '.join(wars)
+                reply += " is at war with " + ", ".join(wars)
         irc_msg.reply(reply)
         return 1

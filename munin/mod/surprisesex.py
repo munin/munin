@@ -56,13 +56,21 @@ class surprisesex(loadable.loadable):
         if not m or not m.group(1):
             u = loadable.user(pnick=irc_msg.user)
             if not u.load_from_db(self.cursor, irc_msg.round):
-                irc_msg.reply("Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
+                irc_msg.reply(
+                    "Usage: %s (you must be registered for automatic lookup)"
+                    % (self.usage,)
+                )
                 return 1
             if u.planet:
-                reply = self.surprise(round=irc_msg.round, x=u.planet.x, y=u.planet.y, z=u.planet.z)
+                reply = self.surprise(
+                    round=irc_msg.round, x=u.planet.x, y=u.planet.y, z=u.planet.z
+                )
                 irc_msg.reply(reply)
             else:
-                irc_msg.reply("Usage: %s (you must be registered for automatic lookup)" % (self.usage,))
+                irc_msg.reply(
+                    "Usage: %s (you must be registered for automatic lookup)"
+                    % (self.usage,)
+                )
             return 0
 
         # assign param variables
@@ -107,7 +115,10 @@ class surprisesex(loadable.loadable):
             return text.upper()
 
     def surprise(self, round, x=None, y=None, z=None, alliance=None):
-        args = (round, round,)
+        args = (
+            round,
+            round,
+        )
         query = "SELECT COALESCE(lower(t7.name),'unknown') AS alliance,count(COALESCE(lower(t7.name),'unknown')) AS attacks "
         query += " FROM planet_canon AS t1"
         query += " INNER JOIN fleet AS t3 ON t1.id=t3.owner_id"
@@ -128,7 +139,7 @@ class surprisesex(loadable.loadable):
 
         if alliance:
             query += " AND t6.name ilike %s"
-            args += ('%' + alliance + '%',)
+            args += ("%" + alliance + "%",)
 
         query += " GROUP BY lower(t7.name)"
         query += " ORDER BY count(lower(t7.name)) DESC"
@@ -151,7 +162,7 @@ class surprisesex(loadable.loadable):
                 reply += ":%s" % (z,)
             if alliance:
                 reply += " alliance %s" % (alliance,)
-            reply += " are (total: %s) " % (sum([d['attacks'] for d in attackers]),)
+            reply += " are (total: %s) " % (sum([d["attacks"] for d in attackers]),)
             i = 0
             prev = []
             for a in attackers:
@@ -159,8 +170,10 @@ class surprisesex(loadable.loadable):
                     break
                 else:
                     i += 1
-                prev.append("%s - %s" % (self.cap(a['alliance'] or 'unknown'), a['attacks']))
+                prev.append(
+                    "%s - %s" % (self.cap(a["alliance"] or "unknown"), a["attacks"])
+                )
 
-            reply += ' | '.join(prev)
+            reply += " | ".join(prev)
 
         return reply

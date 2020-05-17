@@ -60,7 +60,7 @@ class apenis(loadable.loadable):
                 irc_msg.reply(reply)
                 return 1
         elif u.load_from_db(self.cursor, irc_msg.round) and u.userlevel >= 100:
-            a = loadable.alliance(name=self.config.get('Auth', 'alliance'))
+            a = loadable.alliance(name=self.config.get("Auth", "alliance"))
             if not a.load_most_recent(self.cursor, irc_msg.round):
                 reply = "No alliances match %s" % (search,)
                 irc_msg.reply(reply)
@@ -74,7 +74,9 @@ class apenis(loadable.loadable):
             else:
                 a = loadable.alliance(name=i.alliance)
         else:
-            reply = "Make sure you've set your planet with !pref and alliance with !intel"
+            reply = (
+                "Make sure you've set your planet with !pref and alliance with !intel"
+            )
             irc_msg.reply(reply)
             return 1
 
@@ -117,9 +119,17 @@ class apenis(loadable.loadable):
         if not res:
             reply = "No apenis stats matching %s" % (a.name,)
         else:
-            person = res['name']
-            reply = "apenis for %s is %s score long. This makes %s rank: %s apenis. The average peon is sporting a %s score epenis." % (
-                person, res['activity'], person, res['activity_rank'], int(res['activity'] / res['members']))
+            person = res["name"]
+            reply = (
+                "apenis for %s is %s score long. This makes %s rank: %s apenis. The average peon is sporting a %s score epenis."
+                % (
+                    person,
+                    res["activity"],
+                    person,
+                    res["activity_rank"],
+                    int(res["activity"] / res["members"]),
+                )
+            )
 
         irc_msg.reply(reply)
 

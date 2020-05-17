@@ -54,7 +54,7 @@ class addquote(loadable.loadable):
 
         query = "INSERT INTO quote (quote) VALUES (%s)"
         self.cursor.execute(query, args)
-        #reply="Added your shitty quote"
+        # reply="Added your shitty quote"
         # irc_msg.reply(reply)
 
         irc_msg.reply("Added your shitty quote: " + params)
@@ -66,6 +66,6 @@ class addquote(loadable.loadable):
         """
         strip timestamps from s
         """
-        s = self.timestampre.sub(' ', s)
+        s = self.timestampre.sub(" ", s)
         s = s.strip()
         return s

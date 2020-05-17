@@ -52,8 +52,12 @@ class epenis(loadable.loadable):
         if m:
             search = m.group(2) or search
 
-        for q in ["DROP TABLE epenis", "DROP SEQUENCE xp_gain_rank",
-                  "DROP SEQUENCE value_diff_rank", "DROP SEQUENCE activity_rank"]:
+        for q in [
+            "DROP TABLE epenis",
+            "DROP SEQUENCE xp_gain_rank",
+            "DROP SEQUENCE value_diff_rank",
+            "DROP SEQUENCE activity_rank",
+        ]:
             try:
                 self.cursor.execute(q)
             except Exception:
@@ -71,8 +75,12 @@ class epenis(loadable.loadable):
         query += "              FROM (SELECT i.nick, u.pnick, p0.xp-p72.xp AS xp_gain, p0.score-p72.score AS activity, p0.value-p72.value AS value_diff"
         query += "                    FROM       planet_dump     AS p0"
         query += "                    LEFT JOIN  intel           AS i   ON p0.id=i.pid"
-        query += "                    LEFT JOIN  round_user_pref AS r   ON p0.id=r.planet_id"
-        query += "                    LEFT JOIN  user_list       AS u   ON u.id=r.user_id"
+        query += (
+            "                    LEFT JOIN  round_user_pref AS r   ON p0.id=r.planet_id"
+        )
+        query += (
+            "                    LEFT JOIN  user_list       AS u   ON u.id=r.user_id"
+        )
         query += "                    INNER JOIN planet_dump     AS p72 ON p0.id=p72.id AND p0.tick - 72 = p72.tick"
         query += "                    WHERE p0.tick = (SELECT max_tick(%s::smallint)) AND p0.round = %s"
         query += "                    ORDER BY xp_gain DESC) AS t6"
@@ -91,15 +99,17 @@ class epenis(loadable.loadable):
             query += " FROM epenis"
             query += " WHERE nick ILIKE %s"
 
-            self.cursor.execute(query, ('%' + search + '%',))
+            self.cursor.execute(query, ("%" + search + "%",))
 
         res = self.cursor.dictfetchone()
         if not res:
             reply = "No epenis stats matching %s" % (search,)
         else:
-            person = res['pnick'] or res['nick']
-            reply = "epenis for %s is %s score long. This makes %s rank: %s for epenis in THE UNIVERSE!" % (
-                person, res['activity'], person, res['activity_rank'])
+            person = res["pnick"] or res["nick"]
+            reply = (
+                "epenis for %s is %s score long. This makes %s rank: %s for epenis in THE UNIVERSE!"
+                % (person, res["activity"], person, res["activity_rank"])
+            )
 
         irc_msg.reply(reply)
 

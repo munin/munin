@@ -54,7 +54,7 @@ class search(loadable.loadable):
             return 0
 
         # do stuff here
-        args = (irc_msg.round, irc_msg.round, '%' + params + '%', '%' + params + '%')
+        args = (irc_msg.round, irc_msg.round, "%" + params + "%", "%" + params + "%")
         query = "SELECT t1.x AS x,t1.y AS y,t1.z AS z,t1.size AS size,t1.score AS score,t1.value AS value,t1.race AS race,t4.name AS alliance,t2.nick AS nick,t2.reportchan AS reportchan,t2.comment AS comment"
         query += " FROM planet_dump AS t1 INNER JOIN planet_canon AS t3 ON t1.id=t3.id"
         query += " INNER JOIN intel AS t2 ON t3.id=t2.pid"
@@ -69,16 +69,20 @@ class search(loadable.loadable):
             irc_msg.reply(reply)
             return 1
         for p in planets:
-            reply = "%s:%s:%s (%s)" % (p['x'], p['y'], p['z'], p['race'])
-            reply += " Score: %s Value: %s Size: %s" % (p['score'], p['value'], p['size'])
-            if p['nick']:
-                reply += " Nick: %s" % (p['nick'],)
-            if p['alliance']:
-                reply += " Alliance: %s" % (p['alliance'],)
-            if p['reportchan']:
-                reply += " Reportchan: %s" % (p['reportchan'],)
-            if p['comment']:
-                reply += " Comment: %s" % (p['comment'],)
+            reply = "%s:%s:%s (%s)" % (p["x"], p["y"], p["z"], p["race"])
+            reply += " Score: %s Value: %s Size: %s" % (
+                p["score"],
+                p["value"],
+                p["size"],
+            )
+            if p["nick"]:
+                reply += " Nick: %s" % (p["nick"],)
+            if p["alliance"]:
+                reply += " Alliance: %s" % (p["alliance"],)
+            if p["reportchan"]:
+                reply += " Reportchan: %s" % (p["reportchan"],)
+            if p["comment"]:
+                reply += " Comment: %s" % (p["comment"],)
             i += 1
             if i > 4 and len(planets) > 4:
                 reply += " (Too many results to list, please refine your search)"
@@ -91,7 +95,7 @@ class search(loadable.loadable):
     def split_opts(self, params):
         param_dict = {}
         active_opt = None
-        for s in params.split('='):
+        for s in params.split("="):
             if active_opt:
                 m = self.optionsre[active_opt].search(s)
                 if m:

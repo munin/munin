@@ -67,13 +67,23 @@ class showdef(loadable.loadable):
 
         if self.cursor.rowcount < 1:
             irc_msg.reply(
-                "%s is either a lazy pile of shit that hasn't entered any ships for def, or a popular whore who's already turned their tricks." %
-                (u.pnick,))
+                "%s is either a lazy pile of shit that hasn't entered any ships for def, or a popular whore who's already turned their tricks."
+                % (u.pnick,)
+            )
             return
 
         reply = "%s def info: %s fleets, updated pt%s (%s), ships: " % (
-            u.pnick, u.fleetcount, u.fleetupdated, u.fleetupdated - self.current_tick(irc_msg.round))
-        reply += ", ".join(["%s %s" % (self.format_real_value(x['ship_count']), x['ship']) for x in ships])
+            u.pnick,
+            u.fleetcount,
+            u.fleetupdated,
+            u.fleetupdated - self.current_tick(irc_msg.round),
+        )
+        reply += ", ".join(
+            [
+                "%s %s" % (self.format_real_value(x["ship_count"]), x["ship"])
+                for x in ships
+            ]
+        )
         reply += " comment: %s" % (u.fleetcomment,)
         irc_msg.reply(reply)
         return 1

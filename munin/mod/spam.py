@@ -54,7 +54,11 @@ class spam(loadable.loadable):
         params = m.group(1)
 
         # do stuff here
-        args = (irc_msg.round, irc_msg.round, '%' + params + '%',)
+        args = (
+            irc_msg.round,
+            irc_msg.round,
+            "%" + params + "%",
+        )
         query = "SELECT t1.x AS x,t1.y AS y,t1.z AS z,t1.size AS size,t1.score AS score,t1.value AS value,t1.race AS race,t6.name AS alliance,t2.nick AS nick,t2.reportchan AS reportchan,t2.comment AS comment"
         query += " FROM planet_dump AS t1 INNER JOIN planet_canon AS t3 ON t1.id=t3.id"
         query += " INNER JOIN intel AS t2 ON t3.id=t2.pid"
@@ -68,13 +72,13 @@ class spam(loadable.loadable):
             irc_msg.reply(reply)
             return 1
 
-        printable = ["%s:%s:%s" % (d['x'], d['y'], d['z']) for d in planets]
+        printable = ["%s:%s:%s" % (d["x"], d["y"], d["z"]) for d in planets]
         print(printable)
-        reply = "Spam on alliance %s - " % (planets[0]['alliance'])
+        reply = "Spam on alliance %s - " % (planets[0]["alliance"])
         while printable:
             batch = printable[:10]
             printable = printable[10:]
-            reply += str.join(' | ', batch)
+            reply += str.join(" | ", batch)
             irc_msg.reply(reply)
             reply = ""
 

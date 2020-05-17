@@ -39,13 +39,15 @@ class cunts(loadable.loadable):
         self.rangere = re.compile(r"^(<|>)?(\d+)$")
         self.bashre = re.compile(r"^(bash)$", re.I)
         self.clusterre = re.compile(r"^c(\d+)$", re.I)
-        self.usage = self.__class__.__name__ + \
-            " [alliance] [race] [<|>][size] [<|>][value] [bash]" + " (must include at least one search criteria, order doesn't matter)"
+        self.usage = (
+            self.__class__.__name__
+            + " [alliance] [race] [<|>][size] [<|>][value] [bash]"
+            + " (must include at least one search criteria, order doesn't matter)"
+        )
         self.helptext = [
-            "Lists planets currently attacking %s planets (as per intel). Sorts by size. This command is a bit spammy and will probably highlight people, so please do it in private or with a private command prefix." %
-            self.config.get(
-                "Auth",
-                "alliance")]
+            "Lists planets currently attacking %s planets (as per intel). Sorts by size. This command is a bit spammy and will probably highlight people, so please do it in private or with a private command prefix."
+            % self.config.get("Auth", "alliance")
+        ]
 
     def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
@@ -89,12 +91,12 @@ class cunts(loadable.loadable):
                 continue
             m = self.rangere.search(p)
             if m and not size and int(m.group(2)) < 32768:
-                size_mod = m.group(1) or '>'
+                size_mod = m.group(1) or ">"
                 size = m.group(2)
                 continue
             m = self.rangere.search(p)
             if m and not value:
-                value_mod = m.group(1) or '<'
+                value_mod = m.group(1) or "<"
                 value = m.group(2)
                 continue
             m = self.alliancere.search(p)
@@ -105,32 +107,46 @@ class cunts(loadable.loadable):
         if bash:
             if not user:
                 irc_msg.reply(
-                    "You must be registered to use the " +
-                    self.__class__.__name__ +
-                    " command's bash option (log in with P and set mode +x)")
+                    "You must be registered to use the "
+                    + self.__class__.__name__
+                    + " command's bash option (log in with P and set mode +x)"
+                )
                 return 1
             u = loadable.user(pnick=irc_msg.user)
             if not u.load_from_db(self.cursor, irc_msg.round):
                 irc_msg.reply(
-                    "Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))" %
-                    (self.usage,))
+                    "Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))"
+                    % (self.usage,)
+                )
                 return 1
             if u.planet_id:
                 attacker = u.planet
             else:
                 irc_msg.reply(
-                    "Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))" %
-                    (self.usage,))
+                    "Usage: %s (you must set your planet in preferences to use the bash option (!pref planet=x:y:z))"
+                    % (self.usage,)
+                )
                 return 1
 
-        victims = self.cunts(irc_msg.round, alliance, race, size_mod, size, value_mod, value, attacker, bash, cluster)
+        victims = self.cunts(
+            irc_msg.round,
+            alliance,
+            race,
+            size_mod,
+            size,
+            value_mod,
+            value,
+            attacker,
+            bash,
+            cluster,
+        )
 
         i = 0
         if not len(victims):
             reply = "No"
             if race:
                 reply += " %s" % (race,)
-            reply += " planets attacking %s" % self.config.get('Auth', 'alliance')
+            reply += " planets attacking %s" % self.config.get("Auth", "alliance")
             if alliance:
                 reply += " in intel matching Alliance: %s" % (alliance,)
             else:
@@ -143,21 +159,24 @@ class cunts(loadable.loadable):
                 reply += " Cluster %s" % (cluster,)
             irc_msg.reply(reply)
         for v in victims:
-            reply = "%s:%s:%s (%s)" % (v['x'], v['y'], v['z'], v['race'])
-            reply += " Value: %s Size: %s" % (v['value'], v['size'])
-            if v['nick']:
-                reply += " Nick: %s" % (v['nick'],)
-            if not alliance and v['alliance']:
-                reply += " Alliance: %s" % (v['alliance'],)
-            targs = self.attacking(v['pid'], irc_msg.round)
+            reply = "%s:%s:%s (%s)" % (v["x"], v["y"], v["z"], v["race"])
+            reply += " Value: %s Size: %s" % (v["value"], v["size"])
+            if v["nick"]:
+                reply += " Nick: %s" % (v["nick"],)
+            if not alliance and v["alliance"]:
+                reply += " Alliance: %s" % (v["alliance"],)
+            targs = self.attacking(v["pid"], irc_msg.round)
             if targs:
                 reply += " Hitting: "
                 a = []
                 for t in targs:
                     if t:
-                        a.append((t['nick'] or 'Unknown') + " (%s, lands: %s)" % (t['fleet_size'], t['landing_tick']))
+                        a.append(
+                            (t["nick"] or "Unknown")
+                            + " (%s, lands: %s)" % (t["fleet_size"], t["landing_tick"])
+                        )
 
-                reply += ', '.join(a)
+                reply += ", ".join(a)
             i += 1
             if i > 4 and len(victims) > 4:
                 reply += " (Too many victims to list, please refine your search)"
@@ -168,21 +187,24 @@ class cunts(loadable.loadable):
         return 1
 
     def cunts(
-            self,
-            round,
-            alliance=None,
-            race=None,
-            size_mod='>',
-            size=None,
-            value_mod='<',
-            value=None,
-            attacker=None,
-            bash=None,
-            cluster=None):
+        self,
+        round,
+        alliance=None,
+        race=None,
+        size_mod=">",
+        size=None,
+        value_mod="<",
+        value=None,
+        attacker=None,
+        bash=None,
+        cluster=None,
+    ):
         args = ()
 
         query = "SELECT DISTINCT p.id AS pid,p.x AS x,p.y AS y,p.z AS z,"
-        query += "               p.size AS size,p.size_rank AS size_rank,p.value AS value,"
+        query += (
+            "               p.size AS size,p.size_rank AS size_rank,p.value AS value,"
+        )
         query += "               p.value_rank AS value_rank,p.race AS race,"
         query += "               a.name AS alliance,i.nick AS nick"
         query += " FROM       planet_dump    AS p"
@@ -195,12 +217,19 @@ class cunts(loadable.loadable):
         query += " AND f.mission ilike 'attack'"
         query += " AND f.target IN ("
         query += "                  SELECT t5.pid FROM intel AS t5 "
-        query += "                  LEFT JOIN alliance_canon AS t7 ON t5.alliance_id=t7.id"
+        query += (
+            "                  LEFT JOIN alliance_canon AS t7 ON t5.alliance_id=t7.id"
+        )
         query += "                  WHERE t7.name ILIKE %s)"
-        args += (round, round, round, self.config.get('Auth', 'alliance'),)
+        args += (
+            round,
+            round,
+            round,
+            self.config.get("Auth", "alliance"),
+        )
         if alliance:
             query += " AND a.name ILIKE %s"
-            args += ('%' + alliance + '%',)
+            args += ("%" + alliance + "%",)
         if race:
             query += " AND race ILIKE %s"
             args += (race,)
@@ -212,7 +241,7 @@ class cunts(loadable.loadable):
             args += (value,)
         if bash:
             query += " AND (value > %s OR score > %s)"
-            args += (attacker.value * .4, attacker.score * .6)
+            args += (attacker.value * 0.4, attacker.score * 0.6)
         if cluster:
             query += " AND x = %s::smallint"
             args += (cluster,)

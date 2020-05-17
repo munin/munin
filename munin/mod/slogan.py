@@ -65,9 +65,11 @@ class slogan(loadable.loadable):
             reply += "No slogans matching '%s'" % (params,)
         else:
             res = self.cursor.dictfetchone()
-            reply += "%s" % (res['slogan'],)
+            reply += "%s" % (res["slogan"],)
             if self.cursor.rowcount > 1 and params:
-                reply += " (%d more slogans match this search)" % (self.cursor.rowcount - 1)
+                reply += " (%d more slogans match this search)" % (
+                    self.cursor.rowcount - 1
+                )
 
         irc_msg.reply(reply)
 

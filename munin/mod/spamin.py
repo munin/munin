@@ -87,17 +87,22 @@ class spamin(loadable.loadable):
                 skipped += ("%s:%s:%s" % (p.x, p.y, p.z),)
 
         if len(skipped) > 0:
-            irc_msg.reply("The following coords do not exist, try again: %s" % (", ".join(skipped)))
+            irc_msg.reply(
+                "The following coords do not exist, try again: %s"
+                % (", ".join(skipped))
+            )
             return 0
 
         # Interleave alliance ID with the current round number and planet IDs:
         # pid1, aid, round, pid2, aid, round, etc.
         aids = (a.id,) * len(pids)
-        rounds= (irc_msg.round,) * len(pids)
-        values = tuple(val for pair in zip(pids, aids,rounds) for val in pair)
+        rounds = (irc_msg.round,) * len(pids)
+        values = tuple(val for pair in zip(pids, aids, rounds) for val in pair)
 
         # Make a query with 'len(pids)' value lists.
-        query = "INSERT INTO intel (pid, alliance_id, round) VALUES %s" % (" , ".join(("(%s, %s, %s)",) * len(pids)))
+        query = "INSERT INTO intel (pid, alliance_id, round) VALUES %s" % (
+            " , ".join(("(%s, %s, %s)",) * len(pids))
+        )
         query += " ON CONFLICT (pid) DO"
         query += " UPDATE SET alliance_id = EXCLUDED.alliance_id"
         self.cursor.execute(query, values)

@@ -76,10 +76,29 @@ class planet(loadable.loadable):
                 reply += "No planet scans available on %s:%s:%s" % (p.x, p.y, p.z)
             else:
                 s = self.cursor.dictfetchone()
-                reply += "Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (p.x, p.y, p.z, s['rand_id'], s['tick'])
-                reply += " Roids: (m:%s, c:%s, e:%s) | Resources: (m:%s, c:%s, e:%s)" % (
-                    s['roid_metal'], s['roid_crystal'], s['roid_eonium'], s['res_metal'], s['res_crystal'], s['res_eonium'])
-                reply += " | Hidden: %s | Agents: %s | Guards: %s" % (s['prod_res'], s['agents'], s['guards'])
+                reply += "Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (
+                    p.x,
+                    p.y,
+                    p.z,
+                    s["rand_id"],
+                    s["tick"],
+                )
+                reply += (
+                    " Roids: (m:%s, c:%s, e:%s) | Resources: (m:%s, c:%s, e:%s)"
+                    % (
+                        s["roid_metal"],
+                        s["roid_crystal"],
+                        s["roid_eonium"],
+                        s["res_metal"],
+                        s["res_crystal"],
+                        s["res_eonium"],
+                    )
+                )
+                reply += " | Hidden: %s | Agents: %s | Guards: %s" % (
+                    s["prod_res"],
+                    s["agents"],
+                    s["guards"],
+                )
                 i = 0
                 reply += " | Older scans: "
                 prev = []
@@ -87,8 +106,8 @@ class planet(loadable.loadable):
                     i += 1
                     if i > 4:
                         break
-                    prev.append("(%s,pt%s)" % (s['rand_id'], s['tick']))
-                reply += ', '.join(prev)
+                    prev.append("(%s,pt%s)" % (s["rand_id"], s["tick"]))
+                reply += ", ".join(prev)
 
         else:
             m = self.idre.search(params)
@@ -110,10 +129,28 @@ class planet(loadable.loadable):
             else:
                 s = self.cursor.dictfetchone()
                 reply += "Newest planet scan on %s:%s:%s (id: %s, pt: %s)" % (
-                    s['x'], s['y'], s['z'], s['rand_id'], s['tick'])
-                reply += " Roids: (m:%s, c:%s, e:%s) | Resources: (m:%s, c:%s, e:%s)" % (
-                    s['roid_metal'], s['roid_crystal'], s['roid_eonium'], s['res_metal'], s['res_crystal'], s['res_eonium'])
-                reply += " | Hidden: %s | Agents: %s | Guards: %s" % (s['prod_res'], s['agents'], s['guards'])
+                    s["x"],
+                    s["y"],
+                    s["z"],
+                    s["rand_id"],
+                    s["tick"],
+                )
+                reply += (
+                    " Roids: (m:%s, c:%s, e:%s) | Resources: (m:%s, c:%s, e:%s)"
+                    % (
+                        s["roid_metal"],
+                        s["roid_crystal"],
+                        s["roid_eonium"],
+                        s["res_metal"],
+                        s["res_crystal"],
+                        s["res_eonium"],
+                    )
+                )
+                reply += " | Hidden: %s | Agents: %s | Guards: %s" % (
+                    s["prod_res"],
+                    s["agents"],
+                    s["guards"],
+                )
 
         irc_msg.reply(reply)
         return 1

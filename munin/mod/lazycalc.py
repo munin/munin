@@ -24,6 +24,11 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright
 # owners.
 
+# Workaround incompatability between old robobrowser and new werkzeug
+import werkzeug
+
+werkzeug.cached_property = werkzeug.utils.cached_property
+
 import re
 import munin.loadable as loadable
 from robobrowser import RoboBrowser

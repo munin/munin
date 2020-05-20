@@ -793,7 +793,7 @@ class user(object):
             if ancestor.pnick.lower() == possible_ancestor.lower():
                 return True
             else:
-                return ancestor.has_ancestor(cursor, possible_ancestor)
+                return ancestor.has_ancestor(cursor, possible_ancestor, round)
         return False
 
 

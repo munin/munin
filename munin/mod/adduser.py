@@ -31,8 +31,10 @@ from munin import loadable
 class adduser(loadable.loadable):
     def __init__(self, cursor):
         super(self.__class__, self).__init__(cursor, 1000)
-        self.paramre = re.compile(r"^\s+(\S+)\s+(\d+)")
-        self.usage = self.__class__.__name__ + " <pnick>[,<pnick2>[...]] <level>"
+        self.paramre = re.compile(r"^\s+(\S+)\s+(\d+)(\s+(\S+))")
+        self.usage = (
+            self.__class__.__name__ + " <pnick>[,<pnick2>[...]] <level> [sponsor]"
+        )
 
     def execute(self, user, access, irc_msg):
         m = irc_msg.match_command(self.commandre)
@@ -55,6 +57,17 @@ class adduser(loadable.loadable):
         pnicks = m.group(1).lower()
         access_lvl = int(m.group(2))
 
+        if m.group(4):
+            sponsor_user = self.load_user_from_pnick(m.group(4), irc_msg.round)
+            if not sponsor_user or sponsor_user.userlevel < 100:
+                irc_msg.reply(
+                    f"Nice try wiseass, but you can't pass the buck on to {m.group(4)}"
+                )
+                return 0
+            sponsor = sponsor_user.pnick
+        else:
+            sponsor = u.pnick
+
         if access_lvl >= access:
             irc_msg.reply(
                 "You may not add a user with equal or higher access to your own"
@@ -76,7 +89,7 @@ class adduser(loadable.loadable):
                     query = "INSERT INTO user_list (userlevel,sponsor,pnick) VALUES (%s,%s,%s)"
                 elif gimp.userlevel < access_lvl:
                     query = "UPDATE user_list SET userlevel = %s, sponsor=%s WHERE pnick ilike %s"
-                self.cursor.execute(query, (access_lvl, u.pnick, pnick))
+                self.cursor.execute(query, (access_lvl, sponsor, pnick))
                 added.append(pnick)
             else:
                 exists.append(pnick)

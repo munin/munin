@@ -36,8 +36,10 @@ class alias(loadable.loadable):
 
     def __init__(self, cursor):
         super(self.__class__, self).__init__(cursor, 1)
-        self.paramre = re.compile(r"^\s*(\S{2,15})?")
-        self.usage = self.__class__.__name__ + " <alias> (at most 15 characters)"
+        self.paramre = re.compile(r"^\s*(\S{2,15})?(\s+(\S{2,15}))?")
+        self.usage = (
+            self.__class__.__name__ + " <alias> [pnick] (at most 15 characters)"
+        )
         self.helptext = [
             "Set an alias that maps to your pnick, useful if you have a different nick than your pnick and people use autocomplete."
         ]
@@ -63,9 +65,34 @@ class alias(loadable.loadable):
         alias = m.group(1)
         if not alias:
             irc_msg.reply("You are %s, your alias is %s" % (u.pnick, u.alias_nick))
+        elif m.group(3):
+            self.update_other_alias(u, alias, irc_msg, m.group(3))
         else:
-            self.update_alias(u, alias, irc_msg)
+            self.update_own_alias(u, alias, irc_msg)
         return 1
+
+    def update_other_alias(self, u, alias, irc_msg, other_pnick):
+        if irc_msg.access < 1000:
+            irc_msg.reply("You do not have enough access to set other people's alias")
+        query = "SELECT pnick FROM user_list WHERE pnick ilike %s"
+        self.cursor.execute(query, (alias,))
+        if self.cursor.rowcount > 0:
+            irc_msg.reply(
+                "That alias is already in use or is someone else's pnick (not allowed). Tough noogies."
+            )
+            return
+        try:
+            query = "UPDATE user_list SET alias_nick = %s WHERE pnick ilike %s"
+            self.cursor.execute(query, (alias, other_pnick))
+            if self.cursor.rowcount > 0:
+                irc_msg.reply("Update alias for %s to %s" % (other_pnick, alias))
+            else:
+                irc_msg.reply("If you see this message you are a winner. Fuck you.")
+        except BaseException:
+            irc_msg.reply(
+                "That alias is already in use or is someone else's pnick (not allowed). Tough noogies."
+            )
+        pass
 
     def update_alias(self, u, alias, irc_msg):
         query = "SELECT pnick FROM user_list WHERE pnick ilike %s"

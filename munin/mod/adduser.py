@@ -31,7 +31,7 @@ from munin import loadable
 class adduser(loadable.loadable):
     def __init__(self, cursor):
         super(self.__class__, self).__init__(cursor, 1000)
-        self.paramre = re.compile(r"^\s+(\S+)\s+(\d+)(\s+(\S+))")
+        self.paramre = re.compile(r"^\s+(\S+)\s+(\d+)(\s+(\S+))?")
         self.usage = (
             self.__class__.__name__ + " <pnick>[,<pnick2>[...]] <level> [sponsor]"
         )
@@ -51,7 +51,7 @@ class adduser(loadable.loadable):
 
         m = self.paramre.search(m.group(1))
         if not m:
-            irc_msg.reply("Usage: adduser <pnick>[,<pnick2>[...]] <level>")
+            irc_msg.reply(self.usage)
             return 0
 
         pnicks = m.group(1).lower()

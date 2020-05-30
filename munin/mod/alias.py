@@ -74,6 +74,7 @@ class alias(loadable.loadable):
     def update_other_alias(self, u, alias, irc_msg, other_pnick):
         if irc_msg.access < 1000:
             irc_msg.reply("You do not have enough access to set other people's alias")
+            return
         query = "SELECT pnick FROM user_list WHERE pnick ilike %s"
         self.cursor.execute(query, (alias,))
         if self.cursor.rowcount > 0:

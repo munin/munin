@@ -95,7 +95,7 @@ class alias(loadable.loadable):
             )
         pass
 
-    def update_alias(self, u, alias, irc_msg):
+    def update_own_alias(self, u, alias, irc_msg):
         query = "SELECT pnick FROM user_list WHERE pnick ilike %s"
         self.cursor.execute(query, (alias,))
         if self.cursor.rowcount > 0:

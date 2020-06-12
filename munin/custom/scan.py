@@ -36,7 +36,7 @@ class scan(threading.Thread):
         self.client = client
         self.config = config
         self.connection = self.create_conn()
-        self.cursor = self.connection.cursor()
+        self.cursor = self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
         self.nick = nick
         self.pnick = pnick
         self.group_id = group_id
@@ -58,7 +58,7 @@ class scan(threading.Thread):
             dsn += " host=%s" % self.config.get("Database", "host")
 
         conn = psycopg2.connect(dsn)
-        conn.autocommit(1)
+        conn.autocommit = True
         return conn
 
     def run(self):

@@ -801,7 +801,7 @@ class prop(loadable.loadable):
         return outcome
 
     def do_kick(self, irc_msg, prop, yes, no):
-        idiot = self.load_user_from_pnick(prop["person"])
+        idiot = self.load_user_from_pnick(prop["person"], irc_msg.round)
         home = self.config.get("Auth", "home")
         query = "UPDATE user_list SET userlevel = 1 WHERE id = %s"
         self.cursor.execute(query, (idiot.id,))
@@ -832,7 +832,7 @@ class prop(loadable.loadable):
         irc_msg.client.privmsg("#%s" % (home), reply)
 
     def do_invite(self, irc_msg, prop):
-        gimp = self.load_user_from_pnick(prop["person"])
+        gimp = self.load_user_from_pnick(prop["person"], irc_msg.round)
         home = self.config.get("Auth", "home")
         if not gimp or gimp.pnick.lower() != prop["person"].lower():
             query = "INSERT INTO user_list (userlevel,sponsor,pnick) VALUES (100,%s,%s)"

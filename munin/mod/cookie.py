@@ -64,8 +64,6 @@ class cookie(loadable.loadable):
         m = self.paramre.search(m.group(1))
 
         if not (m or s):
-            print(s)
-            print(m)
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         if s:
@@ -95,8 +93,8 @@ class cookie(loadable.loadable):
             return 1
 
         minimum_userlevel = 100
-        rec = self.load_user_from_pnick(receiver, minimum_userlevel)
-        if not rec:
+        rec = self.load_user_from_pnick(receiver, irc_msg.round, minimum_userlevel=minimum_userlevel)
+        if not rec or rec.userlevel < minimum_userlevel:
             irc_msg.reply(
                 "I don't know who '%s' is, so I can't very well give them any cookies can I?"
                 % (receiver,)

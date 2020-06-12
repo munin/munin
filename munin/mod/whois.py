@@ -65,35 +65,25 @@ class whois(loadable.loadable):
             irc_msg.reply("I am Munin. Hear me roar.")
             return 1
 
-        query = "SELECT pnick,alias_nick,sponsor,invites,carebears"
-        query += " FROM user_list"
-        query += " WHERE pnick ilike %s"
-        query += " AND userlevel >= 100"
-
-        self.cursor.execute(query, (search,))
+        minimum_userlevel=100
+        r = self.load_user_from_pnick(search, irc_msg.round, minimum_userlevel=minimum_userlevel)
 
         reply = ""
-        if self.cursor.rowcount < 1:
-            self.cursor.execute(query, ("%" + search + "%",))
 
-        r = self.cursor.fetchone()
-
-        if not r:
+        if not r or r.userlevel < minimum_userlevel:
             reply += "No members matching '%s'" % (search,)
         else:
-            u = loadable.user(pnick=r["pnick"])
-            u.load_from_db(self.cursor, irc_msg.round)
-            if r["pnick"] == irc_msg.user:
+            if r.pnick == irc_msg.user:
                 reply += "You are %s. You are also known as %s. Your sponsor is %s. Your Munin number is %s. You have %d %s."
             else:
                 reply += "Information about %s: They are also known as %s. Their sponsor is %s. Their Munin number is %s. They have %d %s."
             reply = reply % (
-                r["pnick"],
-                r["alias_nick"],
-                r["sponsor"],
-                self.munin_number_to_output(u, irc_msg.round),
-                r["carebears"],
-                self.pluralize(r["carebears"], "carebear"),
+                r.pnick,
+                r.alias_nick,
+                r.sponsor,
+                self.munin_number_to_output(r, irc_msg.round),
+                r.carebears,
+                self.pluralize(r.carebears, "carebear"),
             )
 
         irc_msg.reply(reply)

@@ -678,7 +678,7 @@ class scan(threading.Thread):
                 print("Caught exception in jgp: " + e.__str__())
                 traceback.print_exc()
                 print("Trying to update instead")
-                query = "UPDATE fleet SET scan_id=%s WHERE round=%s owner_id=%s AND target=%s AND fleet_size=%s AND fleet_name=%s AND landing_tick=%s AND mission=%s"
+                query = "UPDATE fleet SET scan_id=%s WHERE round=%s AND owner_id=%s AND target=%s AND fleet_size=%s AND fleet_name=%s AND landing_tick=%s AND mission=%s"
                 try:
                     self.cursor.execute(
                         query,

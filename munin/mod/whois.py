@@ -65,8 +65,10 @@ class whois(loadable.loadable):
             irc_msg.reply("I am Munin. Hear me roar.")
             return 1
 
-        minimum_userlevel=100
-        r = self.load_user_from_pnick(search, irc_msg.round, minimum_userlevel=minimum_userlevel)
+        minimum_userlevel = 100
+        r = self.load_user_from_pnick(
+            search, irc_msg.round, minimum_userlevel=minimum_userlevel
+        )
 
         reply = ""
 

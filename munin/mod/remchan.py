@@ -70,19 +70,15 @@ class remchan(loadable.loadable):
 
         query = "DELETE FROM channel_list WHERE chan=%s"
 
-        try:
-            self.cursor.execute(query, (real_chan,))
-            if self.cursor.rowcount > 0:
-                irc_msg.client.privmsg(
-                    "P",
-                    "remuser %s %s"
-                    % (real_chan, self.config.get("Connection", "nick")),
-                )
-                irc_msg.client.wline("PART %s" % (real_chan,))
-                irc_msg.reply("Removed channel %s" % (real_chan,))
-            else:
-                irc_msg.reply("No channel removed")
-        except BaseException:
-            raise
+        self.cursor.execute(query, (real_chan,))
+        if self.cursor.rowcount > 0:
+            irc_msg.client.privmsg(
+                "P",
+                "remuser %s %s" % (real_chan, self.config.get("Connection", "nick")),
+            )
+            irc_msg.client.wline("PART %s" % (real_chan,))
+            irc_msg.reply("Removed channel %s" % (real_chan,))
+        else:
+            irc_msg.reply("No channel removed")
 
         return 1

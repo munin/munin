@@ -74,7 +74,5 @@ class addchan(loadable.loadable):
         except psycopg2.IntegrityError:
             irc_msg.reply("Channel %s already exists" % (chan,))
             return 0
-        except BaseException:
-            raise
 
         return 1

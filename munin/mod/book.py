@@ -188,8 +188,6 @@ class book(loadable.loadable):
                     "Target %s:%s:%s is already booked for landing tick %s by nick %s"
                     % (p.x, p.y, p.z, book["tick"], book["nick"])
                 )
-        except BaseException:
-            raise
 
         irc_msg.reply(reply)
 

@@ -71,7 +71,5 @@ class galmate(loadable.loadable):
         except psycopg2.IntegrityError:
             irc_msg.reply("User %s already exists" % (pnick,))
             return 0
-        except BaseException:
-            raise
 
         return 1

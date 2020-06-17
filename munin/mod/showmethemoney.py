@@ -41,9 +41,6 @@ class showmethemoney(loadable.loadable):
         self.helptext = None
 
     def execute(self, user, access, irc_msg):
-        m = self.commandre.search(irc_msg.command)
-        if not m:
-            return 0
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")

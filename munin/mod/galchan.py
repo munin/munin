@@ -34,22 +34,19 @@ from munin import loadable
 class galchan(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 100)
-        self.paramre = re.compile(r"^\s+(#\S+)")
+        self.paramre = re.compile(r"^\s*(#\S+)")
         self.usage = self.__class__.__name__ + " <chan> "
         self.helptext = [
             "This command adds Munin to the designated channel as a galchannel. The access of commands is limited to 1 in that channel (so you don't accidentally do !intel or something 'important'. You must make sure to add Munin to the channel _before_ you perform this command. If you fuck up and add the wrong channel, fuck you because then an HC has to manually remove it for you."
         ]
 
     def execute(self, user, access, irc_msg):
-        m = irc_msg.match_command(self.commandre)
-        if not m:
-            return 0
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to add galchannels")
             return 0
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0

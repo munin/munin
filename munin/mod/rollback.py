@@ -30,7 +30,7 @@ from munin import loadable
 class rollback(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1000)
-        self.paramre = re.compile(r"^\s+([1-9][0-9]*)")
+        self.paramre = re.compile(r"^\s*([1-9][0-9]*)")
         self.selectre = re.compile(r"^SELECT [^ ]+ FROM")
         self.usage = self.__class__.__name__ + " <tick>"
         self.helptext = [
@@ -62,11 +62,8 @@ class rollback(loadable.loadable):
         return 1
 
     def execute(self, user, access, irc_msg):
-        m = irc_msg.match_command(self.commandre)
-        if not m:
-            return 0
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0

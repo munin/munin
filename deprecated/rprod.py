@@ -12,7 +12,7 @@ class rprod(loadable.loadable):
 
     def __init__(self, cursor):
         super().__init__(cursor, 1)
-        self.paramre = re.compile(r"^\s+(\S+)\s+(\d+)\s+(\d+)")
+        self.paramre = re.compile(r"^\s*(\S+)\s+(\d+)\s+(\d+)")
         self.usage = self.__class__.__name__ + " <ship> <ticks> <factories>."
 
         self.helptext = [

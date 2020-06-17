@@ -31,7 +31,7 @@ class sponsor(loadable.loadable):
     def __init__(self, client, conn, cursor):
         loadable.loadable.__init__(self, client, conn, cursor, 1000)
         self.commandre = re.compile(r"^" + self.__class__.__name__ + "(.*)")
-        self.paramre = re.compile(r"^\s+(\S+)(\s+(.*))")
+        self.paramre = re.compile(r"^\s*(\S+)(\s+(.*))")
         self.usage = self.__class__.__name__ + " <pnick> <comments>"
         self.helptext = [
             "This command is used to sponsor a new recruit. When you sponsor someone, you suggest them for recuitment to the alliance and state that you will make sure they're at home and don't fuck up. Once you've sponsored someone you must ensure that there are absolutely no objections or I'm going to beat you up.",
@@ -62,7 +62,7 @@ class sponsor(loadable.loadable):
             )
             return 1
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             self.client.reply(prefix, nick, target, "Usage: %s" % (self.usage,))
             return 1

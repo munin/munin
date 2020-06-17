@@ -33,16 +33,13 @@ from munin import loadable
 class value(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1)
-        self.paramre = re.compile(r"^\s+(\d+)[. :-](\d+)[. :-](\d+)\s+(\d+)")
+        self.paramre = re.compile(r"^\s*(\d+)[. :-](\d+)[. :-](\d+)\s+(\d+)")
         self.usage = self.__class__.__name__ + " <x:y:z> [tick]"
         self.helptext = [
             "Show how the given planet's value changed in the last 15 ticks, or in the given tick"
         ]
 
     def execute(self, user, access, irc_msg):
-        m = irc_msg.match_command(self.commandre)
-        if not m:
-            return 0
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")

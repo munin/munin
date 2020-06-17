@@ -51,9 +51,6 @@ class mydef(loadable.loadable):
         ]
 
     def execute(self, user, access, irc_msg):
-        m = self.commandre.search(irc_msg.command)
-        if not m:
-            return 0
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
@@ -61,7 +58,7 @@ class mydef(loadable.loadable):
         u = self.load_user(user, irc_msg)
         if not u:
             return
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0

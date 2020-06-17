@@ -27,7 +27,7 @@ Loadable.Loadable subclass
 class hostile(loadable.loadable):
     def __init__(self, client, conn, cursor):
         loadable.loadable.__init__(self, client, conn, cursor, 1000)
-        self.paramre = re.compile(r"^\s+(.*)")
+        self.paramre = re.compile(r"^\s*(.*)")
         self.usage = self.__class__.__name__ + " <x:y:z>"
 
     def execute(self, nick, username, host, target, prefix, command, user, access):
@@ -35,7 +35,7 @@ class hostile(loadable.loadable):
         if not m:
             return 0
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             self.client.reply(prefix, nick, target, "Usage: %s" % (self.usage,))
             return 0

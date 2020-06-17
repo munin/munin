@@ -32,7 +32,7 @@ class invite(loadable.loadable):
         loadable.loadable.__init__(self, client, conn, cursor, 1000)
         self.max_invites = 5
         self.commandre = re.compile(r"^" + self.__class__.__name__ + "(.*)")
-        self.paramre = re.compile(r"^\s+(\S+)")
+        self.paramre = re.compile(r"^\s*(\S+)")
         self.usage = self.__class__.__name__ + " <gimp>"
         self.helptext = [
             "This command adds a recruit to the private channel and gives them access to me. Since this is done automatically, make sure P is online and responding before you do this. You should also make sure that you correctly typed the person's pnick when you sponsored them."
@@ -73,7 +73,7 @@ class invite(loadable.loadable):
             )
             return 1
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
 
         if not m:
             self.client.reply(prefix, nick, target, "Usage: %s" % (self.usage,))

@@ -31,7 +31,7 @@ class range(loadable.loadable):
     def __init__(self, client, conn, cursor):
         loadable.loadable.__init__(self, client, conn, cursor, 50)
         self.commandre = re.compile(r"^" + self.__class__.__name__ + "(.*)")
-        self.paramre = re.compile(r"^\s+(.*)")
+        self.paramre = re.compile(r"^\s*(.*)")
         self.idre = re.compile(r"(\d{1,9})")
         self.usage = self.__class__.__name__ + ""
         self.helptext = None
@@ -50,7 +50,7 @@ class range(loadable.loadable):
             )
             return 0
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             self.client.reply(prefix, nick, target, "Usage: %s" % (self.usage,))
             return 0

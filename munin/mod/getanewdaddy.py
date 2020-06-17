@@ -39,7 +39,7 @@ class getanewdaddy(loadable.loadable):
 
     def __init__(self, cursor):
         super().__init__(cursor, 100)
-        self.paramre = re.compile(r"^\s+(\S+)")
+        self.paramre = re.compile(r"^\s*(\S+)")
         self.usage = self.__class__.__name__ + " <pnick>"
         self.helptext = [
             'This command is used when you no longer wish to be sponsor for a person. Their access to #%s will be removed and their Munin access will be lowered to "galmate" level.'
@@ -48,15 +48,12 @@ class getanewdaddy(loadable.loadable):
         ]
 
     def execute(self, user, access, irc_msg):
-        m = irc_msg.match_command(self.commandre)
-        if not m:
-            return 0
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0

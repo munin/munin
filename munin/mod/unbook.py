@@ -39,11 +39,8 @@ class unbook(loadable.loadable):
         self.usage = self.__class__.__name__ + " <x:y:z> [<eta>|<landing tick>] [yes]"
 
     def execute(self, user, access, irc_msg):
-        m = irc_msg.match_command(self.commandre)
-        if not m:
-            return 0
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0

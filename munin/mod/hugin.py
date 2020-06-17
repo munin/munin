@@ -56,11 +56,8 @@ class hugin(loadable.loadable):
             irc_msg.reply("Hugin is already home resting")
 
     def execute(self, user, access, irc_msg):
-        m = self.commandre.search(irc_msg.command)
-        if not m:
-            return 0
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0

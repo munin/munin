@@ -44,12 +44,7 @@ class prod(loadable.loadable):
         return ticks
 
     def execute(self, user, access, irc_msg):
-
-        match = irc_msg.match_command(self.commandre)
-        if not match:
-            return 0
-
-        match = self.paramre.search(match.group(1))
+        match = self.paramre.search(irc_msg.command_parameters)
 
         if not match:
             irc_msg.reply(

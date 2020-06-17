@@ -31,7 +31,7 @@ class handout(loadable.loadable):
     def __init__(self, client, conn, cursor):
         loadable.loadable.__init__(self, client, conn, cursor, 500)
         self.commandre = re.compile(r"^" + self.__class__.__name__ + "(.*)")
-        self.paramre = re.compile(r"^\s+(\d+)(\s+(\S+))?")
+        self.paramre = re.compile(r"^\s*(\d+)(\s+(\S+))?")
         self.usage = self.__class__.__name__ + ""
 
     def execute(self, nick, username, host, target, prefix, command, user, access):
@@ -48,7 +48,7 @@ class handout(loadable.loadable):
             )
             return 0
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             self.client.reply(prefix, nick, target, "Usage: %s" % (self.usage,))
             return 0

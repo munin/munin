@@ -33,15 +33,12 @@ from munin import loadable
 class slogan(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1)
-        self.paramre = re.compile(r"^\s+(.*)$")
+        self.paramre = re.compile(r"^\s*(.*)$")
         self.usage = self.__class__.__name__ + ""
 
     def execute(self, user, access, irc_msg):
-        m = irc_msg.match_command(self.commandre)
-        if not m:
-            return 0
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
         params = None
         if m:
             params = m.group(1)

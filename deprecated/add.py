@@ -32,7 +32,7 @@ class add(loadable.loadable):
     def __init__(self, client, conn, cursor):
         loadable.loadable.__init__(self, client, conn, cursor, 100)
         self.commandre = re.compile(r"^" + self.__class__.__name__ + "(\s+.*)")
-        self.paramre = re.compile(r"^\s+(\d+)[. :-](\d+)[. :-](\d+)\s+(\S+)(\s+(\S+))?")
+        self.paramre = re.compile(r"^\s*(\d+)[. :-](\d+)[. :-](\d+)\s+(\S+)(\s+(\S+))?")
         self.usage = self.__class__.__name__ + " <x:y:z> <alliance> [nick]"
 
     def execute(self, nick, username, host, target, prefix, command, user, access):
@@ -49,7 +49,7 @@ class add(loadable.loadable):
             )
             return 0
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             self.client.reply(prefix, nick, target, "Usage: %s" % (self.usage,))
             return 0

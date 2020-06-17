@@ -44,15 +44,12 @@ class gac(loadable.loadable):
         ]
 
     def execute(self, user, access, irc_msg):
-        m = self.commandre.search(irc_msg.command)
-        if not m:
-            return 0
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0

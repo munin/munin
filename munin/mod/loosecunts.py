@@ -39,16 +39,13 @@ class loosecunts(loadable.loadable):
         self.usage = self.__class__.__name__ + ""
 
     def execute(self, user, access, irc_msg):
-        m = irc_msg.match_command(self.commandre)
-        if not m:
-            return 0
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         search = irc_msg.user_or_nick()
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
 
         if m:
             search = m.group(2) or search

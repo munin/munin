@@ -34,7 +34,7 @@ class votestatus(loadable.loadable):
     def __init__(self, client, conn, cursor):
         loadable.loadable.__init__(self, client, conn, cursor, 100)
         self.commandre = re.compile(r"^" + self.__class__.__name__ + "(.*)")
-        self.paramre = re.compile(r"^\s+(\S+)")
+        self.paramre = re.compile(r"^\s*(\S+)")
         self.usage = self.__class__.__name__ + "[<nick>]"
         self.helptext = [
             "This command either shows the list of nicks currently being voted to be kicked from the alliance or, if given a nick, it will show the people currently voting for that nick to be kicked (ie a list of cunts)"
@@ -56,7 +56,7 @@ class votestatus(loadable.loadable):
 
         # assign param variables
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
 
         # do stuff here
         if m:

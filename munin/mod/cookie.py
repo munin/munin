@@ -39,7 +39,7 @@ class cookie(loadable.loadable):
 
     def __init__(self, cursor):
         super().__init__(cursor, 100)
-        self.paramre = re.compile(r"^\s+((\d+)\s+)?(\S+)\s+(\S.+)")
+        self.paramre = re.compile(r"^\s*((\d+)\s+)?(\S+)\s+(\S.+)")
         self.statre = re.compile(r"^\s+statu?s?")
         self.usage = self.__class__.__name__ + " [howmany] <receiver> <reason> | [stat]"
         self.helptext = [
@@ -47,9 +47,6 @@ class cookie(loadable.loadable):
         ]
 
     def execute(self, user, access, irc_msg):
-        m = irc_msg.match_command(self.commandre)
-        if not m:
-            return 0
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
@@ -61,7 +58,7 @@ class cookie(loadable.loadable):
 
         s = self.statre.search(m.group(1))
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
 
         if not (m or s):
             irc_msg.reply("Usage: %s" % (self.usage,))

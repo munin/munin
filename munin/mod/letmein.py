@@ -37,7 +37,7 @@ class letmein(loadable.loadable):
 
     def __init__(self, cursor):
         super().__init__(cursor, 0)
-        self.paramre = re.compile(r"^\s+(\S+)\s+(\S+)")
+        self.paramre = re.compile(r"^\s*(\S+)\s+(\S+)")
         self.usage = self.__class__.__name__ + " <pnick> <password>"
         self.helptext = [
             "Give your pnick and password in PM to get invited into #%s. This command is for when P is down."
@@ -45,15 +45,12 @@ class letmein(loadable.loadable):
         ]
 
     def execute(self, user, access, irc_msg):
-        m = irc_msg.match_command(self.commandre)
-        if not m:
-            return 0
 
         public = re.match(r"(#\S+)", irc_msg.target, re.I)
         if public:
             irc_msg.reply("Don't use this command in public you shit")
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0

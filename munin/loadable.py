@@ -35,7 +35,6 @@ class loadable(object):
         self.coordre = re.compile(r"(\d+)[. :-](\d+)([. :-](\d+))?")
         self.planet_coordre = re.compile(r"(\d+)[. :-](\d+)[. :-](\d+)")
         self.idre = re.compile(r"([0-9A-z]+)")
-        self.commandre = re.compile(r"^[A-z0-9]+(\s*.*)", re.I)
         self.helptext = None
         self.config = configparser.ConfigParser()
         if not self.config.read("muninrc"):
@@ -717,18 +716,18 @@ class user(object):
             return None
         u = cursor.fetchone()
         if self.pnick and not u:
-                partial_nick = "%" + self.pnick + "%"
+            partial_nick = "%" + self.pnick + "%"
+            query = self.lookup_query()
+            query += " pnick ILIKE %s OR alias_nick ILIKE %s AND userlevel >= %s"
+            query += " ORDER BY userlevel DESC"
+            cursor.execute(query, (partial_nick, partial_nick, self.userlevel,))
+            u = cursor.fetchone()
+            if not u:
                 query = self.lookup_query()
-                query += " pnick ILIKE %s OR alias_nick ILIKE %s AND userlevel >= %s"
+                query += " pnick ILIKE %s OR alias_nick ILIKE %s"
                 query += " ORDER BY userlevel DESC"
-                cursor.execute(query, (partial_nick, partial_nick, self.userlevel,))
+                cursor.execute(query, (partial_nick, partial_nick,))
                 u = cursor.fetchone()
-                if not u:
-                    query = self.lookup_query()
-                    query += " pnick ILIKE %s OR alias_nick ILIKE %s"
-                    query += " ORDER BY userlevel DESC"
-                    cursor.execute(query, (partial_nick, partial_nick,))
-                    u = cursor.fetchone()
         if u:
             self.id = u["id"]
             self.pnick = u["pnick"]

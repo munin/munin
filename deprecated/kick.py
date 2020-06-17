@@ -34,7 +34,7 @@ class kick(loadable.loadable):
     def __init__(self, client, conn, cursor):
         loadable.loadable.__init__(self, client, conn, cursor, 1000)
         self.commandre = re.compile(r"^" + self.__class__.__name__ + "(.*)")
-        self.paramre = re.compile(r"^\s+(\S+)")
+        self.paramre = re.compile(r"^\s*(\S+)")
         self.usage = self.__class__.__name__ + " <pnick>"
         self.helptext = [
             "This command is used to vote someone out of the alliance. Your vote is logged and everyone can see what a cunt you are."
@@ -54,7 +54,7 @@ class kick(loadable.loadable):
             )
             return 0
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             self.client.reply(prefix, nick, target, "Usage: %s" % (self.usage,))
             return 0

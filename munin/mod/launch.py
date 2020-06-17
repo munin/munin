@@ -35,7 +35,7 @@ from munin import loadable
 class launch(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1)
-        self.paramre = re.compile(r"^\s+(\S+|\d+)\s+(\d+)")
+        self.paramre = re.compile(r"^\s*(\S+|\d+)\s+(\d+)")
         self.usage = self.__class__.__name__ + " <class|eta> <land_tick>"
         self.helptext = [
             "Calculate launch tick, launch time, prelaunch tick and prelaunch modifier for a given ship class or eta, and land tick."
@@ -44,15 +44,12 @@ class launch(loadable.loadable):
         self.class_eta = {"fi": 8, "co": 8, "fr": 9, "de": 9, "cr": 10, "bs": 10}
 
     def execute(self, user, access, irc_msg):
-        m = irc_msg.match_command(self.commandre)
-        if not m:
-            return 0
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0

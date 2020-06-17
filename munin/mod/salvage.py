@@ -35,9 +35,6 @@ class salvage(loadable.loadable):
         self.usage = self.__class__.__name__ + " [coords]"
 
     def execute(self, user, access, irc_msg):
-        m = irc_msg.match_command(self.commandre)
-        if not m:
-            return 0
 
         m = self.paramre.match(m.group(1))
         if not m:

@@ -123,9 +123,6 @@ class irc_message(object):
             text = text.upper()
         self.client.reply(self.prefix_numeric(), self.nick, self.target, text)
 
-    def match_command(self, regexp):
-        return regexp.search(self.command)
-
     def user_or_nick(self):
         return self.user or self.nick
 

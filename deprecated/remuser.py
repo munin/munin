@@ -30,12 +30,9 @@ from munin import loadable
 class remuser(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1000)
-        self.paramre = re.compile(r"^\s+(\S+)")
+        self.paramre = re.compile(r"^\s*(\S+)")
 
     def execute(self, user, access, irc_msg):
-        m = irc_msg.match_command(self.commandre)
-        if not m:
-            return 0
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
@@ -45,7 +42,7 @@ class remuser(loadable.loadable):
         if not u:
             return 0
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             irc_msg.reply("Usage: remuser <p-nick>")
             return 0

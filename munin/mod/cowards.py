@@ -35,9 +35,6 @@ class cowards(loadable.loadable):
         self.helptext = ["Lists the currently active relations for the given alliance"]
 
     def execute(self, user, access, irc_msg):
-        m = irc_msg.match_command(self.commandre)
-        if not m:
-            return 0
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")

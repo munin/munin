@@ -36,22 +36,19 @@ class sms(loadable.loadable):
 
     def __init__(self, cursor):
         super().__init__(cursor, 100)
-        self.paramre = re.compile(r"^\s+(\S+)\s+(.*)")
+        self.paramre = re.compile(r"^\s*(\S+)\s+(.*)")
         self.usage = self.__class__.__name__ + " <nick> <message>"
         self.helptext = [
             "Sends an SMS to the specified user. Your username will be appended to the end of each sms. The user must have their phone correctly added and you must have access to their number."
         ]
 
     def execute(self, user, access, irc_msg):
-        m = irc_msg.match_command(self.commandre)
-        if not m:
-            return 0
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0

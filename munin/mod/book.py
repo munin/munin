@@ -34,18 +34,15 @@ from munin import loadable
 class book(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 50)
-        self.paramre = re.compile(r"^\s+(\d+)[. :-](\d+)[. :-](\d+)\s+(\d+)(\s+(yes))?")
+        self.paramre = re.compile(r"^\s*(\d+)[. :-](\d+)[. :-](\d+)\s+(\d+)(\s+(yes))?")
         self.usage = self.__class__.__name__ + " <x:y:z> (<eta>|<landing tick>)"
         self.helptext = [
             "Book a target for attack. You should always book your targets, someone doesn't inadvertedly piggy your attack."
         ]
 
     def execute(self, user, access, irc_msg):
-        m = irc_msg.match_command(self.commandre)
-        if not m:
-            return 0
 
-        m = self.paramre.search(m.group(1))
+        m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0

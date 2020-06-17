@@ -32,7 +32,7 @@ from munin import loadable
 
 class victim(loadable.loadable):
     def __init__(self, cursor):
-        super(self.__class__, self).__init__(cursor, 100)
+        super().__init__(cursor, 100)
         self.paramre = re.compile("\s+(.*)")
         self.alliancere = re.compile(r"^(\S+)$")
         self.racere = re.compile(r"^(ter|cat|xan|zik|eit|etd)$", re.I)

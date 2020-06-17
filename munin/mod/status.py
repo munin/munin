@@ -33,7 +33,7 @@ from munin import loadable
 
 class status(loadable.loadable):
     def __init__(self, cursor):
-        super(self.__class__, self).__init__(cursor, 50)
+        super().__init__(cursor, 50)
         self.paramre = re.compile(r"^(\s+(.*))?")
         self.coordre = re.compile(r"^(\d+)[ .:-](\d+)([ .:-](\d+))?([ .:-](\d+))?")
         self.nickre = re.compile(r"^(\D\S*)?(\s*(\d+))?$")

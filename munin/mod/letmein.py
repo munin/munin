@@ -36,7 +36,7 @@ class letmein(loadable.loadable):
     """
 
     def __init__(self, cursor):
-        super(self.__class__, self).__init__(cursor, 0)
+        super().__init__(cursor, 0)
         self.paramre = re.compile(r"^\s+(\S+)\s+(\S+)")
         self.usage = self.__class__.__name__ + " <pnick> <password>"
         self.helptext = [

@@ -35,7 +35,7 @@ class phone(loadable.loadable):
     """
 
     def __init__(self, cursor):
-        super(self.__class__, self).__init__(cursor, 1)
+        super().__init__(cursor, 1)
         self.paramre = re.compile(r"^\s+(\S+)(\s+(\S+))?")
         self.usage = self.__class__.__name__ + " <list|allow|deny|show> <nick>"
         self.helptext = None

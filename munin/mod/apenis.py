@@ -32,7 +32,7 @@ from munin import loadable
 
 class apenis(loadable.loadable):
     def __init__(self, cursor):
-        super(self.__class__, self).__init__(cursor, 1)
+        super().__init__(cursor, 1)
         self.paramre = re.compile(r"^(\s+(.+))?")
         self.usage = self.__class__.__name__ + " <alliance>"
         self.helptext = ["Shows the alliance's scoregain over the last 72 ticks."]

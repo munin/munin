@@ -29,7 +29,7 @@ from munin import loadable
 
 class remuser(loadable.loadable):
     def __init__(self, cursor):
-        super(self.__class__, self).__init__(cursor, 1000)
+        super().__init__(cursor, 1000)
         self.paramre = re.compile(r"^\s+(\S+)")
 
     def execute(self, user, access, irc_msg):

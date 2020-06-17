@@ -25,17 +25,16 @@ Loadable.Loadable subclass
 # owners.
 
 # Workaround incompatability between old robobrowser and new werkzeug
+import operator
+import time
+import datetime
+import threading
+from robobrowser import RoboBrowser
+import munin.loadable as loadable
+import re
 import werkzeug
 
 werkzeug.cached_property = werkzeug.utils.cached_property
-
-import re
-import munin.loadable as loadable
-from robobrowser import RoboBrowser
-import threading
-import datetime
-import time
-import operator
 
 
 def timefunc(f):

@@ -44,7 +44,7 @@ class stop(loadable.loadable):
         params = m.group(1)
         m = self.paramre.search(params)
         if not m:
-            if re.search("\s+hammertime", params, re.I):
+            if re.search(r"\s+hammertime", params, re.I):
                 irc_msg.reply("Can't touch this!")
                 return 1
             irc_msg.reply("Usage: %s" % (self.usage,))

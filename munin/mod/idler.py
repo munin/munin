@@ -33,7 +33,7 @@ from munin import loadable
 class idler(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 50)
-        self.paramre = re.compile("\s+(.*)")
+        self.paramre = re.compile(r"\s+(.*)")
         self.alliancere = re.compile(r"^(\S+)$")
         self.racere = re.compile(r"^(ter|cat|xan|zik|eit|etd)$", re.I)
         self.rangere = re.compile(r"^(<|>)?(\d+)$")

@@ -93,7 +93,7 @@ class irc_message(object):
                                 self.command_parameters = com_parts[3]
                                 self.command = "%s %s" % (com_parts[2], com_parts[3])
                             else:
-                                self.command_parameters = None
+                                self.command_parameters = ""
                                 self.command = self.command_name
 
                         except ValueError as s:

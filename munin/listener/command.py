@@ -74,7 +74,7 @@ class command(object):
         )
 
     def help(self, irc_msg):
-        if irc_msg.command_parameters:
+        if len(irc_msg.command_parameters) > 0:
             key = "munin.mod." + irc_msg.command_parameters
             if key in self.control:
                 self.control[key].help(irc_msg.user, irc_msg.access, irc_msg)

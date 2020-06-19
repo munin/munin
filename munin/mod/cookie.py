@@ -56,7 +56,7 @@ class cookie(loadable.loadable):
         if not u:
             return 0
 
-        s = self.statre.search(m.group(1))
+        s = self.statre.search(irc_msg.command_parameters)
 
         m = self.paramre.search(irc_msg.command_parameters)
 
@@ -90,7 +90,9 @@ class cookie(loadable.loadable):
             return 1
 
         minimum_userlevel = 100
-        rec = self.load_user_from_pnick(receiver, irc_msg.round, minimum_userlevel=minimum_userlevel)
+        rec = self.load_user_from_pnick(
+            receiver, irc_msg.round, minimum_userlevel=minimum_userlevel
+        )
         if not rec or rec.userlevel < minimum_userlevel:
             irc_msg.reply(
                 "I don't know who '%s' is, so I can't very well give them any cookies can I?"

@@ -38,8 +38,7 @@ class stop(loadable.loadable):
         self.usage = self.__class__.__name__ + " <number> <target> [t1|t2|t3]"
 
     def execute(self, user, access, irc_msg):
-        params = m.group(1)
-        m = self.paramre.search(params)
+        m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             if re.search(r"\s+hammertime", params, re.I):
                 irc_msg.reply("Can't touch this!")

@@ -25,7 +25,6 @@ Loadable.Loadable subclass
 # are included in this collective work with permission of the copyright
 # owners.
 
-import re
 import munin.loadable as loadable
 from clickatell import Clickatell
 

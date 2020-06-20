@@ -21,7 +21,6 @@ Loadable.Loadable subclass
 
 # This work is Copyright (C)2006 by Andreas Jacobsen
 # Individual portions may be copyright by individual contributors, and
-
 # are included in this collective work with permission of the copyright
 # owners.
 

@@ -56,7 +56,6 @@ class adopt(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        # assign param variables
         adoptee = m.group(1)
 
         if adoptee.lower() == self.config.get("Connection", "nick").lower():

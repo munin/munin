@@ -48,7 +48,6 @@ class gangbang(loadable.loadable):
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
-        # assign param variables
 
         subject = m.group(1)
         when = m.group(3)

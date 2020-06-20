@@ -60,7 +60,6 @@ class phone(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        # assign param variables
         cmd = m.group(1)
 
         if "list".find(cmd) > -1:

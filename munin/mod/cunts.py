@@ -56,7 +56,6 @@ class cunts(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        # assign param variables
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")

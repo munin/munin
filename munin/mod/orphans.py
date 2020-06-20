@@ -53,7 +53,6 @@ class orphans(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        # assign param variables
         query = "SELECT t1.pnick AS pnick FROM user_list t1"
         query += " INNER JOIN user_list t2 ON t1.sponsor ilike t2.pnick"
         query += " WHERE t1.userlevel >= 100 AND t2.userlevel < 100"

@@ -55,7 +55,6 @@ class letmein(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        # assign param variables
         auther = m.group(1)
         passy = m.group(2)
 
@@ -77,6 +76,5 @@ class letmein(loadable.loadable):
                 irc_msg.reply("Now get in, bitch")
         else:
             irc_msg.reply("No.")
-        # do stuff here
 
         return 1

@@ -83,7 +83,6 @@ class lazycalc(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        # assign param variables
         x = m.group(1)
         y = m.group(2)
         z = m.group(3)

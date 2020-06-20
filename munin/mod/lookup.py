@@ -63,7 +63,6 @@ class lookup(loadable.loadable):
             x = m.group(1)
             y = m.group(2)
             z = m.group(4)
-            # assign param variables
 
             if z:
                 p = loadable.planet(x=x, y=y, z=z)

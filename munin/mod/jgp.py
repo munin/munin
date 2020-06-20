@@ -48,7 +48,6 @@ class jgp(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        # assign param variables
         params = m.group(1)
         m = self.planet_coordre.search(params)
 

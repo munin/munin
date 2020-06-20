@@ -52,7 +52,6 @@ class searchdef(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        # assign param variables
         count = m.group(1)
         ship = m.group(2)
 

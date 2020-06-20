@@ -104,7 +104,6 @@ class stop(loadable.loadable):
                 return 0
         total_armor = ship["armor"] * ship_number
 
-        # do stuff here
         query = (
             "SELECT * FROM ship WHERE " + target_number + "=%s AND round=%s ORDER BY id"
         )

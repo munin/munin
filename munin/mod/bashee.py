@@ -45,7 +45,6 @@ class bashee(loadable.loadable):
                 x = m.group(1)
                 y = m.group(2)
                 z = m.group(4)
-                # assign param variables
                 if z:
                     p = loadable.planet(x=x, y=y, z=z)
                     if not p.load_most_recent(self.cursor, irc_msg.round):

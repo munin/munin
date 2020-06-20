@@ -57,7 +57,6 @@ class eff(loadable.loadable):
         elif user_target == "t3":
             target_number = "target_3"
             efficiency = 0.5
-        # assign param variables
         if ship_number[-1].lower() == "k":
             ship_number = 1000 * float(ship_number[:-1])
         elif ship_number[-1].lower() == "m":

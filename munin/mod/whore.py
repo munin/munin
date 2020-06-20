@@ -76,7 +76,6 @@ class whore(loadable.loadable):
             )
             return 1
 
-        # assign param variables
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")

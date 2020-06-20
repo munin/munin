@@ -54,10 +54,8 @@ class whois(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        # assign param variables
         search = m.group(1)
 
-        # do stuff here
         if search.lower() == self.config.get("Connection", "nick").lower():
             irc_msg.reply("I am Munin. Hear me roar.")
             return 1

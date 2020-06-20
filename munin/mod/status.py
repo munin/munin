@@ -45,7 +45,6 @@ class status(loadable.loadable):
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
-        # assign param variables
         param = m.group(2)
         if not param:
             param = ""

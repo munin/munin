@@ -70,7 +70,6 @@ class surprisesex(loadable.loadable):
                 )
             return 0
 
-        # assign param variables
         param = m.group(1)
         m = self.coordre.search(param)
         if m:

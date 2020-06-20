@@ -69,7 +69,6 @@ class prop(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        # assign param variables
         prop_type = m.group(1)
 
         if prop_type.lower() == "invite":

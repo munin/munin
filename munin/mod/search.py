@@ -43,14 +43,12 @@ class search(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        # assign param variables
         params = m.group(1)
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        # do stuff here
         args = (irc_msg.round, irc_msg.round, "%" + params + "%", "%" + params + "%")
         query = "SELECT t1.x AS x,t1.y AS y,t1.z AS z,t1.size AS size,t1.score AS score,t1.value AS value,t1.race AS race,t4.name AS alliance,t2.nick AS nick,t2.reportchan AS reportchan,t2.comment AS comment"
         query += " FROM planet_dump AS t1 INNER JOIN planet_canon AS t3 ON t1.id=t3.id"

@@ -69,7 +69,6 @@ class mydef(loadable.loadable):
 
         fleetcount = m.group(1)
         garbage = m.group(2)
-        # assign param variables
         reset_ships = False
         ships = {}
         comment = ""

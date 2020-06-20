@@ -55,7 +55,6 @@ class bumchums(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        # assign param variables
 
         alliance = m.group(1)
         bums = m.group(2) or 1
@@ -76,7 +75,6 @@ class bumchums(loadable.loadable):
         query += " HAVING count(*) >= %s"
         query += " ORDER BY bums DESC, x ASC, y ASC"
 
-        # do stuff here
 
         self.cursor.execute(query, (irc_msg.round, a.name, irc_msg.round, bums,))
 

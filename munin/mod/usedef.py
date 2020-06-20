@@ -55,7 +55,6 @@ class usedef(loadable.loadable):
         if not taker:
             return
 
-        # assign param variables
         name = m.group(1)
         ships = m.group(2)
         u = self.load_user_from_pnick(name, irc_msg.round)

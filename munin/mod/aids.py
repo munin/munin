@@ -55,10 +55,8 @@ class aids(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        # assign param variables
         search = m.group(1)
 
-        # do stuff here
 
         mynick = self.config.get("Connection", "nick")
         if search.lower() == mynick:

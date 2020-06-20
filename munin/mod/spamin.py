@@ -52,7 +52,6 @@ class spamin(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        # assign param variables
         alliance_name = m.group(1)
         coord_list = re.split(self.coordsplitre, m.group(2))
 
@@ -60,7 +59,6 @@ class spamin(loadable.loadable):
             irc_msg.reply("You did not give me a set of complete coords, you dumbass!")
             return 0
 
-        # do stuff here
         a = loadable.alliance(name=alliance_name)
         if not a.load_most_recent(self.cursor, irc_msg.round):
             irc_msg.reply("No alliance matching ' %s' found" % (alliance_name))

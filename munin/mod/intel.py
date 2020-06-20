@@ -68,7 +68,6 @@ class intel(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 1
 
-        # assign param variables
         par = m.group(1)
         m = self.planet_coordre.search(par)
         if not m:

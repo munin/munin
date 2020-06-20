@@ -54,14 +54,12 @@ class ship(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        # assign param variables
         ship_name = m.group(1)
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        # do stuff here
         s = self.get_ship_from_db(ship_name, irc_msg.round)
         if not s:
             irc_msg.reply("%s is not a ship" % (ship_name))

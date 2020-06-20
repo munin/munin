@@ -71,7 +71,6 @@ class cookie(loadable.loadable):
             return 1
         if self.command_not_used_in_home(irc_msg, self.__class__.__name__):
             return 1
-        # assign param variables
         howmany = m.group(2)
         if howmany:
             howmany = int(howmany)

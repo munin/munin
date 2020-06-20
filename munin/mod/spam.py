@@ -47,10 +47,8 @@ class spam(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        # assign param variables
         params = m.group(1)
 
-        # do stuff here
         args = (
             irc_msg.round,
             irc_msg.round,

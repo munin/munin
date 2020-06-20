@@ -42,7 +42,6 @@ class bitches(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        # do stuff here
         args = ()
         query = "SELECT t3.x AS x, t3.y AS y, count(*) AS number"
         query += " FROM target AS t1"

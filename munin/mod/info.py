@@ -41,7 +41,6 @@ class info(loadable.loadable):
 
     def execute(self, user, access, irc_msg):
 
-        # assign param variables
         m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))

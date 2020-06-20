@@ -54,7 +54,6 @@ class seagal(loadable.loadable):
         u = self.load_user_with_planet(user, irc_msg)
         if not u:
             return 0
-        # assign param variables
         x = m.group(1)
         y = m.group(2)
         z = m.group(3)

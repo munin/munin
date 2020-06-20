@@ -48,7 +48,6 @@ class afford(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        # assign param variables
         reply = ""
         x = m.group(1)
         y = m.group(2)

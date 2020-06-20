@@ -57,7 +57,6 @@ class racism(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        # assign param variables
 
         alliance = m.group(1)
 

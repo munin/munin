@@ -46,7 +46,6 @@ class roidsave(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        # assign param variables
         roids = int(m.group(1))
         ticks = int(m.group(2))
         bonus = m.group(4) or 0

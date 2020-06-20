@@ -82,6 +82,5 @@ class remslogan(loadable.loadable):
 
         irc_msg.reply(reply)
 
-        # do stuff here
 
         return 1

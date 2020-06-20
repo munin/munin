@@ -44,8 +44,7 @@ class value(loadable.loadable):
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
-        params = m.group(1)
-        m = self.paramre.search(params)
+        m = self.paramre.search(irc_msg.command_parameters)
         if m:
             x = m.group(1)
             y = m.group(2)
@@ -87,7 +86,7 @@ class value(loadable.loadable):
             irc_msg.reply(reply)
             return 1
 
-        m = self.planet_coordre.search(params)
+        m = self.planet_coordre.search(irc_msg.command_parameters)
         if m:
             x = m.group(1)
             y = m.group(2)

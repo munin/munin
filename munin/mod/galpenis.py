@@ -44,7 +44,7 @@ class galpenis(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        m = self.coordre.search(m.group(1))
+        m = self.coordre.search(irc_msg.command_parameters)
         if not m:
             irc_msg.reply(self.usage)
             return 0

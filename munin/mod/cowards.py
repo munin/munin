@@ -40,7 +40,7 @@ class cowards(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        m = self.paramre.match(m.group(1))
+        m = self.paramre.match(irc_msg.command_parameters)
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0

@@ -22,8 +22,7 @@ class bashee(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
         planet = None
-        param = m.group(1)
-        m = self.paramre.search(param)
+        m = self.paramre.search(irc_msg.command_parameters)
 
         if not m or not m.group(1):
             u = loadable.user(pnick=irc_msg.user)
@@ -41,7 +40,7 @@ class bashee(loadable.loadable):
                 irc_msg.reply("Usage: %s" % (self.usage,))
                 return 1
         else:
-            m = self.coordre.search(param)
+            m = self.coordre.search(irc_msg.command_parameters)
             if m:
                 x = m.group(1)
                 y = m.group(2)
@@ -51,7 +50,8 @@ class bashee(loadable.loadable):
                     p = loadable.planet(x=x, y=y, z=z)
                     if not p.load_most_recent(self.cursor, irc_msg.round):
                         irc_msg.reply(
-                            "No planet matching '%s' found" % (param.strip(),)
+                            "No planet matching '%s' found"
+                            % (irc_msg.command_parameters.strip(),)
                         )
                         return 1
                     planet = p

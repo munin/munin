@@ -36,7 +36,7 @@ class salvage(loadable.loadable):
 
     def execute(self, user, access, irc_msg):
 
-        m = self.paramre.match(m.group(1))
+        m = self.paramre.match(irc_msg.command_parameters)
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0

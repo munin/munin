@@ -38,8 +38,7 @@ class maxcap(loadable.loadable):
 
     def execute(self, user, access, irc_msg):
         victim = None
-        params = m.group(1)
-        m = self.planet_coordre.search(params)
+        m = self.planet_coordre.search(irc_msg.command_parameters)
         if m:
             victim = loadable.planet(x=m.group(1), y=m.group(2), z=m.group(3))
             if not victim.load_most_recent(self.cursor, irc_msg.round):
@@ -49,7 +48,7 @@ class maxcap(loadable.loadable):
                 return 1
             total_roids = victim.size
         else:
-            m = self.paramre.search(params)
+            m = self.paramre.search(irc_msg.command_parameters)
             if not m:
                 irc_msg.reply("Usage: %s" % (self.usage,))
                 return 0

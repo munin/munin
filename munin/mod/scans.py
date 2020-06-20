@@ -43,7 +43,7 @@ class scans(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        m = self.planet_coordre.search(m.group(1))
+        m = self.planet_coordre.search(irc_msg.command_parameters)
         if m:
 
             x = m.group(1)

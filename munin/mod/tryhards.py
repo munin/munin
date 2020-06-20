@@ -56,8 +56,6 @@ class tryhards(loadable.loadable):
         p1 = m.group(1).lower()
         p2 = m.group(2).lower()
 
-        a = ["alliances", "galaxy", "galaxies", "planets"]
-
         if p2 in "score":
             p2 = "score"
         elif p2 in "total_score":

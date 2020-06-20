@@ -117,7 +117,7 @@ class Loader(object):
         try:
             newmod = imp.reload(self.loaded[name])
             self.loaded[name] = newmod
-        except KeyError as e:
+        except KeyError:
             print("Module %s not present. Import it first." % (name,))
             traceback.print_exc()
         except ImportError as e:

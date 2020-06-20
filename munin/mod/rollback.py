@@ -161,7 +161,7 @@ class rollback(loadable.loadable):
                 if not self.delete_if_any(query, (irc_msg.round, from_tick,)):
                     return 0
 
-        except Exception as e:
+        except:
             # Whatever went wrong, never leave a transaction open.
             try:
                 self.cursor.execute("ROLLBACK")

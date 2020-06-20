@@ -96,7 +96,7 @@ class irc_message(object):
                                 self.command_parameters = ""
                                 self.command = self.command_name
 
-                        except ValueError as s:
+                        except ValueError:
                             self.reply("Invalid round number %s given" % (com_parts[1]))
             # print "Round: %s, Command: %s, Parameters: %s"%(self.round,self.command_name,self.command_parameters)
 

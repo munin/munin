@@ -70,7 +70,7 @@ class munin(object):
                 )
                 traceback.print_exc()
                 raise
-            except reboot.reboot as r:
+            except reboot.reboot:
                 continue
             except Exception as e:
                 print("Exception during command: " + e.__str__())

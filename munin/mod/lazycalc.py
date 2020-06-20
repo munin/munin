@@ -195,7 +195,7 @@ class calc_creator(threading.Thread):
     def run(self):
         try:
             self.unsafe_method()
-        except Exception as e:
+        except Exception:
             self.irc_msg.reply(
                 "Error in module '%s'. Please report the command you used to the bot owner as soon as possible."
                 % (self.irc_msg.command_name,)

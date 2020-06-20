@@ -53,7 +53,7 @@ class munin(object):
             % (config.get("Connection", "user"), config.get("Connection", "name"))
         )
         self.config = config
-        router = self.ircu_router.ircu_router(self.client, self.config, self.loader)
+
         while True:
             try:
                 self.reboot()

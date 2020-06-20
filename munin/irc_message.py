@@ -100,9 +100,6 @@ class irc_message(object):
                             self.reply("Invalid round number %s given" % (com_parts[1]))
             # print "Round: %s, Command: %s, Parameters: %s"%(self.round,self.command_name,self.command_parameters)
 
-    def reply(self, message):
-        self.client.reply(prefix, nick, target, message)
-
     def prefix_numeric(self):
         if self.notprefix.replace("|", "").find(self.prefix) > -1:
             return self.client.NOTICE_PREFIX

@@ -97,8 +97,6 @@ class value(loadable.loadable):
                 irc_msg.reply("No planet matching '%s:%s:%s' found" % (x, y, z))
                 return 1
 
-            # query="SELECT tick,t1.value,t1.value-t2.value AS diff FROM planet_dump
-            # AS t1 INNER JOIN planet_dump AS t2 ON
             query = "SELECT t1.tick,t1.value,t1.value-t2.value AS vdiff,t1.size-t2.size AS sdiff"
             query += " FROM planet_dump AS t1"
             query += " INNER JOIN planet_dump AS t2"

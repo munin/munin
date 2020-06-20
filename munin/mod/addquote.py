@@ -51,11 +51,8 @@ class addquote(loadable.loadable):
 
         query = "INSERT INTO quote (quote) VALUES (%s)"
         self.cursor.execute(query, args)
-        # reply="Added your shitty quote"
-        # irc_msg.reply(reply)
 
         irc_msg.reply("Added your shitty quote: " + params)
-        # do stuff here
 
         return 1
 

@@ -48,17 +48,13 @@ class rollback(loadable.loadable):
         This function leaks its exceptions.
 
         """
-        # print("Select query: %s" %(select_query,))
         self.cursor.execute(select_query, args_tuple)
         if self.cursor.rowcount > 0:
             delete_query = self.selectre.sub("DELETE FROM", select_query)
-            # print("Delete query: %s" %(delete_query,))
             self.cursor.execute(delete_query, args_tuple)
             if self.cursor.rowcount < 1:
                 self.cursor.execute("ROLLBACK")
                 return 0
-        # else:
-        #     print("Nothing to delete from %s..."%(from_table,))
         return 1
 
     def execute(self, user, access, irc_msg):

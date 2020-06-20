@@ -58,7 +58,6 @@ class galchan(loadable.loadable):
         try:
             self.cursor.execute(query, (chan,))
             if self.cursor.rowcount > 0:
-                # irc_msg.reply("Added chan %s at level %s" % (chan,access_lvl))
                 irc_msg.reply(
                     "Added your galchannel as %s (if you didn't add me to the channel with at least access 24 first, I'm never going to bother joining)"
                     % (chan,)

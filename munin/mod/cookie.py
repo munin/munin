@@ -83,8 +83,6 @@ class cookie(loadable.loadable):
         if not self.can_give_cookies(irc_msg, u, howmany):
             return 0
 
-        # rec=load_user
-
         if receiver.lower() == self.config.get("Connection", "nick").lower():
             irc_msg.reply("Cookies? Pah! I only eat carrion.")
             return 1

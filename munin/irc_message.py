@@ -98,7 +98,6 @@ class irc_message(object):
 
                         except ValueError:
                             self.reply("Invalid round number %s given" % (com_parts[1]))
-            # print "Round: %s, Command: %s, Parameters: %s"%(self.round,self.command_name,self.command_parameters)
 
     def prefix_numeric(self):
         if self.notprefix.replace("|", "").find(self.prefix) > -1:

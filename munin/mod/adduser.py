@@ -23,7 +23,6 @@ Loadable subclass
 # are included in this collective work with permission of the copyright
 # owners.
 
-import psycopg2
 import re
 from munin import loadable
 

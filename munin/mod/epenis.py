@@ -33,7 +33,7 @@ from munin import loadable
 class epenis(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 100)
-        self.paramre = re.compile(r"^(\s+(\S+))?")
+        self.paramre = re.compile(r"^\s*(\S+)?")
         self.usage = self.__class__.__name__ + " <pnick>"
         self.helptext = ["Shows the user's scoregain over the last 72 ticks."]
 
@@ -47,7 +47,7 @@ class epenis(loadable.loadable):
         m = self.paramre.search(irc_msg.command_parameters)
 
         if m:
-            search = m.group(2) or search
+            search = m.group(1) or search
 
         for q in [
             "DROP TABLE epenis",

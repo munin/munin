@@ -71,9 +71,11 @@ class spam(loadable.loadable):
         print(printable)
         reply = "Spam on alliance %s - " % (planets[0]["alliance"])
         while printable:
-            batch = printable[:10]
-            printable = printable[10:]
+            batch = printable[:15]
+            printable = printable[15:]
             reply += str.join(", ", batch)
+            if printable:
+                reply += ","
             irc_msg.reply(reply)
             reply = ""
 

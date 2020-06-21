@@ -76,7 +76,7 @@ class scan(threading.Thread):
                 + "&inc=1"
             )
             req.add_header("User-Agent", self.useragent)
-            page = urllib.request.urlopen(req).read().decode()
+            page = urllib.request.urlopen(req).read().decode("ISO-8859-1")
             for scan in page.split("<hr>"):
                 m = re.search("scan_id=([0-9a-zA-Z]+)", scan)
                 if m:
@@ -94,7 +94,7 @@ class scan(threading.Thread):
             "http://game.planetarion.com/showscan.pl?scan_id=" + self.rand_id + "&inc=1"
         )
         req.add_header("User-Agent", self.useragent)
-        page = urllib.request.urlopen(req).read().decode()
+        page = urllib.request.urlopen(req).read().decode("ISO-8859-1")
         self.execute(page)
 
     def execute(self, page):

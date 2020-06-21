@@ -34,7 +34,7 @@ class unbook(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 50)
         self.paramre = re.compile(
-            r"^\s+(\d+)[. :-](\d+)[. :-](\d+)(\s+(\d+))?(\s+(yes))?"
+            r"^\s*(\d+)[. :-](\d+)[. :-](\d+)(\s+(\d+))?(\s+(yes))?"
         )
         self.usage = self.__class__.__name__ + " <x:y:z> [<eta>|<landing tick>] [yes]"
 

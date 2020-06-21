@@ -31,7 +31,7 @@ from functools import reduce
 class salvage(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1)
-        self.paramre = re.compile(r"\s*(?:(\d+)[.-:\s](\d+)[.-:\s](\d+))?\s*$")
+        self.paramre = re.compile(r"^\s*(?:(\d+)[.-:\s](\d+)[.-:\s](\d+))?\s*$")
         self.usage = self.__class__.__name__ + " [coords]"
 
     def execute(self, user, access, irc_msg):

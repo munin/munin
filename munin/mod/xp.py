@@ -34,7 +34,7 @@ class xp(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1)
         self.paramre = re.compile(
-            r"^\s+(\d+)[.-:\s](\d+)[.-:\s](\d+)(?:\s+(\d+)[.-:\s](\d+)[.-:\s](\d+))?(?:\s+(\d+))?"
+            r"^\s*(\d+)[.-:\s](\d+)[.-:\s](\d+)(?:\s+(\d+)[.-:\s](\d+)[.-:\s](\d+))?(?:\s+(\d+))?"
         )
         self.usage = (
             self.__class__.__name__ + " <defender coords> [attacker coords] [MCs]"

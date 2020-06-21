@@ -175,11 +175,12 @@ class lazycalc(loadable.loadable):
             val = {"age": 1000}
         else:
             val = self.cursor.fetchone()
-        val["x"] = x
-        val["y"] = y
-        val["z"] = z
-        val["mission"] = mission
-        return val
+        res = dict(val)
+        res["x"] = x
+        res["y"] = y
+        res["z"] = z
+        res["mission"] = mission
+        return res
 
 
 class calc_creator(threading.Thread):

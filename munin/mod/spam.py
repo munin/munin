@@ -73,7 +73,7 @@ class spam(loadable.loadable):
         while printable:
             batch = printable[:10]
             printable = printable[10:]
-            reply += str.join(" | ", batch)
+            reply += str.join(", ", batch)
             irc_msg.reply(reply)
             reply = ""
 

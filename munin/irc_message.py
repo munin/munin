@@ -77,7 +77,7 @@ class irc_message(object):
         if self.command:
             com_parts = self.command.split(" ", 1)
             self.command_name = com_parts[0]
-            self.command_parameters = None
+            self.command_parameters = ""
             self.user = self.getpnick(self.host)
             self.access = self.getaccess(self.user, self.target)
             if len(com_parts) > 1:

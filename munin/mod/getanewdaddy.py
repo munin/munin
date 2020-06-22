@@ -58,7 +58,6 @@ class getanewdaddy(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-
         voter = loadable.user(pnick=irc_msg.user)
         if not voter.load_from_db(self.cursor, irc_msg.round):
             irc_msg.reply(
@@ -72,7 +71,6 @@ class getanewdaddy(loadable.loadable):
         if not idiot.load_from_db(self.cursor, irc_msg.round):
             irc_msg.reply("That idiot doesn't exist")
             return 1
-
 
         if (
             access < 1000

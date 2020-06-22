@@ -57,7 +57,6 @@ class aids(loadable.loadable):
 
         search = m.group(1)
 
-
         mynick = self.config.get("Connection", "nick")
         if search.lower() == mynick:
             irc_msg.reply("I am %s. I gave aids to all y'all bitches." % (mynick,))

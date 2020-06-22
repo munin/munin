@@ -52,7 +52,6 @@ class idler(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0

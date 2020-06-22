@@ -55,5 +55,4 @@ class addslogan(loadable.loadable):
 
         irc_msg.reply("Added your shitty slogan")
 
-
         return 1

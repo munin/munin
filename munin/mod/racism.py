@@ -57,7 +57,6 @@ class racism(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-
         alliance = m.group(1)
 
         query = "SELECT count(*) AS members, sum(t1.value) AS tot_value, sum(t1.score) AS tot_score, sum(t1.size) AS tot_size, sum(t1.xp) AS tot_xp, t1.race AS race"

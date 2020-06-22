@@ -82,5 +82,4 @@ class remquote(loadable.loadable):
 
         irc_msg.reply(reply)
 
-
         return 1

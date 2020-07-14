@@ -67,7 +67,7 @@ class whore(loadable.loadable):
                 % (self.usage,)
             )
             return 1
-        if u.planet_id:
+        if u.planet_id and u.planet_id > 0:
             attacker = u.planet
         else:
             irc_msg.reply(

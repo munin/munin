@@ -63,7 +63,7 @@ class salvage(loadable.loadable):
                     + " command (log in with P and set mode +x, then make sure your planet is set with the pref command)"
                 )
                 return 1
-            if u.planet_id:
+            if u.planet_id and u.planet_id > 0:
                 planet = u.planet
             else:
                 irc_msg.reply(

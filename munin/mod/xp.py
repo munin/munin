@@ -80,18 +80,11 @@ class xp(loadable.loadable):
             if not u.planet:
                 irc_msg.reply(
                     "You must be registered to use the automatic %s command (log in with P and "
-                    "set mode +x, then make sure your planet is set with the pref command)"
+                    "set mode +x, then make sure your planet is set with the pref command (!pref planet=x:y:z))"
                     % (self.__class__.__name__)
                 )
                 return 1
-            if u.planet_id:
-                attacker = u.planet
-            else:
-                irc_msg.reply(
-                    "Usage: %s (make sure your planet is set with the pref command)"
-                    % (self.usage,)
-                )
-                return 1
+            attacker = u.planet
 
         if m.lastindex == 7:
             mcs = int(m.group(7))

@@ -126,16 +126,16 @@ while True:
             epilog="Note that --planets, --galaxies, --alliances and --userfeed must either be given together, or not at all (in which case the most recent dumps are retrieved from the web)",
         )
         parser.add_argument(
-            "-p", "--planets", type=argparse.FileType("r"), metavar="FILE"
+            "-p", "--planets", type=argparse.FileType(mode='r', encoding='latin-1'), metavar="FILE"
         )
         parser.add_argument(
-            "-g", "--galaxies", type=argparse.FileType("r"), metavar="FILE"
+            "-g", "--galaxies", type=argparse.FileType(mode='r', encoding='latin-1'), metavar="FILE"
         )
         parser.add_argument(
-            "-a", "--alliances", type=argparse.FileType("r"), metavar="FILE"
+            "-a", "--alliances", type=argparse.FileType(mode='r', encoding='latin-1'), metavar="FILE"
         )
         parser.add_argument(
-            "-u", "--userfeed", type=argparse.FileType("r"), metavar="FILE"
+            "-u", "--userfeed", type=argparse.FileType(mode='r', encoding='latin-1'), metavar="FILE"
         )
         parser.add_argument(
             "-r", "--round", type=int, default=cur_round, metavar="NUMBER"

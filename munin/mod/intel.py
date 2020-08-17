@@ -52,7 +52,7 @@ class intel(loadable.loadable):
             "reportchan",
             "comment",
         ]
-        self.nulls = ["<>", ".", "-", "?"]
+        self.nulls = ["<>", ".", "-", "?", ""]
         self.true = ["1", "yes", "y", "true", "t"]
         self.false = ["0", "no", "n", "false", "f", ""]
         self.helptext = ["Valid options: %s" % (", ".join(self.options))]

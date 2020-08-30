@@ -71,9 +71,9 @@ class whois(loadable.loadable):
             reply += "No members matching '%s'" % (search,)
         else:
             if r.pnick == irc_msg.user:
-                reply += "You are %s. You are also known as %s. Your sponsor is %s. Your Munin number is %s. You have %d %s."
+                reply += "You are %s. You are also known as %s. Your sponsor is %s. Your Munin number is %s. You have %d %s. You are%s a lemming"
             else:
-                reply += "Information about %s: They are also known as %s. Their sponsor is %s. Their Munin number is %s. They have %d %s."
+                reply += "Information about %s: They are also known as %s. Their sponsor is %s. Their Munin number is %s. They have %d %s. They are%s a lemming"
             reply = reply % (
                 r.pnick,
                 r.alias_nick,
@@ -81,6 +81,7 @@ class whois(loadable.loadable):
                 self.munin_number_to_output(r, irc_msg.round),
                 r.carebears,
                 self.pluralize(r.carebears, "carebear"),
+                "" if r.lemming else " not",
             )
 
         irc_msg.reply(reply)

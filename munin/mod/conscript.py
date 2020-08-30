@@ -82,7 +82,7 @@ class conscript(loadable.loadable):
             reply += f"{r.pnick} is too lazy to use the pref-command, but don't worry, their fate in the emperor's lemming army has been sealed."
         else:
             reply += (
-                f"{r.pnick} has conscripted {conscriptor} to the emperor's lemming army"
+                f"{conscriptor} has conscripted {r.pnick} to the emperor's lemming army"
             )
         self.cursor.execute(query, args)
         irc_msg.client.privmsg("#%s" % (self.config.get("Auth", "home"),), reply)

@@ -23,9 +23,6 @@ Loadable subclass
 # are included in this collective work with permission of the copyright
 # owners.
 
-# Nothing ascendancy/jester specific in this module.
-# qebab, 24/6/08.
-
 import re
 from munin import loadable
 

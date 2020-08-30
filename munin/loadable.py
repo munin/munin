@@ -699,7 +699,9 @@ class user(object):
         return query
 
     def lookup_round_query(self):
-        query = "SELECT planet_id, stay, fleetcount, fleetcomment, fleetupdated "
+        query = (
+            "SELECT planet_id, stay, fleetcount, fleetcomment, fleetupdated, lemming "
+        )
         query += " FROM round_user_pref AS p"
         query += " WHERE p.round=%s AND p.user_id=%s"
         return query
@@ -757,6 +759,7 @@ class user(object):
                     self.fleetcount = u["fleetcount"]
                     self.fleetcomment = u["fleetcomment"]
                     self.fleetupdated = u["fleetupdated"]
+                    self.lemming = u["lemming"]
             return 1
         return None
 

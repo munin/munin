@@ -96,6 +96,8 @@ class pref(loadable.loadable):
                             )
             if opt == "stay":
                 self.save_stay(irc_msg, u, val, access, irc_msg.round)
+            if opt == "lemming":
+                self.save_lemming(irc_msg, u, val, access, irc_msg.round)
             if opt == "pubphone":
                 self.save_pubphone(irc_msg, u, val, access)
             if opt == "password":
@@ -139,6 +141,32 @@ class pref(loadable.loadable):
         except psycopg2.ProgrammingError:
             reply = (
                 "Your stay status '%s' is not a valid value. If you are staying for next round, it should be 'yes'. Otherwise it should be 'no'."
+                % (status,)
+            )
+        irc_msg.reply(reply)
+
+    def save_lemming(self, irc_msg, u, status, access, round):
+        if access < 100:
+            return 0
+        query = ""
+        args = ()
+        if u.pref:
+            query = (
+                "INSERT INTO round_user_pref (user_id,round,lemming) VALUES (%s,%s,%s)"
+            )
+            query += " ON CONFLICT (user_id,round) DO"
+            query += " UPDATE SET lemming=EXCLUDED.lemming"
+            args += (
+                u.id,
+                round,
+                status,
+            )
+        reply = "Your lemming status has been saved as %s" % (status,)
+        try:
+            self.cursor.execute(query, args)
+        except psycopg2.ProgrammingError:
+            reply = (
+                "Your lemming status '%s' is not a valid value. If you wish to die a glorious death for the emperor, it should be 'yes'. Otherwise it should be 'no'."
                 % (status,)
             )
         irc_msg.reply(reply)

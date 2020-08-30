@@ -50,7 +50,7 @@ class banzai(loadable.loadable):
 
         for l in lemmings:
             if l["alias_nick"]:
-                hilights.append(f"{l['pnick']} / @{l['alias_nick']}")
+                hilights.append(f"@{l['pnick']} / @{l['alias_nick']}")
             else:
                 hilights.append(f"@{l['pnick']}")
         commander = irc_msg.user or irc_msg.nick

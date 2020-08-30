@@ -686,6 +686,7 @@ class user(object):
         self.fleetcomment = fleetcomment
         self.fleetupdated = fleetupdated
         self.alias_nick = alias_nick
+        self.lemming = False
 
     @staticmethod
     def count_members(cursor):

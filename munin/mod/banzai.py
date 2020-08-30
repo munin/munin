@@ -29,7 +29,7 @@ from munin import loadable
 
 class banzai(loadable.loadable):
     def __init__(self, cursor):
-        super().__init__(cursor, 1000)
+        super().__init__(cursor, 100)
         self.paramre = re.compile(r"^\s*(.*)")
         self.usage = self.__class__.__name__ + " [shout]"
 

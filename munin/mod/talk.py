@@ -43,7 +43,7 @@ class talk(loadable.loadable):
         targ = m.group(1)
         stuff = m.group(2)
         if access < self.level:
-            irc_msg.reply("You do not have enough access to send raw commands")
+            irc_msg.reply("You do not have enough access to talk")
             return 0
 
         irc_msg.client.privmsg(targ, stuff)

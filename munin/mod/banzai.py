@@ -31,7 +31,7 @@ class banzai(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1000)
         self.paramre = re.compile(r"^\s*(.*)")
-        self.usage = self.__class__.__name__ + " <target> <stuff>"
+        self.usage = self.__class__.__name__ + " [shout]"
 
     def execute(self, user, access, irc_msg):
 

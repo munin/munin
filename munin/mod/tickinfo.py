@@ -68,7 +68,7 @@ class tickinfo(loadable.loadable):
                 "My current tick information for round %s is for pt%s, which I retrieved %s ago"
                 % (irc_msg.round, res["tick"], res["tick_age"])
             )
-            if res["tick_age"].total_seconds() > 12 * 3600:
+            if res["tick_age"].total_seconds() > 12 * 3600 and irc_msg.round == current_round:
                 reply += (
                     ". That's fucking ages ago, %s better go have a look."
                     % self.config.get("Auth", "owner_nick")

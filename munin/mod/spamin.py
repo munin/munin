@@ -81,6 +81,10 @@ class spamin(loadable.loadable):
             else:
                 skipped += ("%s:%s:%s" % (p.x, p.y, p.z),)
 
+        # Remove duplicates.
+        pids = tuple(dict.fromkeys(pids))
+        coords = tuple(dict.fromkeys(coords))
+
         if len(skipped) > 0:
             irc_msg.reply(
                 "The following coords do not exist, try again: %s"

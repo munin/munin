@@ -33,7 +33,7 @@ class connection:
     NOTICE_PREFIX = 1
     PUBLIC_PREFIX = 2
     PRIVATE_PREFIX = 3
-    MAX_LINE_LEN = 440
+    MAX_LINE_LEN = 240
 
     def __init__(self, config):
         "Connect to an IRC hub"
@@ -85,20 +85,32 @@ class connection:
 
         return line
 
+    def get_line(self, text):
+        if len(text) <= self.MAX_LINE_LEN:
+            return (text, '',)
+        else:
+            try:
+                # Break on a space, then skip over it for the next line.
+                last = text.rindex(' ', 0, self.MAX_LINE_LEN)
+                return (text[:last], text[last + 1:],)
+            except ValueError:
+                # No space in this text to break on; just break wherever.
+                return (text[: self.MAX_LINE_LEN], text[self.MAX_LINE_LEN:],)
+
     def privmsg(self, target, text):
         while len(text) > 0:
-            self.wline("PRIVMSG %s :%s" % (target, text[: self.MAX_LINE_LEN]))
-            text = text[self.MAX_LINE_LEN :]
+            line, text = self.get_line(text)
+            self.wline("PRIVMSG %s :%s" % (target, line))
 
     def notice(self, target, text):
         while len(text) > 0:
-            self.wline("NOTICE %s :%s" % (target, text[: self.MAX_LINE_LEN]))
-            text = text[self.MAX_LINE_LEN :]
+            line, text = self.get_line(text)
+            self.wline("NOTICE %s :%s" % (target, line))
 
     def cnotice(self, target, nick, text):
         while len(text) > 0:
-            self.wline("CNOTICE %s %s :%s" % (nick, target, text[: self.MAX_LINE_LEN]))
-            text = text[self.MAX_LINE_LEN :]
+            line, text = self.get_line(text)
+            self.wline("CNOTICE %s %s :%s" % (nick, target, line))
 
     def reply(self, prefix, nick, target, text):
         if prefix == self.NOTICE_PREFIX:

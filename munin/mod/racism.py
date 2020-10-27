@@ -68,7 +68,12 @@ class racism(loadable.loadable):
 
         self.cursor.execute(
             query,
-            (irc_msg.round, irc_msg.round, "%" + alliance + "%", "%" + alliance + "%",),
+            (
+                irc_msg.round,
+                irc_msg.round,
+                "%" + alliance + "%",
+                "%" + alliance + "%",
+            ),
         )
         reply = ""
         if self.cursor.rowcount < 1:
@@ -91,7 +96,7 @@ class racism(loadable.loadable):
             self.format_real_value(res["tot_score"] / res["members"]),
         )
         reply += " Size(%s) XP(%s)" % (
-            res["tot_size"] / res["members"],
+            self.format_real_value(res["tot_size"] / res["members"]),
             self.format_real_value(res["tot_xp"] / res["members"]),
         )
         return reply

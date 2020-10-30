@@ -33,7 +33,7 @@ class connection:
     NOTICE_PREFIX = 1
     PUBLIC_PREFIX = 2
     PRIVATE_PREFIX = 3
-    MAX_LINE_LEN = 240
+    MAX_LINE_LEN = 440
 
     def __init__(self, config):
         "Connect to an IRC hub"

@@ -61,7 +61,7 @@ class spamin(loadable.loadable):
 
         a = loadable.alliance(name=alliance_name)
         if not a.load_most_recent(self.cursor, irc_msg.round):
-            irc_msg.reply("No alliance matching ' %s' found" % (alliance_name))
+            irc_msg.reply("No alliance matching '%s' found" % (alliance_name))
             return 0
 
         # Separate X from Y from Z coords.

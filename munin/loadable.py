@@ -168,7 +168,10 @@ class loadable(object):
         if irc_msg.target.lower() != "#" + self.config.get("Auth", "home").lower():
             irc_msg.reply(
                 "The %s command may only be used in #%s."
-                % (command_name, self.config.get("Auth", "home"),)
+                % (
+                    command_name,
+                    self.config.get("Auth", "home"),
+                )
             )
             return True
         False
@@ -193,12 +196,24 @@ class loadable(object):
         ship = self.cursor.fetchone()
 
         if not ship:
-            self.cursor.execute(query, ("%" + ship_name + "%", round,))
+            self.cursor.execute(
+                query,
+                (
+                    "%" + ship_name + "%",
+                    round,
+                ),
+            )
             ship = self.cursor.fetchone()
 
         if not ship and ship_name[-1].lower() == "s":
             ship_name = ship_name[0:-1]
-            self.cursor.execute(query, ("%" + ship_name + "%", round,))
+            self.cursor.execute(
+                query,
+                (
+                    "%" + ship_name + "%",
+                    round,
+                ),
+            )
             ship = self.cursor.fetchone()
         return ship
 
@@ -388,7 +403,14 @@ class fleet(object):
         query = (
             "SELECT id FROM defcalls WHERE target=%s AND landing_tick=%s AND round=%s"
         )
-        cursor.execute(query, (self.target_id, self.landing_tick, round,))
+        cursor.execute(
+            query,
+            (
+                self.target_id,
+                self.landing_tick,
+                round,
+            ),
+        )
         s = cursor.fetchone()
         if s:
             defc = defcall(id=s["id"])
@@ -452,17 +474,41 @@ class planet(object):
             # load from coords
             query = "SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id"
             query += " FROM planet_dump WHERE round=%s AND x=%s AND y=%s AND z=%s AND tick=(SELECT max_tick(%s::smallint))"
-            cursor.execute(query, (round, self.x, self.y, self.z, round,))
+            cursor.execute(
+                query,
+                (
+                    round,
+                    self.x,
+                    self.y,
+                    self.z,
+                    round,
+                ),
+            )
             pass
         elif self.planetname and self.rulername:
             query = "SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id"
             query += " FROM planet_dump WHERE round=%s AND planetname=%s AND rulername=%s AND tick=(SELECT max_tick(%s::smallint))"
-            cursor.execute(query, (round, self.planetname, self.rulername, round,))
+            cursor.execute(
+                query,
+                (
+                    round,
+                    self.planetname,
+                    self.rulername,
+                    round,
+                ),
+            )
             pass
         elif self.id and self.id > 0:
             query = "SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id"
             query += " FROM planet_dump WHERE round=%s AND id=%s AND tick=(SELECT max_tick(%s::smallint))"
-            cursor.execute(query, (round, self.id, round,))
+            cursor.execute(
+                query,
+                (
+                    round,
+                    self.id,
+                    round,
+                ),
+            )
         else:
             raise Exception("Tried to load planet with no unique identifiers")
         p = cursor.fetchone()
@@ -549,7 +595,15 @@ class galaxy(object):
             # load from coords
             query = "SELECT x,y,name,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,id"
             query += " FROM galaxy_dump WHERE round=%s AND x=%s AND y=%s AND tick=(SELECT max_tick(%s::smallint))"
-            cursor.execute(query, (round, self.x, self.y, round,))
+            cursor.execute(
+                query,
+                (
+                    round,
+                    self.x,
+                    self.y,
+                    round,
+                ),
+            )
             pass
         else:
             raise Exception("Tried to load planet with no unique identifiers")
@@ -610,7 +664,6 @@ class alliance(object):
             self.value_avg_rank,
         )
         return retstr
-        pass
 
     def load_most_recent(self, cursor, round):
         a = {}
@@ -618,11 +671,25 @@ class alliance(object):
             # load from exact name
             query = "SELECT name,size,members,score,size_rank,members_rank,score_rank,score_avg,size_avg,score_avg_rank,size_avg_rank,id, total_value,total_value_rank,total_value_avg,total_value_avg_rank"
             query += " FROM alliance_dump WHERE round=%s AND name ILIKE %s AND tick=(SELECT max_tick(%s::smallint))"
-            cursor.execute(query, (round, self.name, round,))
+            cursor.execute(
+                query,
+                (
+                    round,
+                    self.name,
+                    round,
+                ),
+            )
 
             # if that doesn't work, load from fuzzy name
             if cursor.rowcount < 1:
-                cursor.execute(query, (round, "%" + self.name + "%", round,))
+                cursor.execute(
+                    query,
+                    (
+                        round,
+                        "%" + self.name + "%",
+                        round,
+                    ),
+                )
             pass
         else:
             raise Exception("Tried to load alliance with no unique identifiers")
@@ -723,13 +790,26 @@ class user(object):
             query = self.lookup_query()
             query += " pnick ILIKE %s OR alias_nick ILIKE %s AND userlevel >= %s"
             query += " ORDER BY userlevel DESC"
-            cursor.execute(query, (partial_nick, partial_nick, self.userlevel,))
+            cursor.execute(
+                query,
+                (
+                    partial_nick,
+                    partial_nick,
+                    self.userlevel,
+                ),
+            )
             u = cursor.fetchone()
             if not u:
                 query = self.lookup_query()
                 query += " pnick ILIKE %s OR alias_nick ILIKE %s"
                 query += " ORDER BY userlevel DESC"
-                cursor.execute(query, (partial_nick, partial_nick,))
+                cursor.execute(
+                    query,
+                    (
+                        partial_nick,
+                        partial_nick,
+                    ),
+                )
                 u = cursor.fetchone()
         if u:
             self.id = u["id"]
@@ -746,7 +826,13 @@ class user(object):
             self.alias_nick = u["alias_nick"]
 
             query = self.lookup_round_query()
-            cursor.execute(query, (round, u["id"],))
+            cursor.execute(
+                query,
+                (
+                    round,
+                    u["id"],
+                ),
+            )
             if cursor.rowcount > 0:
                 u = cursor.fetchone()
                 if u:
@@ -785,7 +871,13 @@ class user(object):
         query = "SELECT t1.ship, t1.ship_count"
         query += " FROM user_fleet AS t1 "
         query += " WHERE t1.user_id=%s AND t1.round=%s"
-        cursor.execute(query, (self.id, round,))
+        cursor.execute(
+            query,
+            (
+                self.id,
+                round,
+            ),
+        )
         return cursor.fetchall()
 
     def check_available_cookies(self, cursor, config):
@@ -847,19 +939,49 @@ class intel(object):
         query += " WHERE i.round=%s AND "
         if self.id and self.id > 0:
             query += "id=%s"
-            cursor.execute(query, (round, self.id,))
+            cursor.execute(
+                query,
+                (
+                    round,
+                    self.id,
+                ),
+            )
         elif self.pid > 0:
             query += "pid=%s"
-            cursor.execute(query, (round, self.pid,))
+            cursor.execute(
+                query,
+                (
+                    round,
+                    self.pid,
+                ),
+            )
         elif self.nick:
             query += "nick=%s LIMIT 1"
-            cursor.execute(query, (round, "%" + self.nick + "%",))
+            cursor.execute(
+                query,
+                (
+                    round,
+                    "%" + self.nick + "%",
+                ),
+            )
         elif self.fakenick:
             query += "fakenick=%s LIMIT 1"
-            cursor.execute(query, (round, "%" + self.fakenick + "%",))
+            cursor.execute(
+                query,
+                (
+                    round,
+                    "%" + self.fakenick + "%",
+                ),
+            )
         elif self.comment:
             query += "comment=%s LIMIT 1"
-            cursor.execute(query, (round, "%" + self.comment + "%",))
+            cursor.execute(
+                query,
+                (
+                    round,
+                    "%" + self.comment + "%",
+                ),
+            )
         i = cursor.fetchone()
         if not i:
             return None
@@ -1009,7 +1131,13 @@ class booking(object):
 
         if self.tick and self.pid:
             query += "pid=%s AND tick=%s "
-            cursor.execute(query, (round, self.pnick,))
+            cursor.execute(
+                query,
+                (
+                    round,
+                    self.pnick,
+                ),
+            )
             b = cursor.fetchone()
             if not b:
                 return None

@@ -43,7 +43,7 @@ class prop(loadable.loadable):
             re.I,
         )
         self.invite_kickre = re.compile(r"^\s+(\S+)(\s+(\S.*))", re.I)
-        self.pollre = re.compile(r"\s*([^?]+)\?\s*([^?\"]+)*", re.I)
+        self.pollre = re.compile(r"\s*([^?]+)\?\s*([^?\"]+)", re.I)
         self.poll_split_answers = re.compile(r"\s*!+\s*")
         self.votere = re.compile(r"^\s+(\d+)\s+(yes|no|abstain|veto|[A-J])", re.I)
         self.usage = (

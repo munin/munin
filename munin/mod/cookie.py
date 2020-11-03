@@ -40,7 +40,7 @@ class cookie(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 100)
         self.paramre = re.compile(r"^\s*((\d+)\s+)?(\S+)\s+(\S.+)")
-        self.statre = re.compile(r"^\s+statu?s?")
+        self.statre = re.compile(r"^\s*statu?s?")
         self.usage = self.__class__.__name__ + " [howmany] <receiver> <reason> | [stat]"
         self.helptext = [
             "Cookies are used to give out carebears. Carebears are rewards for carefaces. Give cookies to people when you think they've done something beneficial for you or for the alliance in general."

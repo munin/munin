@@ -40,9 +40,9 @@ class bumchums(loadable.loadable):
 
     def __init__(self, cursor):
         super().__init__(cursor, 50)
-        self.paramre = re.compile(r"^\s*(.+)\s+(\d+)\s*$")
-        self.usage = self.__class__.__name__ + " <alliance> <number>"
-        self.helptext = ["Pies"]
+        self.paramre = re.compile(r"^\s*(.+)(\s+(\d+)\s*)?$")
+        self.usage = self.__class__.__name__ + " <alliance> [number]"
+        self.helptext = ["List the galaxies with lots of planets in the given alliance."]
 
     def execute(self, user, access, irc_msg):
 
@@ -56,7 +56,7 @@ class bumchums(loadable.loadable):
             return 0
 
         alliance = m.group(1)
-        bums = m.group(2) or 1
+        bums = m.group(2) or 3
 
         a = loadable.alliance(name=alliance)
 
@@ -78,7 +78,7 @@ class bumchums(loadable.loadable):
 
         reply = ""
         if self.cursor.rowcount < 1:
-            reply += "No galaxies with at least %s bumchums from %s" % (bums, a.name)
+            reply += "No galaxies with at least %s bums from %s" % (bums, a.name)
         else:
             prev = []
             for b in self.cursor.fetchall():

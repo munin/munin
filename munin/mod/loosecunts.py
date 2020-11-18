@@ -70,7 +70,7 @@ class loosecunts(loadable.loadable):
         query += " (SELECT *,nextval('activity_rank') AS activity_rank"
         query += "  FROM (SELECT *,nextval('value_diff_rank') AS value_diff_rank"
         query += "        FROM (SELECT *,nextval('xp_gain_rank') AS xp_gain_rank"
-        query += "              FROM (SELECT i.nick, u.pnick, p0.xp-p72.xp AS xp_gain, p0.score-p72.score AS activity, p0.value-p72.value AS value_diff"
+        query += "              FROM (SELECT p0.x,p0.y,p0.z, i.nick, u.pnick, p0.xp-p72.xp AS xp_gain, p0.score-p72.score AS activity, p0.value-p72.value AS value_diff"
         query += "                    FROM       planet_dump     AS p0"
         query += "                    LEFT JOIN  intel           AS i   ON p0.id=i.pid"
         query += (
@@ -87,7 +87,7 @@ class loosecunts(loadable.loadable):
 
         self.cursor.execute(query, (irc_msg.round, irc_msg.round,))
 
-        query = "SELECT nick,pnick,xp_gain,activity,value_diff,xp_gain_rank,value_diff_rank,activity_rank"
+        query = "SELECT x,y,z,pnick,nick,xp_gain,activity,value_diff,xp_gain_rank,value_diff_rank,activity_rank"
         query += " FROM epenis"
         query += " ORDER BY activity_rank DESC LIMIT 5"
 
@@ -103,7 +103,11 @@ class loosecunts(loadable.loadable):
                 "%d:%s (%s)"
                 % (
                     b["activity_rank"],
-                    b["pnick"] or b["nick"],
+                    b["pnick"]
+                    or b["nick"]
+                    or (
+                        "[" + str(b["x"]) + ":" + str(b["y"]) + ":" + str(b["z"]) + "]"
+                    ),
                     self.format_value(b["activity"] * 100),
                 )
             )

@@ -107,7 +107,13 @@ class stop(loadable.loadable):
         query = (
             "SELECT * FROM ship WHERE " + target_number + "=%s AND round=%s ORDER BY id"
         )
-        self.cursor.execute(query, (ship["class"], irc_msg.round,))
+        self.cursor.execute(
+            query,
+            (
+                ship["class"],
+                irc_msg.round,
+            ),
+        )
         attackers = self.cursor.fetchall()
 
         reply = ""
@@ -127,7 +133,7 @@ class stop(loadable.loadable):
             else:
                 reply += "Stopping "
             reply += "%s %s (%s) as %s requires " % (
-                ship_number,
+                self.format_real_value(ship_number),
                 ship["name"],
                 self.format_value(ship_number * ship["total_cost"]),
                 user_target,
@@ -151,7 +157,7 @@ class stop(loadable.loadable):
                     )
                 reply += "%s: %s (%s) " % (
                     a["name"],
-                    needed,
+                    self.format_real_value(needed),
                     self.format_value(a["total_cost"] * needed),
                 )
 

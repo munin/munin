@@ -81,10 +81,10 @@ class eff(loadable.loadable):
             irc_msg.reply(
                 "%s %s (%s) will capture Asteroid: %s (%s)"
                 % (
-                    ship_number,
+                    self.format_real_value(ship_number),
                     ship["name"],
                     self.format_value(ship_number * ship["total_cost"]),
-                    killed,
+                    self.format_real_value(killed),
                     self.format_value(killed * 20000),
                 )
             )
@@ -93,10 +93,10 @@ class eff(loadable.loadable):
             irc_msg.reply(
                 "%s %s (%s) will destroy Structure: %s (%s)"
                 % (
-                    ship_number,
+                    self.format_real_value(ship_number),
                     ship["name"],
                     self.format_value(ship_number * ship["total_cost"]),
-                    killed,
+                    self.format_real_value(killed),
                     self.format_value(killed * 150000),
                 )
             )
@@ -105,16 +105,22 @@ class eff(loadable.loadable):
             irc_msg.reply(
                 "%s %s (%s) will loot Resources: %s (%s)"
                 % (
-                    ship_number,
+                    self.format_real_value(ship_number),
                     ship["name"],
                     self.format_value(ship_number * ship["total_cost"]),
-                    killed,
+                    self.format_real_value(killed),
                     self.format_value(killed),
                 )
             )
         else:
             query = "SELECT * FROM ship WHERE class=%s AND round=%s ORDER BY id"
-            self.cursor.execute(query, (ship[target_number], irc_msg.round,))
+            self.cursor.execute(
+                query,
+                (
+                    ship[target_number],
+                    irc_msg.round,
+                ),
+            )
             targets = self.cursor.fetchall()
             if len(targets) == 0:
                 reply = "%s does not have any targets in that category (%s)" % (
@@ -123,7 +129,7 @@ class eff(loadable.loadable):
                 )
             else:
                 reply = "%s %s (%s) hitting %s will " % (
-                    ship_number,
+                    self.format_real_value(ship_number),
                     ship["name"],
                     self.format_value(ship_number * ship["total_cost"]),
                     user_target,
@@ -149,7 +155,7 @@ class eff(loadable.loadable):
                         killed = int(efficiency * total_damage / t["armor"])
                     reply += "%s: %s (%s) " % (
                         t["name"],
-                        killed,
+                        self.format_real_value(killed),
                         self.format_value(t["total_cost"] * killed),
                     )
             irc_msg.reply(reply.strip())

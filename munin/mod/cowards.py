@@ -77,13 +77,10 @@ class cowards(loadable.loadable):
                     else:
                         naps.append(row["initiator"])
                 elif row["type"] == "War":
+                    # Wars are one-way.
                     if a.name == row["initiator"]:
                         wars.append(
                             "%s (until pt%d)" % (row["acceptor"], row["end_tick"])
-                        )
-                    else:
-                        wars.append(
-                            "%s (until pt%d)" % (row["initiator"], row["end_tick"])
                         )
 
             # <alliance> is allied with: X, Y, Z | <alliance> has a NAP with A, B, C | <alliance> is at war with: H

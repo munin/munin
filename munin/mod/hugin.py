@@ -69,6 +69,8 @@ class hugin(loadable.loadable):
             irc_msg.reply(
                 "Hugin is %s" % (["home resting", "out spying"][ctab[0].is_enabled()],)
             )
+        elif access < self.level:
+            irc_msg.reply("You do not have enough access to use this command")
         elif cmd == "start" or cmd == "fly":
             return self.start(ctab, irc_msg)
         elif cmd == "stop" or cmd == "roost":

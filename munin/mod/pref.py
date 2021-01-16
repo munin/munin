@@ -37,7 +37,7 @@ class pref(loadable.loadable):
         self.paramre = re.compile(r"^\s*(.*)")
         self.usage = self.__class__.__name__ + " [option=value]+"
         self.helptext = [
-            "Options: planet=x.y.z | password=OnlyWorksInPM | phone=+1-800-HOT-BIRD | pubphone=T|F"
+            "Options: planet=x.y.z | password=OnlyWorksInPM | phone=+1-800-HOT-BIRD | pubphone=T|F | lemming=T|F | stay=T|F"
         ]
 
     def execute(self, user, access, irc_msg):
@@ -73,31 +73,15 @@ class pref(loadable.loadable):
                     x = m.group(1)
                     y = m.group(2)
                     z = m.group(3)
+                    self.save_planet(irc_msg, u, x, y, z, user)
                 else:
                     irc_msg.reply(
                         "You must provide coordinates (x:y:z) for the planet option"
                     )
-                    continue
-                pid = self.save_planet(irc_msg, u, x, y, z, irc_msg.round)
-                if pid > 0 and u.userlevel >= 100:
-                    a = loadable.alliance(name=self.config.get("Auth", "alliance"))
-                    if a.load_most_recent(self.cursor, irc_msg.round):
-                        i = loadable.intel(pid=pid)
-                        i.load_from_db(self.cursor, irc_msg.round)
-                        if i.id:
-                            query = "UPDATE intel SET "
-                            query += "nick=%s,alliance_id=%s"
-                            query += " WHERE id=%s"
-                            self.cursor.execute(query, (user, a.id, i.id))
-                        else:
-                            query = "INSERT INTO intel (pid,nick,alliance_id,round) VALUES (%s,%s,%s,%s)"
-                            self.cursor.execute(
-                                query, (pid, user, a.id, irc_msg.round,)
-                            )
             if opt == "stay":
-                self.save_stay(irc_msg, u, val, access, irc_msg.round)
+                self.save_stay(irc_msg, u, val, access)
             if opt == "lemming":
-                self.save_lemming(irc_msg, u, val, access, irc_msg.round)
+                self.save_lemming(irc_msg, u, val, access)
             if opt == "pubphone":
                 self.save_pubphone(irc_msg, u, val, access)
             if opt == "password":
@@ -107,21 +91,40 @@ class pref(loadable.loadable):
 
         return 1
 
-    def save_planet(self, irc_msg, u, x, y, z, round):
+    def save_planet(self, irc_msg, u, x, y, z, user):
         p = loadable.planet(x=x, y=y, z=z)
-        if not p.load_most_recent(self.cursor, round):
+        if not p.load_most_recent(self.cursor, irc_msg.round):
             irc_msg.reply("%s:%s:%s is not a valid planet" % (x, y, z))
-            return 0
-
         if u.pref:
             query = "INSERT INTO round_user_pref (user_id,round,planet_id) VALUES (%s,%s,%s)"
             query += " ON CONFLICT (user_id,round) DO"
             query += " UPDATE SET planet_id=EXCLUDED.planet_id"
-            self.cursor.execute(query, (u.id, round, p.id,))
+            self.cursor.execute(query, (u.id, irc_msg.round, p.id,))
             irc_msg.reply("Your planet has been saved as %s:%s:%s" % (x, y, z))
-            return p.id
+            if p.id > 0 and u.userlevel >= 100:
+                i = loadable.intel(pid=p.id)
+                i.load_from_db(self.cursor, irc_msg.round)
+                a = loadable.alliance(name=self.config.get("Auth", "alliance"))
+                have_alliance = a.load_most_recent(self.cursor, irc_msg.round)
+                if i.id:
+                    arguments = (user,)
+                    query = "UPDATE intel SET nick=%s"
+                    if have_alliance:
+                        arguments += (a.id,)
+                        query += ",alliance_id=%s"
+                    arguments += (i.id,)
+                    query += " WHERE id=%s"
+                else:
+                    arguments = (p.id, user,)
+                    query = "INSERT INTO intel (pid,nick,"
+                    if have_alliance:
+                        arguments += (a.id,)
+                        query += "alliance_id,"
+                    arguments += (irc_msg.round,)
+                    query += "round) VALUES ({})".format(','.join(["%s"] * len(arguments)))
+                self.cursor.execute(query, arguments)
 
-    def save_stay(self, irc_msg, u, status, access, round):
+    def save_stay(self, irc_msg, u, status, access):
         if access < 100:
             return 0
         query = ""
@@ -132,7 +135,7 @@ class pref(loadable.loadable):
             query += " UPDATE SET stay=EXCLUDED.stay"
             args += (
                 u.id,
-                round,
+                irc_msg.round,
                 status,
             )
         reply = "Your stay status has been saved as %s" % (status,)
@@ -145,7 +148,7 @@ class pref(loadable.loadable):
             )
         irc_msg.reply(reply)
 
-    def save_lemming(self, irc_msg, u, status, access, round):
+    def save_lemming(self, irc_msg, u, status, access):
         if access < 100:
             return 0
         query = ""
@@ -158,7 +161,7 @@ class pref(loadable.loadable):
             query += " UPDATE SET lemming=EXCLUDED.lemming"
             args += (
                 u.id,
-                round,
+                irc_msg.round,
                 status,
             )
         reply = "Your lemming status has been saved as %s" % (status,)

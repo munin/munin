@@ -35,11 +35,11 @@ class spamin(loadable.loadable):
 
     def __init__(self, cursor):
         super().__init__(cursor, 100)
-        self.paramre = re.compile(r"^\s*(.*?)\s([0-9:. ]+)")
+        self.paramre = re.compile(r"^\s*(.*?)\s([0-9]+(?:(?:[:.]|\s+)[0-9]+)+)\s*$")
         self.usage = self.__class__.__name__ + " <alliance> <coords...>"
         self.helptext = None
 
-        self.coordsplitre = re.compile(r"[:. ]")
+        self.coordsplitre = re.compile(r"[:. ]+")
 
     def execute(self, user, access, irc_msg):
 
@@ -56,7 +56,7 @@ class spamin(loadable.loadable):
         coord_list = re.split(self.coordsplitre, m.group(2))
 
         if len(coord_list) % 3 != 0:
-            irc_msg.reply("You did not give me a set of complete coords, you dumbass!")
+            irc_msg.reply("You did not give me a set of complete coords, you dumbass! {}".format(coord_list))
             return 0
 
         a = loadable.alliance(name=alliance_name)
@@ -96,7 +96,7 @@ class spamin(loadable.loadable):
         # pid1, aid, round, pid2, aid, round, etc.
         aids = (a.id,) * len(pids)
         rounds = (irc_msg.round,) * len(pids)
-        values = tuple(val for pair in zip(pids, aids, rounds) for val in pair)
+        values = tuple(val for trio in zip(pids, aids, rounds) for val in trio)
 
         # Make a query with 'len(pids)' value lists.
         query = "INSERT INTO intel (pid, alliance_id, round) VALUES %s" % (

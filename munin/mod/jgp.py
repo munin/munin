@@ -33,9 +33,9 @@ from munin import loadable
 class jgp(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 50)
-        self.paramre = re.compile(r"^\s*(.*)")
-        self.usage = self.__class__.__name__ + ""
-        self.helptext = None
+        self.paramre = re.compile(r"^\s*([0-9:. -]*|[0-9A-Za-z]*)(?:\s(l|li|lin|link|linkie))?$")
+        self.usage = self.__class__.__name__ + " <coords> [link]"
+        self.helptext = "Retrieve the most recent JGP on the given coords. Add 'link' to request a link instead of a data dump"
 
     def execute(self, user, access, irc_msg):
 
@@ -47,11 +47,13 @@ class jgp(loadable.loadable):
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
-
         params = m.group(1)
-        m = self.planet_coordre.search(params)
+        link = True if m.group(2) else False
 
         reply = ""
+
+        m = self.planet_coordre.search(params)
+        query_executed = False
         if m:
             x = m.group(1)
             y = m.group(2)
@@ -62,50 +64,31 @@ class jgp(loadable.loadable):
                 irc_msg.reply("No planet matching '%s:%s:%s' found" % (x, y, z))
                 return 1
 
-            query = "SELECT t3.x,t3.y,t3.z,t1.tick AS tick,t1.nick,t1.scantype,t1.rand_id,t2.mission,t2.fleet_size,t2.fleet_name,t2.landing_tick-t1.tick AS eta"
-            query += " FROM scan AS t1"
-            query += " INNER JOIN fleet AS t2 ON t1.id=t2.scan_id"
-            query += " INNER JOIN planet_dump AS t3 ON t2.owner_id=t3.id"
-            query += " WHERE t1.pid=%s AND t3.tick=(SELECT max_tick(%s::smallint)) AND t3.round=%s"
+            query = "SELECT p.x,p.y,p.z,"
+            query += "s.tick AS tick,s.nick,s.scantype,s.rand_id,"
+            query += "f.mission,f.fleet_size,f.fleet_name,f.landing_tick-s.tick AS eta"
+            query += " FROM scan AS s"
+            query += " INNER JOIN fleet AS f ON s.id=f.scan_id"
+            query += " INNER JOIN planet_dump AS p ON f.owner_id=p.id"
+            query += " WHERE s.pid=%s AND p.tick=(SELECT max_tick(%s::smallint)) AND p.round=%s"
             query += (
-                " AND t1.id=(SELECT id FROM scan WHERE pid=t1.pid AND scantype='jgp'"
+                " AND s.id=(SELECT id FROM scan WHERE pid=s.pid AND scantype='jgp'"
             )
             query += " ORDER BY tick DESC, id DESC LIMIT 1) ORDER BY eta ASC"
             self.cursor.execute(query, (p.id, irc_msg.round, irc_msg.round,))
-
-            if self.cursor.rowcount < 1:
-                if self.fallback(irc_msg, p, None, irc_msg.round):
-                    return 1
-                else:
-                    reply += "No JGP scans available on %s:%s:%s" % (p.x, p.y, p.z)
-
+            if self.cursor.rowcount > 0:
+                results = self.cursor.fetchall()
+                s = results[0]
+                irc_msg.reply(self.reply_jgp(link,
+                                             s["rand_id"],
+                                             x,
+                                             y,
+                                             z,
+                                             results,
+                                             s["tick"]))
             else:
-                reply += "Newest JGP scan on %s:%s:%s" % (p.x, p.y, p.z)
-
-                prev = []
-                for s in self.cursor.fetchall():
-                    prev.append(
-                        "(%s:%s:%s %s | %s %s %s)"
-                        % (
-                            s["x"],
-                            s["y"],
-                            s["z"],
-                            s["fleet_name"],
-                            s["fleet_size"],
-                            s["mission"],
-                            s["eta"],
-                        )
-                    )
-                    tick = s["tick"]
-                    rand_id = s["rand_id"]
-
-                reply += " (id: %s, pt: %s) " % (rand_id, tick)
-                reply += " | ".join(prev)
-                if len(reply) > 450:
-                    reply = " Newest JGP scan on %s:%s:%s (pt: %s) " % (x, y, z, tick)
-                    reply += "http://game.planetarion.com/showscan.pl?scan_id=%s" % (
-                        rand_id,
-                    )
+                irc_msg.reply("No JGP scans available on %s:%s:%s" % (x, y, z))
+                return 0
         else:
             m = self.idre.search(params)
             if not m:
@@ -114,75 +97,57 @@ class jgp(loadable.loadable):
 
             rand_id = m.group(1)
 
-            query = "SELECT t4.x AS targ_x,t4.y AS targ_y,t4.z AS targ_z,t1.tick,t1.nick,t1.scantype,t1.rand_id,t2.mission,t2.fleet_size,t2.fleet_name,t2.landing_tick-t1.tick AS eta"
-            query += ",t5.x AS x,t5.y AS y,t5.z AS z"
-            query += " FROM scan AS t1"
-            query += " INNER JOIN fleet AS t2 ON t1.id=t2.scan_id"
-            query += " INNER JOIN planet_dump AS t4 ON t1.pid=t4.id"
+            query = "SELECT p1.x AS targ_x,p1.y AS targ_y,p1.z AS targ_z,"
+            query += "s.tick,s.nick,s.scantype,s.rand_id,"
+            query += "f.mission,f.fleet_size,f.fleet_name,f.landing_tick-s.tick AS eta,"
+            query += "p2.x AS x,p2.y AS y,p2.z AS z"
+            query += " FROM scan AS s"
+            query += " INNER JOIN fleet AS f ON s.id=f.scan_id"
+            query += " INNER JOIN planet_dump AS p1 ON s.pid=p1.id"
             query += (
-                " INNER JOIN planet_dump AS t5 ON t4.tick=t5.tick AND t2.owner_id=t5.id"
+                " INNER JOIN planet_dump AS p2 ON p1.tick=p2.tick AND f.owner_id=p2.id"
             )
-            query += " WHERE t4.tick=(SELECT max_tick(%s::smallint)) AND t4.round=%s AND t1.rand_id=%s"
+            query += " WHERE p1.tick=(SELECT max_tick(%s::smallint)) AND p1.round=%s AND s.rand_id=%s"
             self.cursor.execute(query, (irc_msg.round, irc_msg.round, rand_id,))
-
-            if self.cursor.rowcount < 1:
-                if self.fallback(irc_msg, None, rand_id, irc_msg.round):
-                    return 1
-                else:
-                    reply += "No JGP scans matching ID %s" % (rand_id,)
+            if self.cursor.rowcount > 0:
+                results = self.cursor.fetchall()
+                s = results[0]
+                irc_msg.reply(self.reply_jgp(link,
+                                             rand_id,
+                                             s["targ_x"],
+                                             s["targ_y"],
+                                             s["targ_z"],
+                                             results,
+                                             s["tick"]))
             else:
-                reply += "Newest JGP scan on "
+                irc_msg.reply("No JGP scans available with ID %s" %(rand_id,))
+                return 0
+        return 1
 
-                prev = []
-                for s in self.cursor.fetchall():
-                    prev.append(
-                        "(%s:%s:%s %s | %s %s %s)"
-                        % (
-                            s["x"],
-                            s["y"],
-                            s["z"],
-                            s["fleet_name"],
-                            s["fleet_size"],
-                            s["mission"],
-                            s["eta"],
-                        )
+    def reply_jgp(self, link, rand_id, x, y, z, results, tick):
+        if not link:
+            prev = []
+            for s in results:
+                prev.append(
+                    "(%s:%s:%s %s | %s %s %s)"
+                    % (
+                        s["x"],
+                        s["y"],
+                        s["z"],
+                        s["fleet_name"],
+                        s["fleet_size"],
+                        s["mission"],
+                        s["eta"],
                     )
-                    tick = s["tick"]
-                    x = s["targ_x"]
-                    y = s["targ_y"]
-                    z = s["targ_z"]
-                reply += "%s:%s:%s (id: %s, pt: %s) " % (x, y, z, rand_id, tick)
-                reply += " | ".join(prev)
-        irc_msg.reply(reply)
-        return 1
+                )
 
-    def fallback(self, irc_msg, planet, rand_id, round):
-        query = "SELECT rand_id FROM scan AS t1 "
-        query += " INNER JOIN planet_dump AS t3 ON t1.pid=t3.id"
-        query += " WHERE t3.tick = (SELECT max_tick(%s::smallint)) AND t3.round=%s"
-
-        args = (
-            round,
-            round,
-        )
-        if planet:
-            query += " AND t3.id=%s"
-            args += (planet.id,)
-        elif rand_id:
-            query += " AND t1.rand_id=%s"
-            args += (rand_id,)
-        else:
-            return 0
-        query += " ORDER BY t1.tick DESC LIMIT 1"
-
-        self.cursor.execute(query, args)
-
-        if self.cursor.rowcount < 1:
-            return 0  # failure
-        s = self.cursor.fetchone()
-        irc_msg.reply(
-            "I can't see any fleets found matching this scan, but here's a URL you can try anyway: http://game.planetarion.com/showscan.pl?scan_id=%s"
-            % (s["rand_id"],)
-        )
-
-        return 1
+            reply = "JGP scan on %s:%s:%s (id: %s, pt: %s) " % (x, y, z, rand_id, tick,)
+            reply += " | ".join(prev)
+            if len(reply) > 450:
+                link = True
+        if link:
+            reply = "JGP scan on %s:%s:%s (id: %s, pt: %s) " % (x, y, z, rand_id, tick)
+            reply += "http://game.planetarion.com/showscan.pl?scan_id=%s" % (
+                rand_id,
+            )
+        return reply

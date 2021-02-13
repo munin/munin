@@ -44,7 +44,6 @@ class loadable(object):
 
     def execute(self, user, access, irc_msg):
         print("Loadable execute")
-        pass
 
     def aliases(self, command_text):
         comre = re.compile("^" + re.escape(command_text))
@@ -239,7 +238,6 @@ class defcall(object):
         self.actual_target = None
         self.actual_owner = None
         self.actual_status = None
-        pass
 
     def __str__(self):
         ret_str = "Defcall with id %s for %s:%s:%s landing %s" % (
@@ -329,7 +327,6 @@ class fleet(object):
         self.actual_owner = None
         self.actual_rand_id = None
         self.eta = -1
-        pass
 
     def __str__(self):
         reply = "Fleet with id: %s from %s:%s:%s (%s)" % (
@@ -466,7 +463,6 @@ class planet(object):
         retstr += "XP: %s (%s) " % (self.xp, self.xp_rank)
         retstr += "Idle: %s " % (self.idle,)
         return retstr
-        pass
 
     def load_most_recent(self, cursor, round):
         p = {}
@@ -484,7 +480,6 @@ class planet(object):
                     round,
                 ),
             )
-            pass
         elif self.planetname and self.rulername:
             query = "SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id"
             query += " FROM planet_dump WHERE round=%s AND planetname=%s AND rulername=%s AND tick=(SELECT max_tick(%s::smallint))"
@@ -497,7 +492,6 @@ class planet(object):
                     round,
                 ),
             )
-            pass
         elif self.id and self.id > 0:
             query = "SELECT x,y,z,planetname,rulername,race,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,idle,id"
             query += " FROM planet_dump WHERE round=%s AND id=%s AND tick=(SELECT max_tick(%s::smallint))"
@@ -581,30 +575,35 @@ class galaxy(object):
         self.members = -1
 
     def __str__(self):
-        retstr = "%s:%s '%s' " % (self.x, self.y, self.name)
+        retstr = "%s:%s '%s' Members: %s " % (self.x, self.y, self.name, self.members)
         retstr += "Score: %s (%s) " % (self.score, self.score_rank)
         retstr += "Value: %s (%s) " % (self.value, self.value_rank)
         retstr += "Size: %s (%s) " % (self.size, self.size_rank)
         retstr += "XP: %s (%s) " % (self.xp, self.xp_rank)
         return retstr
-        pass
 
     def load_most_recent(self, cursor, round):
         g = {}
         if self.x > 0 and self.y > 0:
             # load from coords
-            query = "SELECT x,y,name,size,score,value,score_rank,value_rank,size_rank,xp,xp_rank,id"
-            query += " FROM galaxy_dump WHERE round=%s AND x=%s AND y=%s AND tick=(SELECT max_tick(%s::smallint))"
+            query  = "SELECT g.x,g.y,g.name,g.size,g.score,g.value,g.score_rank,g.value_rank,g.size_rank,g.xp,g.xp_rank,g.id,COUNT(p.x) AS members "
+            query += "FROM galaxy_dump AS g "
+            query += "INNER JOIN planet_dump AS p "
+            query += "ON p.round = g.round AND p.tick = g.tick AND p.x = g.x AND p.y = g.y "
+            query += "WHERE g.round = %s "
+            query += "AND g.tick=(SELECT max_tick(%s::smallint)) "
+            query += "AND g.x = %s "
+            query += "AND g.y = %s "
+            query += "GROUP BY g.x,g.y,g.name,g.size,g.score,g.value,g.score_rank,g.value_rank,g.size_rank,g.xp,g.xp_rank,g.id;"
             cursor.execute(
                 query,
                 (
                     round,
+                    round,
                     self.x,
                     self.y,
-                    round,
                 ),
             )
-            pass
         else:
             raise Exception("Tried to load planet with no unique identifiers")
         g = cursor.fetchone()
@@ -622,6 +621,7 @@ class galaxy(object):
         self.xp = g["xp"]
         self.xp_rank = g["xp_rank"]
         self.id = g["id"]
+        self.members = g["members"]
         return 1
 
 
@@ -690,7 +690,6 @@ class alliance(object):
                         round,
                     ),
                 )
-            pass
         else:
             raise Exception("Tried to load alliance with no unique identifiers")
         a = cursor.fetchone()

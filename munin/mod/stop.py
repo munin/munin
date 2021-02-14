@@ -38,6 +38,10 @@ class stop(loadable.loadable):
         self.usage = self.__class__.__name__ + " <number> <target> [t1|t2|t3]"
 
     def execute(self, user, access, irc_msg):
+        if access < self.level:
+            irc_msg.reply("You do not have enough access to use this command")
+            return 0
+
         m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             if re.search(r"\s+hammertime", irc_msg.command_parameters, re.I):
@@ -59,7 +63,6 @@ class stop(loadable.loadable):
         bogey = m.group(2)
 
         user_target = m.group(4)
-        efficiency = 1.0
 
         target_number = None
         if not user_target or user_target == "t1":
@@ -67,14 +70,10 @@ class stop(loadable.loadable):
             user_target = "t1"
         elif user_target == "t2":
             target_number = "target_2"
-            efficiency = 0.6
         elif user_target == "t3":
             target_number = "target_3"
-            efficiency = 0.3
 
-        if access < self.level:
-            irc_msg.reply("You do not have enough access to use this command")
-            return 0
+        efficiency = float(self.config.get("Planetarion", "%s_eff" % (user_target,)))
 
         ship = self.get_ship_from_db(bogey, irc_msg.round)
         if not ship:

@@ -46,17 +46,17 @@ class eff(loadable.loadable):
         ship_number = m.group(1)
         ship_name = m.group(2)
         user_target = m.group(4)
-        efficiency = 1.0
         target_number = None
         if not user_target or user_target == "t1":
             target_number = "target_1"
             user_target = "t1"
         elif user_target == "t2":
             target_number = "target_2"
-            efficiency = 0.7
         elif user_target == "t3":
             target_number = "target_3"
-            efficiency = 0.5
+
+        efficiency = float(self.config.get("Planetarion", "%s_eff" % (user_target,)))
+
         if ship_number[-1].lower() == "k":
             ship_number = 1000 * float(ship_number[:-1])
         elif ship_number[-1].lower() == "m":

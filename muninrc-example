@@ -96,6 +96,11 @@ xan_salvage_bonus: 0.0
 zik_salvage_bonus: 0.0
 eit_salvage_bonus: 0.0
 
+# Ship targetting efficiencies. 1.0 is 100%.
+t1_eff: 1.0
+t2_eff: 0.7
+t3_eff: 0.5
+
 # Wars have a fixed duration of this many ticks.
 war_duration: 48
 

@@ -40,7 +40,10 @@ user: MrPresident
 # This section determines alliance policy stuff.
 # cookies_per_day: how many cookies should the bot give out every day? Maximum
 # value: 32767.
-cookies_per_day: 32767
+cookies_per_day: 10
+# If a user does not pass a specific number of cookies to gift, give this
+# amount.
+default_cookie_gift: 2
 # Maximum number of people who can be members of the alliance at the same time.
 member_limit: 100
 
@@ -91,7 +94,7 @@ ter_salvage_bonus: 0.0
 cat_salvage_bonus: 0.4
 xan_salvage_bonus: 0.0
 zik_salvage_bonus: 0.0
-etd_salvage_bonus: 0.0
+eit_salvage_bonus: 0.0
 
 # Wars have a fixed duration of this many ticks.
 war_duration: 48

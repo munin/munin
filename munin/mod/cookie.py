@@ -43,7 +43,8 @@ class cookie(loadable.loadable):
         self.statre = re.compile(r"^\s*statu?s?")
         self.usage = self.__class__.__name__ + " [howmany] <receiver> <reason> | [stat]"
         self.helptext = [
-            "Cookies are used to give out carebears. Carebears are rewards for carefaces. Give cookies to people when you think they've done something beneficial for you or for the alliance in general."
+            "Cookies are used to give out carebears. Carebears are rewards for carefaces. Give cookies to "
+            "people when you think they've done something beneficial for you or for the alliance in general."
         ]
 
     def execute(self, user, access, irc_msg):
@@ -71,15 +72,14 @@ class cookie(loadable.loadable):
             return 1
         if self.command_not_used_in_home(irc_msg, self.__class__.__name__):
             return 1
-        howmany = m.group(2)
-        if howmany:
-            howmany = int(howmany)
-        else:
-            howmany = 1
+        howmany = int(m.group(2) or self.config.get("Alliance", "default_cookie_gift"))
         receiver = m.group(3)
         reason = m.group(4)
 
-        if not self.can_give_cookies(irc_msg, u, howmany):
+        howmany = min(howmany, u.check_available_cookies(self.cursor, self.config))
+        if howmany == 0:
+            irc_msg.reply("Silly %s. You have no cookies left to give out. I'll bake you some new cookies tomorrow morning."
+                          % (u.pnick,))
             return 0
 
         if receiver.lower() == self.config.get("Connection", "nick").lower():
@@ -132,18 +132,6 @@ class cookie(loadable.loadable):
         week_number = iso_week[1]
 
         self.cursor.execute(query, (year, week_number, howmany, giver.id, receiver.id))
-
-    def can_give_cookies(self, irc_msg, u, howmany):
-        available_cookies = u.check_available_cookies(self.cursor, self.config)
-
-        if howmany > available_cookies:
-            reply = (
-                "Silly, %s. You currently only have %s cookies to give out, but are trying to give out %s cookies. I'll bake you some new cookies tomorrow morning."
-                % (u.pnick, u.available_cookies, howmany)
-            )
-            irc_msg.reply(reply)
-            return False
-        return True
 
     def show_status(self, irc_msg, u):
         available_cookies = u.check_available_cookies(self.cursor, self.config)

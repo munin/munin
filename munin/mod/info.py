@@ -65,7 +65,7 @@ class info(loadable.loadable):
         else:
             res = self.cursor.fetchone()
             if res["members"] > 50:
-                query = self.query_for_info_limit_50(irc_msg.round)
+                query = self.query_for_info_limit_50()
                 self.cursor.execute(query, args)
                 ts = self.cursor.fetchone()
                 reply += "%s Members: %s (%s)" % (

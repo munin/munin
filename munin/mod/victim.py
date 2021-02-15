@@ -41,9 +41,12 @@ class victim(loadable.loadable):
         self.clusterre = re.compile(r"^c(\d+)$", re.I)
         self.usage = (
             self.__class__.__name__
-            + " [alliance] [race] [<|>][size] [<|>][value] [bash]"
+            + " [alliance] [race] [<|>][size] [<|>][value] [c<cluster>] [bash]"
             + " (must include at least one search criteria, order doesn't matter)"
         )
+        self.helptext = [
+            "Show planets you can gain many roids from"
+        ]
 
     def execute(self, user, access, irc_msg):
 

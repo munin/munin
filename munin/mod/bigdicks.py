@@ -66,36 +66,47 @@ class bigdicks(loadable.loadable):
         query = "SELECT setval('xp_gain_rank',1,false); SELECT setval('value_diff_rank',1,false); SELECT setval('activity_rank',1,false)"
         self.cursor.execute(query)
 
-        args = (irc_msg.round, irc_msg.round,)
-        query = "CREATE TEMP TABLE epenis AS"
-        query += " (SELECT *,nextval('activity_rank') AS activity_rank"
-        query += "  FROM (SELECT *,nextval('value_diff_rank') AS value_diff_rank"
-        query += "        FROM (SELECT *,nextval('xp_gain_rank') AS xp_gain_rank"
-        query += "              FROM (SELECT p0.x,p0.y,p0.z, i.nick, ac.name AS alliance, u.pnick, p0.xp-p72.xp AS xp_gain, p0.score-p72.score AS activity, p0.value-p72.value AS value_diff"
-        query += "                    FROM       planet_dump     AS p0"
-        query += "                    LEFT JOIN  intel           AS i   ON p0.id=i.pid"
-        query += "                    LEFT JOIN  round_user_pref AS r   ON p0.id=r.planet_id"
-        query += "                    LEFT JOIN  user_list       AS u   ON u.id=r.user_id"
-        query += "                    LEFT JOIN  alliance_canon  AS ac  ON i.alliance_id=ac.id"
-        query += "                    INNER JOIN planet_dump     AS p72 ON p0.id=p72.id AND p0.tick - 72 = p72.tick"
-        query += "                    WHERE p0.tick = (SELECT max_tick(%s::smallint)) AND p0.round = %s"
+        args = (
+            irc_msg.round,
+            irc_msg.round,
+        )
+        query = (
+            "CREATE TEMP TABLE epenis AS"
+            " (SELECT *,nextval('activity_rank') AS activity_rank"
+            "  FROM (SELECT *,nextval('value_diff_rank') AS value_diff_rank"
+            "        FROM (SELECT *,nextval('xp_gain_rank') AS xp_gain_rank"
+            "              FROM (SELECT p0.x,p0.y,p0.z, i.nick, ac.name AS alliance, u.pnick, p0.xp-p72.xp AS xp_gain, p0.score-p72.score AS activity, p0.value-p72.value AS value_diff"
+            "                    FROM       planet_dump     AS p0"
+            "                    LEFT JOIN  intel           AS i   ON p0.id=i.pid"
+            "                    LEFT JOIN  round_user_pref AS r   ON p0.id=r.planet_id"
+            "                    LEFT JOIN  user_list       AS u   ON u.id=r.user_id"
+            "                    LEFT JOIN  alliance_canon  AS ac  ON i.alliance_id=ac.id"
+            "                    INNER JOIN planet_dump     AS p72 ON p0.id=p72.id AND p0.tick - 72 = p72.tick"
+            "                    WHERE p0.tick = (SELECT max_tick(%s::smallint)) AND p0.round = %s"
+        )
         if alliance is not None:
-            query+="                      AND ac.name ILIKE %s"
+            query += "                    AND ac.name ILIKE %s"
             args += ("%%%s%%" % (alliance,),)
-        query += "                    ORDER BY xp_gain DESC) AS t6"
-        query += "              ORDER BY value_diff DESC) AS t7"
-        query += "        ORDER BY activity DESC) AS t8)"
-
+        query += (
+            "                    ORDER BY xp_gain DESC) AS t6"
+            "              ORDER BY value_diff DESC) AS t7"
+            "        ORDER BY activity DESC) AS t8)"
+        )
         self.cursor.execute(query, args)
 
-        query = "SELECT x || ':' || y || ':' || z AS coords,pnick,nick,alliance,xp_gain,activity,value_diff,xp_gain_rank,value_diff_rank,activity_rank"
-        query += " FROM epenis"
-        query += " WHERE activity_rank < 6"
-
+        query = (
+            "SELECT x || ':' || y || ':' || z AS coords,pnick,nick,alliance,activity,activity_rank"
+            " FROM epenis"
+            " WHERE activity_rank < 6"
+        )
         self.cursor.execute(query, ())
 
         if self.cursor.rowcount < 1:
-            irc_msg.reply("There is no penis")
+            self.cursor.execute("SELECT max_tick(%s::smallint)", (irc_msg.round,))
+            if self.cursor.fetchone()['max_tick'] < 73:
+                irc_msg.reply("There is no penis before tick 73")
+            else:
+                irc_msg.reply("The penis isn't small! IT'S CLOAKED!")
             return 1
 
         prev = []

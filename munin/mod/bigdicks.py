@@ -35,8 +35,11 @@ from munin import loadable
 class bigdicks(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 100)
-        self.paramre = re.compile(r"^(\s+(\S+))?")
-        self.usage = self.__class__.__name__ + ""
+        self.paramre = re.compile(r"^(\s*(\S+))?$")
+        self.usage = self.__class__.__name__ + " [alliance]"
+        self.helptext = [
+            'Find the planets with the largest score gains over the last 72 ticks'
+        ]
 
     def execute(self, user, access, irc_msg):
 
@@ -44,11 +47,8 @@ class bigdicks(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        search = irc_msg.user_or_nick()
         m = self.paramre.search(irc_msg.command_parameters)
-
-        if m:
-            search = m.group(2) or search
+        alliance = m.group(2) if m else None
 
         for q in [
             "DROP TABLE epenis",
@@ -66,28 +66,29 @@ class bigdicks(loadable.loadable):
         query = "SELECT setval('xp_gain_rank',1,false); SELECT setval('value_diff_rank',1,false); SELECT setval('activity_rank',1,false)"
         self.cursor.execute(query)
 
+        args = (irc_msg.round, irc_msg.round,)
         query = "CREATE TEMP TABLE epenis AS"
         query += " (SELECT *,nextval('activity_rank') AS activity_rank"
         query += "  FROM (SELECT *,nextval('value_diff_rank') AS value_diff_rank"
         query += "        FROM (SELECT *,nextval('xp_gain_rank') AS xp_gain_rank"
-        query += "              FROM (SELECT p0.x,p0.y,p0.z, i.nick, u.pnick, p0.xp-p72.xp AS xp_gain, p0.score-p72.score AS activity, p0.value-p72.value AS value_diff"
+        query += "              FROM (SELECT p0.x,p0.y,p0.z, i.nick, ac.name AS alliance, u.pnick, p0.xp-p72.xp AS xp_gain, p0.score-p72.score AS activity, p0.value-p72.value AS value_diff"
         query += "                    FROM       planet_dump     AS p0"
         query += "                    LEFT JOIN  intel           AS i   ON p0.id=i.pid"
-        query += (
-            "                    LEFT JOIN  round_user_pref AS r   ON p0.id=r.planet_id"
-        )
-        query += (
-            "                    LEFT JOIN  user_list       AS u   ON u.id=r.user_id"
-        )
+        query += "                    LEFT JOIN  round_user_pref AS r   ON p0.id=r.planet_id"
+        query += "                    LEFT JOIN  user_list       AS u   ON u.id=r.user_id"
+        query += "                    LEFT JOIN  alliance_canon  AS ac  ON i.alliance_id=ac.id"
         query += "                    INNER JOIN planet_dump     AS p72 ON p0.id=p72.id AND p0.tick - 72 = p72.tick"
         query += "                    WHERE p0.tick = (SELECT max_tick(%s::smallint)) AND p0.round = %s"
+        if alliance is not None:
+            query+="                      AND ac.name ILIKE %s"
+            args += ("%%%s%%" % (alliance,),)
         query += "                    ORDER BY xp_gain DESC) AS t6"
         query += "              ORDER BY value_diff DESC) AS t7"
         query += "        ORDER BY activity DESC) AS t8)"
 
-        self.cursor.execute(query, (irc_msg.round, irc_msg.round,))
+        self.cursor.execute(query, args)
 
-        query = "SELECT x,y,z,pnick,nick,xp_gain,activity,value_diff,xp_gain_rank,value_diff_rank,activity_rank"
+        query = "SELECT x || ':' || y || ':' || z AS coords,pnick,nick,alliance,xp_gain,activity,value_diff,xp_gain_rank,value_diff_rank,activity_rank"
         query += " FROM epenis"
         query += " WHERE activity_rank < 6"
 
@@ -100,18 +101,13 @@ class bigdicks(loadable.loadable):
         prev = []
         for b in self.cursor.fetchall():
             prev.append(
-                "%d:%s (%s)"
+                "%d:%s%s (%s)"
                 % (
                     b["activity_rank"],
-                    b["pnick"]
-                    or b["nick"]
-                    or (
-                        "[" + str(b["x"]) + ":" + str(b["y"]) + ":" + str(b["z"]) + "]"
-                    ),
+                    b["pnick"] or b["nick"] or "[%s]" % (b['coords'],),
+                    "/%s" % (b["alliance"],) if "alliance" in b else "",
                     self.format_value(b["activity"] * 100),
                 )
             )
-        reply = "Big dicks: %s" % (", ".join(prev))
-
-        irc_msg.reply(reply)
+        irc_msg.reply("Big dicks: %s" % (", ".join(prev)))
         return 1

@@ -33,51 +33,96 @@ from munin import loadable
 class search(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 50)
-        self.paramre = re.compile(r"^\s*(\S+)")
-        self.usage = self.__class__.__name__ + " <alliance|nick>"
+        self.paramre = re.compile(r"^\s*(.*)")
+        self.paramsplitre = re.compile(r"\s+")
+        self.usage = self.__class__.__name__ + " <alliance|nick|option=value>+"
+        self.options = [
+            "alliance",
+            "nick",
+            "fakenick",
+            "defwhore",
+            "covop",
+            "scanner",
+            "distwhore",
+            "bg",
+            "gov",
+            "relay",
+            "reportchan",
+            "comment",
+        ]
+        self.nulls = ["<>", ".", "-", "?", ""]
+        self.true = ["1", "yes", "y", "true", "t"]
+        self.false = ["0", "no", "n", "false", "f", ""]
+        self.helptext = [
+            "Valid options: %s" % (", ".join(self.options))
+        ]
 
     def execute(self, user, access, irc_msg):
+
+        if access < self.level:
+            irc_msg.reply("You do not have enough access to use this command")
+            return 0
 
         m = self.paramre.search(irc_msg.command_parameters)
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        params = m.group(1)
+        options = self.split_opts(m.group(1))
 
-        if access < self.level:
-            irc_msg.reply("You do not have enough access to use this command")
-            return 0
-
-        args = (irc_msg.round, irc_msg.round, "%" + params + "%", "%" + params + "%")
-        query = "SELECT t1.x AS x,t1.y AS y,t1.z AS z,t1.size AS size,t1.score AS score,t1.value AS value,t1.race AS race,t4.name AS alliance,t2.nick AS nick,t2.reportchan AS reportchan,t2.comment AS comment"
-        query += " FROM planet_dump AS t1 INNER JOIN planet_canon AS t3 ON t1.id=t3.id"
-        query += " INNER JOIN intel AS t2 ON t3.id=t2.pid"
-        query += " LEFT JOIN alliance_canon AS t4 ON t2.alliance_id=t4.id"
-        query += " WHERE t1.tick=(SELECT max_tick(%s::smallint)) AND t1.round=%s AND (t4.name ILIKE %s OR t2.nick ILIKE %s)"
+        query = (
+            "SELECT p.x, p.y, p.z, p.size, p.score, p.value, p.race,"
+            "       a.name AS alliance,"
+            "       i.nick, i.fakenick, i.defwhore, i.covop, i.scanner, i.distwhore, i.bg, i.gov, i.relay, i.reportchan, i.comment"
+            " FROM planet_dump          AS p"
+            " INNER JOIN planet_canon   AS c ON p.id=c.id"
+            " INNER JOIN intel          AS i ON c.id=i.pid"
+            " LEFT  JOIN alliance_canon AS a ON i.alliance_id=a.id"
+            " WHERE p.tick=(SELECT max_tick(%s::smallint))"
+            " AND p.round=%s"
+        )
+        args = (irc_msg.round, irc_msg.round,)
+        for key, value in options.items():
+            if key == 'nick_or_alliance':
+                query += " AND (a.name ILIKE %s OR i.nick ILIKE %s)"
+                args += ("%" + value + "%", "%" + value + "%",)
+            elif key == 'alliance':
+                query += " AND a.name ILIKE %s"
+                args += ("%%%s%%" % (value,),)
+            elif type(value) == str:
+                # No SQL vuln here: split_opts() ensures that the column name
+                # is one of the purely alphabetic strings in self.options, so
+                # we can safely paste it in.
+                query += " AND i.%s ILIKE %%s" % (key,)
+                args += ("%%%s%%" % (value,),)
+            else:
+                query += " AND i.%s = %%s" % (key,)
+                args += (value,)
+        query += " LIMIT 6"
         self.cursor.execute(query, args)
 
         i = 0
         planets = self.cursor.fetchall()
         if not len(planets):
-            reply = "No planets in intel matching nick or alliance: %s" % (params,)
+            reply = "No planets in intel matching search query"
             irc_msg.reply(reply)
             return 1
         for p in planets:
-            reply = "%s:%s:%s (%s)" % (p["x"], p["y"], p["z"], p["race"])
-            reply += " Score: %s Value: %s Size: %s" % (
+            intels = [
+                "%s: %s" % (key.title(), p[key],)
+                for key in self.options
+                if key in p and p[key]
+            ]
+            reply = "%s:%s:%s (%s) Score: %s Value: %s Size: %s %s" % (
+                p["x"],
+                p["y"],
+                p["z"],
+                p["race"],
                 p["score"],
                 p["value"],
                 p["size"],
+                ' '.join(intels),
             )
-            if p["nick"]:
-                reply += " Nick: %s" % (p["nick"],)
-            if p["alliance"]:
-                reply += " Alliance: %s" % (p["alliance"],)
-            if p["reportchan"]:
-                reply += " Reportchan: %s" % (p["reportchan"],)
-            if p["comment"]:
-                reply += " Comment: %s" % (p["comment"],)
             i += 1
             if i > 4 and len(planets) > 4:
                 reply += " (Too many results to list, please refine your search)"
@@ -89,16 +134,19 @@ class search(loadable.loadable):
 
     def split_opts(self, params):
         param_dict = {}
-        active_opt = None
-        for s in params.split("="):
-            if active_opt:
-                m = self.optionsre[active_opt].search(s)
-                if m:
-                    param_dict[active_opt] = m.group(1)
-            last_act = active_opt
-            for key in list(self.optionsre.keys()):
-                if s.endswith(" " + key):
-                    active_opt = key
-            if active_opt == last_act:
-                active_opt = None
+        for s in re.split(self.paramsplitre, params):
+            if '=' in s:
+                key, value = s.split('=')
+                if key in self.options:
+                    if value in self.nulls:
+                        value = None
+                    if value in self.true:
+                        value = True
+                    if value in self.false:
+                        value = False
+                    param_dict[key] = value
+                # Silently ignore invalid options
+            else:
+                # For simplicity, allow plain alliance and nick.
+                param_dict['nick_or_alliance'] = s
         return param_dict

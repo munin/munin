@@ -9,7 +9,6 @@ import urllib.request, urllib.error, urllib.parse
 import re
 import sys
 import argparse
-# import ssl
 
 QUERY = """
 INSERT INTO ship(%s)
@@ -115,13 +114,6 @@ def main():
     req = urllib.request.Request(args.url)
     req.add_header("User-Agent", useragent)
     stats = urllib.request.urlopen(req).read().decode()
-    # TODO: If this works again, re-enable certificate verification in hugin.py
-    # too.
-    #
-    # # Temporarily(?) disabled certificate verification, which has somehow
-    # # stopped working.
-    # no_verify_context = ssl._create_unverified_context()
-    # stats = urllib.request.urlopen(req, context=no_verify_context).read().decode()
 
     for line in sre.findall(stats):
         line = list(line)

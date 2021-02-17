@@ -311,6 +311,7 @@ crystal integer NOT NULL,
 eonium integer NOT NULL,
 race VARCHAR(10) NOT NULL CHECK(race in ('Terran','Cathaar','Xandathrii','Zikonian','Eitraides')),
 total_cost integer NOT NULL CHECK(total_cost = metal+crystal+eonium),
+eta smallint NOT NULL;
 UNIQUE(round,name)
 );
 

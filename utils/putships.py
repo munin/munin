@@ -9,6 +9,7 @@ import urllib.request, urllib.error, urllib.parse
 import re
 import sys
 import argparse
+# import ssl
 
 QUERY = """
 INSERT INTO ship(%s)
@@ -47,14 +48,22 @@ keys = [
     "metal",
     "crystal",
     "eonium",
+    "a/c",
+    "d/c",
+    "eta",
+]
+
+skip = [
+    "a/c",
+    "d/c",
 ]
 
 regex = r'^<tr class="(Ter|Cat|Xan|Zik|Etd)">.+?>([^<]+)</td>'  # race & name
 regex += r"<td>(\w+)</td>"  # class
 regex += r"(?:<td>(\w\w|\-)</td>)?" * 3  # t1,t2,t3
 regex += r"<td>(\w+)</td>"  # type
-regex += r".+?(\d+|\-)</td>" * 8  # some numbers
-regex += r".+?</tr>$"  # end of the line
+regex += r".+?(\d+|\-)</td>" * 11  # some numbers
+regex += r".*?</tr>$"  # end of the line
 sre = re.compile(regex, re.I | re.M)
 
 
@@ -100,11 +109,19 @@ def main():
         config.get("Auth", "owner_nick"),
     )
 
+    # TODO: Only do this if --overwrite is given.
     cursor.execute("DELETE FROM ship WHERE round=%s;", (args.round,))
 
     req = urllib.request.Request(args.url)
     req.add_header("User-Agent", useragent)
     stats = urllib.request.urlopen(req).read().decode()
+    # TODO: If this works again, re-enable certificate verification in hugin.py
+    # too.
+    #
+    # # Temporarily(?) disabled certificate verification, which has somehow
+    # # stopped working.
+    # no_verify_context = ssl._create_unverified_context()
+    # stats = urllib.request.urlopen(req, context=no_verify_context).read().decode()
 
     for line in sre.findall(stats):
         line = list(line)
@@ -114,11 +131,13 @@ def main():
                 line[index] = mapping[line[index]]
             elif line[index].isdigit():
                 line[index] = int(line[index])
-            if line[index] not in ("-", "",):
+            if line[index] not in ("-", "",) and key not in skip:
                 ship[key] = line[index]
         ship["total_cost"] = ship["metal"] + ship["crystal"] + ship["eonium"]
         if ship["type"] == "EMP":
             ship["type"] = "Emp"
+        # Assume TT-4.
+        ship["eta"] -= 4
         fields = ["round"]
         params = [args.round]
         for key in ship:

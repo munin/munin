@@ -71,14 +71,14 @@ class ship(loadable.loadable):
             s["class"],
             s["target_1"],
         )
-        if s["target_2"] != "NULL":
+        if s["target_2"] is not None:
             reply += " Target 2: %s |" % (s["target_2"],)
-        if s["target_3"] != "NULL":
+        if s["target_3"] is not None:
             reply += " Target 3: %s |" % (s["target_3"],)
         type = s["type"]
         if type.lower() == "emp":
             type = "*hugs*"
-        reply += " Type: %s | Init: %s |" % (type, s["init"])
+        reply += " Type: %s | Init: %s | Attack ETA (TT-4): %s |" % (type, s["init"], s['eta'])
         reply += " HUGres: %s |" % (s["empres"],)
         if s["type"] == "Emp":
             reply += " Hugs: %s |" % (s["gun"],)

@@ -527,17 +527,49 @@ class planet(object):
         return 1
 
     def calc_xp(self, victim, mcs=0):
-        bravery = self.bravery(victim)
-        bonus = 1.0 + 0.005 * float(mcs)
-        return int(bravery * bonus * int(victim.size * self.cap_rate(victim)))
+        cap = self.cap_rate(victim) * victim.size
+        bravery_factor = self.bravery(victim)
+        war_bonus = self.war_xp_bonus(victim)
+        mc_bonus = 0.005 * float(mcs)
+
+        def inner_xp_calc(round_factor, fleet_admiral_bonus):
+            raw_xp = cap * 2.5 * bravery_factor * round_factor * (1 + fleet_admiral_bonus) * (1 + war_bonus + mc_bonus)
+            return int(min(self.score / 180.0,
+                           raw_xp * (0.8 ** ((self.xp + 2 * raw_xp) / 10000.0)) * min(1.25,
+                                                                                      max(1.0,
+                                                                                          1.5 - self.xp / 100000.0))))
+
+        # Round factor is determined by UNIVERSE land rate over the last 168
+        # ticks. Since we don't have access to that information, we calculate
+        # XP twice, once using the minimum and once using the maximum round
+        # factor.
+        min_round_factor = 1.0
+        max_round_factor = 2.0
+
+        # Each fleet has an admiral that gives between 0% and 50% increase in
+        # XP. Here too, we don't know what the bonus is, so we use the full
+        # range.
+        min_fleet_admiral_bonus = 0.0
+        max_fleet_admiral_bonus = 0.5
+
+        return (
+            inner_xp_calc(min_round_factor, min_fleet_admiral_bonus),
+            inner_xp_calc(max_round_factor, max_fleet_admiral_bonus),
+        )
+
+    def war_xp_bonus(self, victim):
+        # If this planet's alliance is at war with the target's alliance, you
+        # get more XP. If another alliance was already at war with them when
+        # yours declared war, the XP bonus is halved.
+        return 0.0  # TODO:
 
     def bravery(self, victim):
-        return (
-            max(0.2, min(1.8, float(victim.value) / self.value) - 0.1)
-            * max(0.2, min(2.2, float(victim.score) / self.score) - 0.2)
-            / ((6 + max(4, float(self.score) / self.value)) / 10)
-            * 10
-        )
+        return min(2.0,
+                   max(0.2,
+                       min(2.2,
+                           float(victim.score) / float(self.score)) - 0.35) * max(0.95,
+                                                                                  min(1.15,
+                                                                                      float(victim.value) / float(self.value)) - 0.1))
 
     def cap_rate(self, victim):
         modifier = (float(victim.value) / float(self.value)) ** 0.5

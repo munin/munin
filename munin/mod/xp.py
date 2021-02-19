@@ -106,15 +106,18 @@ class xp(loadable.loadable):
 
         bravery = attacker.bravery(victim)
         cap = int(attacker.cap_rate(victim) * victim.size)
-        xp = int(attacker.calc_xp(victim, mcs))
-        score = self.format_real_value(60 * xp)
+        min_xp, max_xp = attacker.calc_xp(victim, mcs)
+        min_score = self.format_real_value(60 * min_xp)
+        max_score = self.format_real_value(60 * max_xp)
 
-        reply += "| Bravery: %.2f | Cap: %d | MCs: %d | XP: %d | Score: %s" % (
+        reply += "| Bravery: %.2f | Cap: %d | MCs: %d | XP: %d-%d | Score: %s-%s" % (
             bravery,
             cap,
             mcs,
-            xp,
-            score,
+            min_xp,
+            max_xp,
+            min_score,
+            max_score
         )
         irc_msg.reply(reply)
         return 1

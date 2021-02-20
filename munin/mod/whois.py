@@ -71,22 +71,25 @@ class whois(loadable.loadable):
             reply += "No members matching '%s'" % (search,)
         else:
             if r.pnick == irc_msg.user:
-                reply += "You are %s. You are also known as %s. Your sponsor is %s. Your Munin number is %s. You have %d %s. You are%s a lemming"
+                subject = "You"
+                possessive = "Your"
+                reply += "You are"
             else:
-                reply += "Information about %s: They are also known as %s. Their sponsor is %s. Their Munin number is %s. They have %d %s. They are%s a lemming"
-            reply = reply % (
-                r.pnick,
-                r.alias_nick,
-                r.sponsor,
-                self.munin_number_to_output(r, irc_msg.round),
-                r.carebears,
-                self.pluralize(r.carebears, "carebear"),
-                "" if r.lemming else " not",
-            )
+                subject = "They"
+                possessive = "Their"
+                reply += "Information about"
+            reply += " %s. " % (r.pnick,)
+            if r.alias_nick:
+                reply += "%s are also known as %s." % (subject, r.alias_nick,)
 
+            reply += " %s sponsor is %s. %s Munin number is %s. %s have %d %s. %s are%s a lemming" % (
+                possessive, r.sponsor, possessive, self.munin_number_to_output(r),
+                subject, r.carebears, self.pluralize(r.carebears, "carebear"),
+                subject, "" if r.lemming else " not",
+            )
         irc_msg.reply(reply)
         return 1
 
-    def munin_number_to_output(self, u, round):
-        number = u.munin_number(self.cursor, self.config, round)
+    def munin_number_to_output(self, u):
+        number = u.munin_number(self.cursor, self.config)
         return number or "a kabajillion"

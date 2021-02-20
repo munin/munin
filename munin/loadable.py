@@ -817,7 +817,7 @@ class user(object):
         query += " WHERE p.round=%s AND p.user_id=%s"
         return query
 
-    def load_from_db(self, cursor, round):
+    def load_from_db(self, cursor, round=None):
         query = self.lookup_query()
         if self.pnick:
             query += " ( pnick ILIKE %s OR alias_nick ILIKE %s ) AND userlevel >= %s"
@@ -868,47 +868,44 @@ class user(object):
             self.carebears = u["carebears"]
             self.alias_nick = u["alias_nick"]
 
-            query = self.lookup_round_query()
-            cursor.execute(
-                query,
-                (
-                    round,
-                    u["id"],
-                ),
-            )
-            if cursor.rowcount > 0:
-                u = cursor.fetchone()
-                if u:
-                    self.planet_id = u["planet_id"]
-                    if self.planet_id:
-                        self.planet = planet(id=self.planet_id)
-                        self.planet.load_most_recent(cursor, (round,))
-                    else:
-                        self.planet = None
-                    self.stay = u["stay"]
-                    self.fleetcount = u["fleetcount"]
-                    self.fleetcomment = u["fleetcomment"]
-                    self.fleetupdated = u["fleetupdated"]
-                    self.lemming = u["lemming"]
+            if round:
+                query = self.lookup_round_query()
+                cursor.execute(
+                    query,
+                    (
+                        round,
+                        u["id"],
+                    ),
+                )
+                if cursor.rowcount > 0:
+                    u = cursor.fetchone()
+                    if u:
+                        self.planet_id = u["planet_id"]
+                        if self.planet_id:
+                            self.planet = planet(id=self.planet_id)
+                            self.planet.load_most_recent(cursor, (round,))
+                        else:
+                            self.planet = None
+                        self.stay = u["stay"]
+                        self.fleetcount = u["fleetcount"]
+                        self.fleetcomment = u["fleetcomment"]
+                        self.fleetupdated = u["fleetupdated"]
+                        self.lemming = u["lemming"]
             return 1
         return None
 
-    def munin_number(self, cursor, config, round):
+    def munin_number(self, cursor, config):
         if self.sponsor.lower() == config.get("Connection", "nick").lower():
             return 1
         u = user(pnick=self.sponsor)
         if (
-            u.load_from_db(cursor, round)
+            u.load_from_db(cursor)
             and u.userlevel >= 100
             and u.pnick.lower() != u.sponsor.lower()
         ):
-            parent_number = u.munin_number(cursor, config, round)
+            parent_number = u.munin_number(cursor, config)
             if parent_number:
                 return parent_number + 1
-            else:
-                parent_number
-        else:
-            return None  # dead subtree, get rid of these.
 
     def get_fleets(self, cursor, round):
         query = "SELECT t1.ship, t1.ship_count"

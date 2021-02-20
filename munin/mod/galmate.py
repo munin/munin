@@ -59,8 +59,13 @@ class galmate(loadable.loadable):
 
         pnick = m.group(1).lower()
 
-        query = "INSERT INTO user_list (pnick,userlevel) VALUES (%s,1)"
+        if self.is_nick_taken(pnick):
+            irc_msg.reply(
+                "That name is already in use as a pnick or someone's alias. Tough noogies."
+            )
+            return 0
 
+        query = "INSERT INTO user_list (pnick,userlevel) VALUES (%s,1)"
         try:
             self.cursor.execute(query, (pnick,))
             if self.cursor.rowcount > 0:

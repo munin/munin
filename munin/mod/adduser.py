@@ -57,7 +57,7 @@ class adduser(loadable.loadable):
             sponsor_user = self.load_user_from_pnick(m.group(4), irc_msg.round)
             if not sponsor_user or sponsor_user.userlevel < 100:
                 irc_msg.reply(
-                    f"Nice try wiseass, but you can't pass the buck on to {m.group(4)}"
+                    f"Nice try wiseass, but you can't pass the buck on to {m.group(4)}, they're not a member"
                 )
                 return 0
             sponsor = sponsor_user.pnick
@@ -72,23 +72,24 @@ class adduser(loadable.loadable):
 
         added = []
         exists = []
+        botnick = self.config.get('Connection', 'nick')
         for pnick in pnicks.split(","):
             if not pnick:
                 continue
-            gimp = self.load_user_from_pnick(pnick, irc_msg.round)
-            if (
-                not gimp
-                or gimp.pnick.lower() != pnick.lower()
-                or gimp.userlevel < access_lvl
-            ):
-                if not gimp or gimp.pnick.lower() != pnick.lower():
+            if pnick.lower() == botnick.lower():
+                irc_msg.reply("You can't add %s, that's me, you prick!" % (botnick,))
+            else:
+                gimp = self.load_user_from_pnick(pnick, irc_msg.round)
+                query = None
+                if not gimp or pnick.lower() not in [ x.lower() for x in [ gimp.pnick, gimp.alias_nick ] ]:
                     query = "INSERT INTO user_list (userlevel,sponsor,pnick) VALUES (%s,%s,%s)"
                 elif gimp.userlevel < access_lvl:
                     query = "UPDATE user_list SET userlevel = %s, sponsor=%s WHERE pnick ilike %s"
-                self.cursor.execute(query, (access_lvl, sponsor, pnick))
-                added.append(pnick)
-            else:
-                exists.append(pnick)
+                if query:
+                    self.cursor.execute(query, (access_lvl, sponsor, pnick,))
+                    added.append(pnick)
+                else:
+                    exists.append(pnick)
         if len(added):
             irc_msg.reply(
                 "Added users (%s) at level %s" % (",".join(added), access_lvl)
@@ -106,5 +107,4 @@ class adduser(loadable.loadable):
                 )
         if len(exists):
             irc_msg.reply("Users (%s) already exist" % (",".join(exists),))
-
         return 1

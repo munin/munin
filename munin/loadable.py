@@ -216,6 +216,18 @@ class loadable(object):
             ship = self.cursor.fetchone()
         return ship
 
+    def is_nick_taken(self, nick):
+        query = (
+            "SELECT pnick"
+            " FROM user_list"
+            " WHERE pnick ilike %s"
+            " OR alias_nick ilike %s"
+            " LIMIT 1"
+        )
+        args = (nick, nick,)
+        self.cursor.execute(query, args)
+        return self.cursor.rowcount > 0
+
 
 class defcall(object):
     def __init__(

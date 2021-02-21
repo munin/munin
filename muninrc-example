@@ -62,6 +62,7 @@ planetlist: http://195.149.21.23/botfiles/planet_listing.txt
 galaxylist: http://195.149.21.23/botfiles/galaxy_listing.txt
 alliancelist: http://195.149.21.23/botfiles/alliance_listing.txt
 userfeed: https://195.149.21.23/botfiles/user_feed.txt
+shipstats: https://195.149.21.23/manual.pl?page=stats
 
 [Planetarion]
 # General game configurations

@@ -37,9 +37,9 @@ class config(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1000)
         self.paramre = re.compile(r"^\s*(\S+)/(\S+)(?:\s+(.+))?")
-        self.usage = self.__class__.__name__ + " <option> [value]"
+        self.usage = self.__class__.__name__ + " <section> <option> [value]"
         self.helptext = [
-            "Read and write values from and to the configuration file"
+            "Read and write options from and to the configuration file"
         ]
 
     def execute(self, user, access, irc_msg):

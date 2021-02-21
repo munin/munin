@@ -42,15 +42,14 @@ class command(object):
                             c.execute(irc_msg.user, irc_msg.access, irc_msg)
                             self.log_command(irc_msg)
                             break
+            except reboot:
+                raise
             except Exception as e:
                 irc_msg.reply(
                     "Error in module '%s'. Please report the command you used to the bot owner as soon as possible."
                     % (irc_msg.command_name,)
                 )
                 raise
-            if key == "munin.mod.reincarnate" and irc_msg.access >= 1000:
-                irc_msg.reply("ARISING FROM THE DEAD")
-                raise reboot(irc_msg)
 
     def log_command(self, irc_msg):
         if irc_msg.command.lower() == "pref":

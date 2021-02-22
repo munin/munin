@@ -33,6 +33,9 @@ class napfest(loadable.loadable):
         self.paramre = re.compile(r"^\s*")
         self.usage = self.__class__.__name__
         self.war_start_re = re.compile(r"(.*) has declared war on (.*) !")
+        self.auto_war_start_re = re.compile(
+            r"(.*) has automatically declared war on (.*) due to long-standing aggression !"
+        )
         self.nap_start_re = re.compile(
             r"(.*) and (.*) have confirmed they have formed a non-aggression pact."
         )
@@ -43,7 +46,7 @@ class napfest(loadable.loadable):
         self.ally_end_re = re.compile(
             r"(.*) has decided to end its alliance with (.*)."
         )
-        self.helptext = ["Lists the most recent 10 alliance relation changes"]
+        self.helptext = ["List the most recent 10 alliance relation changes"]
 
     def execute(self, user, access, irc_msg):
 
@@ -57,13 +60,14 @@ class napfest(loadable.loadable):
             return 0
 
         war_duration = self.config.getint("Planetarion", "war_duration")
+        auto_war_duration = self.config.getint("Planetarion", "auto_war_duration")
 
         query = "SELECT tick, text FROM userfeed_dump"
         query += " WHERE type = 'Relation Change'"
         query += " AND round = %s"
         query += " AND text NOT ILIKE %s"
         query += " ORDER BY tick DESC"
-        query += " LIMIT 10"
+        query += " LIMIT 5"
         self.cursor.execute(query, (irc_msg.round, "%'s war with % has expired.",))
 
         if self.cursor.rowcount == 0:
@@ -74,7 +78,7 @@ class napfest(loadable.loadable):
                 m = self.war_start_re.match(row["text"])
                 if m:
                     events.append(
-                        "pt%d-%d: War between %s and %s"
+                        "pt%d-%d: War by %s against %s"
                         % (
                             row["tick"],
                             war_duration + row["tick"],
@@ -82,6 +86,18 @@ class napfest(loadable.loadable):
                             m.group(2),
                         )
                     )
+                if not m:
+                    m = self.auto_war_start_re.match(row["text"])
+                    if m:
+                        events.append(
+                            "pt%d-%d: Auto-war by %s against %s"
+                            % (
+                                row["tick"],
+                                auto_war_duration + row["tick"],
+                                m.group(1),
+                                m.group(2),
+                            )
+                        )
                 if not m:
                     m = self.nap_start_re.match(row["text"])
                     if m:
@@ -92,7 +108,7 @@ class napfest(loadable.loadable):
                     m = self.nap_end_re.match(row["text"])
                     if m:
                         events.append(
-                            "pt%d: %s ended its NAP with %s"
+                            "pt%d: %s unNAPed %s"
                             % (row["tick"], m.group(1), m.group(2))
                         )
                 if not m:
@@ -105,18 +121,17 @@ class napfest(loadable.loadable):
                     m = self.ally_end_re.match(row["text"])
                     if m:
                         events.append(
-                            "pt%d: %s ended its alliance with %s"
+                            "pt%d: %s unallied %s"
                             % (row["tick"], m.group(1), m.group(2))
                         )
                 if not m:
-                    reply = "What the hell happened at pt%d? %s? Fuck that." % (
-                        row["tick"],
-                        row["text"],
+                    events.append(
+                        "pt%d: What the hell!? %s? Fuck that"
+                        % (row["tick"], row["text"],)
                     )
-                    break
 
-                reply = "Most recent 10 alliance relation changes: %s" % (
-                    " | ".join(reversed(events))
-                )
+            reply = "Most recent 10 alliance relation changes: %s" % (
+                " | ".join(reversed(events))
+            )
         irc_msg.reply(reply)
         return 1

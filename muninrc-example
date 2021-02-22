@@ -5,6 +5,7 @@
 auth: pnick ppassword
 # which modes to enable when connected.
 modes: ix
+
 [Connection]
 # where to connect.
 server: irc.netgamers.org
@@ -16,6 +17,7 @@ nick: Botolf
 user: Cake
 # the ircname the bot should use
 name: MC_Hammer
+
 [Auth]
 # This section determines which alliance the bot belongs to,
 # and other misc. things.
@@ -27,6 +29,7 @@ home: carebears
 owner_nick: Sauron1337
 # owner_pnick is the the p-nick of the owner.
 owner_pnick: MyNickWasTaken
+
 [Database]
 # This determines what postgres database to connect to, and how.
 dbname: BankOfNorway
@@ -36,6 +39,7 @@ user: MrPresident
 #password: EasyToGuessHaha
 # Uncomment host if the db is running on a different host
 #host: whitehouse.gov
+
 [Alliance]
 # This section determines alliance policy stuff.
 # cookies_per_day: how many cookies should the bot give out every day? Maximum
@@ -104,6 +108,9 @@ t3_eff: 0.5
 
 # Wars have a fixed duration of this many ticks.
 war_duration: 48
+
+# Automatically declared wars have a different duration.
+auto_war_duration: 96
 
 # Default round number for multi-round Munin
 current_round: 72

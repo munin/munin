@@ -65,6 +65,7 @@ class cowards(loadable.loadable):
             alliances = []
             naps = []
             wars = []
+            auto_wars = []
             for row in self.cursor.fetchall():
                 if row["type"] == "Ally":
                     if a.name == row["initiator"]:
@@ -82,23 +83,21 @@ class cowards(loadable.loadable):
                         wars.append(
                             "%s (until pt%d)" % (row["acceptor"], row["end_tick"])
                         )
+                elif row["type"] == "Auto-War":
+                    # Auto-Wars are also one-way.
+                    if a.name == row["initiator"]:
+                        auto_wars.append(
+                            "%s (until pt%d)" % (row["acceptor"], row["end_tick"])
+                        )
 
-            # <alliance> is allied with: X, Y, Z | <alliance> has a NAP with A, B, C | <alliance> is at war with: H
-            # <alliance> is not allied with anyone | <alliance> does not have any NAPs | <alliance> is not at war with anyone
-            reply = a.name
-            if len(alliances) == 0:
-                reply += " is not allied with anyone"
-            else:
-                reply += " is allied with " + ", ".join(alliances)
-            reply += " | " + a.name
-            if len(naps) == 0:
-                reply += " does not have any NAPs"
-            else:
-                reply += " has NAPs with " + ", ".join(naps)
-            reply += " | " + a.name
-            if len(wars) == 0:
-                reply += " is not at war with anyone"
-            else:
-                reply += " is at war with " + ", ".join(wars)
-        irc_msg.reply(reply)
+            lines = []
+            if len(alliances) > 0:
+                lines.append("%s is allied with: %s" % (a.name, + ", ".join(alliances),))
+            if len(naps) > 0:
+                lines.append("%s has NAPs with: %s" % (a.name, ", ".join(naps),))
+            if len(wars) > 0:
+                lines.append("%s is at war with: %s" % (a.name, ", ".join(wars),))
+            if len(auto_wars) > 0:
+                lines.append("%s has auto-wars with: %s" % (a.name, ", ".join(auto_wars),))
+        irc_msg.reply(' | '.join(lines))
         return 1

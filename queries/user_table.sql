@@ -159,7 +159,7 @@ CREATE TABLE alliance_relation (
 id serial,
 -- Needed by Hugin to re-add the data for the current round only.
 round smallint NOT NULL,
-type varchar(4) NOT NULL,
+type text NOT NULL,
 start_tick smallint NOT NULL DEFAULT -1,
 end_tick smallint NOT NULL DEFAULT 32767,
 initiator integer NOT NULL,
@@ -939,10 +939,53 @@ WHERE text ILIKE '%''s war with % has expired.';
 UPDATE utmp AS main
 SET relation_end_tick = other.tick
 FROM utmp AS other
-WHERE ((other.alliance1_id = main.alliance1_id AND other.alliance2_id = main.alliance2_id)
-       OR
-       (other.alliance1_id = main.alliance2_id AND other.alliance2_id = main.alliance1_id))
+WHERE other.alliance1_id = main.alliance1_id
+AND   other.alliance2_id = main.alliance2_id
 AND main.relation_type = 'War'
+AND other.tick > main.tick
+AND other.text ILIKE '%''s war with % has expired.';
+
+END
+$PROC$ LANGUAGE plpgsql;
+
+
+DROP FUNCTION IF EXISTS analyze_auto_wars(curround smallint);
+CREATE FUNCTION analyze_auto_wars(curround smallint) RETURNS void AS $PROC$
+BEGIN
+
+-- War start and default end tick.
+UPDATE utmp AS main SET relation_type='Auto-War',
+alliance1_id=(SELECT id FROM alliance_canon
+              WHERE name = substring(text from '(.*) has automatically declared war on .* due to long-standing aggression !')
+              AND tick = main.tick
+              AND round = curround),
+alliance2_id=(SELECT id FROM alliance_canon
+              WHERE name = substring(text from '.* has automatically declared war on (.*) due to long-standing aggression !')
+              AND tick = main.tick
+              AND round = curround),
+relation_end_tick=(tick+96) -- Auto-wars have a fixed length of 96 ticks.
+WHERE text ILIKE '% has automatically declared war on % due to long-standing aggression !';
+
+-- War end.
+UPDATE utmp AS main SET
+alliance1_id=(SELECT id FROM alliance_canon
+              WHERE name = substring(text from '(.*)''s war with .* has expired.')
+              AND tick = main.tick
+              AND round = curround),
+alliance2_id=(SELECT id FROM alliance_canon
+              WHERE name = substring(text from '.*''s war with (.*) has expired.')
+              AND tick = main.tick
+              AND round = curround)
+WHERE text ILIKE '%''s war with % has expired.';
+
+-- Auto-War end tick. Auto-Wars have a fixed length of 96 ticks, but just to be
+-- safe, see if we can't find an explicit end tick.
+UPDATE utmp AS main
+SET relation_end_tick = other.tick
+FROM utmp AS other
+WHERE other.alliance1_id = main.alliance1_id
+AND   other.alliance2_id = main.alliance2_id
+AND main.relation_type = 'Auto-War'
 AND other.tick > main.tick
 AND other.text ILIKE '%''s war with % has expired.';
 
@@ -990,6 +1033,7 @@ ALTER TABLE utmp ADD COLUMN relation_end_tick smallint DEFAULT 32767;
 PERFORM analyze_naps(curround);
 PERFORM analyze_alliances(curround);
 PERFORM analyze_wars(curround);
+PERFORM analyze_auto_wars(curround);
 
 -- Transfer alliance relation data. Clear and refill the data for the round
 -- every tick. If either alliance is unknown (probably because Munin misses

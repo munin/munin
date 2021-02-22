@@ -36,10 +36,19 @@ from munin.reboot import reboot
 class config(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1000)
-        self.paramre = re.compile(r"^\s*(\S+)/(\S+)(?:\s+(.+))?")
-        self.usage = self.__class__.__name__ + " <section> <option> [value]"
+        self.paramre = re.compile(r"^\s*(?:([^\s/ ]+)(?:/(\S+)(?:\s+(.+))?)?)?")
+        self.usage = self.__class__.__name__ + " [<section>[/<option> [value]]"
         self.helptext = [
             "Read and write options from and to the configuration file"
+        ]
+        # Don't expose authentication information over IRC.
+        self.hidden_options = [
+            'IRC/auth',
+            'Database/password',
+            'clickatell/pass',
+            'clickatell/api_key',
+        ]
+        self.hidden_sections = [
         ]
 
     def execute(self, user, access, irc_msg):
@@ -51,25 +60,32 @@ class config(loadable.loadable):
         if not m:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
-        section = m.group(1)
-        option = m.group(2)
-        value = m.group(3)
+        section = m.group(1) or None
+        option = m.group(2) or None
+        value = m.group(3) or None
 
         if value:
             return self.set(irc_msg, section, option, value)
-        else:
+        elif option:
             success, value = self.get(irc_msg, section, option)
             if success:
                 irc_msg.reply("Configuration option %s/%s has value: %s" % (section, option, value,))
                 return 1
             else:
                 return 0
+        elif section:
+            return self.get_options(irc_msg, section)
+        else:
+            return self.get_sections(irc_msg)
 
     def set(self, irc_msg, section, option, value):
         """Update option in Munin configuration file to the given value."""
         success, old_value = self.get(irc_msg, section, option)
         if success:
             new_value = type(old_value)(value)
+            # ConfigParser supports writing out changed configuration files,
+            # but does not preserve whitespace and comments. ConfigUpdater
+            # does.
             updater = ConfigUpdater()
             updater.read("muninrc")
             updater[section][option] = new_value
@@ -77,15 +93,36 @@ class config(loadable.loadable):
             irc_msg.reply("Updated configuration option %s/%s from '%s' to '%s', ARISING FROM THE DEAD" % (section, option, old_value, new_value,))
             raise reboot(irc_msg)
         else:
-            # get() replies in case of error, so we don't have to.
             return 0
 
     def get(self, irc_msg, section, option):
         """Return the value of the given option in the Munin configuration file."""
+        path = "%s/%s" % (section, option,)
+        if path in self.hidden_options:
+            irc_msg.reply("Nope, this is a SECRET configuration value!")
+        else:
+            try:
+                return (True, self.config.get(section, option),)
+            except NoSectionError as nse:
+                irc_msg.reply("Failed to find section %s" % (section,))
+            except NoOptionError as noe:
+                irc_msg.reply("Failed to find option %s in section %s" % (option, section,))
+        return (False, None,)
+
+    def get_options(self, irc_msg, section):
+        """"""
         try:
-            return (True, self.config.get(section, option),)
+            options = [o for o in self.config.options(section)
+                       if "%s/%s" % (section, o,) not in self.hidden_options]
+            irc_msg.reply("Available options in section %s: %s" % (section, ', '.join(options),))
+            return 1
         except NoSectionError as nse:
             irc_msg.reply("Failed to find section %s" % (section,))
-        except NoOptionError as noe:
-            irc_msg.reply("Failed to find option %s in section %s" % (option, section,))
-        return (False, None,)
+            return 0
+
+    def get_sections(self, irc_msg):
+        """"""
+        sections = [s for s in self.config.sections()
+                    if section not in self.hidden_sections]
+        irc_msg.reply("Available sections in configuration file: %s" % (', '.join(sections),))
+        return 1

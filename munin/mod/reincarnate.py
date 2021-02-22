@@ -36,7 +36,7 @@ from munin.reboot import reboot
 class reincarnate(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1000)
-        self.paramre = re.compile(r"^\s*(\S+)/(\S+)(?:\s+(.+))?")
+        self.paramre = re.compile(r"")
         self.usage = self.__class__.__name__ + ""
         self.helptext = [
             "Reboot me"
@@ -44,8 +44,8 @@ class reincarnate(loadable.loadable):
 
     def execute(self, user, access, irc_msg):
         if access < self.level:
-            irc_msg.reply("You do not have enough access to load ship stats")
+            irc_msg.reply("You do not have enough access to use this command")
             return 0
 
         irc_msg.reply("ARISING FROM THE DEAD")
-        raise reboot(irc_msg)
+        raise reboot()

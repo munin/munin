@@ -91,7 +91,7 @@ class config(loadable.loadable):
             updater[section][option] = new_value
             updater.update_file()
             irc_msg.reply("Updated configuration option %s/%s from '%s' to '%s', ARISING FROM THE DEAD" % (section, option, old_value, new_value,))
-            raise reboot(irc_msg)
+            raise reboot()
         else:
             return 0
 
@@ -123,6 +123,6 @@ class config(loadable.loadable):
     def get_sections(self, irc_msg):
         """"""
         sections = [s for s in self.config.sections()
-                    if section not in self.hidden_sections]
+                    if s not in self.hidden_sections]
         irc_msg.reply("Available sections in configuration file: %s" % (', '.join(sections),))
         return 1

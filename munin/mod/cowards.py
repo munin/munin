@@ -92,7 +92,7 @@ class cowards(loadable.loadable):
 
             lines = []
             if len(alliances) > 0:
-                lines.append("%s is allied with: %s" % (a.name, + ", ".join(alliances),))
+                lines.append("%s is allied with: %s" % (a.name, ", ".join(alliances),))
             if len(naps) > 0:
                 lines.append("%s has NAPs with: %s" % (a.name, ", ".join(naps),))
             if len(wars) > 0:

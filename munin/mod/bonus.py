@@ -67,7 +67,6 @@ class bonus(loadable.loadable):
                 5/6 * (new_total_asteroids * (new_total_asteroids + 1) * (new_total_asteroids + 2) -
                        existing_asteroids * (existing_asteroids + 1) * (existing_asteroids + 2))
             )
-            reply += " | cur roids %s, initcost %s" % (existing_asteroids, init_cost,)
             if init_cost < resource_bonus:
                 reply += " | You can initiate more roids with the resource bonus than the asteroid bonus gives!"
 

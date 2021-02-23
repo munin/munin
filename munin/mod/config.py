@@ -46,7 +46,7 @@ class config(loadable.loadable):
             'IRC/auth',
             'Database/password',
             'clickatell/pass',
-            'clickatell/api_key',
+            'clickatell/api',
         ]
         self.hidden_sections = [
         ]

@@ -647,8 +647,8 @@ class prop(loadable.loadable):
         if prop["prop_type"] == "poll":
             reply = "Cancelled proposal %s to ask %s '%s?'" % (
                 prop["id"],
-                prop["prop_type"],
-                alliance,
+                self.config.get("Auth", "alliance"),
+                prop["question"],
             )
             for o in sorted(outcome.keys()):
                 opt = o[:1].upper() + o[1:]

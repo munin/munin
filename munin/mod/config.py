@@ -53,7 +53,7 @@ class config(loadable.loadable):
 
     def execute(self, user, access, irc_msg):
         if access < self.level:
-            irc_msg.reply("You do not have enough access to load ship stats")
+            irc_msg.reply("You do not have enough access to adjust my configuration, fuck off")
             return 0
 
         m = self.paramre.search(irc_msg.command_parameters)

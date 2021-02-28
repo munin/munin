@@ -48,6 +48,10 @@ cookies_per_day: 10
 # If a user does not pass a specific number of cookies to gift, give this
 # amount.
 default_cookie_gift: 2
+# If True, when a proposition is expired, voters' carebears are used to
+# determine a winner. Otherwise, the each voter gets 1 vote.
+use_carebears_for_props: False
+
 # Maximum number of people who can be members of the alliance at the same time.
 member_limit: 100
 
@@ -62,11 +66,11 @@ allow_prop_veto: True
 [Url]
 # Don't change these unless they actually change in reality.
 # This is where Hugin finds the data it puts in the database.
-planetlist: http://195.149.21.23/botfiles/planet_listing.txt
-galaxylist: http://195.149.21.23/botfiles/galaxy_listing.txt
-alliancelist: http://195.149.21.23/botfiles/alliance_listing.txt
-userfeed: https://195.149.21.23/botfiles/user_feed.txt
-shipstats: https://195.149.21.23/manual.pl?page=stats
+planetlist: http://game.planetarion.com/botfiles/planet_listing.txt
+galaxylist: http://game.planetarion.com/botfiles/galaxy_listing.txt
+alliancelist: http://game.planetarion.com/botfiles/alliance_listing.txt
+userfeed: https://game.planetarion.com/botfiles/user_feed.txt
+shipstats: https://game.planetarion.com/manual.pl?page=stats
 
 [Planetarion]
 # General game configurations

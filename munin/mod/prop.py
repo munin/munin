@@ -46,12 +46,23 @@ class prop(loadable.loadable):
         self.pollre = re.compile(r"\s*([^?]+)\?\s*([^?\"]+)", re.I)
         self.poll_split_answers = re.compile(r"\s*!+\s*")
         self.votere = re.compile(r"^\s+(\d+)\s+(yes|no|abstain|veto|[A-J])", re.I)
-        self.usage = (
-            self.__class__.__name__
-            + " [<invite|kick> <pnick> <comment>] | poll <question>? <answer!>... | [list] | [vote <number> <yes|no|abstain|A..J>] | [expire <number>] | [show <number>] | [cancel <number>] | [recent] | [search <pnick>]"
+        self.usage = self.__class__.__name__ + (
+            " [<invite|kick> <pnick> <comment>] |"
+            " poll <question>? <answer>!... |"
+            " [list] |"
+            " [vote <number> <yes|no|abstain|A..J>] |"
+            " [expire <number>] |"
+            " [show <number>] |"
+            " [cancel <number>] |"
+            " [recent] |"
+            " [search <pnick>]"
         )
         self.helptext = [
-            "A proposition is a vote to do something. For now, you can raise propositions to invite or kick someone, or to perform a poll. Once raised the proposition will stand until you expire it.  Make sure you give everyone time to have their say. Votes for and against a proposition are weighted by carebears. You must have at least 1 carebear to vote."
+            ("A proposition is a vote to do something. For now, you can raise propositions"
+             " to invite or kick someone, or to perform a poll. Once raised the proposition"
+             " will stand until you expire it.  Make sure you give everyone time to have "
+             " their say. Votes for and against a proposition are weighted by carebears. You"
+             " must have at least 1 carebear to vote.")
         ]
 
     def execute(self, user, access, irc_msg):
@@ -298,7 +309,11 @@ class prop(loadable.loadable):
                 self.cursor.execute(query, (r["id"], u.id))
                 if self.cursor.rowcount > 0:
                     r = self.cursor.fetchone()
-                    prop_info += " (%s,%s)" % (r["vote"][0].upper(), r["carebears"])
+                    use_carebears = self.config.getboolean("Alliance", "use_carebears_for_props")
+                    if use_carebears:
+                        prop_info += " (%s,%s)" % (r["vote"][0].upper(), r["carebears"])
+                    else:
+                        prop_info += " (%s)" % (r["vote"][0].upper())
             a.append(prop_info)
 
         reply = "Propositions currently being voted on: %s" % (", ".join(a),)
@@ -359,7 +374,8 @@ class prop(loadable.loadable):
             if s:
                 vote = s["vote"][:1].upper() + s["vote"][1:]
                 reply += ", you are currently voting '%s'" % (vote,)
-                if s["vote"] != "abstain":
+                use_carebears = self.config.getboolean("Alliance", "use_carebears_for_props")
+                if use_carebears and s["vote"] != "abstain":
                     reply += " with %s carebears" % (s["carebears"],)
                 reply += " on this proposition."
             else:
@@ -374,16 +390,13 @@ class prop(loadable.loadable):
         if not bool(r["active"]):
             prop = self.find_single_prop_by_id(prop_id)
 
-            def pretty_print(x):
-                return "%s (%s)" % (x["pnick"], x["carebears"])
-
             if r["prop_type"] == "poll":
                 reply = "The prop expired with %s winning" % (r["vote_result"])
                 for o in sorted(outcome.keys()):
                     if o != "veto":
                         reply += ". The voters for %s were (%s)" % (
                             o,
-                            ", ".join(map(pretty_print, outcome[o]["list"])),
+                            self.pretty_print_votes(outcome[o]["list"]),
                         )
                 reply += "."
             else:
@@ -411,15 +424,17 @@ class prop(loadable.loadable):
                         % (yes, no)
                     )
                 reply += ". The voters in favor were ("
-                reply += ", ".join(list(map(pretty_print, outcome["yes"]["list"])))
+                reply += self.pretty_print_votes(outcome["yes"]["list"])
                 reply += ") and against ("
-                reply += ", ".join(list(map(pretty_print, outcome["no"]["list"])))
+                reply += self.pretty_print_votes(outcome["no"]["list"])
                 reply += ")"
             irc_msg.reply(reply)
 
     def process_vote_proposal(self, irc_msg, u, prop_id, vote):
-        carebears = u.carebears
-        alliance = (self.config.get("Auth", "alliance"),)
+        use_carebears = self.config.getboolean("Alliance", "use_carebears_for_props")
+        # Make sure we can distinguish between 'Someone voted with 1 bear' and
+        # 'Someone voted but carebear weighing is disabled'.
+        carebears = u.carebears if use_carebears else 0
         prop = self.find_single_prop_by_id(prop_id)
         if not prop:
             irc_msg.reply("No proposition number %s exists (idiot)." % (prop_id,))
@@ -488,15 +503,15 @@ class prop(loadable.loadable):
                 prop["id"],
                 old_vote["vote"],
             )
-            if old_vote["vote"] != "abstain":
+            if use_carebears and old_vote["vote"] != "abstain":
                 reply += " (%s)" % (old_vote["carebears"],)
             reply += " to %s" % (vote,)
-            if vote != "abstain":
+            if use_carebears and vote != "abstain":
                 reply += " with %s carebears" % (carebears,)
             reply += "."
         else:
             reply = "Set your vote on proposition %s as %s" % (prop["id"], vote)
-            if vote != "abstain" and vote != "veto":
+            if use_carebears and vote not in ["abstain", "veto"]:
                 reply += " with %s carebears" % (carebears,)
             reply += "."
         irc_msg.reply(reply)
@@ -530,10 +545,6 @@ class prop(loadable.loadable):
                 winner = o
 
         age = (datetime.datetime.now() - prop["created"]).days
-
-        def pretty_print(x):
-            return "%s (%s)" % (x["pnick"], x["carebears"])
-
         if prop["prop_type"] == "poll":
             reply = "The proposition raised by %s %s %s ago to ask %s '%s?'" % (
                 prop["proposer"],
@@ -557,12 +568,12 @@ class prop(loadable.loadable):
                 if text:
                     reply += ". Voters for '%s': (%s)" % (
                         text,
-                        ", ".join(map(pretty_print, outcome[o]["list"])),
+                        self.pretty_print_votes(outcome[o]["list"]),
                     )
                 else:
                     reply += ". Voters for %s: (%s)" % (
                         opt,
-                        ", ".join(map(pretty_print, outcome[o]["list"])),
+                        self.pretty_print_votes(outcome[o]["list"]),
                     )
             reply += "."
 
@@ -591,13 +602,15 @@ class prop(loadable.loadable):
                 reply += " failed"
                 winner = "no"
             reply += " with %s carebears for and %s against." % (yes, no)
-            reply += " In favor: "
-            reply += ", ".join(list(map(pretty_print, outcome["yes"]["list"])))
-            reply += " Against: "
-            reply += ", ".join(list(map(pretty_print, outcome["no"]["list"])))
+            reply += " In favor: ("
+            reply += self.pretty_print_votes(outcome["yes"]["list"])
+            reply += ") Against: ("
+            reply += self.pretty_print_votes(outcome["no"]["list"])
+            reply += ")"
             if len(outcome["veto"]["list"]) > 0:
-                reply += " Veto: "
-                reply += ", ".join(list(map(pretty_print, outcome["veto"]["list"])))
+                reply += " Veto: ("
+                reply += self.pretty_print_votes(outcome["veto"]["list"])
+                reply += ")"
 
         irc_msg.client.privmsg("#%s" % (self.config.get("Auth", "home"),), reply)
 
@@ -640,10 +653,6 @@ class prop(loadable.loadable):
         query += ", vote_result=%s"
         query += " WHERE id=%s"
         self.cursor.execute(query, ("cancel", prop["id"]))
-
-        def pretty_print(x):
-            return "%s (%s)" % (x["pnick"], x["carebears"])
-
         if prop["prop_type"] == "poll":
             reply = "Cancelled proposal %s to ask %s '%s?'" % (
                 prop["id"],
@@ -656,12 +665,12 @@ class prop(loadable.loadable):
                 if text:
                     reply += ". Voters for '%s!' (%s)" % (
                         text,
-                        ", ".join(map(pretty_print, outcome[o]["list"])),
+                        self.pretty_print_votes(outcome[o]["list"]),
                     )
                 else:
                     reply += ". Voters for %s (%s)" % (
                         opt,
-                        ", ".join(map(pretty_print, outcome[o]["list"])),
+                        self.pretty_print_votes(outcome[o]["list"]),
                     )
             reply += "."
         else:
@@ -671,10 +680,10 @@ class prop(loadable.loadable):
                 prop["person"],
             )
             reply += ". Voters in favor (%s)" % (
-                ", ".join(map(pretty_print, outcome["yes"]["list"]))
+                self.pretty_print_votes(outcome["yes"]["list"])
             )
             reply += " and against (%s)" % (
-                ", ".join(map(pretty_print, outcome["no"]["list"]))
+                self.pretty_print_votes(outcome["no"]["list"])
             )
 
         irc_msg.client.privmsg("#%s" % (self.config.get("Auth", "home"),), reply)
@@ -788,11 +797,11 @@ class prop(loadable.loadable):
         query += " WHERE prop_id=%s"
         query += " AND NOT vote='abstain'"
         self.cursor.execute(query, (prop_id,))
-
+        use_carebears = self.config.getboolean("Alliance", "use_carebears_for_props")
         for r in self.cursor.fetchall():
             vote = r["vote"]
             outcome[vote]["list"].append(r)
-            outcome[vote]["count"] += r["carebears"]
+            outcome[vote]["count"] += r["carebears"] if use_carebears else 1
 
         return outcome
 
@@ -942,3 +951,12 @@ class prop(loadable.loadable):
             self.cursor.execute(query, (poll_id, chr(ord("a") + i), answers[i]))
 
         return poll_id
+
+    def pretty_print_votes(self, votes):
+        use_carebears = self.config.getboolean("Alliance", "use_carebears_for_props")
+        return ", ".join([
+            "%s (%s)" % (v["pnick"], v["carebears"],) if use_carebears
+            else v["pnick"]
+            for v in votes
+        ])
+

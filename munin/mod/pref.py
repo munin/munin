@@ -95,6 +95,7 @@ class pref(loadable.loadable):
         p = loadable.planet(x=x, y=y, z=z)
         if not p.load_most_recent(self.cursor, irc_msg.round):
             irc_msg.reply("%s:%s:%s is not a valid planet" % (x, y, z))
+            return 0
         if u.pref:
             query = "INSERT INTO round_user_pref (user_id,round,planet_id) VALUES (%s,%s,%s)"
             query += " ON CONFLICT (user_id,round) DO"

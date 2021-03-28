@@ -265,17 +265,20 @@ class prop(loadable.loadable):
         irc_msg.reply(reply)
 
     def process_poll_proposal(self, irc_msg, user, question, answers):
-        prop_id = self.create_poll_proposal(user, question, answers)
-        alliance = self.config.get("Auth", "alliance")
-        reply = "%s created a new proposition (nr. %d) to poll %s." % (
-            user.pnick,
-            prop_id,
-            alliance,
-        )
-        reply += (
-            " When people have been given a fair shot at voting you can call a count using !prop expire %d."
-            % (prop_id,)
-        )
+        if len(answers) > 1:
+            prop_id = self.create_poll_proposal(user, question, answers)
+            alliance = self.config.get("Auth", "alliance")
+            reply = "%s created a new proposition (nr. %d) to poll %s." % (
+                user.pnick,
+                prop_id,
+                alliance,
+            )
+            reply += (
+                " When people have been given a fair shot at voting you can call a count using !prop expire %d."
+                % (prop_id,)
+            )
+        else:
+            reply = "It's not much of a poll if it only has one answer, pal."
         irc_msg.reply(reply)
 
     def process_list_all_proposals(self, irc_msg, user):

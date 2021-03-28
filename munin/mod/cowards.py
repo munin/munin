@@ -59,9 +59,8 @@ class cowards(loadable.loadable):
         query += " AND rel.end_tick > (SELECT max_tick(%s::smallint))"
         self.cursor.execute(query, (a.id, a.id, irc_msg.round))
 
-        if self.cursor.rowcount == 0:
-            reply = "%s is neutral. Easy targets!" % (a.name)
-        else:
+        reply = "%s is neutral. Easy targets!" % (a.name)
+        if self.cursor.rowcount > 0:
             alliances = []
             naps = []
             wars = []
@@ -99,5 +98,7 @@ class cowards(loadable.loadable):
                 lines.append("%s is at war with: %s" % (a.name, ", ".join(wars),))
             if len(auto_wars) > 0:
                 lines.append("%s has auto-wars with: %s" % (a.name, ", ".join(auto_wars),))
-        irc_msg.reply(' | '.join(lines))
+            if len(lines) > 0:
+                reply = ' | '.join(lines)
+        irc_msg.reply(reply)
         return 1

@@ -40,7 +40,7 @@ class racism(loadable.loadable):
         self.paramre = re.compile(r"^\s*(\S+)")
         self.usage = (
             self.__class__.__name__
-            + " [alliance] (All information taken from intel, for tag information use the lookup command)"
+            + " <alliance> (All information taken from intel, for tag information use the lookup command)"
         )
         self.helptext = [
             "Shows averages for each race matching a given alliance in intel."
@@ -57,46 +57,44 @@ class racism(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        alliance = m.group(1)
-
-        query = "SELECT count(*) AS members, sum(t1.value) AS tot_value, sum(t1.score) AS tot_score, sum(t1.size) AS tot_size, sum(t1.xp) AS tot_xp, t1.race AS race"
-        query += " FROM planet_dump AS t1"
-        query += " INNER JOIN intel AS t2 ON t1.id=t2.pid"
-        query += " LEFT JOIN alliance_canon t3 ON t2.alliance_id=t3.id"
-        query += " WHERE t1.tick=(SELECT max_tick(%s::smallint)) AND t1.round=%s AND t3.name ILIKE %s"
-        query += " GROUP BY t3.name ILIKE %s, t1.race ORDER by t1.race ASC"
-
-        self.cursor.execute(
-            query,
-            (
-                irc_msg.round,
-                irc_msg.round,
-                "%" + alliance + "%",
-                "%" + alliance + "%",
-            ),
-        )
-        reply = ""
-        if self.cursor.rowcount < 1:
-            reply = "Nothing in intel matches your search '%s'" % (alliance,)
+        alliance_string = m.group(1)
+        alliance = loadable.alliance(name=alliance_string)
+        if alliance.load_most_recent(self.cursor, irc_msg.round):
+            query = (
+                "SELECT count(*) AS members, sum(p.value) AS tot_value, sum(p.score) AS tot_score,"
+                "       sum(p.size) AS tot_size, sum(p.xp) AS tot_xp, p.race AS race"
+                " FROM       planet_dump AS p"
+                " INNER JOIN intel       AS i ON p.id=i.pid"
+                " WHERE i.alliance_id = %s"
+                " AND   p.tick = (SELECT max_tick(%s::smallint))"
+                " GROUP BY p.race"
+                " ORDER BY array_position(array['Ter','Cat','Xan','Zik','Etd'], p.race::text) ASC"
+            )
+            self.cursor.execute(
+                query,
+                (
+                    alliance.id,
+                    irc_msg.round,
+                ),
+            )
+            if self.cursor.rowcount > 0:
+                results = self.cursor.fetchall()
+                irc_msg.reply("Demographics for %s: %s" % (
+                    alliance.name,
+                    " | ".join([self.profile(r) for r in results]),))
+                return 1
+            else:
+                irc_msg.reply("Nothing in intel matches your search '%s'" % (alliance_string,))
         else:
-            results = self.cursor.fetchall()
-            reply = "Demographics for %s: " % (alliance,)
-            reply += " | ".join(list(map(self.profile, results)))
-        irc_msg.reply(reply)
-
-        return 1
+            irc_msg.reply("No alliance matching '%s' found" % (alliance_string))
+        return 0
 
     def profile(self, res):
-        reply = "%s %s Val(%s)" % (
+        return "%s %s Val(%s) Score(%s) Size(%s) XP(%s)" % (
             res["members"],
             res["race"],
             self.format_real_value(res["tot_value"] / res["members"]),
-        )
-        reply += " Score(%s)" % (
             self.format_real_value(res["tot_score"] / res["members"]),
-        )
-        reply += " Size(%s) XP(%s)" % (
             self.format_real_value(res["tot_size"] / res["members"]),
             self.format_real_value(res["tot_xp"] / res["members"]),
         )
-        return reply

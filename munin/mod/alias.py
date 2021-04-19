@@ -36,12 +36,12 @@ class alias(loadable.loadable):
 
     def __init__(self, cursor):
         super().__init__(cursor, 1)
-        self.paramre = re.compile(r"^\s*(\S{2,15})?(\s+(\S{2,15}))?")
+        self.paramre = re.compile(r"^\s*(\S{2,15})?(\s+(\S{2,15}))?$")
         self.usage = (
             self.__class__.__name__ + " <alias> [pnick] (at most 15 characters)"
         )
         self.helptext = [
-            "Set an alias that maps to your pnick, useful if you have a different nick than your pnick and people use autocomplete."
+            "Set an alias that maps to your pnick, useful if you have a different nick than your pnick and people use autocomplete. Neither may be longer than 15 characters."
         ]
 
     def execute(self, user, access, irc_msg):

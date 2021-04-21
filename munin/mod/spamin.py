@@ -35,12 +35,12 @@ class spamin(loadable.loadable):
 
     def __init__(self, cursor):
         super().__init__(cursor, 100)
-        self.paramre = re.compile(r"^\s*(.*?)\s([0-9]+(?:(?:[:.]|\s+)[0-9]+,?)+)\s*$")
+        self.paramre = re.compile(r"^\s*([^\s]+?)\s([0-9]+(?:(?:\s*[:., ]\s*)[0-9]+)+)\s*$")
         self.usage = self.__class__.__name__ + " <alliance> <coords...>"
         self.helptext = [
-            "Set the alliance for all given coords"
+            "Set the alliance for all given coords. Coords must be separated with one or more spaces and/or one comma."
         ]
-        self.coordsplitre = re.compile(r"[:., ]+")
+        self.coordsplitre = re.compile(r"\s*[:., ]\s*")
 
     def execute(self, user, access, irc_msg):
 

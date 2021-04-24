@@ -224,17 +224,19 @@ class dev(loadable.loadable):
 
     def infra(self, level):
         if level == 0:
-            return "20 constructions"
+            return "20 structures"
         if level == 1:
-            return "50 constructions"
+            return "50 structures"
         if level == 2:
-            return "100 constructions"
+            return "100 structures"
         if level == 3:
-            return "150 constructions"
+            return "150 structures"
         if level == 4:
-            return "200 constructions"
+            return "200 structures"
         if level == 5:
-            return "300 constructions"
+            return "300 structures"
+        if level == 6:
+            return "400 structures"
 
     def hulls(self, level):
         if level == 1:
@@ -266,13 +268,13 @@ class dev(loadable.loadable):
         if level == 0:
             return "1000 per tick"
         if level == 1:
-            return "4000 per tick"
+            return "3500 per tick"
         if level == 2:
-            return "8000 per tick"
+            return "7000 per tick"
         if level == 3:
-            return "15000 per tick"
+            return "12500 per tick"
         if level == 4:
-            return "25000 per tick"
+            return "20000 per tick"
 
     def covop(self, level):
         if level == 0:

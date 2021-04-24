@@ -146,7 +146,7 @@ class ravage(loadable.loadable):
             reply = "No"
             if race:
                 reply += " %s" % (race,)
-            reply += " planets"
+            reply += " dev-scanned planets"
             if alliance:
                 reply += " in intel matching Alliance: %s" % (alliance,)
             else:

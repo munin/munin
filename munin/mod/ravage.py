@@ -198,7 +198,7 @@ class ravage(loadable.loadable):
             "     SELECT pd.x, pd.y, pd.z, pd.size, pd.value, pd.race,"
             "            ac.name AS alliance,"
             "            i.nick,"
-            "            (light_factory + medium_factory + heavy_factory + wave_amplifier + wave_distorter + metal_refinery + crystal_refinery + eonium_refinery + research_lab + finance_centre + military_centre + security_centre +structure_defense) / 10 - structure_defense AS vulnerable,"
+            "            (light_factory + medium_factory + heavy_factory + wave_amplifier + wave_distorter + metal_refinery + crystal_refinery + eonium_refinery + research_lab + finance_centre + military_centre + security_centre + structure_defense) - (10 * structure_defense) AS vulnerable,"
             "            rank() OVER (PARTITION BY s.pid ORDER BY s.id DESC) AS rank"
             "     FROM       planet_dump    AS pd"
             "     INNER JOIN planet_canon   AS pc ON pc.id     = pd.id"

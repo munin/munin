@@ -138,14 +138,23 @@ class lazycalc(loadable.loadable):
 
     @timefunc
     def get_jgp(self, p, round):
-        query = "SELECT t3.x,t3.y,t3.z,t1.tick AS tick,t1.nick,t1.scantype,t1.rand_id,t1.scan_time,t2.mission,t2.fleet_size,t2.fleet_name,t2.landing_tick-t1.tick AS eta"
-        query += " FROM scan AS t1"
-        query += " INNER JOIN fleet AS t2 ON t1.id=t2.scan_id"
-        query += " INNER JOIN planet_dump AS t3 ON t2.owner_id=t3.id"
-        query += " WHERE t1.pid=%s AND t3.tick=(SELECT max_tick(%s::smallint)) AND t3.round=%s"
-        query += " AND t1.id=(SELECT id FROM scan WHERE pid=t1.pid AND scantype='jgp'"
-        query += " AND t1.tick=(SELECT max_tick(%s::smallint))"
-        query += " ORDER BY tick DESC, id DESC LIMIT 1) ORDER BY eta ASC"
+        query = (
+            "SELECT DISTINCT ON (p.x, p.y, p.z) p.x, p.y, p.z,"
+            "       s.tick AS tick, s.nick, s.scantype, s.rand_id, s.scan_time,"
+            "       f.mission, f.fleet_size, f.fleet_name, f.landing_tick-s.tick AS eta"
+            " FROM       scan        AS s"
+            " INNER JOIN fleet       AS f ON       s.id = f.scan_id"
+            " INNER JOIN planet_dump AS p ON f.owner_id = p.id"
+            " WHERE s.pid = %s"
+            " AND f.mission IN ('defend', 'attack')"
+            " AND p.tick = (SELECT max_tick(%s::smallint))"
+            " AND p.round = %s"
+            " AND s.id=(SELECT id FROM scan WHERE pid = s.pid"
+            "           AND scantype = 'jgp'"
+            "           AND s.tick = (SELECT max_tick(%s::smallint))"
+            "           ORDER BY tick DESC, id DESC LIMIT 1)"
+            " ORDER BY p.x ASC, p.y ASC, p.z ASC, eta ASC"
+        )
         self.cursor.execute(query, (p.id, round, round, round))
         if self.cursor.rowcount < 1:
             return None

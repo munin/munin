@@ -33,7 +33,7 @@ from munin import loadable
 class spam(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 100)
-        self.paramre = re.compile(r"^\s*(\S+)")
+        self.paramre = re.compile(r"^\s*(\S+)\s*$")
         self.usage = self.__class__.__name__ + " <alliance>"
 
     def execute(self, user, access, irc_msg):

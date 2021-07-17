@@ -48,7 +48,7 @@ class irc_message(object):
             r"^:bifrost!\S+@bifrost.users.netgamers.org\s+PRIVMSG\s+(\S+)\s+:<(\S+)>(\s*(%s|%s|%s)(.*?)\s*)$"
             % (self.notprefix, self.pubprefix, self.privprefix)
         )
-        self.pnickre = re.compile(r"(\S{2,15})\.users\.netgamers\.org")
+        self.pnickre = re.compile(r"(\S{2,})\.users\.netgamers\.org")
         self.client = client
         self.cursor = cursor
         self.command = None

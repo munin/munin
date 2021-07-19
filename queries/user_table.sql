@@ -173,9 +173,9 @@ CREATE INDEX alliance_relation_round_index ON alliance_relation(round);
 
 CREATE TABLE user_list (
 id SERIAL PRIMARY KEY,
-pnick VARCHAR(15) NOT NULL,
-alias_nick VARCHAR(15) UNIQUE CHECK (lower(alias_nick) NOT IN (lower(user_list.pnick))),
-sponsor VARCHAR(15),
+pnick TEXT NOT NULL,
+alias_nick TEXT UNIQUE CHECK (lower(alias_nick) NOT IN (lower(user_list.pnick))),
+sponsor TEXT,
 passwd CHAR(32),
 userlevel INTEGER NOT NULL,
 posflags VARCHAR(30),
@@ -257,7 +257,7 @@ negflags VARCHAR(30)
 
 CREATE TABLE target (
 id serial PRIMARY KEY,
-nick VARCHAR(20) NOT NULL,
+nick TEXT NOT NULL,
 pid integer REFERENCES planet_canon(id) NOT NULL,
 round smallint NOT NULL,
 tick smallint NOT NULL,
@@ -270,8 +270,8 @@ CREATE TABLE intel (
 id serial PRIMARY KEY,
 round smallint NOT NULL,
 pid integer NOT NULL UNIQUE REFERENCES planet_canon(id),
-nick VARCHAR(20),
-fakenick VARCHAR(20),
+nick TEXT,
+fakenick TEXT,
 defwhore BOOLEAN DEFAULT FALSE,
 gov VARCHAR (20),
 bg VARCHAR (25),
@@ -331,8 +331,8 @@ id bigserial PRIMARY KEY,
 round smallint NOT NULL,
 tick smallint NOT NULL,
 pid integer NOT NULL REFERENCES planet_canon(id),
-nick VARCHAR(15) NOT NULL,
-pnick VARCHAR(15) ,
+nick TEXT NOT NULL,
+pnick TEXT,
 rand_id VARCHAR(20) NOT NULL,
 group_id VARCHAR(20),
 scantype VARCHAR(11) NOT NULL CHECK(scantype in ('unknown','planet','development','unit','news','jgp','fleet','au')),
@@ -442,7 +442,7 @@ CREATE TABLE defcalls
 (
   id serial PRIMARY KEY,
   bcalc character varying(255),
-  claimed_by varchar(15),
+  claimed_by TEXT,
   status integer NOT NULL REFERENCES defcall_status(id),
   "comment" text,
   target integer NOT NULL REFERENCES planet_canon(id),
@@ -463,8 +463,8 @@ CREATE TABLE command_log (
     command_prefix VARCHAR(1) NOT NULL,
     command VARCHAR(20) NOT NULL,
     command_parameters VARCHAR(512),
-    nick VARCHAR(15) NOT NULL,
-    pnick VARCHAR(15),
+    nick TEXT NOT NULL,
+    pnick TEXT,
     username VARCHAR(20) NOT NULL,
     hostname VARCHAR(64) NOT NULL,
     target VARCHAR(150) NOT NULL,
@@ -476,7 +476,7 @@ CREATE TABLE froglet_logs (
        acces_time timestamp NOT NULL DEFAULT NOW(),
        page_url VARCHAR(1023) NOT NULL,
        ip CIDR NOT NULL,
-       pnick VARCHAR(15) NOT NULL
+       pnick TEXT NOT NULL
 );
 
 CREATE TABLE phone (
@@ -500,7 +500,7 @@ CREATE TABLE invite_proposal (
 id integer PRIMARY KEY NOT NULL DEFAULT nextval('proposal_id_seq'),
 active BOOLEAN NOT NULL DEFAULT TRUE,
 proposer_id integer NOT NULL REFERENCES user_list(id),
-person VARCHAR(15) NOT NULL,
+person TEXT NOT NULL,
 created TIMESTAMP NOT NULL DEFAULT now(),
 closed TIMESTAMP,
 padding integer DEFAULT 0,

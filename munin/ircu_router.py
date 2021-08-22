@@ -27,7 +27,7 @@ import psycopg2
 import psycopg2.extras
 
 
-class router(object):
+class ircu_router(object):
     def __init__(self, client, config, loader):
 
         self.client = client

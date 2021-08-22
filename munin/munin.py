@@ -34,7 +34,7 @@ import socket
 
 
 class munin(object):
-    ROUTER = "munin.%s_router"
+    IRCU_ROUTER = "munin.ircu_router"
 
     def __init__(self):
         config = configparser.ConfigParser()
@@ -43,9 +43,7 @@ class munin(object):
 
         self.loader = Loader()
         self.loader.populate("munin")
-        self.router = self.loader.get_module(
-            self.ROUTER % config.get("Connection", "type")
-        )
+        self.ircu_router = self.loader.get_module(self.IRCU_ROUTER)
 
         self.client = connection(config)
         self.client.connect()
@@ -84,10 +82,8 @@ class munin(object):
         self.config.read("muninrc")
         self.loader.populate("munin")
         self.loader.refresh()
-        self.router = self.loader.get_module(
-            self.ROUTER % self.config.get("Connection", "type")
-        )
-        router = self.router.router(self.client, self.config, self.loader)
+        self.ircu_router = self.loader.get_module(self.IRCU_ROUTER)
+        router = self.ircu_router.ircu_router(self.client, self.config, self.loader)
         router.run()
 
 

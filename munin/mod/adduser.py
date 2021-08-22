@@ -72,7 +72,7 @@ class adduser(loadable.loadable):
 
         added = []
         exists = []
-        botnick = self.config.get('Connection', 'nick')
+        botnick = self.config.get("Connection", "nick")
         for pnick in pnicks.split(","):
             if not pnick:
                 continue
@@ -81,12 +81,21 @@ class adduser(loadable.loadable):
             else:
                 gimp = self.load_user_from_pnick(pnick, irc_msg.round)
                 query = None
-                if not gimp or pnick.lower() not in [ x.lower() for x in [ gimp.pnick, gimp.alias_nick ] if x is not None ]:
+                if not gimp or pnick.lower() not in [
+                    x.lower() for x in [gimp.pnick, gimp.alias_nick] if x is not None
+                ]:
                     query = "INSERT INTO user_list (userlevel,sponsor,pnick) VALUES (%s,%s,%s)"
                 elif gimp.userlevel < access_lvl:
                     query = "UPDATE user_list SET userlevel = %s, sponsor=%s WHERE pnick ilike %s"
                 if query:
-                    self.cursor.execute(query, (access_lvl, sponsor, pnick,))
+                    self.cursor.execute(
+                        query,
+                        (
+                            access_lvl,
+                            sponsor,
+                            pnick,
+                        ),
+                    )
                     added.append(pnick)
                 else:
                     exists.append(pnick)
@@ -95,15 +104,21 @@ class adduser(loadable.loadable):
                 "Added users (%s) at level %s" % (",".join(added), access_lvl)
             )
             irc_msg.client.privmsg(
-                "P",
-                "adduser #%s %s 399"
-                % (self.config.get("Auth", "home"), ",".join(added),),
+                "Q",
+                "adduser #%s %s"
+                % (
+                    self.config.get("Auth", "home"),
+                    ",".join(added),
+                ),
             )
             for nick in added:
                 irc_msg.client.privmsg(
-                    "P",
-                    "modinfo #%s automode %s op"
-                    % (self.config.get("Auth", "home"), nick,),
+                    "Q",
+                    "chanlev #%s %s +a"
+                    % (
+                        self.config.get("Auth", "home"),
+                        nick,
+                    ),
                 )
         if len(exists):
             irc_msg.reply("Users (%s) already exist" % (",".join(exists),))

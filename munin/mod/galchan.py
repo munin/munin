@@ -62,8 +62,11 @@ class galchan(loadable.loadable):
                     "Added your galchannel as %s (if you didn't add me to the channel with at least access 24 first, I'm never going to bother joining)"
                     % (chan,)
                 )
-                irc_msg.client.privmsg("P", "set %s autoinvite on" % (chan,))
-                irc_msg.client.privmsg("P", "invite %s" % (chan,))
+                irc_msg.client.privmsg(
+                    "Q",
+                    "chanlev %s %s +j" % (chan, self.config.get("Connection", "nick")),
+                )
+                irc_msg.client.privmsg("Q", "invite %s" % (chan,))
 
         except psycopg2.IntegrityError:
             irc_msg.reply("Channel %s already exists" % (chan,))

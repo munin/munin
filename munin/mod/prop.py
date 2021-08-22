@@ -823,30 +823,17 @@ class prop(loadable.loadable):
         query = "UPDATE user_list SET userlevel = 1 WHERE id = %s"
         self.cursor.execute(query, (idiot.id,))
         irc_msg.client.privmsg(
-            "p",
-            "remuser #%s %s"
+            "Q",
+            "removeuser #%s %s"
             % (
                 home,
                 idiot.pnick,
             ),
         )
         irc_msg.client.privmsg(
-            "p",
-            "ban #%s *!*@%s.users.quakenet.org %s"
+            "Q",
+            "permban #%s *!*@%s.users.quakenet.org %s"
             % (home, idiot.pnick, prop["comment_text"]),
-        )
-
-        irc_msg.client.privmsg(
-            "p",
-            "note send %s A proposition to kick you from %s has been raised by %s with reason '%s' and passed by a vote of %s to %s."
-            % (
-                idiot.pnick,
-                self.config.get("Auth", "alliance"),
-                prop["proposer"],
-                prop["comment_text"],
-                yes,
-                no,
-            ),
         )
 
         reply = "%s has been reduced to level 1 and removed from #%s." % (
@@ -866,16 +853,16 @@ class prop(loadable.loadable):
             )
         self.cursor.execute(query, (prop["proposer"], prop["person"]))
         irc_msg.client.privmsg(
-            "P",
-            "adduser #%s %s 399"
+            "Q",
+            "adduser #%s %s"
             % (
                 home,
                 prop["person"],
             ),
         )
         irc_msg.client.privmsg(
-            "P",
-            "modinfo #%s automode %s op"
+            "Q",
+            "chanlev #%s %s +ao"
             % (
                 home,
                 prop["person"],

@@ -23,9 +23,6 @@ Loadable subclass
 # are included in this collective work with permission of the copyright
 # owners.
 
-# This module doesn't have anything alliance specific.
-# qebab, 24/6/08.
-
 import re
 from munin import loadable
 
@@ -70,8 +67,8 @@ class remchan(loadable.loadable):
         self.cursor.execute(query, (real_chan,))
         if self.cursor.rowcount > 0:
             irc_msg.client.privmsg(
-                "P",
-                "remuser %s %s" % (real_chan, self.config.get("Connection", "nick")),
+                "Q",
+                "removeuser %s %s" % (real_chan, self.config.get("Connection", "nick")),
             )
             irc_msg.client.wline("PART %s" % (real_chan,))
             irc_msg.reply("Removed channel %s" % (real_chan,))

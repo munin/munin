@@ -7,6 +7,8 @@ auth: pnick ppassword
 modes: ix
 
 [Connection]
+# what type of connection
+type: ircu
 # where to connect.
 server: irc.netgamers.org
 # on which port.

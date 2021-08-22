@@ -84,12 +84,20 @@ class getanewdaddy(loadable.loadable):
         query = "UPDATE user_list SET userlevel = 1 WHERE id = %s"
         self.cursor.execute(query, (idiot.id,))
         irc_msg.client.privmsg(
-            "p", "remuser #%s %s" % (self.config.get("Auth", "home"), idiot.pnick,)
+            "p",
+            "remuser #%s %s"
+            % (
+                self.config.get("Auth", "home"),
+                idiot.pnick,
+            ),
         )
         irc_msg.client.privmsg(
             "p",
-            "ban #%s *!*@%s.users.netgamers.org Your sponsor doesn't like you anymore"
-            % (self.config.get("Auth", "home"), idiot.pnick,),
+            "ban #%s *!*@%s.users.quakenet.org Your sponsor doesn't like you anymore"
+            % (
+                self.config.get("Auth", "home"),
+                idiot.pnick,
+            ),
         )
 
         if idiot.sponsor != voter.pnick:

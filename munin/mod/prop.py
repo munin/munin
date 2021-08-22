@@ -58,11 +58,13 @@ class prop(loadable.loadable):
             " [search <pnick>]"
         )
         self.helptext = [
-            ("A proposition is a vote to do something. For now, you can raise propositions"
-             " to invite or kick someone, or to perform a poll. Once raised the proposition"
-             " will stand until you expire it.  Make sure you give everyone time to have "
-             " their say. Votes for and against a proposition are weighted by carebears. You"
-             " must have at least 1 carebear to vote.")
+            (
+                "A proposition is a vote to do something. For now, you can raise propositions"
+                " to invite or kick someone, or to perform a poll. Once raised the proposition"
+                " will stand until you expire it.  Make sure you give everyone time to have "
+                " their say. Votes for and against a proposition are weighted by carebears. You"
+                " must have at least 1 carebear to vote."
+            )
         ]
 
     def execute(self, user, access, irc_msg):
@@ -312,7 +314,9 @@ class prop(loadable.loadable):
                 self.cursor.execute(query, (r["id"], u.id))
                 if self.cursor.rowcount > 0:
                     r = self.cursor.fetchone()
-                    use_carebears = self.config.getboolean("Alliance", "use_carebears_for_props")
+                    use_carebears = self.config.getboolean(
+                        "Alliance", "use_carebears_for_props"
+                    )
                     if use_carebears:
                         prop_info += " (%s,%s)" % (r["vote"][0].upper(), r["carebears"])
                     else:
@@ -377,7 +381,9 @@ class prop(loadable.loadable):
             if s:
                 vote = s["vote"][:1].upper() + s["vote"][1:]
                 reply += ", you are currently voting '%s'" % (vote,)
-                use_carebears = self.config.getboolean("Alliance", "use_carebears_for_props")
+                use_carebears = self.config.getboolean(
+                    "Alliance", "use_carebears_for_props"
+                )
                 if use_carebears and s["vote"] != "abstain":
                     reply += " with %s carebears" % (s["carebears"],)
                 reply += " on this proposition."
@@ -751,7 +757,10 @@ class prop(loadable.loadable):
                     r["vote_result"][0].upper() if r["vote_result"] else "",
                 )
             )
-        reply = "Propositions matching '%s': %s" % (search, ", ".join(a),)
+        reply = "Propositions matching '%s': %s" % (
+            search,
+            ", ".join(a),
+        )
         irc_msg.reply(reply)
 
     def get_winners_and_losers(self, outcome):
@@ -813,10 +822,17 @@ class prop(loadable.loadable):
         home = self.config.get("Auth", "home")
         query = "UPDATE user_list SET userlevel = 1 WHERE id = %s"
         self.cursor.execute(query, (idiot.id,))
-        irc_msg.client.privmsg("p", "remuser #%s %s" % (home, idiot.pnick,))
         irc_msg.client.privmsg(
             "p",
-            "ban #%s *!*@%s.users.netgamers.org %s"
+            "remuser #%s %s"
+            % (
+                home,
+                idiot.pnick,
+            ),
+        )
+        irc_msg.client.privmsg(
+            "p",
+            "ban #%s *!*@%s.users.quakenet.org %s"
             % (home, idiot.pnick, prop["comment_text"]),
         )
 
@@ -849,9 +865,21 @@ class prop(loadable.loadable):
                 "UPDATE user_list SET userlevel = 100, sponsor=%s WHERE pnick ilike %s"
             )
         self.cursor.execute(query, (prop["proposer"], prop["person"]))
-        irc_msg.client.privmsg("P", "adduser #%s %s 399" % (home, prop["person"],))
         irc_msg.client.privmsg(
-            "P", "modinfo #%s automode %s op" % (home, prop["person"],)
+            "P",
+            "adduser #%s %s 399"
+            % (
+                home,
+                prop["person"],
+            ),
+        )
+        irc_msg.client.privmsg(
+            "P",
+            "modinfo #%s automode %s op"
+            % (
+                home,
+                prop["person"],
+            ),
         )
 
         reply = "%s has been added to #%s and given level 100 access to me." % (
@@ -957,9 +985,15 @@ class prop(loadable.loadable):
 
     def pretty_print_votes(self, votes):
         use_carebears = self.config.getboolean("Alliance", "use_carebears_for_props")
-        return ", ".join([
-            "%s (%s)" % (v["pnick"], v["carebears"],) if use_carebears
-            else v["pnick"]
-            for v in votes
-        ])
-
+        return ", ".join(
+            [
+                "%s (%s)"
+                % (
+                    v["pnick"],
+                    v["carebears"],
+                )
+                if use_carebears
+                else v["pnick"]
+                for v in votes
+            ]
+        )

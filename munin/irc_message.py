@@ -45,10 +45,10 @@ class irc_message(object):
             % (self.notprefix, self.pubprefix, self.privprefix)
         )
         self.bifrost_privmsgre = re.compile(
-            r"^:bifrost!\S+@bifrost.users.netgamers.org\s+PRIVMSG\s+(\S+)\s+:<(\S+)>(\s*(%s|%s|%s)(.*?)\s*)$"
+            r"^:bifrost!\S+@bifrost.users.quakenet.org\s+PRIVMSG\s+(\S+)\s+:<(\S+)>(\s*(%s|%s|%s)(.*?)\s*)$"
             % (self.notprefix, self.pubprefix, self.privprefix)
         )
-        self.pnickre = re.compile(r"(\S{2,})\.users\.netgamers\.org")
+        self.pnickre = re.compile(r"(\S{2,})\.users\.quakenet\.org")
         self.client = client
         self.cursor = cursor
         self.command = None
@@ -58,7 +58,7 @@ class irc_message(object):
         if m:
             self.nick = m.group(2)
             self.username = "bifrost"
-            self.host = m.group(2) + ".users.netgamers.org"
+            self.host = m.group(2) + ".users.quakenet.org"
             self.target = m.group(1)
             self.message = m.group(3)
             self.prefix = "!"

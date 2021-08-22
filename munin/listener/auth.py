@@ -31,7 +31,7 @@ class auth(object):
         self.welcomre = re.compile(r"\S+\s+(001)\s+(\S+).*", re.I)
         self.nicktakenre = re.compile(r"\S+\s+(433)\s+(\S+)\s+(\S+).*", re.I)
         self.pinvitere = re.compile(
-            r"^:P!cservice@netgamers.org\s+INVITE\s+\S+\s+:?#(\S+)", re.I
+            r"^:Q!TheQBot@CServe.quakenet.org\s+INVITE\s+\S+\s+:?#(\S+)", re.I
         )
         self.desired_nick = config.get("Connection", "nick")
 
@@ -45,13 +45,13 @@ class auth(object):
                 )
             if self.config.has_option("IRC", "auth"):
                 self.client.wline(
-                    "PRIVMSG P@cservice.netgamers.org :auth %s"
+                    "PRIVMSG Q@cserve.quakenet.org :auth %s"
                     % (self.config.get("IRC", "auth"))
                 )
             if accepted_nick != self.desired_nick and self.config.has_option(
                 "IRC", "auth"
             ):
-                self.client.wline("PRIVMSG P@cservice.netgamers.org :recover")
+                self.client.wline("PRIVMSG Q@cserve.quakenet.org :recover")
                 self.client.wline("NICK %s" % self.desired_nick)
             return
         m = self.pinvitere.search(line)
@@ -68,7 +68,7 @@ class auth(object):
                 self.client.wline("NICK %s" % self.random_nick())
             elif denied_nick == self.desired_nick:  # just try harder
                 self.client.wline(
-                    "PRIVMSG P@cservice.netgamers.org :recover %s %s "
+                    "PRIVMSG Q@cserve.quakenet.org :recover %s %s "
                     % (self.desired_nick, self.config.get("IRC", "auth"))
                 )
                 self.client.wline("NICK %s" % self.desired_nick)

@@ -15,7 +15,7 @@ class custom_runner(object):
             "https?://[^/]+/showscan.pl\?scan_grp=([0-9a-zA-Z]+)"
         )
         self.privmsgre = re.compile(r"^:(\S+)!(\S+)@(\S+)\s+PRIVMSG\s+(\S+)\s+:(.*)")
-        self.pnickre = re.compile(r"(\S{2,})\.users\.netgamers\.org")
+        self.pnickre = re.compile(r"(\S{2,})\.users\.quakenet\.org")
 
     def message(self, line):
         m = self.privmsgre.search(line)

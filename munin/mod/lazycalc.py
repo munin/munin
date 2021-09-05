@@ -139,7 +139,7 @@ class lazycalc(loadable.loadable):
     @timefunc
     def get_jgp(self, p, round):
         query = (
-            "SELECT DISTINCT ON (p.x, p.y, p.z) p.x, p.y, p.z,"
+            "SELECT DISTINCT ON (p.x, p.y, p.z, eta) p.x, p.y, p.z,"
             "       s.tick AS tick, s.nick, s.scantype, s.rand_id, s.scan_time,"
             "       f.mission, f.fleet_size, f.fleet_name, f.landing_tick-s.tick AS eta"
             " FROM       scan        AS s"

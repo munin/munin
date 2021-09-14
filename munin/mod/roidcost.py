@@ -33,7 +33,7 @@ from munin import loadable
 class roidcost(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1)
-        self.paramre = re.compile(r"^\s*(\d+)\s+(\d+[km]?)(\s+(\d+))?", re.I)
+        self.paramre = re.compile(r"^\s*(\d+)\s+(\d+[MmKk]?)(\s+(\d+))?", re.I)
         self.usage = self.__class__.__name__ + " <roids> <_value_ cost> [mining_bonus]"
 
     def execute(self, user, access, irc_msg):
@@ -44,7 +44,7 @@ class roidcost(loadable.loadable):
             return 0
 
         roids = int(m.group(1))
-        cost = m.group(2)
+        cost = self.human_readable_number_to_integer(m.group(2))
         bonus = m.group(4) or 0
         bonus = int(bonus)
 
@@ -57,13 +57,6 @@ class roidcost(loadable.loadable):
         if roids == 0:
             irc_msg.reply("Another NewDawn landing, eh?")
             return 1
-
-        if cost[-1].lower() == "k":
-            cost = 1000 * int(cost[:-1])
-        elif cost[-1].lower() == "m":
-            cost = 1000000 * int(cost[:-1])
-        else:
-            cost = int(cost)
 
         mining = mining * ((float(bonus) + 100) / 100)
 

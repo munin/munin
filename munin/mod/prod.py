@@ -22,7 +22,7 @@ class prod(loadable.loadable):
 
         super().__init__(cursor, 1)
         self.paramre = re.compile(
-            r"^\s*(\d+(?:\.\d+)?[mk]?)\s+(\S+)\s+(\d+)(?:\s+(\d+))?"
+            r"^\s*(\d+(?:\.\d+)?[MmKk]?)\s+(\S+)\s+(\d+)(?:\s+(\d+))?"
         )
         self.usage = (
             self.__class__.__name__ + " <number> <shipname> <factories> [population]"

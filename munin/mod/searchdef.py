@@ -36,7 +36,7 @@ class searchdef(loadable.loadable):
 
     def __init__(self, cursor):
         super().__init__(cursor, 100)
-        self.paramre = re.compile(r"^\s*(\d+(?:\.\d+)?[mk]?)\s+(\S+)")
+        self.paramre = re.compile(r"^\s*(\d+(?:\.\d+)?[MmKk]?)\s+(\S+)")
         self.ship_classes = ["fi", "co", "fr", "de", "cr", "bs"]
         self.usage = self.__class__.__name__ + " <number> <ship>"
         self.helptext = None
@@ -52,10 +52,9 @@ class searchdef(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        count = m.group(1)
+        count = self.human_readable_number_to_integer(m.group(1))
         ship = m.group(2)
 
-        count = self.human_readable_number_to_integer(count)
         if ship not in self.ship_classes:
             ship_lookup = "%" + ship + "%"
         else:

@@ -34,7 +34,7 @@ from munin import loadable
 class stop(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1)
-        self.paramre = re.compile(r"^\s*(\d+(?:\.\d+)?[mk]?)\s+(\S+)(\s+(t1|t2|t3))?")
+        self.paramre = re.compile(r"^\s*(\d+(?:\.\d+)?[MmKk]?)\s+(\S+)(\s+(t1|t2|t3))?")
         self.usage = self.__class__.__name__ + " <number> <target> [t1|t2|t3]"
 
     def execute(self, user, access, irc_msg):
@@ -50,18 +50,8 @@ class stop(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        ship_number = m.group(1)
-
-        if ship_number[-1].lower() == "k":
-            ship_number = 1000 * float(ship_number[:-1])
-        elif ship_number[-1].lower() == "m":
-            ship_number = 1000000 * float(ship_number[:-1])
-        else:
-            ship_number = float(ship_number)
-        ship_number = int(ship_number)
-
+        ship_number = self.human_readable_number_to_integer(m.group(1))
         bogey = m.group(2)
-
         user_target = m.group(4)
 
         target_number = None

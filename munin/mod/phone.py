@@ -179,7 +179,7 @@ class phone(loadable.loadable):
         reply = ""
 
         if len(results) < 1:
-            reply = "%s no friends. How sad. Maybe %s should go post on http://grouphug.us or something."
+            reply = "%s no friends. How sad. Maybe %s should go post on https://group-hug.org/ or something."
             if second_person:
                 reply = reply % ("You have", "you")
             else:

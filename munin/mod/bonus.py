@@ -58,7 +58,7 @@ class bonus(loadable.loadable):
             tick, resource_bonus, asteroid_bonus, research_bonus, construction_bonus,)
 
         u = loadable.user(pnick=irc_msg.user)
-        if u.load_from_db(self.cursor, irc_msg.round):
+        if u.load_from_db(self.cursor, irc_msg.round) and u.planet:
             # Since we don't store the number of roids of each type, assume the
             # roid numbers are about equal.
             existing_asteroids = round(u.planet.size / 3)

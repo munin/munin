@@ -286,20 +286,20 @@ class prop(loadable.loadable):
     def process_list_all_proposals(self, irc_msg, user):
         u = loadable.user(pnick=irc_msg.user)
         u.load_from_db(self.cursor, irc_msg.round)
-        query = "SELECT invite.id AS id, invite.person AS person, NULL AS question, 'invite' AS prop_type"
+        query = "SELECT invite.id AS id, invite.person AS person, NULL AS question, 'invite' AS prop_type, created"
         query += " FROM invite_proposal AS invite"
         query += " WHERE invite.active"
         query += " UNION ("
-        query += "     SELECT kick.id AS id, t3.pnick AS person, NULL AS question, 'kick' AS prop_type"
+        query += "     SELECT kick.id AS id, t3.pnick AS person, NULL AS question, 'kick' AS prop_type, created"
         query += "     FROM kick_proposal AS kick"
         query += "     INNER JOIN user_list AS t3 ON kick.person_id=t3.id"
         query += "     WHERE kick.active"
         query += " )"
         query += " UNION ("
-        query += "     SELECT poll.id AS id, NULL AS person, poll.question AS question, 'poll' AS prop_type"
+        query += "     SELECT poll.id AS id, NULL AS person, poll.question AS question, 'poll' AS prop_type, created"
         query += "     FROM poll_proposal AS poll"
         query += "     WHERE poll.active"
-        query += " )"
+        query += " ) ORDER BY created ASC"
         self.cursor.execute(query, ())
         a = []
         for r in self.cursor.fetchall():

@@ -40,7 +40,7 @@ class letmein(loadable.loadable):
         self.paramre = re.compile(r"^\s*(\S+)\s+(\S+)")
         self.usage = self.__class__.__name__ + " <pnick> <password>"
         self.helptext = [
-            "Give your pnick and password in PM to get invited into #%s. This command is for when P is down."
+            "Give your pnick and password in PM to get invited into #%s. This command is for when Q is down."
             % (self.config.get("Auth", "home"),)
         ]
 

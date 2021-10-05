@@ -107,7 +107,7 @@ class ravage(loadable.loadable):
         if bash:
             if not user:
                 irc_msg.reply(
-                    "You must be registered to use the %s command's bash option (log in with P and set mode +x)"
+                    "You must be registered to use the %s command's bash option (log in with Q and set mode +x)"
                     % (self.__class__.__name__,)
                 )
                 return 1

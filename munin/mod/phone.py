@@ -51,7 +51,7 @@ class phone(loadable.loadable):
             irc_msg.reply(
                 "You must be registered to use the "
                 + self.__class__.__name__
-                + " command (log in with P and set mode +x)"
+                + " command (log in with Q and set mode +x)"
             )
             return 0
 

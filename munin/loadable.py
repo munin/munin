@@ -115,7 +115,7 @@ class loadable(object):
             irc_msg.reply(
                 "You must be registered to use the "
                 + self.__class__.__name__
-                + " command (log in with P and set mode +x)"
+                + " command (log in with Q and set mode +x)"
             )
             return None
         u = self.load_user_from_pnick(pnick, irc_msg.round)
@@ -123,7 +123,7 @@ class loadable(object):
             irc_msg.reply(
                 "You must be registered to use the automatic "
                 + self.__class__.__name__
-                + " command (log in with P and set mode +x, then make sure you've set your planet with the pref command)"
+                + " command (log in with Q and set mode +x, then make sure you've set your planet with the pref command)"
             )
             return None
         return u

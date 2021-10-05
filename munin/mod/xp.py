@@ -79,7 +79,7 @@ class xp(loadable.loadable):
             u.load_from_db(self.cursor, irc_msg.round)
             if not u.planet:
                 irc_msg.reply(
-                    "You must be registered to use the automatic %s command (log in with P and "
+                    "You must be registered to use the automatic %s command (log in with Q and "
                     "set mode +x, then make sure your planet is set with the pref command (!pref planet=x:y:z))"
                     % (self.__class__.__name__)
                 )

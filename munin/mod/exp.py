@@ -33,36 +33,43 @@ from munin import loadable
 class exp(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1)
-        self.paramre = re.compile(r"^\s*(\d+)[. :-](\d+)[. :-](\d+)\s+(\d+)")
-        self.usage = self.__class__.__name__ + ""
-        self.helptext = None
+        self.paramre = re.compile(r"^\s*(\d+)[. :-](\d+)[. :-](\d+)(?:\s+(\d+))?")
+        self.usage = self.__class__.__name__ + " <coords> [tick]"
+        self.helptext = [
+            "Shows experience gain during the last 15 ticks or experience gain "
+            "during one specific tick."
+        ]
 
     def execute(self, user, access, irc_msg):
 
         if access < self.level:
             irc_msg.reply("You do not have enough access to use this command")
             return 0
+
         m = self.paramre.search(irc_msg.command_parameters)
-        if m:
-            x = m.group(1)
-            y = m.group(2)
-            z = m.group(3)
-            tick = m.group(4)
+        if not m:
+            irc_msg.reply("Usage: %s" % (self.usage,))
+            return 0
 
-            p = loadable.planet(x=x, y=y, z=z)
-            if not p.load_most_recent(self.cursor, irc_msg.round):
-                irc_msg.reply("No planet matching '%s:%s:%s' found" % (x, y, z))
-                return 1
+        x = m.group(1)
+        y = m.group(2)
+        z = m.group(3)
+        tick = m.group(4)
 
+        p = loadable.planet(x=x, y=y, z=z)
+        if not p.load_most_recent(self.cursor, irc_msg.round):
+            irc_msg.reply("No planet matching '%s:%s:%s' found" % (x, y, z))
+            return 1
+
+        reply = ""
+
+        if tick:
             query = "SELECT t1.xp,t1.xp-t2.xp AS vdiff,t1.size-t2.size AS sdiff"
             query += " FROM planet_dump AS t1"
             query += " INNER JOIN planet_dump AS t2"
             query += " ON t1.id=t2.id AND t1.tick-1=t2.tick"
             query += " WHERE t1.tick=%s"
             query += " AND t1.id=%s"
-
-            reply = ""
-
             self.cursor.execute(query, (tick, p.id,))
             if self.cursor.rowcount < 1:
                 reply += "No data for %s:%s:%s on tick %s" % (p.x, p.y, p.z, tick)
@@ -80,20 +87,7 @@ class exp(loadable.loadable):
                         ["+", "-"][x["sdiff"] < 0],
                         abs(x["sdiff"]),
                     )
-            irc_msg.reply(reply)
-            return 1
-
-        m = self.planet_coordre.search(irc_msg.command_parameters)
-        if m:
-            x = m.group(1)
-            y = m.group(2)
-            z = m.group(3)
-
-            p = loadable.planet(x=x, y=y, z=z)
-            if not p.load_most_recent(self.cursor, irc_msg.round):
-                irc_msg.reply("No planet matching '%s:%s:%s' found" % (x, y, z))
-                return 1
-
+        else:
             query = "SELECT t1.tick,t1.xp,t1.xp-t2.xp AS vdiff,t1.size-t2.size AS sdiff"
             query += " FROM planet_dump AS t1"
             query += " INNER JOIN planet_dump AS t2"
@@ -101,11 +95,7 @@ class exp(loadable.loadable):
             query += " WHERE t1.tick>(SELECT max_tick(%s::smallint)-16)"
             query += " AND t1.id=%s"
             query += " ORDER BY t1.tick ASC"
-
             self.cursor.execute(query, (irc_msg.round, p.id,))
-
-            reply = ""
-
             if self.cursor.rowcount < 1:
                 reply += "No data for %s:%s:%s" % (p.x, p.y, p.z)
             else:
@@ -133,6 +123,5 @@ class exp(loadable.loadable):
                 ]
 
                 reply += str.join(" | ", info)
-            irc_msg.reply(reply)
-
+        irc_msg.reply(reply)
         return 1

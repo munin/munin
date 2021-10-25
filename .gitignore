@@ -19,3 +19,5 @@ user_feed.txt
 .venv
 clickatell.py.bak
 env
+munin.log*
+hugin.log*

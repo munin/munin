@@ -28,7 +28,7 @@ class command(object):
         irc_msg = irc_message.irc_message(
             client=self.client, cursor=self.cursor, config=self.config, line=line
         )
-        if irc_msg.command:
+        if irc_msg.command and len(irc_msg.command_name) > 0:
             key = "munin.mod." + irc_msg.command_name.lower()
             try:
                 if key in self.control:

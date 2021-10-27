@@ -61,77 +61,61 @@ class info(loadable.loadable):
         self.cursor.execute(query, args)
         reply = ""
         if self.cursor.rowcount < 1:
-            reply = "Nothing in intel matches your search '%s'" % (alliance,)
+            irc_msg.reply("Nothing in intel matches your search '%s'" % (alliance,))
         else:
             res = self.cursor.fetchone()
-            if res["members"] > 50:
-                query = self.query_for_info_limit_50()
-                self.cursor.execute(query, args)
-                ts = self.cursor.fetchone()
-                reply += "%s Members: %s (%s)" % (
-                    alliance,
-                    res["members"],
-                    ts["members"],
-                )
-                reply += ", Value: %s (%s), Avg: %s (%s)" % (
-                    res["tot_value"],
-                    ts["tot_value"],
-                    res["tot_value"] / res["members"],
-                    ts["tot_value"] / ts["members"],
-                )
-                reply += ", Score: %s (%s), Avg: %s (%s)" % (
-                    res["tot_score"],
-                    ts["tot_score"],
-                    res["tot_score"] / res["members"],
-                    ts["tot_score"] / ts["members"],
-                )
-                reply += ", Size: %s (%s), Avg: %s (%s)" % (
-                    res["tot_size"],
-                    ts["tot_size"],
-                    res["tot_size"] / res["members"],
-                    ts["tot_size"] / ts["members"],
-                )
-                reply += ", XP: %s (%s), Avg: %s (%s)" % (
-                    res["tot_xp"],
-                    ts["tot_xp"],
-                    res["tot_xp"] / res["members"],
-                    ts["tot_xp"] / ts["members"],
-                )
-            else:
-                reply += "%s Members: %s, Value: %s, Avg: %s," % (
-                    alliance,
-                    res["members"],
-                    res["tot_value"],
-                    res["tot_value"] / res["members"],
-                )
-                reply += " Score: %s, Avg: %s," % (
-                    res["tot_score"],
-                    res["tot_score"] / res["members"],
-                )
-                reply += " Size: %s, Avg: %s, XP: %s, Avg: %s" % (
-                    res["tot_size"],
-                    res["tot_size"] / res["members"],
-                    res["tot_xp"],
-                    res["tot_xp"] / res["members"],
-                )
-        irc_msg.reply(reply)
+            irc_msg.reply(self.format_result(alliance, res, counting=False))
 
+            counting_members = self.config.getint("Planetarion", "counting_tag_members")
+            if res["members"] > counting_members:
+                query = self.query_for_info_limit()
+                args = (
+                    irc_msg.round,
+                    irc_msg.round,
+                    "%" + alliance + "%",
+                    counting_members,
+                    "%" + alliance + "%",
+                )
+                self.cursor.execute(query, args)
+                res = self.cursor.fetchone()
+                irc_msg.reply(self.format_result(alliance, res, counting=True))
         return 1
 
-    def query_for_info_limit_50(self):
-        query = "SELECT count(*) AS members,sum(t4.value) AS tot_value, sum(t4.score) AS tot_score, sum(t4.size) AS tot_size, sum(t4.xp) AS tot_xp"
-        query += " FROM (SELECT t1.value AS value, t1.score AS score, t1.size AS size, t1.xp AS xp, t3.name AS name FROM planet_dump AS t1"
-        query += " INNER JOIN intel AS t2 ON t1.id=t2.pid"
-        query += " LEFT JOIN alliance_canon AS t3 ON t2.alliance_id=t3.id"
-        query += " WHERE t1.tick=(SELECT max_tick(%s::smallint)) AND t1.round=%s AND t3.name ILIKE %s ORDER BY t1.score DESC LIMIT 50) AS t4"
-        query += " GROUP BY t4.name ILIKE %s"
+    def query_for_info_limit(self):
+        query = "SELECT count(*) AS members, min(t.name) AS alliance, sum(t.value) AS tot_value, sum(t.score) AS tot_score, sum(t.size) AS tot_size, sum(t.xp) AS tot_xp"
+        query += " FROM (SELECT p.value AS value, p.score AS score, p.size AS size, p.xp AS xp, a.name AS name"
+        query += " FROM planet_dump AS p"
+        query += " INNER JOIN intel AS i ON p.id=i.pid"
+        query += " LEFT JOIN alliance_canon AS a ON i.alliance_id=a.id"
+        query += " WHERE p.tick=(SELECT max_tick(%s::smallint)) AND p.round=%s AND a.name ILIKE %s ORDER BY p.score DESC LIMIT %s) AS t"
+        query += " GROUP BY t.name ILIKE %s"
         return query
 
     def query_for_info(self):
-        query = "SELECT count(*) AS members,sum(t1.value) AS tot_value, sum(t1.score) AS tot_score, sum(t1.size) AS tot_size, sum(t1.xp) AS tot_xp"
-        query += " FROM planet_dump AS t1"
-        query += " INNER JOIN intel AS t2 ON t1.id=t2.pid"
-        query += " LEFT JOIN alliance_canon t3 ON t2.alliance_id=t3.id"
-        query += " WHERE t1.tick=(SELECT max_tick(%s::smallint)) AND t1.round=%s AND t3.name ILIKE %s"
-        query += " GROUP BY t3.name ILIKE %s"
+        query = "SELECT count(*) AS members, min(a.name) AS alliance, sum(p.value) AS tot_value, sum(p.score) AS tot_score, sum(p.size) AS tot_size, sum(p.xp) AS tot_xp"
+        query += " FROM planet_dump AS p"
+        query += " INNER JOIN intel AS i ON p.id=i.pid"
+        query += " LEFT JOIN alliance_canon a ON i.alliance_id=a.id"
+        query += " WHERE p.tick=(SELECT max_tick(%s::smallint)) AND p.round=%s AND a.name ILIKE %s"
+        query += " GROUP BY a.name ILIKE %s"
         return query
+
+    def format_result(self, alliance, res, counting):
+        reply = "%s %sMembers: %s | Value: %s (Avg: %s) |" % (
+            res['alliance'],
+            "Counting " if counting else "",
+            res["members"],
+            self.format_real_value(res["tot_value"]),
+            self.format_real_value(res["tot_value"] / res["members"]),
+        )
+        reply += " Score: %s (Avg: %s) |" % (
+            self.format_real_value(res["tot_score"]),
+            self.format_real_value(res["tot_score"] / res["members"]),
+        )
+        reply += " Size: %s, Avg(%s) | XP: %s (Avg: %s)" % (
+            res["tot_size"],
+            round(res["tot_size"] / res["members"]),
+            res["tot_xp"],
+            round(res["tot_xp"] / res["members"]),
+        )
+        return reply

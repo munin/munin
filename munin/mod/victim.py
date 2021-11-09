@@ -36,7 +36,7 @@ class victim(loadable.loadable):
         self.paramre = re.compile(r"^\s*(.*)")
         self.alliancere = re.compile(r"^(\S+)$")
         self.racere = re.compile(r"^(ter|cat|xan|zik|eit|etd)$", re.I)
-        self.rangere = re.compile(r"^(<|>)?(\d+)$")
+        self.rangere = re.compile(r"^(<|>)?(\d+[kmbKMB]?)$")
         self.bashre = re.compile(r"^(bash)$", re.I)
         self.clusterre = re.compile(r"^c(\d+)$", re.I)
         self.usage = (
@@ -84,14 +84,16 @@ class victim(loadable.loadable):
                 race = m.group(1)
                 continue
             m = self.rangere.search(p)
-            if m and not size and int(m.group(2)) < 32768:
-                size_mod = m.group(1) or ">"
-                size = m.group(2)
-                continue
+            if m and not size:
+                numeric = self.human_readable_number_to_integer(m.group(2))
+                if numeric < 32768:
+                    size_mod = m.group(1) or ">"
+                    size = numeric
+                    continue
             m = self.rangere.search(p)
             if m and not value:
                 value_mod = m.group(1) or "<"
-                value = m.group(2)
+                value = self.human_readable_number_to_integer(m.group(2))
                 continue
             m = self.alliancere.search(p)
             if m and not alliance and not self.clusterre.search(p):

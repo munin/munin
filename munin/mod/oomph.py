@@ -35,9 +35,9 @@ class oomph(loadable.loadable):
 
     def __init__(self, cursor):
         super(self.__class__, self).__init__(cursor, 100)
-        self.paramre = re.compile(r"^\s*(\S+)\s+(fi|co|fr|de|cr|bs)", re.IGNORECASE)
+        self.paramre = re.compile(r"^\s*(((0*[0-9]+)[: .](0*[0-9]+))|(\S+))\s+(fi|co|fr|de|cr|bs)", re.IGNORECASE)
         self.ship_classes = ["fi", "co", "fr", "de", "cr", "bs"]
-        self.usage = self.__class__.__name__ + " <alliance> <target ship class>"
+        self.usage = self.__class__.__name__ + " <x:y|alliance name> <target ship class>"
         self.helptext = None
         self.mapping = {
             "fi": "Fighter",
@@ -58,20 +58,40 @@ class oomph(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        # assign param variables
-        alliance_name = param_m.group(1)
-        target_class = self.mapping[param_m.group(2).lower()]
-        # lookup alliance
-        a = loadable.alliance(name=alliance_name)
-        if not a.load_most_recent(self.cursor, irc_msg.round):
-            irc_msg.reply(f"No alliance matching {alliance_name} found")
-            return
+        target_class = self.mapping[param_m.group(6).lower()]
+
+        galaxy_x = param_m.group(3)
+        galaxy_y = param_m.group(4)
+        if galaxy_x and galaxy_y:
+            irc_msg.reply(self.galaxy_oomph(
+                irc_msg.round,
+                galaxy_x,
+                galaxy_y,
+                target_class
+            ))
+
+        else:
+            alliance_name = param_m.group(5)
+            # lookup alliance
+            alliance = loadable.alliance(name=alliance_name)
+            if not alliance.load_most_recent(self.cursor, irc_msg.round):
+                irc_msg.reply(f"No alliance matching {alliance_name} found")
+                return
+            irc_msg.reply(self.alliance_oomph(
+                irc_msg.round,
+                alliance,
+                target_class
+            ))
+        return 1
+
+    def alliance_oomph(self, round, alliance, target_class):
 
         # get all members from intel left join scans?
-        intels = self.get_all_members(irc_msg, a)
+        alliance_members = self.get_alliance_member_count(round, alliance)
 
-        fresh_scans = self.get_fresh_au_scans(irc_msg, a)
-        ships = self.get_ships_from_fresh_scans(irc_msg, a, target_class)
+        fresh_scan_count = self.get_fresh_au_scan_count_alliance(round, alliance)
+        ships = self.get_ships_from_fresh_scans_alliance(round, alliance, target_class)
+
         total_value = self.format_value(
             sum([s["total_cost"] * s["amount"] for s in ships])
         )
@@ -91,61 +111,174 @@ class oomph(loadable.loadable):
             for s in ships
             if s["target_3"] == target_class
         ]
-        print(t1)
-        irc_msg.reply(
-            f"{a.name} ({a.members} members, {len(intels)} in intel, {len(fresh_scans)} with fresh scans) has {total_value} oommph against {target_class}: {' '.join(t1)} | {' '.join(t2)} | {' '.join(t3)}"
-        )
-        return 1
+        return f"{alliance.name} ({alliance.members} members, {alliance_members} in intel, {fresh_scan_count} with fresh scans) has {total_value} oommph against {target_class}: {' '.join(t1)} | {' '.join(t2) or 'None (t2)'} | {' '.join(t3) or 'None (t3)'}"
 
-    def get_all_members(self, irc_msg, alliance):
-        query = "SELECT * FROM intel WHERE round = %s and alliance_id = %s"
+    def get_alliance_member_count(self, round, alliance):
+        query = "SELECT count(*) AS count FROM intel WHERE round = %s and alliance_id = %s"
         self.cursor.execute(
             query,
             (
-                irc_msg.round,
+                round,
                 alliance.id,
             ),
         )
-        return self.cursor.fetchall()
+        return self.cursor.fetchone()['count']
 
-    def get_fresh_au_scans(self, irc_msg, alliance):
-        query = "SELECT * FROM ("
-        query += " SELECT *,rank() OVER (PARTITION BY t1.pid ORDER BY t1.id DESC) AS rank FROM scan AS t1"
-        query += " WHERE t1.round = %s"
-        query += " AND t1.tick > (select max_tick(%s::smallint) - 48)"
+    def get_fresh_au_scan_count_alliance(self, round, alliance):
+        query = "SELECT count(*) AS count FROM ("
+        query += " SELECT *,rank() OVER (PARTITION BY s.pid ORDER BY s.id DESC) AS rank"
+        query += " FROM scan AS s"
+        query += " WHERE s.round = %s"
+        query += " AND s.tick > (select max_tick(%s::smallint) - 48)"
         query += " AND scantype = 'au'"
         query += " AND pid in ("
-        query += "  SELECT pid FROM intel AS t4"
-        query += "  WHERE t4.round = %s and t4.alliance_id = %s"
+        query += "  SELECT pid FROM intel AS i"
+        query += "  WHERE i.round = %s and i.alliance_id = %s"
         query += ") ) AS scans"
         query += " WHERE rank = 1"
         self.cursor.execute(
-            query, (irc_msg.round, irc_msg.round, irc_msg.round, alliance.id)
+            query, (
+                round,
+                round,
+                round,
+                alliance.id,
+            ),
         )
-        return self.cursor.fetchall()
+        return self.cursor.fetchone()['count']
 
-    def get_ships_from_fresh_scans(self, irc_msg, alliance, target_class):
+    def get_ships_from_fresh_scans_alliance(self, round, alliance, target_class):
         query = "SELECT name,target_1,target_2,target_3,sum(total_cost) AS total_cost, sum(amount) AS amount FROM ("
-        query += " SELECT t1.id AS scan_id,t1.tick,t1.pid,t2.amount,t3.*,rank() OVER (PARTITION BY t1.pid ORDER BY t1.id DESC) AS rank FROM scan AS t1"
-        query += " INNER JOIN au AS t2 on t2.scan_id = t1.id"
-        query += " INNER JOIN ship AS t3 on t3.id = t2.ship_id "
-        query += " WHERE t1.round = %s"
-        query += " AND t1.tick > (select max_tick(%s::smallint) - 48)"
+        query += " SELECT s.id AS scan_id,s.tick,s.pid,a.amount,sh.*,rank() OVER (PARTITION BY s.pid ORDER BY s.id DESC) AS rank"
+        query += " FROM scan AS s"
+        query += " INNER JOIN au AS a on a.scan_id = s.id"
+        query += " INNER JOIN ship AS sh on sh.id = a.ship_id "
+        query += " WHERE s.round = %s"
+        query += " AND s.tick > (select max_tick(%s::smallint) - 48)"
         query += " AND pid in ("
-        query += "  SELECT pid FROM intel AS t4"
-        query += "  WHERE t4.round = %s and t4.alliance_id = %s"
+        query += "  SELECT pid FROM intel AS i"
+        query += "  WHERE i.round = %s and i.alliance_id = %s"
         query += ")"
-        query += " AND (t3.target_1 = %s OR t3.target_2 = %s OR t3.target_3 = %s)"
+        query += " AND (sh.target_1 = %s OR sh.target_2 = %s OR sh.target_3 = %s)"
         query += ") ships"
         query += " WHERE rank = 1"
         query += " GROUP BY name, target_1, target_2, target_3"
         self.cursor.execute(
             query,
             (
-                irc_msg.round,
-                irc_msg.round,
-                irc_msg.round,
+                round,
+                round,
+                round,
                 alliance.id,
+                target_class,
+                target_class,
+                target_class,
+            ),
+        )
+        return self.cursor.fetchall()
+
+    def galaxy_oomph(self, round, x, y, target_class):
+        galaxy_members = self.get_galaxy_member_count(round,
+                                                      x,
+                                                      y)
+        if galaxy_members == 0:
+            return f"No galaxy {x}:{y} found"
+
+        fresh_scan_count = self.get_fresh_au_scan_count_galaxy(round,
+                                                               x,
+                                                               y)
+        ships = self.get_ships_from_fresh_scans_galaxy(round,
+                                                       x,
+                                                       y,
+                                                       target_class)
+        total_value = self.format_value(
+            sum([s["total_cost"] * s["amount"] for s in ships])
+        )
+
+        t1 = [
+            f"{self.format_real_value(s['amount'])} {s['name']}"
+            for s in ships
+            if s["target_1"] == target_class
+        ]
+        t2 = [
+            f"{self.format_real_value(s['amount'])} {s['name']} (t2)"
+            for s in ships
+            if s["target_2"] == target_class
+        ]
+        t3 = [
+            f"{self.format_real_value(s['amount'])} {s['name']} (t3)"
+            for s in ships
+            if s["target_3"] == target_class
+        ]
+        return f"{x}:{y} ({galaxy_members} members, {fresh_scan_count} with fresh scans) has {total_value} oommph against {target_class}: {' '.join(t1)} | {' '.join(t2) or 'None (t2)'} | {' '.join(t3) or 'None (t3)'}"
+
+    def get_galaxy_member_count(self, round, x, y):
+        query = """
+            SELECT count(*) AS count
+            FROM planet_dump
+            WHERE round = %s
+            AND tick = (select max_tick(%s::smallint))
+            AND x = %s
+            AND y = %s;
+        """
+        self.cursor.execute(
+            query,
+            (
+                round,
+                round,
+                x,
+                y,
+            ),
+        )
+        return self.cursor.fetchone()['count']
+
+    def get_fresh_au_scan_count_galaxy(self, round, x, y):
+        query = """
+            SELECT count(*) AS count FROM (
+            SELECT rank() OVER (PARTITION BY s.pid ORDER BY s.id DESC) AS rank
+            FROM scan AS s
+                INNER JOIN planet_dump AS p ON p.id = s.pid AND s.tick = p.tick
+                WHERE s.round = %s
+            AND s.tick > (select max_tick(%s::smallint) - 48)
+                AND s.scantype = 'au'
+                AND p.x = %s
+                AND p.y = %s
+            ) AS ships
+            WHERE rank = 1;
+        """
+        self.cursor.execute(
+            query, (
+                round,
+                round,
+                x,
+                y,
+            ),
+        )
+        return self.cursor.fetchone()['count']
+
+    def get_ships_from_fresh_scans_galaxy(self, round, x, y, target_class):
+        query = """
+            SELECT name, target_1, target_2, target_3, sum(total_cost) AS total_cost, sum(amount) AS amount FROM (
+                SELECT s.id AS scan_id, s.tick, s.pid, a.amount, sh.*, rank() OVER (PARTITION BY s.pid ORDER BY s.id DESC) AS rank FROM scan AS s
+                    INNER JOIN planet_dump AS p ON p.id = s.pid AND s.tick = p.tick
+                    INNER JOIN au AS a ON a.scan_id = s.id
+                    INNER JOIN ship AS sh ON a.ship_id = sh.id
+                    WHERE s.round = %s
+                AND s.tick > (select max_tick(%s::smallint) - 48)
+                    AND s.scantype = 'au'
+                    AND p.x = %s
+                    AND p.y = %s
+                    AND (sh.target_1 = %s OR sh.target_2 = %s OR sh.target_3 = %s)
+                ) AS ships
+            WHERE rank = 1
+            GROUP BY name, target_1, target_2, target_3;
+        """
+        self.cursor.execute(
+            query,
+            (
+                round,
+                round,
+                x,
+                y,
                 target_class,
                 target_class,
                 target_class,

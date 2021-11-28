@@ -119,6 +119,9 @@ auto_war_duration: 96
 # Default round number for multi-round Munin
 current_round: 72
 
+# Number of members that count towards a tag's score.
+counting_tag_members: 40
+
 [Dumps]
 # Whether to write dump files retrieved from the web to file.
 write: False

@@ -101,7 +101,7 @@ class info(loadable.loadable):
         return query
 
     def format_result(self, alliance, res, counting):
-        reply = "%s %sMembers: %s | Value: %s (Avg: %s) |" % (
+        reply = "'%s' %sMembers: %s | Value: %s (Avg: %s) |" % (
             res['alliance'],
             "Counting " if counting else "",
             res["members"],

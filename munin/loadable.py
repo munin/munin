@@ -110,7 +110,7 @@ class loadable(object):
             return None
         return u
 
-    def load_user(self, pnick, irc_msg):
+    def load_user(self, pnick, irc_msg, minimum_userlevel=-1):
         if not pnick:
             irc_msg.reply(
                 "You must be registered to use the "
@@ -118,7 +118,7 @@ class loadable(object):
                 + " command (log in with Q and set mode +x)"
             )
             return None
-        u = self.load_user_from_pnick(pnick, irc_msg.round)
+        u = self.load_user_from_pnick(pnick, irc_msg.round, minimum_userlevel=minimum_userlevel)
         if not u:
             irc_msg.reply(
                 "You must be registered to use the automatic "

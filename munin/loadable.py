@@ -819,41 +819,28 @@ class user(object):
 
     def load_from_db(self, cursor, round=None):
         query = self.lookup_query()
-        if self.pnick:
-            query += " ( pnick ILIKE %s OR alias_nick ILIKE %s ) AND userlevel >= %s"
-            cursor.execute(query, (self.pnick, self.pnick, self.userlevel))
-        elif self.id and self.id > 0:
+        if self.id and self.id > 0:
             query += " id=%s"
             cursor.execute(query, (self.id,))
+        elif self.pnick:
+            query += " ( pnick ILIKE %s OR alias_nick ILIKE %s ) AND userlevel >= %s"
+            cursor.execute(query, (self.pnick, self.pnick, self.userlevel))
         else:
             return None
         u = cursor.fetchone()
         if self.pnick and not u:
             partial_nick = "%" + self.pnick + "%"
             query = self.lookup_query()
-            query += " pnick ILIKE %s OR alias_nick ILIKE %s AND userlevel >= %s"
+            query += " pnick ILIKE %s OR alias_nick ILIKE %s"
             query += " ORDER BY userlevel DESC"
             cursor.execute(
                 query,
                 (
                     partial_nick,
                     partial_nick,
-                    self.userlevel,
                 ),
             )
             u = cursor.fetchone()
-            if not u:
-                query = self.lookup_query()
-                query += " pnick ILIKE %s OR alias_nick ILIKE %s"
-                query += " ORDER BY userlevel DESC"
-                cursor.execute(
-                    query,
-                    (
-                        partial_nick,
-                        partial_nick,
-                    ),
-                )
-                u = cursor.fetchone()
         if u:
             self.id = u["id"]
             self.pnick = u["pnick"]

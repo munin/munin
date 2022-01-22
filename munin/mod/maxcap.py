@@ -36,7 +36,7 @@ class maxcap(loadable.loadable):
         self.paramre = re.compile(r"^\s*(\d+)")
         self.usage = self.__class__.__name__ + " (<total roids>|<x:y:z>)"
         self.helptext = [
-            'Shows how many roids you will cap from a target. If you have your planet set, your actual cap rate will be used, otherwise max cap is assumed.'
+            'Show how many roids you will cap from a target. If you have your planet set, your actual cap rate will be used, otherwise max cap is assumed.'
         ]
 
     def execute(self, user, access, irc_msg):

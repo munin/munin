@@ -57,7 +57,7 @@ class spamin(loadable.loadable):
         coord_list = re.split(self.coordsplitre, m.group(2))
 
         if len(coord_list) % 3 != 0:
-            irc_msg.reply("You did not give me a set of complete coords, you dumbass! {}".format(coord_list))
+            irc_msg.reply("You did not give me a set of complete coords, you dumbass!")
             return 0
 
         a = loadable.alliance(name=alliance_name)

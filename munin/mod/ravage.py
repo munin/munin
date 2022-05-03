@@ -110,7 +110,9 @@ class ravage(loadable.loadable):
 
         if not structures:
             structure_mod = ">"
-            structures = round(self.current_tick(irc_msg.round) / 50)
+            structures = max(1,
+                             min(8,
+                                 round(self.current_tick(irc_msg.round) / 100)))
 
         if bash:
             if not user:

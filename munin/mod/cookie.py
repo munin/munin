@@ -65,7 +65,7 @@ class cookie(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         if s:
-            u = self.load_user(user, irc_msg.round, minimum_userlevel=100)
+            u = self.load_user(user, irc_msg, minimum_userlevel=100)
             if not u:
                 return 0
             self.show_status(irc_msg, u)

@@ -721,7 +721,7 @@ class prop(loadable.loadable):
                 % (
                     r["id"],
                     r["prop_type"],
-                    r["person"] or r["question"],
+                    r["person"] or r["question"][:100],
                     r["vote_result"][0].upper() if r["vote_result"] else "",
                 )
             )

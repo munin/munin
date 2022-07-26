@@ -269,11 +269,9 @@ class prop(loadable.loadable):
     def process_poll_proposal(self, irc_msg, user, question, answers):
         if len(answers) > 1:
             prop_id = self.create_poll_proposal(user, question, answers)
-            alliance = self.config.get("Auth", "alliance")
-            reply = "%s created a new proposition (nr. %d) to poll %s." % (
+            reply = "%s created a new poll (nr. %d)." % (
                 user.pnick,
                 prop_id,
-                alliance,
             )
             reply += (
                 " When people have been given a fair shot at voting you can call a count using !prop expire %d."
@@ -282,6 +280,16 @@ class prop(loadable.loadable):
         else:
             reply = "It's not much of a poll if it only has one answer, pal."
         irc_msg.reply(reply)
+
+    def short_proposal_subject(self, person, question):
+        subject = person
+        if not subject:
+            subject = question
+            max_length = 40
+            if len(subject) > max_length:
+                subject = "%s..." % (subject[0:max_length-3],)
+            subject = "%s?" %(subject,)
+        return subject
 
     def process_list_all_proposals(self, irc_msg, user):
         u = loadable.user(pnick=irc_msg.user)
@@ -306,7 +314,7 @@ class prop(loadable.loadable):
             prop_info = "%s: %s %s" % (
                 r["id"],
                 r["prop_type"],
-                r["person"] or r["question"][:100] + "?",
+                self.short_proposal_subject(r["person"], r["question"]),
             )
             if not irc_msg.chan_reply():
                 query = "SELECT t1.vote AS vote, t1.carebears AS carebears FROM prop_vote AS t1"
@@ -527,7 +535,6 @@ class prop(loadable.loadable):
 
     def process_expire_proposal(self, irc_msg, u, prop_id):
         prop = self.find_single_prop_by_id(prop_id)
-        alliance = self.config.get("Auth", "alliance")
         if not prop:
             irc_msg.reply("No proposition number %s exists (idiot)." % (prop_id,))
             return
@@ -555,11 +562,10 @@ class prop(loadable.loadable):
 
         age = (datetime.datetime.now() - prop["created"]).days
         if prop["prop_type"] == "poll":
-            reply = "The proposition raised by %s %s %s ago to ask %s '%s?'" % (
+            reply = "The poll raised by %s %s %s ago asking '%s?'" % (
                 prop["proposer"],
                 age,
                 self.pluralize(age, "day"),
-                alliance,
                 prop["question"],
             )
             if not winner:
@@ -594,12 +600,11 @@ class prop(loadable.loadable):
                 losing_total,
             ) = self.get_winners_and_losers(outcome)
 
-            reply = "The proposition raised by %s %s %s ago to %s %s has" % (
+            reply = "The proposition raised by %s %s %s ago to %s has" % (
                 prop["proposer"],
                 age,
                 self.pluralize(age, "day"),
-                prop["prop_type"],
-                prop["person"] or alliance,
+                '%s %s' % (prop["prop_type"], prop["person"],) if prop["person"] else prop["prop_type"],
             )
             yes = outcome["yes"]["count"]
             no = outcome["no"]["count"]
@@ -663,9 +668,8 @@ class prop(loadable.loadable):
         query += " WHERE id=%s"
         self.cursor.execute(query, ("cancel", prop["id"]))
         if prop["prop_type"] == "poll":
-            reply = "Cancelled proposal %s to ask %s '%s?'" % (
+            reply = "Cancelled poll %s asking '%s?'" % (
                 prop["id"],
-                self.config.get("Auth", "alliance"),
                 prop["question"],
             )
             for o in sorted(outcome.keys()):
@@ -721,7 +725,7 @@ class prop(loadable.loadable):
                 % (
                     r["id"],
                     r["prop_type"],
-                    r["person"] or r["question"][:100],
+                    self.short_proposal_subject(r["person"], r["question"]),
                     r["vote_result"][0].upper() if r["vote_result"] else "",
                 )
             )
@@ -753,7 +757,7 @@ class prop(loadable.loadable):
                 % (
                     r["id"],
                     r["prop_type"],
-                    r["person"] or r["question"] + "?",
+                    self.short_proposal_subject(r["person"], r["question"]),
                     r["vote_result"][0].upper() if r["vote_result"] else "",
                 )
             )

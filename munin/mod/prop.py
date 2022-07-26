@@ -306,7 +306,7 @@ class prop(loadable.loadable):
             prop_info = "%s: %s %s" % (
                 r["id"],
                 r["prop_type"],
-                r["person"] or r["question"] + "?",
+                r["person"] or r["question"][:100] + "?",
             )
             if not irc_msg.chan_reply():
                 query = "SELECT t1.vote AS vote, t1.carebears AS carebears FROM prop_vote AS t1"

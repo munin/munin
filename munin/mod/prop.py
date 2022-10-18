@@ -209,6 +209,11 @@ class prop(loadable.loadable):
                 "Stupid %s, that wanker %s is already a member." % (user.pnick, person)
             )
             return 1
+        if self.is_already_an_alias(person):
+            irc_msg.reply(
+                "Dumb %s, %s is already someone's alias." %(user.pnick, person)
+            )
+            return 1
         if self.is_already_proposed_invite(person):
             irc_msg.reply(
                 "Silly %s, there's already a proposal to invite %s."
@@ -220,14 +225,15 @@ class prop(loadable.loadable):
             return 1
         last_comp = self.was_recently_proposed("invite", person)
         prop_id = self.create_invite_proposal(user, person, comment, last_comp)
-        reply = "%s created a new proposition (nr. %d) to invite %s." % (
+        reply = (
+            "%s created a new proposition (nr. %d) to invite %s. When people have been"
+            " given a fair shot at voting you can call a count using !prop expire %d. PLEASE"
+            " MAKE SURE THAT THIS IS THE CORRECT NICKNAME!"
+        ) % (
             user.pnick,
             prop_id,
             person,
-        )
-        reply += (
-            " When people have been given a fair shot at voting you can call a count using !prop expire %d."
-            % (prop_id,)
+            prop_id,
         )
         irc_msg.reply(reply)
 
@@ -907,6 +913,11 @@ class prop(loadable.loadable):
 
     def is_member(self, person):
         query = "SELECT id FROM user_list WHERE pnick ilike %s AND userlevel >= 100"
+        self.cursor.execute(query, (person,))
+        return self.cursor.rowcount > 0
+
+    def is_already_an_alias(self, person):
+        query = "SELECT id FROM user_list WHERE alias_nick ilike %s AND userlevel >= 100"
         self.cursor.execute(query, (person,))
         return self.cursor.rowcount > 0
 

@@ -37,11 +37,16 @@ class command(object):
                 elif key == "munin.mod.help":
                     self.help(irc_msg)
                 else:
-                    for c in self.control.values():
-                        if c.aliases(irc_msg.command_name.lower()):
-                            c.execute(irc_msg.user, irc_msg.access, irc_msg)
+                    commands = [
+                        c for c in self.control.values()
+                        if c.aliases(irc_msg.command_name.lower())
+                    ]
+                    if len(commands) > 0:
+                        if len(commands) == 1:
+                            commands[0].execute(irc_msg.user, irc_msg.access, irc_msg)
                             self.log_command(irc_msg)
-                            break
+                        else:
+                            irc_msg.reply("I don't know what that means!")
             except reboot:
                 raise
             except Exception as e:

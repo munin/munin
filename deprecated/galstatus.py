@@ -30,7 +30,7 @@ class galstatus:
         self.client = client
         self.cursor = cursor
         self.statusre = re.compile(
-            r"(\d+):(\d+):(\d+)\*?\s+(\d+):(\d+):(\d+)\s+(.*?)\s+((Xan|Ter|Cat|Zik|Etd)\s+)?(\d+)\s+(Return|Attack|Defend)\s+(\d+)"
+            r"(\d+):(\d+):(\d+)\*?\s+(\d+):(\d+):(\d+)\s+(.*?)\s+((Xan|Ter|Cat|Zik|Etd|Kin|Sly)\s+)?(\d+)\s+(Return|Attack|Defend)\s+(\d+)"
         )
         self.config = config
 

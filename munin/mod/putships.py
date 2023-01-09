@@ -55,6 +55,8 @@ class putships(loadable.loadable):
             "Cat": "Cathaar",
             "Zik": "Zikonian",
             "Xan": "Xandathrii",
+            "Kin": "Kinthia",
+            "Sly": "Slythonian",
             "Re": "Rs",  # Resources
         }
         self.keys = [
@@ -65,6 +67,7 @@ class putships(loadable.loadable):
             "target_2",
             "target_3",
             "type",
+            "is_cloaked",
             "init",
             "gun",
             "armor",
@@ -81,10 +84,11 @@ class putships(loadable.loadable):
             "a/c",
             "d/c",
         ]
-        regex = r'^<tr class="(Ter|Cat|Xan|Zik|Etd)">.+?>([^<]+)</td>'  # race & name
+        regex = r'^<tr class="(Ter|Cat|Xan|Zik|Etd|Kin|Sly)">.+?>([^<]+)</td>'  # race & name
         regex += r"<td>(\w+)</td>"  # class
         regex += r"(?:<td>(\w\w|\-)</td>)?" * 3  # t1,t2,t3
         regex += r"<td>(\w+)</td>"  # type
+        regex += r"<td>(Y|N)</td>"  # cloaked
         regex += r".+?(\d+|\-)</td>" * 11  # some numbers
         regex += r".*?</tr>$"  # end of the line
         self.ship_re = re.compile(regex, re.I | re.M)
@@ -142,6 +146,11 @@ class putships(loadable.loadable):
             ship["total_cost"] = ship["metal"] + ship["crystal"] + ship["eonium"]
             if ship["type"] == "EMP":
                 ship["type"] = "Emp"
+            elif ship["type"] == "Cloak":
+                ship["type"] = "Norm"
+                ship["is_cloaked"] = True
+            if ship["is_cloaked"] == "Y":
+                ship["is_cloaked"] = True
             # Assume TT-4.
             ship["eta"] -= 4
             fields = ["round"]

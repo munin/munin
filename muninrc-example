@@ -81,7 +81,7 @@ corporatism_cost_reduction: 0.0
 democracy_cost_reduction: 0.08
 nationalism_cost_reduction: 0.0
 socialism_cost_reduction: 0.0
-totalitarianism_cost_reduction: 0.08
+totalitarianism_cost_reduction: 0.06
 anarchy_cost_reduction: 0.0
 
 # Production speed. 0 is standard. 0.1 is 10% faster. -0.1 is 10% slower.
@@ -94,9 +94,11 @@ anarchy_prod_speed: -0.2
 
 ter_prod_speed: 0.1
 cat_prod_speed: 0.0
-xan_prod_speed: 0.1
-zik_prod_speed: 0.2
+xan_prod_speed: 0.05
+zik_prod_speed: 0.15
 etd_prod_speed: 0.0
+kin_prod_speed: 0.0
+sly_prod_speed: 0.0
 
 # Salvage bonus. 0.1 is 10% more. -0.1 is 10% less.
 ter_salvage_bonus: 0.0
@@ -104,6 +106,8 @@ cat_salvage_bonus: 0.4
 xan_salvage_bonus: 0.0
 zik_salvage_bonus: 0.0
 eit_salvage_bonus: 0.0
+kin_salvage_bonus: 0.3
+sly_salvage_bonus: 0.1
 
 # Ship targetting efficiencies. 1.0 is 100%.
 t1_eff: 1.0

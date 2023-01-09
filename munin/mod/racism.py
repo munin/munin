@@ -68,7 +68,7 @@ class racism(loadable.loadable):
                 " WHERE i.alliance_id = %s"
                 " AND   p.tick = (SELECT max_tick(%s::smallint))"
                 " GROUP BY p.race"
-                " ORDER BY array_position(array['Ter','Cat','Xan','Zik','Etd'], p.race::text) ASC"
+                " ORDER BY array_position(array['Ter','Cat','Xan','Zik','Etd', 'Kin', 'Sly'], p.race::text) ASC"
             )
             self.cursor.execute(
                 query,

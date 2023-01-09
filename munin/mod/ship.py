@@ -78,7 +78,10 @@ class ship(loadable.loadable):
         type = s["type"]
         if type.lower() == "emp":
             type = "*hugs*"
-        reply += " Type: %s | Init: %s | Attack ETA (TT-4): %s |" % (type, s["init"], s['eta'])
+        reply += " Type: %s |" % (type,)
+        if s['is_cloaked']:
+            reply += " Cloaked! |"
+        reply += " Init: %s | Attack ETA (TT-4): %s |" % (s["init"], s['eta'])
         reply += " HUGres: %s |" % (s["empres"],)
         if s["type"] == "Emp":
             reply += " Hugs: %s |" % (s["gun"],)

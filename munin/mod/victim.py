@@ -35,7 +35,7 @@ class victim(loadable.loadable):
         super().__init__(cursor, 100)
         self.paramre = re.compile(r"^\s*(.*)")
         self.alliancere = re.compile(r"^(\S+)$")
-        self.racere = re.compile(r"^(ter|cat|xan|zik|eit|etd)$", re.I)
+        self.racere = re.compile(r"^(ter|cat|xan|zik|eit|etd|kin|sly)$", re.I)
         self.rangere = re.compile(r"^(<|>)?(\d+[kmbKMB]?)$")
         self.bashre = re.compile(r"^(bash)$", re.I)
         self.clusterre = re.compile(r"^c(\d+)$", re.I)

@@ -293,7 +293,7 @@ while True:
          z smallint,
          planetname varchar(22) NOT NULL,
          rulername varchar(32) NOT NULL,
-         race char(3) CHECK (race in (NULL,'Ter','Cat','Xan','Zik','Etd')),
+         race char(3) CHECK (race in (NULL,'Ter','Cat','Xan','Zik','Etd', 'Kin', 'Sly')),
          size integer NOT NULL,
          score integer NOT NULL,
          value integer NOT NULL,

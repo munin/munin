@@ -108,11 +108,10 @@ class ravage(loadable.loadable):
                 alliance = m.group(1)
                 continue
 
-        if not structures:
+        if not structures and structures != 0:
             structure_mod = ">"
-            structures = max(1,
-                             min(8,
-                                 round(self.current_tick(irc_msg.round) / 100)))
+            structures = min(8,
+                             round((self.current_tick(irc_msg.round) or 0) / 100))
 
         if bash:
             if not user:
@@ -165,8 +164,7 @@ class ravage(loadable.loadable):
                 reply += " Size %s %s" % (size_mod, size)
             if value:
                 reply += " Value %s %s" % (value_mod, value)
-            if structures:
-                reply += " Vulnerable structures %s %s" % (structure_mod, structures)
+            reply += " Vulnerable structures %s %s" % (structure_mod, structures)
             irc_msg.reply(reply)
         i = 0
         for v in victims:

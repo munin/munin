@@ -538,31 +538,46 @@ class planet(object):
         self.id = p["id"]
         return 1
 
-    def calc_xp(self, victim, mcs=0):
+    def calc_xp(self, victim, mcs, fleet_admiral_bonus):
         cap = self.cap_rate(victim) * victim.size
         bravery_factor = self.bravery(victim)
         war_bonus = self.war_xp_bonus(victim)
         mc_bonus = 0.005 * float(mcs)
 
         def inner_xp_calc(round_factor, fleet_admiral_bonus):
-            raw_xp = cap * 2.5 * bravery_factor * round_factor * (1 + fleet_admiral_bonus) * (1 + war_bonus + mc_bonus)
+            raw_xp = cap * 5 * bravery_factor * round_factor * (1 + fleet_admiral_bonus / 100.0) * (1 + war_bonus + mc_bonus)
             return int(min(self.score / 180.0,
-                           raw_xp * (0.8 ** ((self.xp + 2 * raw_xp) / 10000.0)) * min(1.25,
-                                                                                      max(1.0,
-                                                                                          1.5 - self.xp / 100000.0))))
+                           raw_xp * (0.95 ** ((self.xp + raw_xp * 1.5) / 10000.0)) * min(1.25,
+                                                                                         max(0.1,
+                                                                                             1.5 - self.xp / 200000.0) + min(0.2,
+                                                                                                                             (war_bonus + mc_bonus) * 0.003))))
 
         # Round factor is determined by UNIVERSE land rate over the last 168
-        # ticks. Since we don't have access to that information, we calculate
-        # XP twice, once using the minimum and once using the maximum round
-        # factor.
-        min_round_factor = 1.0
-        max_round_factor = 2.0
+        # ticks. The actual formula to calculate this number is:
+        #
+        #     round_factor = max(min(2.4 - 2 * landed / launched,
+        #                            2),
+        #                        1)
+        #
+        # However, since we don't know what the inputs should be, we calculate
+        # XP twice, using the minimum and maximum round factor (1 and 2).
+        min_round_factor = 1.0 # 70%+ of launched attack fleets lands.
+        max_round_factor = 2.0 # 20%- of launched attack fleets lands.
 
-        # Each fleet has an admiral that gives between 0% and 50% increase in
-        # XP. Here too, we don't know what the bonus is, so we use the full
-        # range.
-        min_fleet_admiral_bonus = 0.0
-        max_fleet_admiral_bonus = 0.5
+        # Each fleet has an admiral that /supposedly/ gives between 0% and 30%
+        # increase in XP.
+        min_fleet_admiral_bonus = 0
+        max_fleet_admiral_bonus = 30
+        if fleet_admiral_bonus is not None:
+            min_fleet_admiral_bonus = fleet_admiral_bonus
+            max_fleet_admiral_bonus = fleet_admiral_bonus
+        # Note that the above description is inaccurate, despite the fact that
+        # it's lifted straight from the manual: since the bonus is used in both
+        # the base and exponent of the calculation, the actual range can be
+        # much larger. The Planetarion bcalc implements this incorrectly,
+        # simply taking the XP gain with 0% fleet admiral bonus, and increasing
+        # it by 30% to get the maximum. I am not sure if the combat engine
+        # makes the same mistake.
 
         return (
             inner_xp_calc(min_round_factor, min_fleet_admiral_bonus),
@@ -578,10 +593,10 @@ class planet(object):
     def bravery(self, victim):
         return min(2.0,
                    max(0.2,
-                       min(2.2,
-                           float(victim.score) / float(self.score)) - 0.35) * max(0.95,
-                                                                                  min(1.15,
-                                                                                      float(victim.value) / float(self.value)) - 0.1))
+                       min(2.25,
+                           float(victim.score) / float(self.score)) - 0.25) * max(0.2,
+                                                                                  min(2.25,
+                                                                                      float(victim.value) / float(self.value)) - 0.25))
 
     def cap_rate(self, victim):
         modifier = (float(victim.value) / float(self.value)) ** 0.5

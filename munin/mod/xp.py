@@ -34,10 +34,10 @@ class xp(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1)
         self.paramre = re.compile(
-            r"^\s*(\d+)[.-:\s](\d+)[.-:\s](\d+)(?:\s+(\d+)[.-:\s](\d+)[.-:\s](\d+))?(?:\s+(\d+))?"
+            r"^\s*(\d+)[.-:\s](\d+)[.-:\s](\d+)(?:\s+(\d+)[.-:\s](\d+)[.-:\s](\d+))?(?:\s+(\d+))?(?:\s+(\d+))?"
         )
         self.usage = (
-            self.__class__.__name__ + " <defender coords> [attacker coords] [MCs]"
+            self.__class__.__name__ + " <defender coords> [attacker coords] [MCs] [Fleet admiral bonus]"
         )
 
     def execute(self, user, access, irc_msg):
@@ -54,6 +54,7 @@ class xp(loadable.loadable):
         victim = None
         attacker = None
         mcs = 0
+        fleet_admiral_bonus = None
 
         victim = loadable.planet(x=m.group(1), y=m.group(2), z=m.group(3))
         if not victim.load_most_recent(self.cursor, irc_msg.round):
@@ -74,6 +75,12 @@ class xp(loadable.loadable):
                     % (attacker.x, attacker.y, attacker.z)
                 )
                 return 1
+        if m.lastindex >= 7 and m.group(7) is not None:
+            mcs = int(m.group(7))
+        if m.lastindex >= 8 and m.group(8) is not None:
+            fleet_admiral_bonus = min(int(m.group(8)),
+                                      30)
+
         if not attacker:
             u = loadable.user(pnick=irc_msg.user)
             u.load_from_db(self.cursor, irc_msg.round)
@@ -85,9 +92,6 @@ class xp(loadable.loadable):
                 )
                 return 1
             attacker = u.planet
-
-        if m.lastindex == 7:
-            mcs = int(m.group(7))
 
         reply = "Target %s:%s:%s (%s|%s) " % (
             victim.x,
@@ -106,14 +110,19 @@ class xp(loadable.loadable):
 
         bravery = attacker.bravery(victim)
         cap = int(attacker.cap_rate(victim) * victim.size)
-        min_xp, max_xp = attacker.calc_xp(victim, mcs)
+        min_xp, max_xp = attacker.calc_xp(victim, mcs, fleet_admiral_bonus)
         min_score = self.format_real_value(60 * min_xp)
         max_score = self.format_real_value(60 * max_xp)
 
-        reply += "| Bravery: %.2f | Cap: %d | MCs: %d | XP: %d-%d | Score: %s-%s" % (
+        reply += "| Bravery: %.2f | Cap: %d | MCs: %d | Admiral: +" % (
             bravery,
             cap,
-            mcs,
+            mcs
+        )
+        reply += "0-30" if fleet_admiral_bonus is None else "%d" % (
+            fleet_admiral_bonus,
+        )
+        reply += "%% | XP: %d-%d | Score: %s-%s" % (
             min_xp,
             max_xp,
             min_score,

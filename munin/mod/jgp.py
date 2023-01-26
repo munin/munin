@@ -125,6 +125,7 @@ class jgp(loadable.loadable):
         return 1
 
     def reply_jgp(self, link, rand_id, x, y, z, results, tick):
+        too_long = False
         if not link:
             prev = []
             for s in results:
@@ -144,10 +145,13 @@ class jgp(loadable.loadable):
             reply = "JGP scan on %s:%s:%s (id: %s, pt: %s) " % (x, y, z, rand_id, tick,)
             reply += " | ".join(prev)
             if len(reply) > 450:
+                too_long = True
                 link = True
         if link:
             reply = "JGP scan on %s:%s:%s (id: %s, pt: %s) " % (x, y, z, rand_id, tick)
             reply += "http://game.planetarion.com/showscan.pl?scan_id=%s" % (
                 rand_id,
             )
+            if too_long:
+                reply += " (Scan too long to print)"
         return reply

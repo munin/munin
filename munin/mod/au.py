@@ -34,7 +34,7 @@ class au(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 50)
         self.paramre = re.compile(r"^\s*(.*)")
-        self.usage = self.__class__.__name__ + ""
+        self.usage = self.__class__.__name__ + "<x:y:z> | <scan ID>"
         self.helptext = None
 
     def execute(self, user, access, irc_msg):
@@ -66,7 +66,13 @@ class au(loadable.loadable):
             query += " FROM scan       AS s"
             query += " INNER JOIN au   AS a ON s.id=a.scan_id"
             query += " INNER JOIN ship AS h ON a.ship_id=h.id"
-            query += " WHERE s.pid=%s AND s.id=(SELECT id FROM scan WHERE pid=s.pid AND scantype='au' AND ROUND=%s ORDER BY tick DESC LIMIT 1) AND h.round=%s"
+            query += " WHERE s.pid=%s AND s.id=(SELECT id FROM scan "
+            query += "                          WHERE pid=s.pid"
+            query += "                          AND scantype='au'"
+            query += "                          AND ROUND=%s"
+            query += "                          ORDER BY tick DESC"
+            query += "                          LIMIT 1)"
+            query += " AND h.round=%s"
             self.cursor.execute(query, (p.id, irc_msg.round, irc_msg.round,))
 
             if self.cursor.rowcount < 1:

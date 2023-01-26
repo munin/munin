@@ -336,12 +336,11 @@ nick TEXT NOT NULL,
 pnick TEXT,
 rand_id VARCHAR(20) NOT NULL,
 group_id VARCHAR(20),
-scantype VARCHAR(11) NOT NULL CHECK(scantype in ('unknown','planet','development','unit','news','jgp','fleet','au')),
+scantype VARCHAR(11) NOT NULL CHECK(scantype in ('unknown','planet','development','unit','news','incoming','jgp','fleet','au', 'military')),
 scan_time TIMESTAMP WITHOUT TIME ZONE,
 UNIQUE(rand_id,tick,round),
 FOREIGN KEY(round,tick) REFERENCES updates(round,tick)
 );
-
 
 CREATE TABLE planet (
 id serial PRIMARY KEY,
@@ -402,6 +401,14 @@ ship_id integer NOT NULL REFERENCES ship(id),
 amount integer NOT NULL
 );
 
+CREATE TABLE military
+(
+    id serial PRIMARY KEY,
+    scan_id bigint REFERENCES scan(id),
+    fleet_index smallint NOT NULL CHECK(fleet_index in (0, 1, 2, 3)),
+    ship_id integer REFERENCES ship(id),
+    amount integer NOT NULL
+);
 
 CREATE TABLE fleet (
 id serial PRIMARY KEY,
@@ -414,7 +421,7 @@ round smallint NOT NULL,
 launch_tick smallint,
 landing_tick smallint NOT NULL,
 mission varchar(7) NOT NULL CHECK(mission in ('defend','attack','unknown','return')),
-UNIQUE(owner_id,target,fleet_size,fleet_name,round,landing_tick,mission)
+UNIQUE(owner_id,target,fleet_name,round,landing_tick)
 );
 
 CREATE TABLE fleet_content (

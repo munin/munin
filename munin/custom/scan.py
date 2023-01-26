@@ -29,9 +29,9 @@ import dateutil.parser
 
 
 class scan(threading.Thread):
-    def __init__(
-        self, rand_id, client, config, nick, pnick, group_id
-    ):  # random scan ID, and client for debug ONLY
+    # rand_id is the Planetarion scan ID; group_id is the Planetarion scan
+    # group ID, if any. client is for debug ONLY
+    def __init__(self, rand_id, client, config, nick, pnick, group_id):
         self.rand_id = rand_id
         self.client = client
         self.config = config
@@ -115,70 +115,83 @@ class scan(threading.Thread):
         if m:
             scan_time = dateutil.parser.parse(m.group(1))
 
-        # check to see if we have already added this scan to the database
         p = loadable.planet(x, y, z)
-        if p.load_most_recent(
-            self.cursor, round
-        ):  # really, this should never, ever fail.
-            # quickly insert the scan incase someone else pastes it :o
-            next_id = -1
-            nxt_query = "SELECT nextval('scan_id_seq')"
-            query = "INSERT INTO scan (id, round, tick, pid, nick, pnick, scantype, rand_id, group_id, scan_time) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        # This fails if this planet exiled in this tick.
+        if not p.load_most_recent(self.cursor, round):
+            return
+
+        self.cursor.execute("BEGIN;")
+        query = "INSERT INTO scan"
+        query += " (round, tick, pid, nick, pnick, scantype, rand_id, group_id, scan_time)"
+        query += " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        query += " RETURNING id"
+        next_id = -1
+        try:
+            self.cursor.execute(
+                query,
+                (
+                    round,
+                    tick,
+                    p.id,
+                    self.nick,
+                    self.pnick,
+                    scantype,
+                    self.rand_id,
+                    self.group_id,
+                    scan_time,
+                ),
+            )
+            next_id = self.cursor.fetchone()["id"]
+        except psycopg2.errors.UniqueViolation as uv:
+            print("Scan with ID %s already exists, nothing to do" % (
+                self.rand_id,
+            ))
+            self.cursor.execute("ROLLBACK")
+        except psycopg2.Error as e:
+            print("Failed to insert scan with ID %s:\n%s" % (
+                self.rand_id,
+                e.__str__(),
+            ))
+            self.cursor.execute("ROLLBACK")
+        else:
             try:
-                self.cursor.execute(nxt_query)
-                next_id = self.cursor.fetchone()["nextval"]
-                self.cursor.execute(
-                    query,
-                    (
-                        next_id,
-                        round,
-                        tick,
-                        p.id,
-                        self.nick,
-                        self.pnick,
-                        scantype,
-                        self.rand_id,
-                        self.group_id,
-                        scan_time,
-                    ),
-                )
-            except psycopg2.IntegrityError as e:
-                print("Scan %s may already exist" % (self.rand_id,))
-                print(e.__str__())
-                return
-            if next_id < 0:
-                raise Exception("Scan id is %s" % (next_id,))
-            if scantype == "planet":
-                self.parse_planet(next_id, page)
-
-            elif scantype == "development":
-                self.parse_development(next_id, page)
-
-            elif scantype == "unit":
-                self.parse_unit(next_id, page, "unit", round)
-
-            elif scantype == "news":
-                self.parse_news(next_id, page, round)
-            elif scantype == "jgp":
-                self.parse_jumpgate(next_id, page, round)
-            elif scantype == "au":
-                self.parse_unit(next_id, page, "au", round)
+                if scantype == "planet":
+                    self.parse_planet(next_id, page)
+                elif scantype == "development":
+                    self.parse_development(next_id, page)
+                elif scantype == "unit":
+                    self.parse_unit(next_id, page, "unit", round)
+                elif scantype == "news":
+                    self.parse_news(next_id, page, round)
+                elif scantype == "incoming":
+                    self.parse_incoming(next_id, page, round)
+                elif scantype == "jgp":
+                    self.parse_jumpgate(next_id, page, round)
+                elif scantype == "au":
+                    self.parse_unit(next_id, page, "au", round)
+                elif scantype == "military":
+                    self.parse_military(next_id, page, "military", round)
+                else:
+                    raise Exception("Unknown scan type")
+            except Exception as e:
+                print("Failed to insert scan of type %s and ID %s: %s" % (
+                    scantype,
+                    self.rand_id,
+                    e.__str__(),
+                ))
+                traceback.print_exc()
+                self.cursor.execute("ROLLBACK;")
+            else:
+                # All went well.
+                self.cursor.execute("COMMIT;")
 
     def name_to_type(self, name):
-        if name == "Planet Scan":
-            return "planet"
-        elif name == "Development Scan":
-            return "development"
-        elif name == "Unit Scan":
-            return "unit"
-        elif name == "News Scan":
-            return "news"
-        elif name == "Jumpgate Probe":
+        if name == "Jumpgate Probe":
             return "jgp"
         elif name == "Advanced Unit Scan":
             return "au"
-
-        print("Name: " + name)
+        else:
+            return name.split(" ")[0].lower();
 
     def parse_news(self, scan_id, page, round):
         m = re.search("on (\d+)\:(\d+)\:(\d+) in tick (\d+)", page)
@@ -188,15 +201,20 @@ class scan(threading.Thread):
         tick = m.group(4)
 
         p = loadable.planet(x, y, z)
-        if not p.load_most_recent(
-            self.cursor, round
-        ):  # really, this should never, ever fail.
+        # This fails if this planet exiled in this tick.
+        if not p.load_most_recent(self.cursor, round):
+            print("Failed to load planet from coords %s:%s:%s for news scan" % (
+                x,
+                y,
+                z,
+            ))
             return
+
         # incoming fleets
-        # <td class=left valign=top>Incoming</td><td valign=top>851</td><td class=left valign=top>We have detected an open jumpgate from Tertiary, located at 18:5:11. The fleet will approach our system in tick 855 and appears to have roughly 95 ships.</td>
+        # <tr class="shadedbackground2"><td class="left vtop">Incoming</td><td class="vtop">277</td><td class="left vtop">We have detected an open jumpgate from Wonder Woman, located at <a class="coords" href="galaxy.pl?x=8&amp;y=3">8:3:3</a>. The fleet will approach our system in tick 285 and appears to have 0 visible ships.</td></tr>
         for m in re.finditer(
-            '<td class="left" valign="top">Incoming</td><td valign="top">(\d+)</td><td class="left" valign="top">We have detected an open jumpgate from ([^<]+), located at (\d+):(\d+):(\d+). The fleet will approach our system in tick (\d+) and appears to have roughly (\d+) ships.</td>',
-            page,
+                '<tr[^>]*><td[^>]*>Incoming</td><td[^>]*>(\d+)</td><td[^>]*>We have detected an open jumpgate from ([^<]+), located at <a[^>]*>(\d+):(\d+):(\d+)</a>. The fleet will approach our system in tick (\d+) and appears to have (\d+) visible ships.</td></tr>',
+                page,
         ):
             newstick = m.group(1)
             fleetname = m.group(2)
@@ -207,13 +225,23 @@ class scan(threading.Thread):
             numships = m.group(7)
 
             owner = loadable.planet(originx, originy, originz)
-            if not owner.load_most_recent(self.cursor):
-                continue
-            query = "INSERT INTO fleet (scan_id,owner_id,target,fleet_size,fleet_name,launch_tick,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,%s,'unknown')"
-            try:
+            if owner.load_most_recent(self.cursor, round):
+                query  = "INSERT INTO fleet (round, scan_id, owner_id, target, fleet_size, fleet_name, launch_tick, landing_tick, mission)"
+                query += " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'unknown')"
+                query += " ON CONFLICT      (round,          owner_id, target,             fleet_name,              landing_tick)"
+                # The mission is not specified for incoming fleets on news
+                # scans, so don't update whatever might already be there.
+                query += " DO UPDATE SET scan_id=EXCLUDED.scan_id, fleet_size=EXCLUDED.fleet_size"
+                # TODO: Perhaps we should not 'upgrade' fleets from JGPs to
+                # fleets from news scans at all? Is older but complete info
+                # from a JGP better than newer but incomplete info from a news
+                # scan? If so: query += " WHERE mission = 'unknown'" (and a
+                # similar clause for outgoing fleets below).
+
                 self.cursor.execute(
                     query,
                     (
+                        round,
                         scan_id,
                         owner.id,
                         p.id,
@@ -221,119 +249,104 @@ class scan(threading.Thread):
                         fleetname,
                         newstick,
                         arrivaltick,
-                    ),
+                    )
                 )
-            except Exception as e:
-                print("Exception in news: " + e.__str__())
-                traceback.print_exc()
-                continue
+                print(
+                    "Incoming:"
+                    + newstick
+                    + ":"
+                    + fleetname
+                    + "-"
+                    + originx
+                    + ":"
+                    + originy
+                    + ":"
+                    + originz
+                    + "-"
+                    + arrivaltick
+                    + "-"
+                    + numships
+                )
 
-            print(
-                "Incoming: "
-                + newstick
-                + ":"
-                + fleetname
-                + "-"
-                + originx
-                + ":"
-                + originy
-                + ":"
-                + originz
-                + "-"
-                + arrivaltick
-                + "|"
-                + numships
-            )
+        # launched defending fleets:
+        # <tr class="shadedbackground"><td class="left vtop">Launch</td><td class="vtop">277</td><td class="left vtop">The help is on the way fleet has been launched, heading for <a class="coords" href="galaxy.pl?x=4&amp;y=4">4:4:5</a>, on a mission to Defend. Arrival tick: 283</td></tr>
+        # launched attacking fleets:
+        # <tr class="shadedbackground"><td class="left vtop">Launch</td><td class="vtop">277</td><td class="left vtop">The time to go fleet has been launched, heading for <a class="coords" href="galaxy.pl?x=1&amp;y=2">1:2:2</a>, on a mission to Attack. Arrival tick: 284</td></tr>
 
-        # launched attacking fleets
-        # <td class=left valign=top>Launch</td><td valign=top>848</td><td class=left valign=top>The Disposable Heroes fleet has been launched, heading for 15:9:8, on a mission to Attack. Arrival tick: 857</td>
         for m in re.finditer(
-            '<td class="left" valign="top">Launch</td><td valign="top">(\d+)</td><td class="left" valign="top">The ([^,]+) fleet has been launched, heading for (\d+):(\d+):(\d+), on a mission to Attack. Arrival tick: (\d+)</td>',
-            page,
+                '<tr[^>]*><td[^>]*>Launch</td><td[^>]*>(\d+)</td><td[^>]*>The ([^,]+) fleet has been launched, heading for <a[^>]*>(\d+):(\d+):(\d+)</a>, on a mission to (Defend|Attack). Arrival tick: (\d+)</td></tr>',
+                page,
         ):
             newstick = m.group(1)
             fleetname = m.group(2)
             originx = m.group(3)
             originy = m.group(4)
             originz = m.group(5)
-            arrivaltick = m.group(6)
+            mission = m.group(6).lower()
+            arrivaltick = m.group(7)
 
             target = loadable.planet(originx, originy, originz)
-            if not target.load_most_recent(self.cursor):
-                continue
-            query = "INSERT INTO fleet (scan_id,owner_id,target,fleet_name,launch_tick,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,'attack')"
-
-            try:
+            if target.load_most_recent(self.cursor, round):
+                query  = "INSERT INTO fleet (round, scan_id, owner_id, target, fleet_name, launch_tick, landing_tick, mission)"
+                query += " VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+                query += " ON CONFLICT      (round,          owner_id, target, fleet_name,              landing_tick)"
+                # The fleet size is not specified for outgoing fleets on news
+                # scans, so don't update whatever might already be there.
+                query += " DO UPDATE SET scan_id=EXCLUDED.scan_id, mission=EXCLUDED.mission"
                 self.cursor.execute(
-                    query, (scan_id, p.id, target.id, fleetname, newstick, arrivaltick)
+                    query,
+                    (
+                        round,
+                        scan_id,
+                        p.id,
+                        target.id,
+                        fleetname,
+                        newstick,
+                        arrivaltick,
+                        mission,
+                    )
                 )
-            except Exception as e:
-                print("Exception in news: " + e.__str__())
-                traceback.print_exc()
-                continue
-
-            print(
-                "Attack:"
-                + newstick
-                + ":"
-                + fleetname
-                + ":"
-                + originx
-                + ":"
-                + originy
-                + ":"
-                + originz
-                + ":"
-                + arrivaltick
-            )
-
-        # launched defending fleets
-        # <td class=left valign=top>Launch</td><td valign=top>847</td><td class=left valign=top>The Ship Collection fleet has been launched, heading for 2:9:14, on a mission to Defend. Arrival tick: 853</td>
-        for m in re.finditer(
-            '<td class="left" valign="top">Launch</td><td valign="top">(\d+)</td><td class="left" valign="top">The ([^<]+) fleet has been launched, heading for (\d+):(\d+):(\d+), on a mission to Defend. Arrival tick: (\d+)</td>',
-            page,
-        ):
-            newstick = m.group(1)
-            fleetname = m.group(2)
-            originx = m.group(3)
-            originy = m.group(4)
-            originz = m.group(5)
-            arrivaltick = m.group(6)
-
-            target = loadable.planet(originx, originy, originz)
-            if not target.load_most_recent(self.cursor):
-                continue
-            query = "INSERT INTO fleet (scan_id,owner_id,target,fleet_name,launch_tick,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,'defend')"
-
-            try:
-                self.cursor.execute(
-                    query, (scan_id, p.id, target.id, fleetname, newstick, arrivaltick)
+                print(
+                    "Launch:"
+                    + newstick
+                    + ":"
+                    + fleetname
+                    + ":"
+                    + originx
+                    + ":"
+                    + originy
+                    + ":"
+                    + originz
+                    + ":"
+                    + arrivaltick
+                    + ":"
+                    + mission
                 )
-            except Exception as e:
-                print("Exception in news: " + e.__str__())
-                traceback.print_exc()
-                continue
 
-            print(
-                "Defend:"
-                + newstick
-                + ":"
-                + fleetname
-                + ":"
-                + originx
-                + ":"
-                + originy
-                + ":"
-                + originz
-                + ":"
-                + arrivaltick
-            )
+        # TODO: All this fleet parsing reads to me like the original intent was
+        # to build a complete picture of fleet movement the universe, and
+        # provide commands to track fleets beyond merely regurgitating JGP data
+        # through the !jgp command. Right now, though, fleets that recall are
+        # not included in that theoretical picture: once a fleet is launched,
+        # it remains launched until its original landing tick.
+        #
+        # Recalls could be parsed from both news scans (news scans explicitly
+        # include 'Recall' entries) and JGPs (outgoing fleets that disappear
+        # from JGPs and returning fleets that appear on JGPs before their
+        # landing tick must've been recalled).
+        #
+        # Possible uses for this information:
+        # - Detect fake defense by showing other fleets launched by the planet
+        #   defending against you.
+        # - Offer potential fleetcatch targets.
+        # - Show whether your target has fleets out.
 
         # tech report
         # <td class=left valign=top>Tech</td><td valign=top>838</td><td class=left valign=top>Our scientists report that Portable EMP emitters has been finished. Please drop by the Research area and choose the next area of interest.</td>
+        # <tr class="shadedbackground2"><td class="left vtop">Tech</td><td class="vtop">275</td><td class="left vtop">Our scientists report that Heavy Cargo Transfers IV has been finished. Please drop by the <a href="research.pl">Research area</a> and choose the next area of interest.</td></tr>
         for m in re.finditer(
-            '<td class="left" valign="top">Tech</td><td valign="top">(\d+)</td><td class="left" valign="top">Our scientists report that ([^<]+) has been finished. Please drop by the Research area and choose the next area of interest.</td>',
-            page,
+                '<tr[^>]*><td[^>]*>Tech</td><td[^>]*>(\d+)</td><td[^>]*>Our scientists report that ([^<]+) has been finished\. Please drop by the <a href="research\.pl">Research area</a> and choose the next area of interest\.</td></tr>',
+                page,
         ):
             newstick = m.group(1)
             research = m.group(2)
@@ -341,42 +354,41 @@ class scan(threading.Thread):
             print("Tech:" + newstick + ":" + research)
 
         # failed security report
+        # <tr class="shadedbackground"><td class="left vtop">Security</td><td class="vtop">270</td><td class="left vtop">A covert operation was attempted by mz (<a class="coords" href="galaxy.pl?x=2&amp;y=3">2:3:1</a>), but our security guards were able to stop them from doing any harm. Your guards have successfully killed the intruders.</td></tr>
         # <td class=left valign=top>Security</td><td valign=top>873</td><td class=left valign=top>A covert operation was attempted by Ikaris (2:5:5), but our agents were able to stop them from doing any harm.</td>
         for m in re.finditer(
-            '<td class="left" valign="top">Security</td><td valign="top">(\d+)</td><td class="left" valign="top">A covert operation was attempted by ([^<]+) \\((\d+):(\d+):(\d+)\\), but our agents were able to stop them from doing any harm.</td>',
-            page,
+                '<tr[^>]*><td[^>]*>Security</td><td[^>]*>(\d+)</td><td[^>]*>A covert operation was attempted by ([^<]+) \\(<a[^>]*">(\d+):(\d+):(\d+)</a>\\), but our security guards were able to stop them from doing any harm.[^<]*</td></tr>',
+                page,
         ):
             newstick = m.group(1)
             ruler = m.group(2)
             originx = m.group(3)
             originy = m.group(4)
             originz = m.group(5)
-
             covopper = loadable.planet(originx, originy, originz)
-            if not covopper.load_most_recent(self.cursor):
-                continue
-
-            query = "INSERT INTO covop (scan_id,covopper,target) VALUES (%s,%s,%s)"
-
-            try:
-                self.cursor.execute(query, (scan_id, covopper.id, p.id))
-            except Exception as e:
-                print("Exception in unit: " + e.__str__())
-                traceback.print_exc()
-                continue
-
-            print(
-                "Security:"
-                + newstick
-                + ":"
-                + ruler
-                + ":"
-                + originx
-                + ":"
-                + originy
-                + ":"
-                + originz
-            )
+            if covopper.load_most_recent(self.cursor, round):
+                query  = "INSERT INTO covop (scan_id, covopper, target)"
+                query += " VALUES (%s, %s, %s)"
+                self.cursor.execute(
+                    query,
+                    (
+                        scan_id,
+                        covopper.id,
+                        p.id,
+                    )
+                )
+                print(
+                    "Security:"
+                    + newstick
+                    + ":"
+                    + ruler
+                    + ":"
+                    + originx
+                    + ":"
+                    + originy
+                    + ":"
+                    + originz
+                )
 
         # fleet report
         # <tr bgcolor=#2d2d2d><td class=left valign=top>Fleet</td><td valign=top>881</td><td class=left valign=top><table width=500><tr><th class=left colspan=3>Report of Losses from the Disposable Heroes fighting at 13:10:3</th></tr>
@@ -404,7 +416,7 @@ class scan(threading.Thread):
         #
         # </td></tr>
 
-        print("News: " + x + ":" + y + ":" + z)
+        print("Parsed news scan on %s:%s:%s" % (x, y, z,))
 
     def parse_planet(self, scan_id, page):
         m = re.search("on (\d+)\:(\d+)\:(\d+) in tick (\d+)", page)
@@ -477,7 +489,6 @@ class scan(threading.Thread):
 
         query = "INSERT INTO planet (scan_id,roid_metal,roid_crystal,roid_eonium,res_metal,res_crystal,res_eonium,factory_usage_light,factory_usage_medium,factory_usage_heavy,prod_res,agents,guards)"
         query += " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-
         self.cursor.execute(
             query,
             (
@@ -496,7 +507,6 @@ class scan(threading.Thread):
                 guards,
             ),
         )
-
         print("Planet: " + x + ":" + y + ":" + z)
 
     def parse_development(self, scan_id, page):
@@ -591,8 +601,20 @@ class scan(threading.Thread):
         query += ",travel,infrastructure,hulls,waves,core,covert_op,mining,population)"
         query += " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         self.cursor.execute(query, args)
-
         print("Development: " + x + ":" + y + ":" + z)
+
+    def parse_incoming(self, _scan_id, page, _round):
+        m = re.search("on (\d*)\:(\d*)\:(\d*) in tick (\d*)", page)
+        x = m.group(1)
+        y = m.group(2)
+        z = m.group(3)
+        tick = m.group(4)
+        # No data from incoming scans is stored in the database
+        print("Incoming: %s:%s:%s from tick %s" % (
+            x,
+            y,
+            z,
+            tick,))
 
     def parse_unit(self, scan_id, page, table, round):
         m = re.search("on (\d*)\:(\d*)\:(\d*) in tick (\d*)", page)
@@ -607,16 +629,76 @@ class scan(threading.Thread):
             print(m.groups())
             shipname = m.group(1)
             amount = m.group(2).replace(",", "")
-            query = "INSERT INTO %s" % (table,)
-            query += " (scan_id,ship_id,amount) VALUES (%s,(SELECT id FROM ship WHERE name=%s AND round=%s),%s)"
-            try:
-                self.cursor.execute(query, (scan_id, shipname, round, amount,))
-            except Exception as e:
-                print("Exception in unit: " + e.__str__())
-                traceback.print_exc()
-                continue
-
+            query  = "INSERT INTO %s" % (table,)
+            query += " (scan_id,ship_id,amount)"
+            query += " VALUES (%s,(SELECT id FROM ship WHERE name=%s AND round=%s),%s)"
+            self.cursor.execute(query, (scan_id, shipname, round, amount,))
         print("Unit: " + x + ":" + y + ":" + z)
+
+    def parse_military(self, scan_id, page, table, round):
+        m = re.search("on (\d*)\:(\d*)\:(\d*) in tick (\d*)", page)
+        x = m.group(1)
+        y = m.group(2)
+        z = m.group(3)
+        tick = m.group(4)
+
+        # <tr><th class="left">Ship</th><th class="center">Base</th><th class="center">Fleet 1</th><th class="center">Fleet 2</th><th class="center">Fleet 3</th></tr>
+        # <tr><td class="left">Moth</td><td class="center">0</td><td class="center">5,487</td><td class="center">0</td><td class="center">0</td></tr>
+        # <tr><td class="left">Total Visible Ships</td><td class="center">0</td><td class="center">0</td><td class="center">0</td><td class="center">0</td></tr>
+        # <tr><td class="left">Total Ships</td><td class="center">0</td><td class="center">0</td><td class="center">0</td><td class="center">0</td></tr>
+        arrays_of_arguments = []
+        for m in re.finditer(
+                "<tr><td[^>]*>([^<]+)</td><td[^>]*>([0-9,]+)</td><td[^>]*>([0-9,]+)</td><td[^>]*>([0-9,]+)</td><td[^>]*>([0-9,]+)</td></tr>",
+                page):
+            ship_name = m.group(1)
+            if ship_name not in ['Ship', 'Total Visible Ships', 'Total Ships']:
+                amounts = [
+                    int(a.replace(',',
+                                  '')) for a in [
+                        m.group(2), # Base
+                        m.group(3), # Fleet 1
+                        m.group(4), # Fleet 2
+                        m.group(5)  # Fleet 3
+                    ]
+                ]
+
+                for fleet_index, amount in enumerate(amounts):
+                    if amount > 0:
+                        # print("%s %s in %s" % (
+                        #     amount,
+                        #     ship_name,
+                        #     "base fleet" if fleet_index == 0 else "fleet %d" % (fleet_index,),
+                        # ))
+                        arrays_of_arguments.append([
+                            scan_id,
+                            fleet_index,
+                            ship_name,
+                            round,
+                            amount
+                        ])
+        # Don't bother with scans that contain no ships of any kind.
+        if len(arrays_of_arguments) > 0:
+            query  = "INSERT INTO military (scan_id, fleet_index, ship_id, amount)"
+            query += " VALUES "
+            query += ", ".join(
+                [
+                    "(%s, %s, (SELECT id FROM ship WHERE name=%s AND round=%s), %s)"
+                ] * len(arrays_of_arguments)
+            )
+            flat_string_arguments = [
+                str(arg)
+                for arguments in arrays_of_arguments
+                for arg in arguments
+            ]
+            self.cursor.execute(query, flat_string_arguments)
+
+        # TODO: also insert a sum into the au table?
+
+        print("Military: %s:%s:%s from tick %s" % (
+            x,
+            y,
+            z,
+            tick,))
 
     def parse_jumpgate(self, scan_id, page, round):
         m = re.search("on (\d+)\:(\d+)\:(\d+) in tick (\d+)", page)
@@ -628,19 +710,18 @@ class scan(threading.Thread):
         # <td class=left>13:10:5</td><td class=left>Attack</td><td>Gamma</td><td>5</td><td>265</td>
 
         p = loadable.planet(x, y, z)
-        if not p.load_most_recent(
-            self.cursor, round
-        ):  # really, this should never, ever fail, but exiles might bork it
+        # This fails if this planet exiled in this tick.
+        if not p.load_most_recent(self.cursor, round):
             return
 
-        #                     <td class="left">15:7:11            </td><td class="left">Defend </td><td>Ad infinitum</td><td>9</td><td>0</td>
+        # <td class="left">15:7:11</td><td class="left">Defend </td><td>Ad infinitum</td><td>9</td><td>0</td>
         # <tr><td class="left">10:4:9</td><td class="left">Return</td><td>They look thirsty</td><td>5</td><td>3000</td></tr>
         # <tr><td class="left">4:1:10</td><td class="left">Return</td><td>Or Is It?</td><td>9</td><td>3000</td></tr>
         # <tr><td class="left">10:1:10</td><td class="left">Defend</td><td class="left">Pesticide IV</td><td class="right">1</td><td class="right">0</td></tr>
 
         for m in re.finditer(
-            "<td[^>]*><a[^>]*>(\d+)\:(\d+)\:(\d+)</a> \(<span[^>]*>[^<]*</span>\)</td><td[^>]*>([^<]+)</td><td[^>]*>([^<]+)</td><td[^>]*>(\d+)</td><td[^>]*>(\d+(?:,\d{3})*)</td>",
-            page,
+                "<td[^>]*><a[^>]*>(\d+)\:(\d+)\:(\d+)</a> \(<span[^>]*>[^<]*</span>\)</td><td[^>]*>([^<]+)</td><td[^>]*>([^<]+)</td><td[^>]*>(\d+)</td><td[^>]*>(\d+(?:,\d{3})*)</td>",
+                page,
         ):
             originx = m.group(1)
             originy = m.group(2)
@@ -650,23 +731,21 @@ class scan(threading.Thread):
             eta = m.group(6)
             fleetsize = m.group(7).replace(",", "")
 
-            print("JGP fleet ")
+            print("JGP fleet")
 
-            attacker = loadable.planet(originx, originy, originz)
-            if not attacker.load_most_recent(self.cursor, round):
-                print(
-                    "Can't find attacker in db: %s:%s:%s" % (originx, originy, originz)
-                )
-                continue
-            query = "INSERT INTO fleet (round,scan_id,owner_id,target,fleet_size,fleet_name,landing_tick,mission) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
+            origin = loadable.planet(originx, originy, originz)
+            if origin.load_most_recent(self.cursor, round):
+                query  = "INSERT INTO fleet (round, scan_id, owner_id, target, fleet_size, fleet_name, landing_tick, mission)"
+                query += " VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+                query += " ON CONFLICT      (round,          owner_id, target,             fleet_name, landing_tick)"
+                query += " DO UPDATE SET scan_id=EXCLUDED.scan_id, mission=EXCLUDED.mission, fleet_size=EXCLUDED.fleet_size"
 
-            try:
                 self.cursor.execute(
                     query,
                     (
                         round,
                         scan_id,
-                        attacker.id,
+                        origin.id,
                         p.id,
                         fleetsize,
                         fleet,
@@ -674,32 +753,5 @@ class scan(threading.Thread):
                         mission.lower(),
                     ),
                 )
-            except psycopg2.IntegrityError as e:
-                print("Caught exception in jgp: " + e.__str__())
-                traceback.print_exc()
-                print("Trying to update instead")
-                query = "UPDATE fleet SET scan_id=%s WHERE round=%s AND owner_id=%s AND target=%s AND fleet_size=%s AND fleet_name=%s AND landing_tick=%s AND mission=%s"
-                try:
-                    self.cursor.execute(
-                        query,
-                        (
-                            scan_id,
-                            round,
-                            attacker.id,
-                            p.id,
-                            fleetsize,
-                            fleet,
-                            int(tick) + int(eta),
-                            mission.lower(),
-                        ),
-                    )
-                except BaseException:
-                    print("Exception trying to update jgp: " + e.__str__())
-                    traceback.print_exc()
-                    continue
-            except Exception as e:
-                print("Exception in jgp: " + e.__str__())
-                traceback.print_exc()
-                continue
 
         print("Jumpgate: " + x + ":" + y + ":" + z)

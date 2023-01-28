@@ -33,7 +33,7 @@ from munin import loadable
 class apenis(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1)
-        self.paramre = re.compile(r"^(\s+(.+))?")
+        self.paramre = re.compile(r"^\s*(.*)")
         self.usage = self.__class__.__name__ + " <alliance>"
         self.helptext = ["Shows the alliance's scoregain over the last 72 ticks."]
 
@@ -48,7 +48,7 @@ class apenis(loadable.loadable):
             irc_msg.reply(self.usage)
             return 0
 
-        search = m.group(2)
+        search = m.group(1) or None
         u = loadable.user(pnick=irc_msg.user)
         if search is not None:
             a = loadable.alliance(name=search)

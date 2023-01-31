@@ -47,6 +47,7 @@ class oomph(loadable.loadable):
             "cr": "Cruiser",
             "bs": "Battleship",
         }
+        self.maximum_scan_age = 48
 
     def execute(self, user, access, irc_msg):
         if access < self.level:
@@ -126,11 +127,11 @@ class oomph(loadable.loadable):
 
     def get_fresh_au_scan_count_alliance(self, round, alliance):
         query = "SELECT count(*) AS count FROM ("
-        query += " SELECT *,rank() OVER (PARTITION BY s.pid ORDER BY s.id DESC) AS rank"
+        query += " SELECT DISTINCT ON (s.rand_id) rank() OVER (PARTITION BY s.pid ORDER BY s.id DESC) AS rank"
         query += " FROM scan AS s"
+        query += " INNER JOIN au AS a on a.scan_id = s.id"
         query += " WHERE s.round = %s"
-        query += " AND s.tick > (select max_tick(%s::smallint) - 48)"
-        query += " AND scantype = 'au'"
+        query += " AND s.tick > (select max_tick(%s::smallint) - %s)"
         query += " AND pid in ("
         query += "  SELECT pid FROM intel AS i"
         query += "  WHERE i.round = %s and i.alliance_id = %s"
@@ -140,6 +141,7 @@ class oomph(loadable.loadable):
             query, (
                 round,
                 round,
+                self.maximum_scan_age,
                 round,
                 alliance.id,
             ),
@@ -153,7 +155,7 @@ class oomph(loadable.loadable):
         query += " INNER JOIN au AS a on a.scan_id = s.id"
         query += " INNER JOIN ship AS sh on sh.id = a.ship_id "
         query += " WHERE s.round = %s"
-        query += " AND s.tick > (select max_tick(%s::smallint) - 48)"
+        query += " AND s.tick > (select max_tick(%s::smallint) - %s)"
         query += " AND pid in ("
         query += "  SELECT pid FROM intel AS i"
         query += "  WHERE i.round = %s and i.alliance_id = %s"
@@ -167,6 +169,7 @@ class oomph(loadable.loadable):
             (
                 round,
                 round,
+                self.maximum_scan_age,
                 round,
                 alliance.id,
                 target_class,
@@ -234,12 +237,12 @@ class oomph(loadable.loadable):
     def get_fresh_au_scan_count_galaxy(self, round, x, y):
         query = """
             SELECT count(*) AS count FROM (
-            SELECT rank() OVER (PARTITION BY s.pid ORDER BY s.id DESC) AS rank
+            SELECT DISTINCT ON (s.rand_id) rank() OVER (PARTITION BY s.pid ORDER BY s.id DESC) AS rank
             FROM scan AS s
                 INNER JOIN planet_dump AS p ON p.id = s.pid AND s.tick = p.tick
+                INNER JOIN au AS a on a.scan_id = s.id
                 WHERE s.round = %s
-            AND s.tick > (select max_tick(%s::smallint) - 48)
-                AND s.scantype = 'au'
+                AND s.tick > (select max_tick(%s::smallint) - %s)
                 AND p.x = %s
                 AND p.y = %s
             ) AS ships
@@ -263,8 +266,7 @@ class oomph(loadable.loadable):
                     INNER JOIN au AS a ON a.scan_id = s.id
                     INNER JOIN ship AS sh ON a.ship_id = sh.id
                     WHERE s.round = %s
-                AND s.tick > (select max_tick(%s::smallint) - 48)
-                    AND s.scantype = 'au'
+                    AND s.tick > (select max_tick(%s::smallint) - %s)
                     AND p.x = %s
                     AND p.y = %s
                     AND (sh.target_1 = %s OR sh.target_2 = %s OR sh.target_3 = %s)
@@ -277,6 +279,7 @@ class oomph(loadable.loadable):
             (
                 round,
                 round,
+                self.maximum_scan_age,
                 x,
                 y,
                 target_class,

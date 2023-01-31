@@ -292,7 +292,7 @@ class scan(threading.Thread):
                 query += " ON CONFLICT      (round,          owner_id, target, fleet_name,              landing_tick)"
                 # The fleet size is not specified for outgoing fleets on news
                 # scans, so don't update whatever might already be there.
-                query += " DO UPDATE SET scan_id=EXCLUDED.scan_id, mission=EXCLUDED.mission"
+                query += " DO UPDATE SET scan_id=EXCLUDED.scan_id, mission=EXCLUDED.mission, launch_tick=EXCLUDED.launch_tick"
                 self.cursor.execute(
                     query,
                     (
@@ -646,7 +646,10 @@ class scan(threading.Thread):
         # <tr><td class="left">Moth</td><td class="center">0</td><td class="center">5,487</td><td class="center">0</td><td class="center">0</td></tr>
         # <tr><td class="left">Total Visible Ships</td><td class="center">0</td><td class="center">0</td><td class="center">0</td><td class="center">0</td></tr>
         # <tr><td class="left">Total Ships</td><td class="center">0</td><td class="center">0</td><td class="center">0</td><td class="center">0</td></tr>
-        arrays_of_arguments = []
+        military_rows = 0
+        military_arguments = []
+        au_rows = 0
+        au_arguments = []
         for m in re.finditer(
                 "<tr><td[^>]*>([^<]+)</td><td[^>]*>([0-9,]+)</td><td[^>]*>([0-9,]+)</td><td[^>]*>([0-9,]+)</td><td[^>]*>([0-9,]+)</td></tr>",
                 page):
@@ -661,7 +664,6 @@ class scan(threading.Thread):
                         m.group(5)  # Fleet 3
                     ]
                 ]
-
                 for fleet_index, amount in enumerate(amounts):
                     if amount > 0:
                         # print("%s %s in %s" % (
@@ -669,30 +671,49 @@ class scan(threading.Thread):
                         #     ship_name,
                         #     "base fleet" if fleet_index == 0 else "fleet %d" % (fleet_index,),
                         # ))
-                        arrays_of_arguments.append([
+                        military_arguments += [
                             scan_id,
                             fleet_index,
                             ship_name,
                             round,
                             amount
-                        ])
+                        ]
+                        military_rows += 1
+
+                print("%s %s in TOTAL" % (
+                    sum(amounts),
+                    ship_name,
+                ))
+                au_arguments += [
+                    scan_id,
+                    ship_name,
+                    round,
+                    sum(amounts)
+                ]
+                au_rows += 1
         # Don't bother with scans that contain no ships of any kind.
-        if len(arrays_of_arguments) > 0:
-            query  = "INSERT INTO military (scan_id, fleet_index, ship_id, amount)"
-            query += " VALUES "
-            query += ", ".join(
+        if military_rows > 0:
+            military_query  = "INSERT INTO military (scan_id, fleet_index, ship_id, amount)"
+            military_query += " VALUES "
+            military_query += ", ".join(
                 [
                     "(%s, %s, (SELECT id FROM ship WHERE name=%s AND round=%s), %s)"
-                ] * len(arrays_of_arguments)
+                ] * military_rows
             )
-            flat_string_arguments = [
-                str(arg)
-                for arguments in arrays_of_arguments
-                for arg in arguments
-            ]
-            self.cursor.execute(query, flat_string_arguments)
-
-        # TODO: also insert a sum into the au table?
+            self.cursor.execute(military_query,
+                                military_arguments)
+        if au_rows > 0:
+            # Also insert the data into the au table. This allows many commands
+            # to only look in one place.
+            au_query = "INSERT INTO au (scan_id, ship_id, amount)"
+            au_query += " VALUES "
+            au_query += ", ".join(
+                [
+                    "(%s, (SELECT id FROM ship WHERE name=%s AND round=%s), %s)"
+                ] * au_rows
+            )
+            self.cursor.execute(au_query,
+                                au_arguments)
 
         print("Military: %s:%s:%s from tick %s" % (
             x,
@@ -738,6 +759,8 @@ class scan(threading.Thread):
                 query  = "INSERT INTO fleet (round, scan_id, owner_id, target, fleet_size, fleet_name, landing_tick, mission)"
                 query += " VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
                 query += " ON CONFLICT      (round,          owner_id, target,             fleet_name, landing_tick)"
+                # The launch tick is not specified for incoming fleets on JGPs,
+                # so don't update whatever might already be there.
                 query += " DO UPDATE SET scan_id=EXCLUDED.scan_id, mission=EXCLUDED.mission, fleet_size=EXCLUDED.fleet_size"
 
                 self.cursor.execute(

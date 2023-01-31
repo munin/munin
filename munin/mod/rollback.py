@@ -106,6 +106,7 @@ class rollback(loadable.loadable):
                 "development",
                 "unit",
                 "au",
+                "military",
                 "covop",
                 "fleet",
             ]

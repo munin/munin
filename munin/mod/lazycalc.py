@@ -173,10 +173,10 @@ class lazycalc(loadable.loadable):
             z = base.copy()
             val = z.update({"age": 1000})
             return val
-        query = "SELECT max_tick(%s::smallint) - t1.tick AS age,t1.rand_id"
-        query += " FROM scan AS t1"
-        query += " WHERE t1.pid=%s"
-        query += " AND scantype='au'"
+        query = "SELECT max_tick(%s::smallint) - s.tick AS age,s.rand_id"
+        query += " FROM scan AS s"
+        query += " INNER JOIN au ON au.scan_id = s.id"
+        query += " WHERE s.pid=%s"
         query += " ORDER BY tick DESC LIMIT 1"
 
         self.cursor.execute(query, (round, p.id,))

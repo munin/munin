@@ -50,6 +50,9 @@ class fleets(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
+        irc_msg.reply("Nope.")
+        return 1
+
         x = m.group(1)
         y = m.group(2)
         z = m.group(3)
@@ -159,6 +162,8 @@ class fleets(loadable.loadable):
             # - Fleet is outgoing. Inspect land tick.
             #   + If land tick <= current tick: fleet has landed for sure, convert to returning fleet with adjusted eta and rerun the algorithm.
             #   + Otherwise: fleet has either been recalled or is still going
+
+            # TODO: Use scan tick, not current tick!
             pass
 
         def __str__(self):
@@ -166,7 +171,7 @@ class fleets(loadable.loadable):
                 self.mission,
                 " from" if self.mission == "return" else "",
             )
-            earliest_return_string = "" # TODO: ", return unknown"
+            earliest_return_string = ", return unknown"
             latest_return_string = ""
             if self.earliest_return:
                 earliest_return_string = ", earliest return pt%s" % (

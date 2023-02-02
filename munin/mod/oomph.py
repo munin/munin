@@ -252,6 +252,7 @@ class oomph(loadable.loadable):
             query, (
                 round,
                 round,
+                self.maximum_scan_age,
                 x,
                 y,
             ),

@@ -39,7 +39,8 @@ class cookie(loadable.loadable):
 
     def __init__(self, cursor):
         super().__init__(cursor, 100)
-        self.paramre = re.compile(r"^\s*((\d+)\s+)?(\S+)\s+(\S.+)")
+        self.paramre = re.compile(r"^\s*(?:(\d+)\s+)?(\S+)\s+(\S.+)")
+        self.bifrostre = re.compile(r"^\s*(?:(\d+)\s+)?\(re @(bi+frost[^:]*: <(\S+)> .*|([^:]+): .*)\)")
         self.statre = re.compile(r"^\s*statu?s?")
         self.usage = self.__class__.__name__ + " [howmany] <receiver> <reason> | [stat]"
         self.helptext = [
@@ -58,10 +59,10 @@ class cookie(loadable.loadable):
             return 0
 
         s = self.statre.search(irc_msg.command_parameters)
-
         m = self.paramre.search(irc_msg.command_parameters)
+        b = self.bifrostre.search(irc_msg.command_parameters) if irc_msg.username == "bifrost" else None
 
-        if not (m or s):
+        if not (m or s or b):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
         if s:
@@ -72,13 +73,19 @@ class cookie(loadable.loadable):
             return 1
         if self.command_not_used_in_home(irc_msg, self.__class__.__name__):
             return 1
-        howmany = int(m.group(2) or self.config.get("Alliance", "default_cookie_gift"))
-        receiver = m.group(3)
-        reason = m.group(4)
+        if b:
+            howmany = int(b.group(1) or self.config.get("Alliance", "default_cookie_gift"))
+            receiver = b.group(3) or b.group(4)
+            reason = b.group(2)
+        else:
+            howmany = int(m.group(1) or self.config.get("Alliance", "default_cookie_gift"))
+            receiver = m.group(2)
+            reason = m.group(3)
 
         howmany = min(howmany, u.check_available_cookies(self.cursor, self.config))
         if howmany == 0:
-            irc_msg.reply("Silly %s. You have no cookies left to give out. I'll bake you some new cookies tomorrow morning."
+            irc_msg.reply("Silly %s. You have no cookies left to give out."
+                          " I'll bake you some new cookies tomorrow morning."
                           % (u.pnick,))
             return 0
 

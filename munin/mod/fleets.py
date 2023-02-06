@@ -33,6 +33,7 @@ class fleets(loadable.loadable):
         self.paramre = re.compile(r"^\s*(.*)$")
         self.usage = self.__class__.__name__ + " <x:y:z>"
         self.ticks_back = 14
+        self.max_fleets = 6
 
     def execute(self, user, access, irc_msg):
         if access < self.level:
@@ -96,7 +97,6 @@ class fleets(loadable.loadable):
 
         rows = self.cursor.rowcount
         if rows:
-            max_rows = 6
             fleets = [
                 self.fleet(
                     x=row["x"],
@@ -109,14 +109,14 @@ class fleets(loadable.loadable):
                     land_tick=row["land_tick"]
                 )
                 for row
-                in self.cursor.fetchmany(max_rows)
+                in self.cursor.fetchmany(self.max_fleets)
             ]
             irc_msg.reply("Location of the fleets of %s:%s:%s: %s%s" % (
                 x,
                 y,
                 z,
                 " | ".join([str(fleet) for fleet in fleets]),
-                " (and %s more fleet)" % (rows - max_rows,) if rows > max_rows else "",
+                " (and %s more fleet)" % (rows - self.max_fleets,) if rows > self.max_fleets else "",
             ))
         else:
             irc_msg.reply("Cannot find any recent fleets of %s:%s:%s. Do you have a news scan and/or JGP?" % (

@@ -32,6 +32,7 @@ class fleets(loadable.loadable):
         super().__init__(cursor, 100)
         self.paramre = re.compile(r"^\s*(.*)$")
         self.usage = self.__class__.__name__ + " <x:y:z>"
+        self.ticks_back = 14
 
     def execute(self, user, access, irc_msg):
         if access < self.level:
@@ -50,9 +51,6 @@ class fleets(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        irc_msg.reply("Nope.")
-        return 1
-
         x = m.group(1)
         y = m.group(2)
         z = m.group(3)
@@ -63,7 +61,7 @@ class fleets(loadable.loadable):
             return 0
 
         self.cursor.execute("SELECT max_tick(%s::smallint)", (irc_msg.round,))
-        current_tick = 350 # TODO: self.cursor.fetchone()["max_tick"]
+        current_tick = self.cursor.fetchone()["max_tick"]
 
         query = """
         SELECT target.x, target.y, target.z, fleet.fleet_size AS size, fleet.launch_tick, fleet.landing_tick AS land_tick, fleet.mission, fleet.fleet_name AS name
@@ -71,125 +69,94 @@ class fleets(loadable.loadable):
         INNER JOIN planet_dump AS owner  ON fleet.owner_id =  owner.id
         INNER JOIN planet_dump AS target ON fleet.target   = target.id
         WHERE fleet.round = %s
-        AND owner.tick = (SELECT max_tick(%s::smallint))
-        AND target.tick = (SELECT max_tick(%s::smallint))
-        AND fleet.landing_tick > %s - 15
-        AND owner.x = %s
-        AND owner.y = %s
-        AND owner.z = %s
+        AND owner.tick = %s
+        AND target.tick = %s
+        AND fleet.landing_tick > %s - %s
+        AND (
+            ( owner.x = %s AND  owner.y = %s AND  owner.z = %s AND fleet.mission != 'return')
+            OR
+            (target.x = %s AND target.y = %s AND target.z = %s AND fleet.mission  = 'return')
+        )
+        ORDER BY land_tick DESC
         """
 
         self.cursor.execute(query, (
             irc_msg.round,
-            irc_msg.round,
-            irc_msg.round,
             current_tick,
+            current_tick,
+            current_tick,
+            self.ticks_back,
+            x,
+            y,
+            z,
             x,
             y,
             z,
         ))
 
-        fleets = [
-            self.fleet(
-                row["x"],
-                row["y"],
-                row["z"],
-                row["name"],
-                row["mission"],
-                row["size"],
-                row["launch_tick"],
-                row["land_tick"],
-                current_tick
-            )
-            for row
-            in self.cursor.fetchall()
-        ]
-        # We do this twice. The first time, outgoing fleets may be
-        # converted to returning fleets, which need to be recalculated
-        # a second time.
-        for i in [1,2]:
-            for f in fleets:
-                f.recalculate(current_tick)
-
-        if len(fleets) > 0:
-            irc_msg.reply("Location of the fleets of %s:%s:%s: %s" % (
+        rows = self.cursor.rowcount
+        if rows:
+            max_rows = 6
+            fleets = [
+                self.fleet(
+                    x=row["x"],
+                    y=row["y"],
+                    z=row["z"],
+                    name=row["name"],
+                    mission=row["mission"],
+                    size=row["size"],
+                    launch_tick=row["launch_tick"],
+                    land_tick=row["land_tick"]
+                )
+                for row
+                in self.cursor.fetchmany(max_rows)
+            ]
+            irc_msg.reply("Location of the fleets of %s:%s:%s: %s%s" % (
                 x,
                 y,
                 z,
-                ' | '.join([str(fleet) for fleet in fleets]),
+                " | ".join([str(fleet) for fleet in fleets]),
+                " (and %s more fleet)" % (rows - max_rows,) if rows > max_rows else "",
             ))
         else:
-            irc_msg.reply("Cannot find any recent fleets of %s:%s:%s. Do you have a news scan?" % (
+            irc_msg.reply("Cannot find any recent fleets of %s:%s:%s. Do you have a news scan and/or JGP?" % (
                 x,
                 y,
                 z,
             ))
-            return 1
+        return 1
 
     class fleet:
         def __init__(self,
+                     *,
                      x,
                      y,
                      z,
                      name,
                      mission,
                      size,
-                     launch,
-                     land,
-                     current):
+                     launch_tick,
+                     land_tick):
             self.x = x
             self.y = y
             self.z = z
             self.name = name
             self.mission = mission
             self.size = size
-            self.launch = launch
-            self.land = land
-            self.current = current
-            self.earliest_return = None
-            self.latest_return = None
-
-        def tick_string(self, the_tick):
-            return "unknown" if the_tick is None else "pt%s" % (the_tick,)
-
-        def recalculate(self, the_tick):
-            # Algorithm
-            #
-            # For each fleet, inspect the mission:
-            # - Fleet is returning. Inspect land tick.
-            #   + If land tick <= current tick: fleet has returned home, don't display.
-            #   + Otherwise: fleet is certainly still returning, display.
-            # - Fleet is outgoing. Inspect land tick.
-            #   + If land tick <= current tick: fleet has landed for sure, convert to returning fleet with adjusted eta and rerun the algorithm.
-            #   + Otherwise: fleet has either been recalled or is still going
-
-            # TODO: Use scan tick, not current tick!
-            pass
+            self.launch_tick = launch_tick
+            self.land_tick = land_tick
 
         def __str__(self):
-            mission_string = "%sing%s" % (
-                self.mission,
-                " from" if self.mission == "return" else "",
-            )
-            earliest_return_string = ", return unknown"
-            latest_return_string = ""
-            if self.earliest_return:
-                earliest_return_string = ", earliest return pt%s" % (
-                    self.earliest_return
-                )
-            if self.latest_return:
-                latest_latest_return = ", latest return pt%s" %(
-                    self.latest_return,
-                )
-            return "Fleet \"%s\" is %s %s:%s:%s (launch %s, land %s%s%s)" % (
+            def tick_string(the_tick):
+                return "unknown" if the_tick is None else "pt%s" % (the_tick,)
+            return "Fleet \"%s\" is %sing%s %s:%s:%s (launch %s, land %s)" % (
                 self.name,
-                mission_string,
+                self.mission,
+                " to" if self.mission == "return" else "",
                 self.x,
                 self.y,
                 self.z,
-                self.tick_string(self.launch),
-                self.tick_string(self.land),
-                earliest_return_string,
-                latest_return_string,
+                tick_string(self.launch_tick),
+                tick_string(self.land_tick),
             )
 

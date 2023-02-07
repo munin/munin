@@ -45,12 +45,12 @@ class prop(loadable.loadable):
         self.invite_kickre = re.compile(r"^\s+(\S+)(\s+(\S.*))", re.I)
         self.pollre = re.compile(r"\s*([^?]+)\?\s*([^?\"]+)", re.I)
         self.poll_split_answers = re.compile(r"\s*!+\s*")
-        self.votere = re.compile(r"^\s+(\d+)\s+(yes|no|abstain|veto|[A-J])", re.I)
+        self.votere = re.compile(r"^\s+(\d+)\s+(.*)", re.I)
         self.usage = self.__class__.__name__ + (
             " [<invite|kick> <pnick> <comment>] |"
             " poll <question>? <answer>!... |"
             " [list] |"
-            " [vote <number> <yes|no|abstain|A..J>] |"
+            " [vote <number> <yes|no|abstain|A..J|[answer]>] |"
             " [expire <number>] |"
             " [show <number>] |"
             " [cancel <number>] |"
@@ -481,21 +481,34 @@ class prop(loadable.loadable):
             return
 
         if prop["prop_type"] == "poll":
-            query = "SELECT answer_index"
-            query += " FROM poll_answer"
-            query += " WHERE poll_id=%s"
-            poll_arr = []
-            self.cursor.execute(query, (prop_id,))
-            for a in self.cursor.fetchall():
-                poll_arr.append(a["answer_index"])
-            poll_arr.append("veto")
-            poll_arr.append("abstain")
-            if vote.lower() not in poll_arr:
-                irc_msg.reply(
-                    "You can only vote %s on this poll, you moron"
-                    % (", ".join(poll_arr))
-                )
-                return
+            query = """
+            SELECT answer_index, answer_text
+            FROM poll_answer
+            WHERE poll_id = %s
+            AND (
+                answer_index = %s
+                OR answer_text ILIKE %s
+            )
+            """
+            args = (
+                prop_id,
+                vote.lower(),
+                "%" + vote + "%",
+            )
+            print("%s /// %s" % ( query, args, ))
+            self.cursor.execute(query, args)
+            if self.cursor.rowcount == 0:
+                irc_msg.reply("You can't vote %s on this poll, you moron" % (
+                    vote,
+                ))
+                return 1
+            elif self.cursor.rowcount > 1:
+                irc_msg.reply("Be more specific, I can't read your mind. Yet.")
+                return 1
+            else:
+                row = self.cursor.fetchone()
+                vote = row["answer_index"]
+                vote_text = row["answer_text"]
         else:
             kick_inv_arr = ["yes", "no", "veto", "abstain"]
             if vote.lower() not in kick_inv_arr:
@@ -510,9 +523,17 @@ class prop(loadable.loadable):
             irc_msg.reply("No vetos today, buddy")
             return
 
-        query = "SELECT id,vote,carebears, prop_id FROM prop_vote"
-        query += " WHERE prop_id=%s AND voter_id=%s"
-        self.cursor.execute(query, (prop_id, u.id))
+        query = """
+        SELECT v.id, v.vote, v.carebears, v.prop_id, a.answer_text
+        FROM prop_vote AS v
+        LEFT OUTER JOIN poll_answer AS a ON v.prop_id = a.poll_id AND v.vote = a.answer_index
+        WHERE prop_id=%s
+        AND voter_id=%s
+        """
+        self.cursor.execute(query, (
+            prop_id,
+            u.id,
+        ))
         old_vote = self.cursor.fetchone()
 
         if old_vote:
@@ -526,9 +547,17 @@ class prop(loadable.loadable):
                 prop["id"],
                 old_vote["vote"],
             )
+            if prop["prop_type"] == "poll":
+                reply += " (%s)" % (
+                    old_vote["answer_text"],
+                )
             if use_carebears and old_vote["vote"] != "abstain":
                 reply += " (%s)" % (old_vote["carebears"],)
             reply += " to %s" % (vote,)
+            if prop["prop_type"] == "poll":
+                reply += " (%s)" % (
+                    vote_text,
+                )
             if use_carebears and vote != "abstain":
                 reply += " with %s carebears" % (carebears,)
             reply += "."

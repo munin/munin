@@ -32,10 +32,13 @@ class thinkforme(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1)
         self.paramre = re.compile(r"^\s*(?:(\d+)[.-:\s](\d+)[.-:\s](\d+))?(.*)")
-        self.govre = re.compile(r"\s*(cor|dem|nat|soc|tot|ana)?")
-        self.usage = self.__class__.__name__ + " [x:y:z] [government]"
+        self.govre = re.compile(r"\s*\b(cor|dem|nat|soc|tot|ana)[a-z]*\b")
+        self.popre = re.compile(r"\s*\b([0-9]+)\b")
+        self.usage = self.__class__.__name__ + " [x:y:z] [government] [population on security]"
         self.helptext = [
-            "Get advice about whether to build refineries, FCs, or SCs. If no government is given, Totalitarianism is assumed."
+            "Get advice about whether to build refineries, FCs, or SCs. If no"
+            " government is given, Totalitarianism is assumed. If no population"
+            " is given, 40% is assumed."
         ]
         self.max_scan_age = 48
 
@@ -50,6 +53,9 @@ class thinkforme(loadable.loadable):
                 self.config.get("Connection", "nick"),
             ))
             return 0
+
+        population = 40
+        gov = 'tot'
 
         m = self.paramre.search(irc_msg.command_parameters)
         if m:
@@ -71,8 +77,16 @@ class thinkforme(loadable.loadable):
                         + " command (log in with Q and set mode +x, then make sure you've set your planet with the pref command)"
                     )
                     return 1
-            m = self.govre.search(m.group(4))
-            gov = m.group(1)
+            remainder = m.group(4)
+            m = self.govre.search(remainder)
+            if m:
+                gov = m.group(1)
+            m = self.popre.search(remainder)
+            if m:
+                population = min(
+                    population,
+                    int(m.group(1))
+                )
         else:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 1
@@ -85,7 +99,14 @@ class thinkforme(loadable.loadable):
             "tot": "totalitarianism",
             "ana": "anarchy",
         }
-        government = governments[gov] if gov else "totalitarianism"
+        government = governments[gov] if gov in governments else "totalitarianism"
+        print("Government: %s, Population: %s, Coords: %s:%s:%s" % (
+            government,
+            population,
+            p.x,
+            p.y,
+            p.z,
+        ))
 
         self.cursor.execute("SELECT max_tick(%s::smallint)", (
             irc_msg.round,
@@ -199,14 +220,14 @@ class thinkforme(loadable.loadable):
         unbuffed_income = 250 * roids + 60000 + 1100 * (mrefs + crefs + erefs)
 
         gov_alert_bonus = float(self.config.get("Planetarion", "%s_alert_bonus" % (government,)))
-        alert = int((50 + 5 * guards / (roids + 1)) * (1.4 + 0.0275 * scs + gov_alert_bonus))
+        alert = int((50 + 5 * guards / (roids + 1)) * (1.0 + population / 100.0 + 0.0275 * scs + gov_alert_bonus))
         def guards_needed(alert,
                           scs,
                           gov_construction_speed,
                           roids):
             return max(
                 0,
-                math.ceil((alert / (1.4 + 0.0275 * scs + gov_alert_bonus) - 50) / 5 * (roids + 1))
+                math.ceil((alert / (1.0 + population / 100.0 + 0.0275 * scs + gov_alert_bonus) - 50) / 5 * (roids + 1))
             )
 
         guards_needed_with_current_scs = guards_needed(alert,
@@ -256,32 +277,38 @@ class thinkforme(loadable.loadable):
         #     sc_income,
         # ))
 
-        print("%s %s %s" % (sc_income, ref_income, fc_income,))
         reply = "Planet %s:%s:%s should build a" % (
             p.x,
             p.y,
             p.z,
         )
         if sc_income > max(ref_income, fc_income):
-            reply += "n SC! This will net %d fleet value per construction tick by round end with %s (Ref: %d, FC: %s" % (
+            reply += "n SC (and fire %s guards to maintain %s alert with %s pop)! This will net %d fleet value per construction tick by round end with %s (Ref: %d, FC: %s" % (
+                fireable_guards,
+                alert,
+                population,
                 sc_income,
                 government.title(),
                 ref_income,
                 fc_income,
             )
         elif ref_income > fc_income:
-            reply += " refinery! This will net %d fleet value per construction tick by round end with %s (FC: %d, SC: %s" % (
+            reply += " refinery! This will net %d fleet value per construction tick by round end with %s (FC: %d, SC: %s for %s alert with %s pop" % (
                 ref_income,
                 government.title(),
                 fc_income,
                 sc_income,
+                alert,
+                population,
             )
         else:
-            reply += "n FC! This will net %d fleet value per construction tick by round end with %s (Ref: %d, SC: %s" % (
+            reply += "n FC! This will net %d fleet value per construction tick by round end with %s (Ref: %d, SC: %s for %s alert with %s pop" % (
                 fc_income,
                 government.title(),
                 ref_income,
                 sc_income,
+                alert,
+                population,
             )
         reply += ") (P: %s, pt: %s | D: %s, pt: %s)" % (
             planet_id,

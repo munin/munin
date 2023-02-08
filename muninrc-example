@@ -92,6 +92,32 @@ socialism_prod_speed: 0.2
 totalitarianism_prod_speed: -0.1
 anarchy_prod_speed: -0.2
 
+# Mining bonus. 0 is standard. 0.1 is 10% more. -0.1 is 10% less.
+corporatism_mining_bonus: 0.24
+democracy_mining_bonus: 0.0
+nationalism_mining_bonus: 0.16
+socialism_mining_bonus: 0.10
+totalitarianism_mining_bonus: 0.0
+anarchy_mining_bonus: -0.25
+
+# Construction speed. 0 is standard. 0.1 is 10% more CU/tick. -0.1 is 10% less
+# CU/tick.
+corporatism_construction_speed: -0.15
+democracy_construction_speed: 0.0
+nationalism_construction_speed: -0.05
+socialism_construction_speed: 0.15
+totalitarianism_construction_speed: 0.25
+anarchy_construction_speed: -0.25
+
+# Alert bonus. 0 is standard. 0.1 is 10% more CU/tick. -0.1 is 10% less CU/tick.
+corporatism_alert_bonus: -0.05
+democracy_alert_bonus: 0.1
+nationalism_alert_bonus: 0.25
+socialism_alert_bonus: 0.0
+totalitarianism_alert_bonus: 0.15
+anarchy_alert_bonus: -0.15
+
+# Production speed. 0 is standard. 0.1 is 10% faster. -0.1 is 10% slower.
 ter_prod_speed: 0.1
 cat_prod_speed: 0.0
 xan_prod_speed: 0.05
@@ -99,6 +125,15 @@ zik_prod_speed: 0.15
 etd_prod_speed: 0.0
 kin_prod_speed: 0.0
 sly_prod_speed: 0.0
+
+# Construction speed in CU/tick.
+ter_construction_speed: 125
+cat_construction_speed: 105
+xan_construction_speed: 100
+zik_construction_speed: 115
+etd_construction_speed: 105
+kin_construction_speed: 110
+sly_construction_speed: 120
 
 # Salvage bonus. 0.1 is 10% more. -0.1 is 10% less.
 ter_salvage_bonus: 0.0

@@ -33,10 +33,12 @@ from munin import loadable
 class maxcap(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1)
-        self.paramre = re.compile(r"^\s*(\d+)(?:[.-:\s](\d+)[.-:\s](\d+)(?:\s+(\d+)[.-:\s](\d+)[.-:\s](\d+))?)?")
+        self.paramre = re.compile(r"^\s*(\d+)(?:[-.:\s](\d+)[-.:\s](\d+)(?:\s+(\d+)[-.:\s](\d+)[-.:\s](\d+))?)?")
         self.usage = self.__class__.__name__ + " <defender coords> [attacker coords]"
         self.helptext = [
-            'Show how many roids you will cap from a target. If you have your planet set, your actual cap rate will be used, otherwise max cap is assumed. You can also manually specify attacker coords.'
+            "Show how many roids you will cap from a target. If you have your"
+            " planet set, your actual cap rate will be used, otherwise max cap"
+            " is assumed. You can also manually specify attacker coords."
         ]
 
     def execute(self, user, access, irc_msg):

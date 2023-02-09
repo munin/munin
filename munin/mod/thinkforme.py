@@ -31,14 +31,14 @@ from munin import loadable
 class thinkforme(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1)
-        self.paramre = re.compile(r"^\s*(?:(\d+)[.-:\s](\d+)[.-:\s](\d+))?(.*)")
+        self.paramre = re.compile(r"^\s*((\d+)[.:\s-](\d+)[.:\s-](\d+))?(.*)")
         self.govre = re.compile(r"\s*\b(cor|dem|nat|soc|tot|ana)[a-z]*\b")
-        self.popre = re.compile(r"\s*\b([0-9]+)\b")
-        self.usage = self.__class__.__name__ + " [x:y:z] [government] [population on security]"
+        self.numre = re.compile(r"\s*\b([0-9]+)\b")
+        self.usage = self.__class__.__name__ + " [x:y:z] [government] [population on security] [target alert]"
         self.helptext = [
             "Get advice about whether to build refineries, FCs, or SCs. If no"
             " government is given, Totalitarianism is assumed. If no population"
-            " is given, 40% is assumed."
+            " is given, 40% is assumed. Arguments may be given in any order."
         ]
         self.max_scan_age = 48
 
@@ -54,17 +54,25 @@ class thinkforme(loadable.loadable):
             ))
             return 0
 
-        population = 40
         gov = 'tot'
+        goal_alert = None
+        population = 40
 
         m = self.paramre.search(irc_msg.command_parameters)
         if m:
             if m.group(1):
-                p = loadable.planet(x=m.group(1),
-                                    y=m.group(2),
-                                    z=m.group(3))
+                irc_msg.reply("1 %s, 2 %s, 3 %s, 4 %s, 5 %s" % (
+                    m.group(1),
+                    m.group(2),
+                    m.group(3),
+                    m.group(4),
+                    m.group(5),
+                ))
+                p = loadable.planet(x=m.group(2),
+                                    y=m.group(3),
+                                    z=m.group(4))
                 if not p.load_most_recent(self.cursor, irc_msg.round):
-                    irc_msg.reply("No planet matching '%s' found" % (param,))
+                    irc_msg.reply("No planet matching '%s' found" % (m.group(1),))
                     return 1
             else:
                 u = loadable.user(pnick=irc_msg.user)
@@ -72,21 +80,28 @@ class thinkforme(loadable.loadable):
                     p = u.planet
                 else:
                     irc_msg.reply(
-                        "You must be registered to use the automatic "
-                        + self.__class__.__name__
-                        + " command (log in with Q and set mode +x, then make sure you've set your planet with the pref command)"
+                        "You must be registered to use the automatic %s command"
+                        " (log in with Q and set mode +x, then make sure you've"
+                        " set your planet with the pref command)" % (
+                            self.__class__.__name__,
+                        )
                     )
                     return 1
-            remainder = m.group(4)
-            m = self.govre.search(remainder)
-            if m:
-                gov = m.group(1)
-            m = self.popre.search(remainder)
-            if m:
-                population = min(
-                    population,
-                    int(m.group(1))
-                )
+            for word in m.group(5).split():
+                m = self.govre.search(word.lower())
+                if m:
+                    gov = m.group(1)
+                else:
+                    m = self.numre.search(word)
+                    if m:
+                        num = int(m.group(1))
+                        if num > 50:
+                            goal_alert = num
+                        else:
+                            population = num
+                    else:
+                        irc_msg.reply("Usage: %s" % (self.usage,))
+                        return 1
         else:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 1
@@ -100,13 +115,14 @@ class thinkforme(loadable.loadable):
             "ana": "anarchy",
         }
         government = governments[gov] if gov in governments else "totalitarianism"
-        print("Government: %s, Population: %s, Coords: %s:%s:%s" % (
-            government,
-            population,
-            p.x,
-            p.y,
-            p.z,
-        ))
+        # print("!thinkforme: Coords: %s:%s:%s, Government: %s, Population: %s, Goal alert: %s" % (
+        #     p.x,
+        #     p.y,
+        #     p.z,
+        #     government,
+        #     population,
+        #     goal_alert,
+        # ))
 
         self.cursor.execute("SELECT max_tick(%s::smallint)", (
             irc_msg.round,
@@ -114,11 +130,10 @@ class thinkforme(loadable.loadable):
         tick = self.cursor.fetchone()["max_tick"]
 
         guards      = None
-        roids       = None
         planet_tick = None
         planet_id   = None
         query = """
-        SELECT p.guards, p.roid_metal + p.roid_crystal + p.roid_eonium AS roids, s.tick, s.rand_id
+        SELECT p.guards, s.tick, s.rand_id
         FROM scan AS s
         INNER JOIN planet AS p ON p.scan_id = s.id
         WHERE s.pid = %s
@@ -133,7 +148,6 @@ class thinkforme(loadable.loadable):
         if self.cursor.rowcount == 1:
             row = self.cursor.fetchone()
             guards      = row["guards"]
-            roids       = row["roids"]
             planet_tick = row["tick"]
             planet_id   = row["rand_id"]
 
@@ -168,13 +182,13 @@ class thinkforme(loadable.loadable):
             dev_id   = row["rand_id"]
 
         if guards is None:
-            if not scs:
+            if scs is None:
                 irc_msg.reply("I need a recent planet and development scan")
                 return 1
             else:
                 irc_msg.reply("I need a recent planet scan")
                 return 1
-        elif not scs:
+        elif scs is None:
             irc_msg.reply("I need a recent development scan")
             return 1
 
@@ -204,8 +218,7 @@ class thinkforme(loadable.loadable):
         ref_build_time = ref_cu / cons_speed
         fc_build_time  =  fc_cu / cons_speed
         sc_build_time  =  sc_cu / cons_speed
-        cons_value = 200
-        # print("Race CU: %s | Gov CU speed: %s | Net CU/tick: %s | Ref time %.1f | FC time %.1f | SC time %.1f" % (
+        # print("!thinkforme: Race CU: %s | Gov CU speed: %s | Net CU/tick: %s | Ref time %.1f | FC time %.1f | SC time %.1f" % (
         #     race_cu,
         #     gov_construction_speed,
         #     cons_speed,
@@ -217,34 +230,35 @@ class thinkforme(loadable.loadable):
         gov_value_conversion = 100 - 100 * float(self.config.get("Planetarion", "%s_cost_reduction" % (government,)))
         gov_mining_bonus = float(self.config.get("Planetarion", "%s_mining_bonus" % (government,)))
         bonus = 0.25 + 0.005 * fcs + gov_mining_bonus
-        unbuffed_income = 250 * roids + 60000 + 1100 * (mrefs + crefs + erefs)
+        unbuffed_income = 250 * p.size + 60000 + 1100 * (mrefs + crefs + erefs)
 
         gov_alert_bonus = float(self.config.get("Planetarion", "%s_alert_bonus" % (government,)))
-        alert = int((50 + 5 * guards / (roids + 1)) * (1.0 + population / 100.0 + 0.0275 * scs + gov_alert_bonus))
-        def guards_needed(alert,
+        if goal_alert is None:
+            goal_alert = int((50 + 5 * guards / (p.size + 1)) * (1.0 + population / 100.0 + 0.0275 * scs + gov_alert_bonus))
+        def guards_needed(goal_alert,
                           scs,
-                          gov_construction_speed,
+                          gov_alert_speed,
                           roids):
             return max(
                 0,
-                math.ceil((alert / (1.0 + population / 100.0 + 0.0275 * scs + gov_alert_bonus) - 50) / 5 * (roids + 1))
+                math.ceil((goal_alert / (1.0 + population / 100.0 + 0.0275 * scs + gov_alert_bonus) - 50) / 5 * (roids + 1))
             )
 
-        guards_needed_with_current_scs = guards_needed(alert,
-                                                       scs,
-                                                       gov_alert_bonus,
-                                                       roids)
-        guards_needed_with_one_more_sc = guards_needed(alert,
-                                                       scs + 1,
-                                                       gov_alert_bonus,
-                                                       roids)
-        fireable_guards = int(guards_needed_with_current_scs - guards_needed_with_one_more_sc)
+        guards_with_current_scs = guards_needed(goal_alert,
+                                                scs,
+                                                gov_alert_bonus,
+                                                p.size)
+        guards_with_one_more_sc = guards_needed(goal_alert,
+                                                scs + 1,
+                                                gov_alert_bonus,
+                                                p.size)
+        extra_guards_without_sc = guards_with_current_scs - guards_with_one_more_sc
 
-        ref_income = round(((1100 * (1 + bonus)      * (ticks_left - ref_build_time) - ref_cost) / gov_value_conversion) * cons_speed / ref_cu)
-        fc_income =  round(((unbuffed_income * 0.005 * (ticks_left -  fc_build_time) -  fc_cost) / gov_value_conversion) * cons_speed /  fc_cu)
-        sc_income =  round(((fireable_guards * 12    * (ticks_left -  sc_build_time) -  sc_cost) / gov_value_conversion) * cons_speed /  sc_cu)
+        ref_income = round(((1100 * (1 + bonus)           * (ticks_left - ref_build_time) - ref_cost) / gov_value_conversion) * cons_speed / ref_cu)
+        fc_income  = round(((unbuffed_income * 0.005      * (ticks_left -  fc_build_time) -  fc_cost) / gov_value_conversion) * cons_speed /  fc_cu)
+        sc_income  = round(((extra_guards_without_sc * 12 * (ticks_left -  sc_build_time) -  sc_cost) / gov_value_conversion) * cons_speed /  sc_cu)
 
-        # print("Refs: %s/%s/%s | Min refs: %s | Ref cost: %s | Ticks left: %s | Bonus %s | Ref build time: %s | Gov value conversion: %s | Net ref income: %s" % (
+        # print("!thinkforme: Refs: %s/%s/%s | Min refs: %s | Ref cost: %s | Ticks left: %s | Bonus %s | Ref build time: %s | Gov value conversion: %s | Net ref income: %s" % (
         #     mrefs,
         #     crefs,
         #     erefs,
@@ -256,7 +270,7 @@ class thinkforme(loadable.loadable):
         #     gov_value_conversion,
         #     ref_income,
         # ))
-        # print("FCs: %s | FC cost: %s | Ticks left: %s | FC build time: %s | Unbuffed income: %s | Gov value conversion: %s | Net FC income: %s" % (
+        # print("!thinkforme: FCs: %s | FC cost: %s | Ticks left: %s | FC build time: %s | Unbuffed income: %s | Gov value conversion: %s | Net FC income: %s" % (
         #     fcs,
         #     fc_cost,
         #     ticks_left,
@@ -265,56 +279,59 @@ class thinkforme(loadable.loadable):
         #     gov_value_conversion,
         #     fc_income,
         # ))
-        # print("SCs: %s | SC cost: %s | Ticks left: %s | SC build time: %s | Alert: %s | Guards now: %s | Guards after extra SC: %s | Fireable guards: %s | Net SC income: %s" % (
+        # print("!thinkforme: SCs: %s | SC cost: %s | Ticks left: %s | SC build time: %s | Alert: %s | Guards now: %s | Guards after extra SC: %s | Fireable guards: %s | Net SC income: %s" % (
         #     scs,
         #     sc_cost,
         #     ticks_left,
         #     sc_build_time,
         #     alert,
-        #     guards_needed_with_current_scs,
-        #     guards_needed_with_one_more_sc,
-        #     fireable_guards,
+        #     guards_with_current_scs,
+        #     guards_with_one_more_sc,
+        #     extra_guards_without_sc,
         #     sc_income,
         # ))
 
-        reply = "Planet %s:%s:%s should build a" % (
+        if sc_income > max(ref_income, fc_income):
+            best            = ["n SC", "Ref", "FC"]
+            best_income     = [sc_income, ref_income, fc_income]
+            best_guards     = [guards_with_one_more_sc, guards_with_current_scs]
+        else:
+            best_guards     = [guards_with_current_scs, guards_with_one_more_sc]
+            if ref_income > fc_income:
+                best            = [" Refinery", "FC", "SC"]
+                best_income     = [ref_income, fc_income, sc_income]
+            else:
+                best            = ["n FC", "Ref", "SC"]
+                best_income     = [fc_income, ref_income, sc_income]
+
+        reply = "Planet %d:%d:%d should build a" % (
             p.x,
             p.y,
             p.z,
         )
-        if sc_income > max(ref_income, fc_income):
-            reply += "n SC (and fire %s guards to maintain %s alert with %s pop)! This will net %d fleet value per construction tick by round end with %s (Ref: %d, FC: %s" % (
-                fireable_guards,
-                alert,
-                population,
-                sc_income,
-                government.title(),
-                ref_income,
-                fc_income,
-            )
-        elif ref_income > fc_income:
-            reply += " refinery! This will net %d fleet value per construction tick by round end with %s (FC: %d, SC: %s for %s alert with %s pop" % (
-                ref_income,
-                government.title(),
-                fc_income,
-                sc_income,
-                alert,
-                population,
-            )
-        else:
-            reply += "n FC! This will net %d fleet value per construction tick by round end with %s (Ref: %d, SC: %s for %s alert with %s pop" % (
-                fc_income,
-                government.title(),
-                ref_income,
-                sc_income,
-                alert,
-                population,
-            )
-        reply += ") (P: %s, pt: %s | D: %s, pt: %s)" % (
+        reply += "%s and hire %d guards for %d alert with %d pop!" % (
+            best[0],
+            best_guards[0],
+            goal_alert,
+            population,
+        )
+        reply += " This will net %d fleet value per construction tick by round end with %s and %d roids" % (
+            best_income[0],
+            government.title(),
+            p.size,
+        )
+        reply += " (%s: %d | %s: %d using %s guards)" % (
+            best[1],
+            best_income[1],
+            best[2],
+            best_income[2],
+            best_guards[1],
+        )
+        reply += " (P: %s, age: %s | D: %s, age: %s)" % (
             planet_id,
-            planet_tick,
+            tick - planet_tick,
             dev_id,
-            dev_tick,
+            tick - dev_tick,
         )
         irc_msg.reply(reply)
         return

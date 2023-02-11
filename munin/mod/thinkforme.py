@@ -61,13 +61,6 @@ class thinkforme(loadable.loadable):
         m = self.paramre.search(irc_msg.command_parameters)
         if m:
             if m.group(1):
-                irc_msg.reply("1 %s, 2 %s, 3 %s, 4 %s, 5 %s" % (
-                    m.group(1),
-                    m.group(2),
-                    m.group(3),
-                    m.group(4),
-                    m.group(5),
-                ))
                 p = loadable.planet(x=m.group(2),
                                     y=m.group(3),
                                     z=m.group(4))

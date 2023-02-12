@@ -680,10 +680,6 @@ class scan(threading.Thread):
                         ]
                         military_rows += 1
 
-                print("%s %s in TOTAL" % (
-                    sum(amounts),
-                    ship_name,
-                ))
                 au_arguments += [
                     scan_id,
                     ship_name,
@@ -751,8 +747,6 @@ class scan(threading.Thread):
             fleet = m.group(5)
             eta = m.group(6)
             fleetsize = m.group(7).replace(",", "")
-
-            print("JGP fleet")
 
             origin = loadable.planet(originx, originy, originz)
             if origin.load_most_recent(self.cursor, round):

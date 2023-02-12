@@ -157,6 +157,8 @@ class scan(threading.Thread):
             try:
                 if scantype == "planet":
                     self.parse_planet(next_id, page)
+                elif scantype == "landing":
+                    pass # Don't bother.
                 elif scantype == "development":
                     self.parse_development(next_id, page)
                 elif scantype == "unit":

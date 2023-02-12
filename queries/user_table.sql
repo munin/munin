@@ -336,7 +336,7 @@ nick TEXT NOT NULL,
 pnick TEXT,
 rand_id VARCHAR(20) NOT NULL,
 group_id VARCHAR(20),
-scantype VARCHAR(11) NOT NULL CHECK(scantype in ('unknown','planet','development','unit','news','incoming','jgp','fleet','au', 'military')),
+scantype VARCHAR(11) NOT NULL CHECK(scantype in ('unknown','planet','landing','development','unit','news','incoming','jgp','fleet','au', 'military')),
 scan_time TIMESTAMP WITHOUT TIME ZONE,
 UNIQUE(rand_id,tick,round),
 FOREIGN KEY(round,tick) REFERENCES updates(round,tick)

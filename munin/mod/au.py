@@ -69,7 +69,7 @@ class au(loadable.loadable):
             query += " WHERE s.pid=%s AND s.id=(SELECT id FROM scan "
             query += "                          WHERE scan.pid=s.pid"
             query += "                          AND round=%s"
-            query += "                          ORDER BY tick DESC"
+            query += "                          ORDER BY scan.scan_time DESC"
             query += "                          LIMIT 1)"
             query += " AND h.round=%s"
             self.cursor.execute(query, (p.id, irc_msg.round, irc_msg.round,))

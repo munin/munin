@@ -630,7 +630,7 @@ class scan(threading.Thread):
             query += " (scan_id,ship_id,amount)"
             query += " VALUES (%s,(SELECT id FROM ship WHERE name=%s AND round=%s),%s)"
             self.cursor.execute(query, (scan_id, shipname, round, amount,))
-        print("Unit: " + x + ":" + y + ":" + z)
+        # print("Unit: " + x + ":" + y + ":" + z)
 
     def parse_military(self, scan_id, page, table, round):
         m = re.search("on (\d*)\:(\d*)\:(\d*) in tick (\d*)", page)

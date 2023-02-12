@@ -626,7 +626,6 @@ class scan(threading.Thread):
         ):
             shipname = m.group(1)
             amount = m.group(2).replace(",", "")
-            print("Adding %s %s to scan" % (shipname, amount))
             query  = "INSERT INTO %s" % (table,)
             query += " (scan_id,ship_id,amount)"
             query += " VALUES (%s,(SELECT id FROM ship WHERE name=%s AND round=%s),%s)"

@@ -67,7 +67,7 @@ class bashee(loadable.loadable):
                     planet.x,
                     planet.y,
                     planet.z,
-                    int(planet.value * 2.5),
+                    int(planet.value * 2),
                     int(planet.score * 5 / 3),
                 )
             )

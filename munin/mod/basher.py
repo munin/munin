@@ -67,7 +67,7 @@ class basher(loadable.loadable):
                     planet.x,
                     planet.y,
                     planet.z,
-                    int(planet.value * 0.4),
+                    int(planet.value * 0.5),
                     int(planet.score * 0.6),
                 )
             )

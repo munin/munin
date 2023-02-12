@@ -510,7 +510,7 @@ class scan(threading.Thread):
                 guards,
             ),
         )
-        # print("Planet: " + x + ":" + y + ":" + z)
+        print("Planet: " + x + ":" + y + ":" + z)
 
     def parse_development(self, scan_id, page):
         # m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)</th></tr><tr><td class="left">Light Factory</td><td>(\d*)</td></tr><tr><td class="left">Medium Factory</td><td>(\d*)</td></tr><tr><td class="left">Heavy Factory</td><td>(\d*)</td></tr><tr><td class="left">Wave Amplifier</td><td>(\d*)</td></tr><tr><td class="left">Wave Distorter</td><td>(\d*)</td></tr><tr><td class="left">Metal Refinery</td><td>(\d*)</td></tr><tr><td class="left">Crystal Refinery</td><td>(\d*)</td></tr><tr><td class="left">Eonium Refinery</td><td>(\d*)</td></tr><tr><td class="left">Research Laboratory</td><td>(\d*)</td></tr><tr><td class="left">Finance Centre</td><td>(\d*)</td></tr><tr><td class="left">Security Centre</td><td>(\d*)</td></tr>', page)
@@ -604,7 +604,7 @@ class scan(threading.Thread):
         query += ",travel,infrastructure,hulls,waves,core,covert_op,mining,population)"
         query += " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         self.cursor.execute(query, args)
-        # print("Development: " + x + ":" + y + ":" + z)
+        print("Development: " + x + ":" + y + ":" + z)
 
     def parse_incoming(self, _scan_id, page, _round):
         m = re.search("on (\d*)\:(\d*)\:(\d*) in tick (\d*)", page)
@@ -612,12 +612,7 @@ class scan(threading.Thread):
         y = m.group(2)
         z = m.group(3)
         tick = m.group(4)
-        # No data from incoming scans is stored in the database
-        # print("Incoming: %s:%s:%s from tick %s" % (
-        #     x,
-        #     y,
-        #     z,
-        #     tick,))
+        pass
 
     def parse_unit(self, scan_id, page, table, round):
         m = re.search("on (\d*)\:(\d*)\:(\d*) in tick (\d*)", page)
@@ -635,7 +630,7 @@ class scan(threading.Thread):
             query += " (scan_id,ship_id,amount)"
             query += " VALUES (%s,(SELECT id FROM ship WHERE name=%s AND round=%s),%s)"
             self.cursor.execute(query, (scan_id, shipname, round, amount,))
-        # print("Unit: " + x + ":" + y + ":" + z)
+        print("Unit: " + x + ":" + y + ":" + z)
 
     def parse_military(self, scan_id, page, table, round):
         m = re.search("on (\d*)\:(\d*)\:(\d*) in tick (\d*)", page)
@@ -713,11 +708,11 @@ class scan(threading.Thread):
             self.cursor.execute(au_query,
                                 au_arguments)
 
-        # print("Military: %s:%s:%s from tick %s" % (
-        #     x,
-        #     y,
-        #     z,
-        #     tick,))
+        print("Military: %s:%s:%s from tick %s" % (
+            x,
+            y,
+            z,
+            tick,))
 
     def parse_jumpgate(self, scan_id, page, round):
         m = re.search("on (\d+)\:(\d+)\:(\d+) in tick (\d+)", page)
@@ -774,4 +769,4 @@ class scan(threading.Thread):
                     ),
                 )
 
-        # print("Jumpgate: " + x + ":" + y + ":" + z)
+        print("Jumpgate: " + x + ":" + y + ":" + z)

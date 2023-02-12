@@ -251,22 +251,22 @@ class scan(threading.Thread):
                         arrivaltick,
                     )
                 )
-                print(
-                    "Incoming:"
-                    + newstick
-                    + ":"
-                    + fleetname
-                    + "-"
-                    + originx
-                    + ":"
-                    + originy
-                    + ":"
-                    + originz
-                    + "-"
-                    + arrivaltick
-                    + "-"
-                    + numships
-                )
+                # print(
+                #     "Incoming:"
+                #     + newstick
+                #     + ":"
+                #     + fleetname
+                #     + "-"
+                #     + originx
+                #     + ":"
+                #     + originy
+                #     + ":"
+                #     + originz
+                #     + "-"
+                #     + arrivaltick
+                #     + "-"
+                #     + numships
+                # )
 
         # launched defending fleets:
         # <tr class="shadedbackground"><td class="left vtop">Launch</td><td class="vtop">277</td><td class="left vtop">The help is on the way fleet has been launched, heading for <a class="coords" href="galaxy.pl?x=4&amp;y=4">4:4:5</a>, on a mission to Defend. Arrival tick: 283</td></tr>
@@ -306,22 +306,22 @@ class scan(threading.Thread):
                         mission,
                     )
                 )
-                print(
-                    "Launch:"
-                    + newstick
-                    + ":"
-                    + fleetname
-                    + ":"
-                    + originx
-                    + ":"
-                    + originy
-                    + ":"
-                    + originz
-                    + ":"
-                    + arrivaltick
-                    + ":"
-                    + mission
-                )
+                # print(
+                #     "Launch:"
+                #     + newstick
+                #     + ":"
+                #     + fleetname
+                #     + ":"
+                #     + originx
+                #     + ":"
+                #     + originy
+                #     + ":"
+                #     + originz
+                #     + ":"
+                #     + arrivaltick
+                #     + ":"
+                #     + mission
+                # )
 
         # TODO: All this fleet parsing reads to me like the original intent was
         # to build a complete picture of fleet movement the universe, and
@@ -351,7 +351,7 @@ class scan(threading.Thread):
             newstick = m.group(1)
             research = m.group(2)
 
-            print("Tech:" + newstick + ":" + research)
+            # print("Tech:" + newstick + ":" + research)
 
         # failed security report
         # <tr class="shadedbackground"><td class="left vtop">Security</td><td class="vtop">270</td><td class="left vtop">A covert operation was attempted by mz (<a class="coords" href="galaxy.pl?x=2&amp;y=3">2:3:1</a>), but our security guards were able to stop them from doing any harm. Your guards have successfully killed the intruders.</td></tr>
@@ -377,18 +377,18 @@ class scan(threading.Thread):
                         p.id,
                     )
                 )
-                print(
-                    "Security:"
-                    + newstick
-                    + ":"
-                    + ruler
-                    + ":"
-                    + originx
-                    + ":"
-                    + originy
-                    + ":"
-                    + originz
-                )
+                # print(
+                #     "Security:"
+                #     + newstick
+                #     + ":"
+                #     + ruler
+                #     + ":"
+                #     + originx
+                #     + ":"
+                #     + originy
+                #     + ":"
+                #     + originz
+                # )
 
         # fleet report
         # <tr bgcolor=#2d2d2d><td class=left valign=top>Fleet</td><td valign=top>881</td><td class=left valign=top><table width=500><tr><th class=left colspan=3>Report of Losses from the Disposable Heroes fighting at 13:10:3</th></tr>
@@ -416,7 +416,7 @@ class scan(threading.Thread):
         #
         # </td></tr>
 
-        print("Parsed news scan on %s:%s:%s" % (x, y, z,))
+        # print("Parsed news scan on %s:%s:%s" % (x, y, z,))
 
     def parse_planet(self, scan_id, page):
         m = re.search("on (\d+)\:(\d+)\:(\d+) in tick (\d+)", page)
@@ -507,7 +507,7 @@ class scan(threading.Thread):
                 guards,
             ),
         )
-        print("Planet: " + x + ":" + y + ":" + z)
+        # print("Planet: " + x + ":" + y + ":" + z)
 
     def parse_development(self, scan_id, page):
         # m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)</th></tr><tr><td class="left">Light Factory</td><td>(\d*)</td></tr><tr><td class="left">Medium Factory</td><td>(\d*)</td></tr><tr><td class="left">Heavy Factory</td><td>(\d*)</td></tr><tr><td class="left">Wave Amplifier</td><td>(\d*)</td></tr><tr><td class="left">Wave Distorter</td><td>(\d*)</td></tr><tr><td class="left">Metal Refinery</td><td>(\d*)</td></tr><tr><td class="left">Crystal Refinery</td><td>(\d*)</td></tr><tr><td class="left">Eonium Refinery</td><td>(\d*)</td></tr><tr><td class="left">Research Laboratory</td><td>(\d*)</td></tr><tr><td class="left">Finance Centre</td><td>(\d*)</td></tr><tr><td class="left">Security Centre</td><td>(\d*)</td></tr>', page)
@@ -601,7 +601,7 @@ class scan(threading.Thread):
         query += ",travel,infrastructure,hulls,waves,core,covert_op,mining,population)"
         query += " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         self.cursor.execute(query, args)
-        print("Development: " + x + ":" + y + ":" + z)
+        # print("Development: " + x + ":" + y + ":" + z)
 
     def parse_incoming(self, _scan_id, page, _round):
         m = re.search("on (\d*)\:(\d*)\:(\d*) in tick (\d*)", page)
@@ -610,11 +610,11 @@ class scan(threading.Thread):
         z = m.group(3)
         tick = m.group(4)
         # No data from incoming scans is stored in the database
-        print("Incoming: %s:%s:%s from tick %s" % (
-            x,
-            y,
-            z,
-            tick,))
+        # print("Incoming: %s:%s:%s from tick %s" % (
+        #     x,
+        #     y,
+        #     z,
+        #     tick,))
 
     def parse_unit(self, scan_id, page, table, round):
         m = re.search("on (\d*)\:(\d*)\:(\d*) in tick (\d*)", page)
@@ -626,14 +626,13 @@ class scan(threading.Thread):
         for m in re.finditer(
             "(\w+\s?\w*\s?\w*)</td><td[^>]*>(\d+(?:,\d{3})*)</td>", page
         ):
-            print(m.groups())
             shipname = m.group(1)
             amount = m.group(2).replace(",", "")
             query  = "INSERT INTO %s" % (table,)
             query += " (scan_id,ship_id,amount)"
             query += " VALUES (%s,(SELECT id FROM ship WHERE name=%s AND round=%s),%s)"
             self.cursor.execute(query, (scan_id, shipname, round, amount,))
-        print("Unit: " + x + ":" + y + ":" + z)
+        # print("Unit: " + x + ":" + y + ":" + z)
 
     def parse_military(self, scan_id, page, table, round):
         m = re.search("on (\d*)\:(\d*)\:(\d*) in tick (\d*)", page)
@@ -711,11 +710,11 @@ class scan(threading.Thread):
             self.cursor.execute(au_query,
                                 au_arguments)
 
-        print("Military: %s:%s:%s from tick %s" % (
-            x,
-            y,
-            z,
-            tick,))
+        # print("Military: %s:%s:%s from tick %s" % (
+        #     x,
+        #     y,
+        #     z,
+        #     tick,))
 
     def parse_jumpgate(self, scan_id, page, round):
         m = re.search("on (\d+)\:(\d+)\:(\d+) in tick (\d+)", page)
@@ -771,4 +770,4 @@ class scan(threading.Thread):
                     ),
                 )
 
-        print("Jumpgate: " + x + ":" + y + ":" + z)
+        # print("Jumpgate: " + x + ":" + y + ":" + z)

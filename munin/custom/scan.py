@@ -118,6 +118,7 @@ class scan(threading.Thread):
         p = loadable.planet(x, y, z)
         # This fails if this planet exiled in this tick.
         if not p.load_most_recent(self.cursor, round):
+            print("Couldn't find planet %s:%s:%s, maybe they exiled this tick?" % (x,y,z))
             return
 
         self.cursor.execute("BEGIN;")
@@ -730,6 +731,7 @@ class scan(threading.Thread):
         p = loadable.planet(x, y, z)
         # This fails if this planet exiled in this tick.
         if not p.load_most_recent(self.cursor, round):
+            print("Couldn't find planet %s:%s:%s in JGP, maybe they exiled this tick?" % (x,y,z))
             return
 
         # <td class="left">15:7:11</td><td class="left">Defend </td><td>Ad infinitum</td><td>9</td><td>0</td>

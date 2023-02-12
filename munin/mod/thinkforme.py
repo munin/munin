@@ -302,7 +302,7 @@ class thinkforme(loadable.loadable):
             p.y,
             p.z,
         )
-        reply += "%s and hire %d guards for %d alert with %d pop!" % (
+        reply += "%s and hire %d total guards for %d alert with %d pop!" % (
             best[0],
             best_guards[0],
             goal_alert,

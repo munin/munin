@@ -263,6 +263,8 @@ class dev(loadable.loadable):
             return "JGP"
         if level == 7:
             return "Advanced Unit"
+        if level == 8:
+            return "Military Scan"
 
     def core(self, level):
         if level == 0:

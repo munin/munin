@@ -99,6 +99,50 @@ class thinkforme(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 1
 
+        result = self.calculate(p, goal_alert, population, gov, irc_msg)
+        if result:
+            irc_msg.reply(str(result))
+            return 0
+        else:
+            return 1
+
+    class result(object):
+        def __init__(self, planet, goal_alert, population, government):
+            self.planet     = planet
+            self.goal_alert = goal_alert
+            self.population = population
+            self.government = government
+
+            self.best         = None
+            self.guards       = None
+            self.number       = 0
+            self.first_income = None
+            self.last_income  = None
+
+        def __str__(self):
+            string = "Planet %d:%d:%d should build approximately an additional %d %ss" % (
+                self.planet.x,
+                self.planet.y,
+                self.planet.z,
+                self.number,
+                self.best,
+            )
+            string += " and employ %d total guards for %d alert with %d pop, %s, and %d roids (for %d" % (
+                self.guards,
+                self.goal_alert,
+                self.population,
+                self.government.title(),
+                self.planet.size,
+                self.first_income,
+            )
+            if self.last_income is not None:
+                string += " -> %d" % (
+                    self.last_income,
+                )
+            string += "  fleet value per construction tick by round end)"
+            return string
+
+    def calculate(self, planet, goal_alert, population, gov, irc_msg):
         governments = {
             "cor": "corporatism",
             "dem": "democracy",
@@ -135,7 +179,7 @@ class thinkforme(loadable.loadable):
         LIMIT 1;
         """
         self.cursor.execute(query, (
-            p.id,
+            planet.id,
             tick - self.max_scan_age,
         ))
         if self.cursor.rowcount == 1:
@@ -144,13 +188,11 @@ class thinkforme(loadable.loadable):
             planet_tick = row["tick"]
             planet_id   = row["rand_id"]
 
-        scs      = None
-        mrefs    = None
-        crefs    = None
-        erefs    = None
-        fcs      = None
-        dev_tick = None
-        dev_id   = None
+        scs        = None
+        refineries = None
+        fcs        = None
+        dev_tick   = None
+        dev_id     = None
         query = """
         SELECT d.security_centre, d.finance_centre, d.metal_refinery, d.crystal_refinery, d.eonium_refinery, s.tick, s.rand_id
         FROM scan AS s
@@ -161,49 +203,34 @@ class thinkforme(loadable.loadable):
         LIMIT 1;
         """
         self.cursor.execute(query, (
-            p.id,
+            planet.id,
             tick - self.max_scan_age,
         ))
         if self.cursor.rowcount == 1:
             row = self.cursor.fetchone()
-            scs      = row["security_centre"]
-            mrefs    = row["metal_refinery"]
-            crefs    = row["crystal_refinery"]
-            erefs    = row["eonium_refinery"]
-            fcs      = row["finance_centre"]
-            dev_tick = row["tick"]
-            dev_id   = row["rand_id"]
+            scs        = row["security_centre"]
+            refineries = {
+                'metal':   row["metal_refinery"],
+                'crystal': row["crystal_refinery"],
+                'eonium':  row["eonium_refinery"],
+            }
+            fcs        = row["finance_centre"]
+            dev_tick   = row["tick"]
+            dev_id     = row["rand_id"]
 
         if guards is None:
             if scs is None:
                 irc_msg.reply("I need a recent planet and development scan")
-                return 1
+                return None
             else:
                 irc_msg.reply("I need a recent planet scan")
-                return 1
+                return None
         elif scs is None:
             irc_msg.reply("I need a recent development scan")
-            return 1
-
-        refs = min(
-            row["metal_refinery"],
-            row["crystal_refinery"],
-            row["eonium_refinery"]
-        )
-        fc_cost =  round(4500 * (( fcs + 1) ** 1.25 / 1000 + 1) * ( fcs + 1))
-        ref_cost = round(3000 * ((refs + 1) ** 1.25 / 1000 + 1) * (refs + 1))
-        # If your government is Totalitarianism with 11 SCs and 121 guards, you
-        # have ever so slightly over 94 alert. Adding 1 more SC means you need
-        # 0 guards to also have 94 alert, making this a convenient test case.
-        #
-        # scs = 11
-        # guards = 121
-        sc_cost =  round(3000 * (( scs + 1) ** 1.25 / 1000 + 1) * ( scs + 1))
-
-        ticks_left = 1177 - tick
+            return None
 
         gov_construction_speed = float(self.config.get("Planetarion", "%s_construction_speed" % (government,)))
-        race_cu = int(self.config.get("Planetarion", "%s_construction_speed" % (p.race,)))
+        race_cu = int(self.config.get("Planetarion", "%s_construction_speed" % (planet.race,)))
         cons_speed = race_cu * (1.35 + gov_construction_speed)
         ref_cu = 750
         fc_cu = 1000
@@ -222,109 +249,163 @@ class thinkforme(loadable.loadable):
 
         gov_value_conversion = 100 - 100 * float(self.config.get("Planetarion", "%s_cost_reduction" % (government,)))
         gov_mining_bonus = float(self.config.get("Planetarion", "%s_mining_bonus" % (government,)))
-        bonus = 0.25 + 0.005 * fcs + gov_mining_bonus
-        unbuffed_income = 250 * p.size + 60000 + 1100 * (mrefs + crefs + erefs)
-
         gov_alert_bonus = float(self.config.get("Planetarion", "%s_alert_bonus" % (government,)))
-        if goal_alert is None:
-            goal_alert = int((50 + 5 * guards / (p.size + 1)) * (1.0 + population / 100.0 + 0.0275 * scs + gov_alert_bonus))
-        def guards_needed(goal_alert,
-                          scs,
-                          gov_alert_speed,
-                          roids):
-            return max(
-                0,
-                math.ceil((goal_alert / (1.0 + population / 100.0 + 0.0275 * scs + gov_alert_bonus) - 50) / 5 * (roids + 1))
-            )
 
-        guards_with_current_scs = guards_needed(goal_alert,
-                                                scs,
-                                                gov_alert_bonus,
-                                                p.size)
-        guards_with_one_more_sc = guards_needed(goal_alert,
-                                                scs + 1,
-                                                gov_alert_bonus,
-                                                p.size)
-        extra_guards_without_sc = guards_with_current_scs - guards_with_one_more_sc
-
-        ref_income = round(((1100 * (1 + bonus)           * (ticks_left - ref_build_time) - ref_cost) / gov_value_conversion) * cons_speed / ref_cu)
-        fc_income  = round(((unbuffed_income * 0.005      * (ticks_left -  fc_build_time) -  fc_cost) / gov_value_conversion) * cons_speed /  fc_cu)
-        sc_income  = round(((extra_guards_without_sc * 12 * (ticks_left -  sc_build_time) -  sc_cost) / gov_value_conversion) * cons_speed /  sc_cu)
-
-        # print("!thinkforme: Refs: %s/%s/%s | Min refs: %s | Ref cost: %s | Ticks left: %s | Bonus %s | Ref build time: %s | Gov value conversion: %s | Net ref income: %s" % (
-        #     mrefs,
-        #     crefs,
-        #     erefs,
-        #     refs,
-        #     ref_cost,
-        #     ticks_left,
-        #     bonus,
-        #     ref_build_time,
-        #     gov_value_conversion,
-        #     ref_income,
-        # ))
-        # print("!thinkforme: FCs: %s | FC cost: %s | Ticks left: %s | FC build time: %s | Unbuffed income: %s | Gov value conversion: %s | Net FC income: %s" % (
-        #     fcs,
-        #     fc_cost,
-        #     ticks_left,
-        #     fc_build_time,
-        #     unbuffed_income,
-        #     gov_value_conversion,
-        #     fc_income,
-        # ))
-        # print("!thinkforme: SCs: %s | SC cost: %s | Ticks left: %s | SC build time: %s | Alert: %s | Guards now: %s | Guards after extra SC: %s | Fireable guards: %s | Net SC income: %s" % (
-        #     scs,
-        #     sc_cost,
-        #     ticks_left,
-        #     sc_build_time,
-        #     alert,
-        #     guards_with_current_scs,
-        #     guards_with_one_more_sc,
-        #     extra_guards_without_sc,
-        #     sc_income,
-        # ))
-
-        if sc_income > max(ref_income, fc_income):
-            best            = ["n SC", "Ref", "FC"]
-            best_income     = [sc_income, ref_income, fc_income]
-            best_guards     = [guards_with_one_more_sc, guards_with_current_scs]
-        else:
-            best_guards     = [guards_with_current_scs, guards_with_one_more_sc]
-            if ref_income > fc_income:
-                best            = [" Refinery", "FC", "SC"]
-                best_income     = [ref_income, fc_income, sc_income]
+        r = self.result(planet, goal_alert, population, government)
+        again = True
+        # In each iteration of this loop, we calculate for which 'next
+        # structure' the payoff is the highest, between it finishing and round
+        # end. We then loop until the next structure to build is different to
+        # the one we've been building so far, to avoid making the output look
+        # too much like number soup.
+        while again:
+            min_ref = None
+            if refineries["metal"] < min(refineries["crystal"], refineries["eonium"]):
+                min_ref = 'metal'
+            elif refineries["crystal"] < refineries["eonium"]:
+                min_ref = "crystal"
             else:
-                best            = ["n FC", "Ref", "SC"]
-                best_income     = [fc_income, ref_income, sc_income]
+                min_ref = 'eonium'
+            refs = refineries[min_ref]
+            fc_cost  = round(4500 * (( fcs + 1) ** 1.25 / 1000 + 1) * ( fcs + 1))
+            ref_cost = round(3000 * ((refs + 1) ** 1.25 / 1000 + 1) * (refs + 1))
+            sc_cost  = round(3000 * (( scs + 1) ** 1.25 / 1000 + 1) * ( scs + 1))
 
-        reply = "Planet %d:%d:%d should build a" % (
-            p.x,
-            p.y,
-            p.z,
-        )
-        reply += "%s and hire %d total guards for %d alert with %d pop!" % (
-            best[0],
-            best_guards[0],
-            goal_alert,
-            population,
-        )
-        reply += " This will net %d fleet value per construction tick by round end with %s and %d roids" % (
-            best_income[0],
-            government.title(),
-            p.size,
-        )
-        reply += " (%s: %d | %s: %d using %s guards)" % (
-            best[1],
-            best_income[1],
-            best[2],
-            best_income[2],
-            best_guards[1],
-        )
-        reply += " (P: %s, age: %s | D: %s, age: %s)" % (
-            planet_id,
-            tick - planet_tick,
-            dev_id,
-            tick - dev_tick,
-        )
-        irc_msg.reply(reply)
-        return
+            ticks_left = 1177 - tick
+
+            bonus = 0.25 + 0.005 * fcs + gov_mining_bonus
+            unbuffed_income = 250 * planet.size + 60000 + 1100 * (refineries['metal'] + refineries['crystal'] + refineries['eonium'])
+
+            # If no explicit goal alertness is given, assume the planet's
+            # current alertness is the goal.
+            if r.goal_alert is None:
+                r.goal_alert = int((50 + 5 * guards / (planet.size + 1)) * (1.0 + population / 100.0 + 0.0275 * scs + gov_alert_bonus))
+            def guards_needed(goal_alert,
+                              scs,
+                              gov_alert_speed,
+                              roids):
+                return max(
+                    0,
+                    math.ceil((goal_alert / (1.0 + population / 100.0 + 0.0275 * scs + gov_alert_bonus) - 50) / 5 * (roids + 1))
+                )
+
+            guards_with_current_scs = guards_needed(r.goal_alert,
+                                                    scs,
+                                                    gov_alert_bonus,
+                                                    planet.size)
+            guards_with_one_more_sc = guards_needed(r.goal_alert,
+                                                    scs + 1,
+                                                    gov_alert_bonus,
+                                                    planet.size)
+            extra_guards_without_sc = guards_with_current_scs - guards_with_one_more_sc
+
+            ref_income = round(((1100 * (1 + bonus)           * (ticks_left - ref_build_time) - ref_cost) / gov_value_conversion) * cons_speed / ref_cu)
+            fc_income  = round(((unbuffed_income * 0.005      * (ticks_left -  fc_build_time) -  fc_cost) / gov_value_conversion) * cons_speed /  fc_cu)
+            sc_income  = round(((extra_guards_without_sc * 12 * (ticks_left -  sc_build_time) -  sc_cost) / gov_value_conversion) * cons_speed /  sc_cu)
+
+            # print("!thinkforme: Refs: %s/%s/%s | Ref cost: %s | Ticks left: %s | Bonus %s | Ref build time: %s | Gov value conversion: %s | Net ref income: %s" % (
+            #     refineries['metal'],
+            #     refineries['crystal'],
+            #     refineries['eonium'],
+            #     ref_cost,
+            #     ticks_left,
+            #     bonus,
+            #     ref_build_time,
+            #     gov_value_conversion,
+            #     ref_income,
+            # ))
+            # print("!thinkforme: FCs: %s | FC cost: %s | Ticks left: %s | FC build time: %s | Unbuffed income: %s | Gov value conversion: %s | Net FC income: %s" % (
+            #     fcs,
+            #     fc_cost,
+            #     ticks_left,
+            #     fc_build_time,
+            #     unbuffed_income,
+            #     gov_value_conversion,
+            #     fc_income,
+            # ))
+            # print("!thinkforme: SCs: %s | SC cost: %s | Ticks left: %s | SC build time: %s | Goal alert: %s | Guards now: %s | Guards after extra SC: %s | Fireable guards: %s | Net SC income: %s" % (
+            #     scs,
+            #     sc_cost,
+            #     ticks_left,
+            #     sc_build_time,
+            #     goal_alert,
+            #     guards_with_current_scs,
+            #     guards_with_one_more_sc,
+            #     extra_guards_without_sc,
+            #     sc_income,
+            # ))
+
+            if sc_income > max(ref_income, fc_income):
+                if r.best is None or r.best == 'SC':
+                    r.best = 'SC'
+                    r.number += 1
+                    if r.number > 1:
+                        r.last_income = sc_income
+                    else:
+                        r.first_income = sc_income
+                    r.guards = guards_with_one_more_sc
+                    scs += 1
+                    tick += sc_build_time
+                    print("!thinkforme: %s:%s:%s | %s total SC for +%s value (%s guards) | Ref +%s | FC +%s (%s guards)" % (
+                        planet.x,
+                        planet.y,
+                        planet.z,
+                        scs,
+                        sc_income,
+                        guards_with_one_more_sc,
+                        ref_income,
+                        fc_income,
+                        guards_with_current_scs
+                    ))
+                else:
+                    again = False
+            elif ref_income > fc_income:
+                if r.best is None or r.best == 'Ref':
+                    r.best = 'Ref'
+                    r.number += 1
+                    tick += ref_build_time
+                    if r.number > 1:
+                        r.last_income = ref_income
+                    else:
+                        r.first_income = ref_income
+                    r.guards = guards_with_current_scs
+                    refineries[min_ref] += 1
+                    print("!thinkforme: %s:%s:%s | %s total Ref for +%s value (%s guards) | FC +%s | SC +%s (%s guards)" % (
+                        planet.x,
+                        planet.y,
+                        planet.z,
+                        refineries['metal'] + refineries['crystal'] + refineries['eonium'],
+                        ref_income,
+                        guards_with_current_scs,
+                        fc_income,
+                        sc_income,
+                        guards_with_one_more_sc,
+                    ))
+                else:
+                    again = False
+            else:
+                if r.best is None or r.best == 'FC':
+                    r.best = 'FC'
+                    r.number += 1
+                    tick += fc_build_time
+                    if r.number > 1:
+                        r.last_income = fc_income
+                    else:
+                        r.first_income = fc_income
+                    r.guards = guards_with_current_scs
+                    fcs += 1
+                    print("!thinkforme: %s:%s:%s | %s total FC for +%s value (%s guards) | Ref +%s | SC +%s (%s guards)" % (
+                        planet.x,
+                        planet.y,
+                        planet.z,
+                        fcs,
+                        fc_income,
+                        guards_with_current_scs,
+                        ref_income,
+                        sc_income,
+                        guards_with_one_more_sc,
+                    ))
+                else:
+                    again = False
+
+        return r

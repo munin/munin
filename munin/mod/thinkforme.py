@@ -346,17 +346,17 @@ class thinkforme(loadable.loadable):
                     r.guards = guards_with_one_more_sc
                     scs += 1
                     tick += sc_build_time
-                    print("!thinkforme: %s:%s:%s | %s total SC for +%s value (%s guards) | Ref +%s | FC +%s (%s guards)" % (
-                        planet.x,
-                        planet.y,
-                        planet.z,
-                        scs,
-                        sc_income,
-                        guards_with_one_more_sc,
-                        ref_income,
-                        fc_income,
-                        guards_with_current_scs
-                    ))
+                    # print("!thinkforme: %s:%s:%s | %s total SC for +%s value (%s guards) | Ref +%s | FC +%s (%s guards)" % (
+                    #     planet.x,
+                    #     planet.y,
+                    #     planet.z,
+                    #     scs,
+                    #     sc_income,
+                    #     guards_with_one_more_sc,
+                    #     ref_income,
+                    #     fc_income,
+                    #     guards_with_current_scs
+                    # ))
                 else:
                     again = False
             elif ref_income > fc_income:
@@ -370,17 +370,17 @@ class thinkforme(loadable.loadable):
                         r.first_income = ref_income
                     r.guards = guards_with_current_scs
                     refineries[min_ref] += 1
-                    print("!thinkforme: %s:%s:%s | %s total Ref for +%s value (%s guards) | FC +%s | SC +%s (%s guards)" % (
-                        planet.x,
-                        planet.y,
-                        planet.z,
-                        refineries['metal'] + refineries['crystal'] + refineries['eonium'],
-                        ref_income,
-                        guards_with_current_scs,
-                        fc_income,
-                        sc_income,
-                        guards_with_one_more_sc,
-                    ))
+                    # print("!thinkforme: %s:%s:%s | %s total Ref for +%s value (%s guards) | FC +%s | SC +%s (%s guards)" % (
+                    #     planet.x,
+                    #     planet.y,
+                    #     planet.z,
+                    #     refineries['metal'] + refineries['crystal'] + refineries['eonium'],
+                    #     ref_income,
+                    #     guards_with_current_scs,
+                    #     fc_income,
+                    #     sc_income,
+                    #     guards_with_one_more_sc,
+                    # ))
                 else:
                     again = False
             else:
@@ -394,17 +394,17 @@ class thinkforme(loadable.loadable):
                         r.first_income = fc_income
                     r.guards = guards_with_current_scs
                     fcs += 1
-                    print("!thinkforme: %s:%s:%s | %s total FC for +%s value (%s guards) | Ref +%s | SC +%s (%s guards)" % (
-                        planet.x,
-                        planet.y,
-                        planet.z,
-                        fcs,
-                        fc_income,
-                        guards_with_current_scs,
-                        ref_income,
-                        sc_income,
-                        guards_with_one_more_sc,
-                    ))
+                    # print("!thinkforme: %s:%s:%s | %s total FC for +%s value (%s guards) | Ref +%s | SC +%s (%s guards)" % (
+                    #     planet.x,
+                    #     planet.y,
+                    #     planet.z,
+                    #     fcs,
+                    #     fc_income,
+                    #     guards_with_current_scs,
+                    #     ref_income,
+                    #     sc_income,
+                    #     guards_with_one_more_sc,
+                    # ))
                 else:
                     again = False
 

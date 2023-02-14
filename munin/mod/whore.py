@@ -144,10 +144,12 @@ class whore(loadable.loadable):
                 reply += " Size %s %s" % (size_mod, size)
             if value:
                 reply += " Value %s %s" % (value_mod, value)
+            if cluster:
+                reply += " Cluster %s" %(cluster,)
             irc_msg.reply(reply)
         for v in victims:
             reply = "%s:%s:%s (%s)" % (v["x"], v["y"], v["z"], v["race"])
-            reply += " Value: %s Size: %s Scoregain: %d" % (
+            reply += " Value: %s Size: %s Scoregain: %d+" % (
                 v["value"],
                 v["size"],
                 v["xp_gain"] * 60,
@@ -180,37 +182,69 @@ class whore(loadable.loadable):
     ):
         args = (
             attacker.score,
+            attacker.xp,
+            attacker.xp,
+            attacker.score,
+            attacker.value,
             attacker.value,
             round,
             round,
         )
 
-        query = "SELECT t1.x AS x,t1.y AS y,t1.z AS z,t1.size AS size,t1.size_rank AS size_rank,t1.value AS value,t1.value_rank AS value_rank,t1.race AS race,t6.name AS alliance,t2.nick AS nick"
-        query += ", (t1.size/4) * 10 * (float8smaller(2,(t1.score::float/%s::float))-0.2)*(float8smaller(2,(t1.value::float/%s::float))-0.1) AS xp_gain"
-        query += " FROM planet_dump AS t1"
-        query += " LEFT JOIN intel AS t2 ON t1.id=t2.pid"
-        query += " LEFT JOIN alliance_canon AS t6 ON t2.alliance_id=t6.id"
-        query += " WHERE t1.tick=(SELECT max_tick(%s::smallint)) AND t1.round=%s"
+        # Behold! The worst SQL query.
+        query = """
+        SELECT float8smaller(%s / 180.0,
+                             raw_xp * (0.95 ^ ((%s + (raw_xp * 1.5)) / 10000.0)) * float8smaller(1.25,
+                                                                                                 -float8smaller(-0.1,
+                                                                                                                -(1.5 - %s / 200000.0))))::int AS xp_gain,
+               *
+        FROM (
+              SELECT cap * 5 * bravery AS raw_xp,
+                     *
+              FROM (
+                    SELECT float8smaller(2.0,
+                                         -float8smaller(-0.2,
+                                                        -float8smaller(2.25,
+                                                                       score / %s::float) - 0.25) * -float8smaller(-0.2,
+                                                                                                                   -float8smaller(2.25,
+                                                                                                                                  value / %s::float) - 0.25)) AS bravery,
+                           *
+                    FROM (
+                          SELECT (float8smaller(0.25,
+                                                0.25 * sqrt(p.value / %s::float)) * p.size)::int AS cap,
+                                  p.x, p.y, p.z, p.size, p.size_rank, p.value, p.value_rank, p.score, p.race,
+                                  a.name AS alliance,
+                                  i.nick
+                         FROM      planet_dump    AS p
+                         LEFT JOIN intel          AS i ON p.id=i.pid
+                         LEFT JOIN alliance_canon AS a ON i.alliance_id=a.id
+                         WHERE p.tick=(SELECT max_tick(%s::smallint))
+                         AND p.round=%s
+                    ) AS with_cap
+              ) AS with_bravery
+        ) AS with_raw_xp
+        WHERE 1 = 1
+        """
 
         if alliance:
-            query += " AND t6.name ILIKE %s"
-            args += ("%" + alliance + "%",)
+            query += " AND alliance ILIKE %s"
+            args += ("%%%s%%" % (alliance,),)
         if race:
             query += " AND race ILIKE %s"
             args += (race,)
         if size:
-            query += " AND size %s " % (size_mod) + "%s"
+            query += " AND size %s %%s" % (size_mod,)
             args += (int(size),)
         if value:
-            query += " AND value %s " % (value_mod) + "%s"
+            query += " AND value %s %%s" % (value_mod,)
             args += (int(value),)
         if bash:
             query += " AND (value > %s OR score > %s)"
-            args += (attacker.value * 0.4, attacker.score * 0.6)
+            args += (attacker.value * 0.5, attacker.score * 0.6)
         if cluster:
             query += " AND x = %s::smallint"
             args += (cluster,)
-        query += " ORDER BY xp_gain DESC, t1.size DESC, t1.value DESC"
+        query += " ORDER BY xp_gain DESC, size DESC, value DESC"
 
         self.cursor.execute(query, args)
         return self.cursor.fetchall()

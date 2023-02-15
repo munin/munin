@@ -62,19 +62,13 @@ class cookiemonsters(loadable.loadable):
 
     def feeders(self):
         self.cursor.execute("""
-        SELECT pnick, carebears
+        SELECT pnick, carebears AS cookies
         FROM user_list
         WHERE userlevel >= 100
-        ORDER BY carebears DESC
+        ORDER BY cookies DESC
         LIMIT 5;
         """)
-        return ', '.join([
-            "%s (%s)" % (
-                row['pnick'],
-                row['carebears'],
-            )
-            for row in self.cursor.fetchall()
-        ])
+        return self.format(self.cursor.fetchall())
 
     def gainers(self):
         self.cursor.execute("""
@@ -86,10 +80,13 @@ class cookiemonsters(loadable.loadable):
         ORDER BY sum(l.howmany) DESC
         LIMIT 5;
         """)
+        return self.format(self.cursor.fetchall())
+
+    def format(self, results):
         return ', '.join([
             "%s (%s)" % (
                 row['pnick'],
                 row['cookies'],
             )
-            for row in self.cursor.fetchall()
+            for row in results
         ])

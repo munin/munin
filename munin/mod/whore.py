@@ -197,7 +197,7 @@ class whore(loadable.loadable):
                              raw_xp * (0.95 ^ ((%s + (raw_xp * 1.5)) / 10000.0)) * float8smaller(1.25,
                                                                                                  -float8smaller(-0.1,
                                                                                                                 -(1.5 - %s / 200000.0))))::int AS xp_gain,
-               *
+               x, y, z, size, value, race, alliance, nick
         FROM (
               SELECT cap * 5 * bravery AS raw_xp,
                      *
@@ -212,7 +212,7 @@ class whore(loadable.loadable):
                     FROM (
                           SELECT (float8smaller(0.25,
                                                 0.25 * sqrt(p.value / %s::float)) * p.size)::int AS cap,
-                                  p.x, p.y, p.z, p.size, p.size_rank, p.value, p.value_rank, p.score, p.race,
+                                  p.x, p.y, p.z, p.size, p.value, p.score, p.race,
                                   a.name AS alliance,
                                   i.nick
                          FROM      planet_dump    AS p
@@ -234,17 +234,17 @@ class whore(loadable.loadable):
             args += (race,)
         if size:
             query += " AND size %s %%s" % (size_mod,)
-            args += (int(size),)
+            args += (size,)
         if value:
             query += " AND value %s %%s" % (value_mod,)
-            args += (int(value),)
+            args += (value,)
         if bash:
             query += " AND (value > %s OR score > %s)"
             args += (attacker.value * 0.5, attacker.score * 0.6)
         if cluster:
             query += " AND x = %s::smallint"
             args += (cluster,)
-        query += " ORDER BY xp_gain DESC, size DESC, value DESC"
+        query += " ORDER BY xp_gain DESC, size DESC, value DESC LIMIT 6"
 
         self.cursor.execute(query, args)
         return self.cursor.fetchall()

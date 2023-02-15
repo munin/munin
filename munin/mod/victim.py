@@ -206,11 +206,11 @@ class victim(loadable.loadable):
             args += (value,)
         if bash:
             query += " AND (value > %s OR score > %s)"
-            args += (attacker.value * 0.4, attacker.score * 0.6)
+            args += (attacker.value * 0.5, attacker.score * 0.6)
         if cluster:
             query += " AND x = %s::smallint"
             args += (cluster,)
 
-        query += " ORDER BY t1.size DESC, t1.value DESC"
+        query += " ORDER BY t1.size DESC, t1.value DESC LIMIT 6"
         self.cursor.execute(query, args)
         return self.cursor.fetchall()

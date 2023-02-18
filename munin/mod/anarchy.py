@@ -113,8 +113,7 @@ class anarchy(loadable.loadable):
 
                 # Get SCs and total number of constructions from development
                 # scan.
-                query = "SELECT scan.tick, light_factory, medium_factory, heavy_factory, wave_amplifier, wave_distorter, metal_refinery,"
-                query += " crystal_refinery, eonium_refinery, research_lab, finance_centre, military_centre, security_centre, structure_defense"
+                query = "SELECT scan.tick, security_centre"
                 query += (
                     " FROM scan INNER JOIN development ON scan.id = development.scan_id"
                 )
@@ -128,27 +127,12 @@ class anarchy(loadable.loadable):
                 if len(needed_scans) == 0:
                     dev_scan = self.cursor.fetchone()
                     sc = dev_scan["security_centre"]
-                    total = (
-                        dev_scan["light_factory"]
-                        + dev_scan["medium_factory"]
-                        + dev_scan["heavy_factory"]
-                        + dev_scan["wave_amplifier"]
-                        + dev_scan["wave_distorter"]
-                        + dev_scan["metal_refinery"]
-                        + dev_scan["crystal_refinery"]
-                        + dev_scan["eonium_refinery"]
-                        + dev_scan["research_lab"]
-                        + dev_scan["structure_defense"]
-                        + dev_scan["finance_centre"]
-                        + dev_scan["military_centre"]
-                        + dev_scan["security_centre"]
-                    )
                     development_tick = dev_scan["tick"]
 
-                    min_alert = (1 - 0.15 + float(sc) / total) * (
+                    min_alert = (1 - 0.15 + 0.0275 * sc) * (
                         50 + 5 * float(guards) / float(planet.size + 1)
                     )
-                    max_alert = (1 - 0.15 + 0.5 + float(sc) / total) * (
+                    max_alert = (1 - 0.15 + 0.4 + 0.0275 * sc) * (
                         50 + 5 * float(guards) / float(planet.size + 1)
                     )
                     reply += (

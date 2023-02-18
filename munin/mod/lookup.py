@@ -34,7 +34,7 @@ class lookup(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1)
         self.paramre = re.compile(r"^\s*(.*)")
-        self.usage = self.__class__.__name__ + " [x:y[:z]|alliancename]"
+        self.usage = self.__class__.__name__ + " [x:y[:z]|alliancename|nick]"
 
     def execute(self, user, access, irc_msg):
 
@@ -92,7 +92,7 @@ class lookup(loadable.loadable):
                 irc_msg.reply(
                     "User %s has not entered their planet details" % (u.pnick,)
                 )
-            return
+            return 1
 
         irc_msg.reply("No alliance or user matching '%s' found" % (param,))
-        return
+        return 0

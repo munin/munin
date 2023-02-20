@@ -60,7 +60,7 @@ class cookiemonsters(loadable.loadable):
         ))
         return 1
 
-    def feeders(self):
+    def gainers(self):
         self.cursor.execute("""
         SELECT pnick, carebears AS cookies
         FROM user_list
@@ -70,7 +70,7 @@ class cookiemonsters(loadable.loadable):
         """)
         return self.format(self.cursor.fetchall())
 
-    def gainers(self):
+    def feeders(self):
         self.cursor.execute("""
         SELECT pnick, sum(howmany) AS cookies
         FROM       cookie_log AS l

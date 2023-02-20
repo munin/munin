@@ -485,24 +485,29 @@ class prop(loadable.loadable):
             SELECT answer_index, answer_text
             FROM poll_answer
             WHERE poll_id = %s
-            AND (
-                answer_index = %s
-                OR answer_text ILIKE %s
-            )
+            AND answer_index = %s
             """
-            args = (
+            self.cursor.execute(query, (
                 prop_id,
                 vote.lower(),
-                "%" + vote + "%",
-            )
-            print("%s /// %s" % ( query, args, ))
-            self.cursor.execute(query, args)
+            ))
             if self.cursor.rowcount == 0:
-                irc_msg.reply("You can't vote %s on this poll, you moron" % (
-                    vote,
+                query = """
+                SELECT answer_index, answer_text
+                FROM poll_answer
+                WHERE poll_id = %s
+                AND answer_text ILIKE %s
+                """
+                self.cursor.execute(query, (
+                    prop_id,
+                    "%" + vote + "%",
                 ))
-                return 1
-            elif self.cursor.rowcount > 1:
+                if self.cursor.rowcount == 0:
+                    irc_msg.reply("You can't vote '%s' on this poll, you moron" % (
+                        vote,
+                    ))
+                    return 1
+            if self.cursor.rowcount > 1:
                 irc_msg.reply("Be more specific, I can't read your mind. Yet.")
                 return 1
             else:
@@ -563,6 +568,8 @@ class prop(loadable.loadable):
             reply += "."
         else:
             reply = "Set your vote on proposition %s as %s" % (prop["id"], vote)
+            if prop["prop_type"] == "poll":
+                reply += " (%s)" % (vote_text,)
             if use_carebears and vote not in ["abstain", "veto"]:
                 reply += " with %s carebears" % (carebears,)
             reply += "."

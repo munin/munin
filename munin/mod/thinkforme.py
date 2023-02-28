@@ -335,6 +335,13 @@ class thinkforme(loadable.loadable):
             #     sc_income,
             # ))
 
+            # If building the next structure gives less value than it cost to
+            # build, then don't bother.
+            if (ref_income < ref_cost / gov_alert_bonus and
+                fc_income  <  fc_cost / gov_value_conversion and
+                sc_income  <  sc_cost / gov_value_conversion):
+                return r
+
             if sc_income > max(ref_income, fc_income):
                 if r.best is None or r.best == 'SC':
                     r.best = 'SC'

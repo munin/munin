@@ -476,7 +476,7 @@ class prop(loadable.loadable):
             and prop["person"].lower() == u.pnick.lower()
             and vote == "veto"
         ):
-            reply = "You can't veto a vote to kick you."
+            reply = "You can't veto a prop to kick you."
             irc_msg.reply(reply)
             return
 
@@ -516,6 +516,9 @@ class prop(loadable.loadable):
                 vote_text = row["answer_text"]
         else:
             kick_inv_arr = ["yes", "no", "veto", "abstain"]
+            # Many people add a comment when they vote on kick or invite props,
+            # so we look only at the first word for those.
+            vote = vote.split()[0]
             if vote.lower() not in kick_inv_arr:
                 irc_msg.reply(
                     "You can only vote %s on a %s prop, you moron"
@@ -908,7 +911,7 @@ class prop(loadable.loadable):
         )
         irc_msg.client.privmsg(
             "Q",
-            "chanlev #%s %s +ao"
+            "chanlev #%s #%s +akot"
             % (
                 home,
                 prop["person"],

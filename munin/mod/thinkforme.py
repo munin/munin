@@ -120,26 +120,31 @@ class thinkforme(loadable.loadable):
             self.last_income  = None
 
         def __str__(self):
-            string = "Planet %d:%d:%d should build approximately an additional %d %ss" % (
+            string = "Planet %d:%d:%d should" % (
                 self.planet.x,
                 self.planet.y,
                 self.planet.z,
-                self.number,
-                self.best,
             )
-            string += " and employ %d total guards for %d alert with %d pop, %s, and %d roids (for %d" % (
-                self.guards,
-                self.goal_alert,
-                self.population,
-                self.government.title(),
-                self.planet.size,
-                self.first_income,
-            )
-            if self.last_income is not None:
-                string += " -> %d" % (
-                    self.last_income,
+            if self.best:
+                string += " build approximately an additional %d %ss" % (
+                    self.number,
+                    self.best,
                 )
-            string += "  fleet value per construction tick by round end)"
+                string += " and employ %d total guards for %d alert with %d pop, %s, and %d roids (for %d" % (
+                    self.guards,
+                    self.goal_alert,
+                    self.population,
+                    self.government.title(),
+                    self.planet.size,
+                    self.first_income,
+                )
+                if self.last_income is not None:
+                    string += " -> %d" % (
+                        self.last_income,
+                    )
+                string += "  fleet value per construction tick by round end)"
+            else:
+                string += " not build FCs, SCs, or Refs: they will not pay for themselves before round end"
             return string
 
     def calculate(self, planet, goal_alert, population, gov, irc_msg):

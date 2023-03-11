@@ -894,7 +894,7 @@ class prop(loadable.loadable):
     def do_invite(self, irc_msg, prop):
         self.cursor.execute(
             "update user_list set alias_nick = NULL where alias_nick ilike %s",
-            prop["person"]
+            (prop["person"],)
         )
         gimp = self.load_user_from_pnick(prop["person"], irc_msg.round)
         home = self.config.get("Auth", "home")

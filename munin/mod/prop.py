@@ -892,6 +892,10 @@ class prop(loadable.loadable):
         irc_msg.client.privmsg("#%s" % (home), reply)
 
     def do_invite(self, irc_msg, prop):
+        self.cursor.execute(
+            "update user_list set alias_nick = NULL where alias_nick ilike %s",
+            prop["person"]
+        )
         gimp = self.load_user_from_pnick(prop["person"], irc_msg.round)
         home = self.config.get("Auth", "home")
         if not gimp or gimp.pnick.lower() != prop["person"].lower():

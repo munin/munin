@@ -72,11 +72,9 @@ class loosecunts(loadable.loadable):
         (SELECT *,nextval('activity_rank') AS activity_rank
          FROM (SELECT *,nextval('value_diff_rank') AS value_diff_rank
                FROM (SELECT *,nextval('xp_gain_rank') AS xp_gain_rank
-                     FROM (SELECT p0.x,p0.y,p0.z, i.nick, u.pnick, p0.xp-p72.xp AS xp_gain, p0.score-p72.score AS activity, p0.value-p72.value AS value_diff
+                     FROM (SELECT p0.x,p0.y,p0.z, i.nick, ac.name AS alliance, p0.xp-p72.xp AS xp_gain, p0.score-p72.score AS activity, p0.value-p72.value AS value_diff
                            FROM       planet_dump     AS p0
                            LEFT JOIN  intel           AS i   ON p0.id=i.pid
-                           LEFT JOIN  round_user_pref AS r   ON p0.id=r.planet_id
-                           LEFT JOIN  user_list       AS u   ON u.id=r.user_id
                            LEFT JOIN  alliance_canon  AS ac  ON i.alliance_id=ac.id
                            INNER JOIN planet_dump     AS p72 ON p0.id=p72.id AND p0.tick - 72 = p72.tick
                            WHERE p0.tick = (SELECT max_tick(%s::smallint)) AND p0.round = %s
@@ -86,22 +84,21 @@ class loosecunts(loadable.loadable):
             irc_msg.round,
         )
         if alliance is not None:
-            query += """
-                               AND ac.name ILIKE %s
-            """
+            query += "                    AND ac.name ILIKE %s"
             args += ("%%%s%%" % (alliance,),)
         query += """
                            ORDER BY xp_gain DESC) AS t6
-                    ORDER BY value_diff DESC) AS t7
-              ORDER BY activity DESC) AS t8)
+                     ORDER BY value_diff DESC) AS t7
+               ORDER BY activity DESC) AS t8)
         """
         self.cursor.execute(query,
                             args)
 
-        query = "SELECT x,y,z,pnick,nick,xp_gain,activity,value_diff,xp_gain_rank,value_diff_rank,activity_rank"
-        query += " FROM epenis"
-        query += " ORDER BY activity_rank DESC LIMIT 5"
-
+        query = (
+            "SELECT x || ':' || y || ':' || z AS coords,nick,alliance,activity,activity_rank"
+            " FROM epenis"
+            " ORDER BY activity_rank DESC LIMIT 5"
+        )
         self.cursor.execute(query, ())
 
         if self.cursor.rowcount < 1:
@@ -115,14 +112,11 @@ class loosecunts(loadable.loadable):
         prev = []
         for b in self.cursor.fetchall():
             prev.append(
-                "%d:%s (%s)"
+                "%d:%s%s (%s)"
                 % (
                     b["activity_rank"],
-                    b["pnick"]
-                    or b["nick"]
-                    or (
-                        "[" + str(b["x"]) + ":" + str(b["y"]) + ":" + str(b["z"]) + "]"
-                    ),
+                    b["nick"] or "[%s]" % (b["coords"],),
+                    "/%s" % (b["alliance"],) if "alliance" in b else "",
                     self.format_value(b["activity"] * 100),
                 )
             )

@@ -117,8 +117,10 @@ class intel(loadable.loadable):
             if opt in ("defwhore", "covop", "scanner", "distwhore", "relay"):
                 if val in self.true:
                     opts[opt] = True
-                if val in self.false:
+                elif val in self.false:
                     opts[opt] = False
+                else:
+                    del opts[opt]
             if opt == "comment":
                 opts[opt] = self.commentre.split(irc_msg.command)[1]
 

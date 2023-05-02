@@ -304,9 +304,13 @@ class thinkforme(loadable.loadable):
                                                     planet.size)
             extra_guards_without_sc = guards_with_current_scs - guards_with_one_more_sc
 
-            ref_income = round(((1100 * (1 + bonus)           * (ticks_left - ref_build_time) - ref_cost) / gov_value_conversion) * cons_speed / ref_cu)
-            fc_income  = round(((unbuffed_income * 0.005      * (ticks_left -  fc_build_time) -  fc_cost) / gov_value_conversion) * cons_speed /  fc_cu)
-            sc_income  = round(((extra_guards_without_sc * 12 * (ticks_left -  sc_build_time) -  sc_cost) / gov_value_conversion) * cons_speed /  sc_cu)
+            ref_income = (1100 * (1 + bonus)           * (ticks_left - ref_build_time) - ref_cost) / gov_value_conversion
+            fc_income  = (unbuffed_income * 0.005      * (ticks_left -  fc_build_time) -  fc_cost) / gov_value_conversion
+            sc_income  = (extra_guards_without_sc * 12 * (ticks_left -  sc_build_time) -  sc_cost) / gov_value_conversion
+
+            ref_income_per_cons_tick = round(ref_income * cons_speed / ref_cu)
+            fc_income_per_cons_tick  = round( fc_income * cons_speed /  fc_cu)
+            sc_income_per_cons_tick  = round( sc_income * cons_speed /  sc_cu)
 
             # print("!thinkforme: Refs: %s/%s/%s | Ref cost: %s | Ticks left: %s | Bonus %s | Ref build time: %s | Gov value conversion: %s | Net ref income: %s" % (
             #     refineries['metal'],
@@ -317,7 +321,7 @@ class thinkforme(loadable.loadable):
             #     bonus,
             #     ref_build_time,
             #     gov_value_conversion,
-            #     ref_income,
+            #     ref_income_per_cons_tick,
             # ))
             # print("!thinkforme: FCs: %s | FC cost: %s | Ticks left: %s | FC build time: %s | Unbuffed income: %s | Gov value conversion: %s | Net FC income: %s" % (
             #     fcs,
@@ -326,7 +330,7 @@ class thinkforme(loadable.loadable):
             #     fc_build_time,
             #     unbuffed_income,
             #     gov_value_conversion,
-            #     fc_income,
+            #     fc_income_per_cons_tick,
             # ))
             # print("!thinkforme: SCs: %s | SC cost: %s | Ticks left: %s | SC build time: %s | Goal alert: %s | Guards now: %s | Guards after extra SC: %s | Fireable guards: %s | Net SC income: %s" % (
             #     scs,
@@ -337,7 +341,7 @@ class thinkforme(loadable.loadable):
             #     guards_with_current_scs,
             #     guards_with_one_more_sc,
             #     extra_guards_without_sc,
-            #     sc_income,
+            #     sc_income_per_cons_tick,
             # ))
 
             # If building the next structure gives less value than it cost to
@@ -347,14 +351,14 @@ class thinkforme(loadable.loadable):
                 sc_income  <  sc_cost / gov_value_conversion):
                 return r
 
-            if sc_income > max(ref_income, fc_income):
+            if sc_income_per_cons_tick > max(ref_income_per_cons_tick, fc_income_per_cons_tick):
                 if r.best is None or r.best == 'SC':
                     r.best = 'SC'
                     r.number += 1
                     if r.number > 1:
-                        r.last_income = sc_income
+                        r.last_income = sc_income_per_cons_tick
                     else:
-                        r.first_income = sc_income
+                        r.first_income = sc_income_per_cons_tick
                     r.guards = guards_with_one_more_sc
                     scs += 1
                     tick += sc_build_time
@@ -363,23 +367,23 @@ class thinkforme(loadable.loadable):
                     #     planet.y,
                     #     planet.z,
                     #     scs,
-                    #     sc_income,
+                    #     sc_income_per_cons_tick,
                     #     guards_with_one_more_sc,
-                    #     ref_income,
-                    #     fc_income,
+                    #     ref_income_per_cons_tick,
+                    #     fc_income_per_cons_tick,
                     #     guards_with_current_scs
                     # ))
                 else:
                     again = False
-            elif ref_income > fc_income:
+            elif ref_income_per_cons_tick > fc_income_per_cons_tick:
                 if r.best is None or r.best == 'Ref':
                     r.best = 'Ref'
                     r.number += 1
                     tick += ref_build_time
                     if r.number > 1:
-                        r.last_income = ref_income
+                        r.last_income = ref_income_per_cons_tick
                     else:
-                        r.first_income = ref_income
+                        r.first_income = ref_income_per_cons_tick
                     r.guards = guards_with_current_scs
                     refineries[min_ref] += 1
                     # print("!thinkforme: %s:%s:%s | %s total Ref for +%s value (%s guards) | FC +%s | SC +%s (%s guards)" % (
@@ -387,10 +391,10 @@ class thinkforme(loadable.loadable):
                     #     planet.y,
                     #     planet.z,
                     #     refineries['metal'] + refineries['crystal'] + refineries['eonium'],
-                    #     ref_income,
+                    #     ref_income_per_cons_tick,
                     #     guards_with_current_scs,
-                    #     fc_income,
-                    #     sc_income,
+                    #     fc_income_per_cons_tick,
+                    #     sc_income_per_cons_tick,
                     #     guards_with_one_more_sc,
                     # ))
                 else:
@@ -401,9 +405,9 @@ class thinkforme(loadable.loadable):
                     r.number += 1
                     tick += fc_build_time
                     if r.number > 1:
-                        r.last_income = fc_income
+                        r.last_income = fc_income_per_cons_tick
                     else:
-                        r.first_income = fc_income
+                        r.first_income = fc_income_per_cons_tick
                     r.guards = guards_with_current_scs
                     fcs += 1
                     # print("!thinkforme: %s:%s:%s | %s total FC for +%s value (%s guards) | Ref +%s | SC +%s (%s guards)" % (
@@ -411,10 +415,10 @@ class thinkforme(loadable.loadable):
                     #     planet.y,
                     #     planet.z,
                     #     fcs,
-                    #     fc_income,
+                    #     fc_income_per_cons_tick,
                     #     guards_with_current_scs,
-                    #     ref_income,
-                    #     sc_income,
+                    #     ref_income_per_cons_tick,
+                    #     sc_income_per_cons_tick,
                     #     guards_with_one_more_sc,
                     # ))
                 else:

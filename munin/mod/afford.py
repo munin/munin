@@ -154,7 +154,7 @@ class afford(loadable.loadable):
                     ship["name"],
                     int(buildable_from_prod + buildable),
                     int((buildable_from_prod + buildable) * demo_modifier),
-                    int((buildable_from_prod + buildable) * demo_modifier),
+                    int((buildable_from_prod + buildable) * tota_modifier),
                 )
 
         irc_msg.reply(reply)

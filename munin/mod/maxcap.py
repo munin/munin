@@ -62,7 +62,6 @@ class maxcap(loadable.loadable):
                 total_roids = victim.size
                 if m.lastindex >= 6:
                     attacker = loadable.planet(x=m.group(4), y=m.group(5), z=m.group(6))
-                    attacker = loadable.planet(x=m.group(4), y=m.group(5), z=m.group(6))
                     if not attacker.load_most_recent(self.cursor, irc_msg.round):
                         irc_msg.reply(
                             "%s:%s:%s is not a valid planet"
@@ -73,6 +72,13 @@ class maxcap(loadable.loadable):
                     user = self.load_user_from_pnick(user, irc_msg.round)
                     if user.planet:
                         attacker = user.planet
+                    else:
+                        irc_msg.reply(
+                            "You must be registered to use the automatic %s command (log in with Q and "
+                            "set mode +x, then make sure your planet is set with the pref command (!pref planet=x:y:z))"
+                            % (self.__class__.__name__)
+                        )
+                        return 1
         else:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0

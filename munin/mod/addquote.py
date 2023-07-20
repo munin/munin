@@ -46,15 +46,16 @@ class addquote(loadable.loadable):
             irc_msg.reply("You do not have enough access to use this command")
             return 0
 
-        params = self.striptimestamps(params)
-        args = (params,)
-
-        query = "INSERT INTO quote (quote) VALUES (%s)"
-        self.cursor.execute(query, args)
-
-        irc_msg.reply("Added your shitty quote: " + params)
-
-        return 1
+        if len(params) > 1:
+            params = self.striptimestamps(params)
+            args = (params,)
+            query = "INSERT INTO quote (quote) VALUES (%s)"
+            self.cursor.execute(query, args)
+            irc_msg.reply("Added your shitty quote: " + params)
+            return 1
+        else:
+            irc_msg.reply("What's the damn quote?")
+            return 0
 
     def striptimestamps(self, s):
         """

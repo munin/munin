@@ -598,9 +598,14 @@ class planet(object):
                                                                                   min(2.25,
                                                                                       float(victim.value) / float(self.value)) - 0.25))
 
-    def cap_rate(self, victim):
+    def cap_rate(self, victim, war_bonus=0.0):
+        max_cap_rate = 0.25 + war_bonus
         modifier = (float(victim.value) / float(self.value)) ** 0.5
-        return max(0.15, min(0.25 * modifier, 0.25))
+        x = max(0.15,
+                   min(max_cap_rate * modifier,
+                       max_cap_rate))
+        print("modifier %s, max %s, final %s" % (modifier, max_cap_rate, x,))
+        return x
 
     def vdiff(self, cursor, tick, round):
         query = (

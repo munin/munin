@@ -33,12 +33,15 @@ from munin import loadable
 class maxcap(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1)
-        self.paramre = re.compile(r"^\s*(\d+)(?:[-.:\s](\d+)[-.:\s](\d+)(?:\s+(\d+)[-.:\s](\d+)[-.:\s](\d+))?)?")
-        self.usage = self.__class__.__name__ + " <defender coords> [attacker coords]"
+        self.paramre = re.compile(r"^\s*(\d+)(?:[-.:\s](\d+)[-.:\s](\d+)(?:\s+(\d+)[-.:\s](\d+)[-.:\s](\d+))?)?(?:\s+(war|ally_war))?")
+        self.usage = self.__class__.__name__ + " <defender coords> [attacker coords] [war|ally_war]"
         self.helptext = [
             "Show how many roids you will cap from a target. If you have your"
             " planet set, your actual cap rate will be used, otherwise max cap"
-            " is assumed. You can also manually specify attacker coords."
+            " is assumed. You can also manually specify attacker coords. Add"
+            " 'war' at the end to raise the cap rate by 20% (for when the"
+            " attacker is at war with the target) or 'ally_war' to raise it by"
+            " 12% (for when the attacker is at war with an ally of the target)"
         ]
 
     def execute(self, user, access, irc_msg):
@@ -48,9 +51,10 @@ class maxcap(loadable.loadable):
 
         victim = None
         attacker = None
+        war_bonus = 0.0
         m = self.paramre.search(irc_msg.command_parameters)
         if m:
-            if m.lastindex == 1:
+            if m.lastindex == 1 or m.group(2) is None:
                 total_roids = int(m.group(1))
             else:
                 victim = loadable.planet(x=m.group(1), y=m.group(2), z=m.group(3))
@@ -60,7 +64,7 @@ class maxcap(loadable.loadable):
                     )
                     return 1
                 total_roids = victim.size
-                if m.lastindex >= 6:
+                if m.lastindex >= 6 and m.group(4) is not None:
                     attacker = loadable.planet(x=m.group(4), y=m.group(5), z=m.group(6))
                     if not attacker.load_most_recent(self.cursor, irc_msg.round):
                         irc_msg.reply(
@@ -79,14 +83,19 @@ class maxcap(loadable.loadable):
                             % (self.__class__.__name__)
                         )
                         return 1
+            war_arg = m.group(m.lastindex)
+            if war_arg == 'war':
+                war_bonus = 0.05
+            elif war_arg == 'ally_war':
+                war_bonus = 0.03
         else:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
         cap = 0
-        cap_rate = 0.25
+        cap_rate = 0.25 + war_bonus
         if attacker and victim:
-            cap_rate = attacker.cap_rate(victim)
+            cap_rate = attacker.cap_rate(victim, war_bonus)
 
         reply = ""
         for i in range(1, 5):

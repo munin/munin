@@ -33,7 +33,7 @@ from munin import loadable
 class maxcap(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1)
-        self.paramre = re.compile(r"^\s*(\d+)(?:[-.:\s](\d+)[-.:\s](\d+)(?:\s+(\d+)[-.:\s](\d+)[-.:\s](\d+))?)?(?:\s+(war|ally_war))?")
+        self.paramre = re.compile(r"^\s*(\d+)(?:[-.:\s](\d+)[-.:\s](\d+)(?:\s+(\d+)[-.:\s](\d+)[-.:\s](\d+))?)?(?:\s+(war|ally_war|other_war))?")
         self.usage = self.__class__.__name__ + " <defender coords> [attacker coords] [war|ally_war]"
         self.helptext = [
             "Show how many roids you will cap from a target. If you have your"
@@ -41,7 +41,9 @@ class maxcap(loadable.loadable):
             " is assumed. You can also manually specify attacker coords. Add"
             " 'war' at the end to raise the cap rate by 20% (for when the"
             " attacker is at war with the target) or 'ally_war' to raise it by"
-            " 12% (for when the attacker is at war with an ally of the target)"
+            " 12% (for when the attacker is at war with an ally of the target),"
+            " or 'other_war' to lower it by 12% (for when the attacker is at"
+            " war with someone else entirely)."
         ]
 
     def execute(self, user, access, irc_msg):
@@ -88,6 +90,8 @@ class maxcap(loadable.loadable):
                 war_bonus = 0.05
             elif war_arg == 'ally_war':
                 war_bonus = 0.03
+            elif war_arg == 'other_war':
+                war_bonus = -0.03
         else:
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0

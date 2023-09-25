@@ -38,8 +38,10 @@ class hoarders(loadable.loadable):
         self.paramre = re.compile(r"^\s*(?:0*([0-9]+)[: .]0*([0-9]+)(?:[: .]0*([0-9]+))?)|(\S+)", re.IGNORECASE)
         self.usage = self.__class__.__name__ + " <x:y[:z]|alliance name>"
         self.helptext = [
-            "Return the stockpile and the amount of resources in production of"
-            " a planet, galaxy, or alliance."
+            "Find out the amount of resources a planet, galaxy, or alliance has"
+            " stockpiled and in production, and then calculate what their"
+            " potential minimum and maximum total score is when it is all"
+            " converted into value."
         ]
         self.maximum_scan_age = 12
 
@@ -89,9 +91,10 @@ class hoarders(loadable.loadable):
         return 1
 
     def alliance_hoarders(self, round, alliance):
-        counting_members = int(self.config.get("Planetarion", "counting_tag_members"))
+        counting_members = int(self.config.get("Planetarion",
+                                               "counting_tag_members"))
         query = """
-        SELECT score, res, prod
+        SELECT *
         FROM (
             SELECT p.score, (ps.res_metal + ps.res_crystal + ps.res_eonium) AS res, ps.prod_res AS prod, rank() OVER (PARTITION BY s.pid ORDER BY s.id DESC) AS rank
             FROM            planet_dump   AS p
@@ -119,31 +122,137 @@ class hoarders(loadable.loadable):
             counting_members,
         )
         self.cursor.execute(query, args)
-        stockpile = 0
-        in_production = 0
-        scan_count = 0
-        for row in self.cursor.fetchall():
-            if row['res'] is not None:
-                scan_count += 1
-                stockpile += row['res']
-                in_production += row['prod']
-
-        min_potential_score = alliance.score + stockpile / 100 - stockpile / 150
-        max_potential_score = alliance.score + (stockpile + in_production) /  94 - (stockpile + in_production) / 150
-        return "%s (%s members, %s counting, %s with fresh scans) has %s score, %s resources stockpiled, %s resources in production | Potential score: %s-%s" % (
+        rows = self.cursor.fetchall()
+        scan_count = len([1 for row in rows if row['res'] is not None])
+        prefix = "%s (%s members, %s counting, %s with fresh scans)" % (
             alliance.name,
             alliance.members,
             counting_members if alliance.members > counting_members else "all",
             scan_count if counting_members > scan_count else "all",
-            self.format_real_value(alliance.score),
-            self.format_real_value(stockpile),
-            self.format_real_value(in_production),
-            self.format_real_value(min_potential_score),
-            self.format_real_value(max_potential_score),
         )
+        return self.process_and_format_hoarders(prefix,
+                                                alliance.score,
+                                                rows)
 
     def galaxy_hoarders(self, round, galaxy):
-        return "hoarders galaxy %s:%s WIP" % (galaxy.x, galaxy.y,)
+        query = """
+        SELECT *
+        FROM (
+            SELECT (ps.res_metal + ps.res_crystal + ps.res_eonium) AS res, ps.prod_res AS prod, rank() OVER (PARTITION BY s.pid ORDER BY s.id DESC) AS rank
+            FROM            planet_dump   AS p
+            LEFT OUTER JOIN scan          AS s  ON s.pid         = p.id
+            LEFT OUTER JOIN planet        AS ps ON s.id          = ps.scan_id
+            WHERE p.round = %s
+            AND p.tick = max_tick(%s::smallint)
+            AND p.x = %s
+            AND p.y = %s
+            AND (
+                s.tick >= max_tick(%s::smallint) - %s
+                OR
+                s.tick IS NULL
+            )
+        ) AS scans
+        WHERE rank = 1
+        """
+        # Constrain on (round, tick, x, y) to take advantage of the
+        # planet_dump_pkey index on planet_dump.
+        args = (
+            round,
+            round,
+            galaxy.x,
+            galaxy.y,
+            round,
+            self.maximum_scan_age,
+        )
+        self.cursor.execute(query, args)
+        rows = self.cursor.fetchall()
+        scan_count = len([1 for row in rows if row['res'] is not None])
+        prefix = "%s:%s (%s members, %s with fresh scans)" % (
+            galaxy.x,
+            galaxy.y,
+            galaxy.members,
+            scan_count if galaxy.members > scan_count else "all",
+        )
+        return self.process_and_format_hoarders(prefix,
+                                                galaxy.score,
+                                                rows)
 
     def planet_hoarders(self, round, planet):
-        return "hoarders planet %s:%s:%s WIP" % (planet.x, planet.y, planet.z,)
+        query = """
+        SELECT *
+        FROM (
+            SELECT (ps.res_metal + ps.res_crystal + ps.res_eonium) AS res, ps.prod_res AS prod, rank() OVER (PARTITION BY s.pid ORDER BY s.id DESC) AS rank
+            FROM            planet_dump   AS p
+            LEFT OUTER JOIN scan          AS s  ON s.pid         = p.id
+            LEFT OUTER JOIN planet        AS ps ON s.id          = ps.scan_id
+            WHERE p.round = %s
+            AND p.tick = max_tick(%s::smallint)
+            AND p.x = %s
+            AND p.y = %s
+            AND p.z = %s
+            AND (
+                s.tick >= max_tick(%s::smallint) - %s
+                OR
+                s.tick IS NULL
+            )
+        ) AS scans
+        WHERE rank = 1
+        """
+        # Constrain on (round, tick, x, y, z) to take advantage of the
+        # planet_dump_pkey index on planet_dump.
+        args = (
+            round,
+            round,
+            planet.x,
+            planet.y,
+            planet.z,
+            round,
+            self.maximum_scan_age,
+        )
+        self.cursor.execute(query, args)
+        rows = self.cursor.fetchall()
+        if rows[0]['res'] is None:
+            return "Need a fresh planet scan on %s:%s:%s!" % (
+            planet.x,
+            planet.y,
+            planet.z,
+        )
+        else:
+            prefix = "%s:%s:%s" % (
+                planet.x,
+                planet.y,
+                planet.z,
+            )
+            return self.process_and_format_hoarders(prefix,
+                                                    planet.score,
+                                                    rows)
+
+    def process_and_format_hoarders(self, prefix, score, rows):
+        stockpile     = sum([row['res']  for row in rows if row['res']  is not None])
+        in_production = sum([row['prod'] for row in rows if row['prod'] is not None])
+        minimum_potential_score = self.minimum_potential_score(score,
+                                                               stockpile)
+        maximum_potential_score = self.maximum_potential_score(score,
+                                                               stockpile,
+                                                               in_production)
+        return "%s has %s score, %s resources stockpiled, %s resources in production | Potential total score: %s-%s" % (
+            prefix,
+            self.format_real_value(score),
+            self.format_real_value(stockpile),
+            self.format_real_value(in_production),
+            self.format_real_value(minimum_potential_score),
+            self.format_real_value(maximum_potential_score),
+        )
+
+    def minimum_potential_score(self, score, stockpile):
+        # If all production orders are /almost/ finished, then their owner has
+        # already gained all the value they can from them, so we can safely
+        # ignore it here.
+        return score + stockpile / 100 - stockpile / 150
+
+    def maximum_potential_score(self, score, stockpile, in_production):
+        # Production orders give 0 extra value if the game hasn't ticked since
+        # they were started, in which case we should treat it as if it were a
+        # stockpile. We also assume Totalitarianism here, because it adds a
+        # little more value.
+        return score + (stockpile + in_production) / 94 - (stockpile + in_production) / 150

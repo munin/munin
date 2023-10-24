@@ -74,6 +74,7 @@ class pref(loadable.loadable):
                     y = m.group(2)
                     z = m.group(3)
                     self.save_planet(irc_msg, u, x, y, z, user)
+                    self.save_lemming(irc_msg, u, "yes", access)
                 else:
                     irc_msg.reply(
                         "You must provide coordinates (x:y:z) for the planet option"

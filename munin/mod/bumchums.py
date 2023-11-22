@@ -40,7 +40,7 @@ class bumchums(loadable.loadable):
 
     def __init__(self, cursor):
         super().__init__(cursor, 50)
-        self.paramre = re.compile(r"^\s*(.+)(\s+(\d+)\s*)?$")
+        self.paramre = re.compile(r"^\s*(.+?)(\s+(\d+)\s*)?$")
         self.usage = self.__class__.__name__ + " <alliance> [number]"
         self.helptext = ["List the galaxies with lots of planets in the given alliance."]
 

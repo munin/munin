@@ -62,13 +62,19 @@ class napfest(loadable.loadable):
         war_duration = self.config.getint("Planetarion", "war_duration")
         auto_war_duration = self.config.getint("Planetarion", "auto_war_duration")
 
+        limit = 9
         query = "SELECT tick, text FROM userfeed_dump"
         query += " WHERE type = 'Relation Change'"
         query += " AND round = %s"
         query += " AND text NOT ILIKE %s"
         query += " ORDER BY tick DESC"
-        query += " LIMIT 5"
-        self.cursor.execute(query, (irc_msg.round, "%'s war with % has expired.",))
+        query += " LIMIT %s"
+        args = (
+            irc_msg.round,
+            "%'s war with % has expired.",
+            limit
+        )
+        self.cursor.execute(query, args)
 
         if self.cursor.rowcount == 0:
             reply = "Nothing has happened yet, go fight some fools!"
@@ -130,7 +136,8 @@ class napfest(loadable.loadable):
                         % (row["tick"], row["text"],)
                     )
 
-            reply = "Most recent 10 alliance relation changes: %s" % (
+            reply = "Most recent %s alliance relation changes: %s" % (
+                limit,
                 " | ".join(reversed(events))
             )
         irc_msg.reply(reply)

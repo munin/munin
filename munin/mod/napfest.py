@@ -62,6 +62,8 @@ class napfest(loadable.loadable):
         war_duration = self.config.getint("Planetarion", "war_duration")
         auto_war_duration = self.config.getint("Planetarion", "auto_war_duration")
 
+        # This number of alliance relation changes should fit neatly in 1
+        # message.
         limit = 9
         query = "SELECT tick, text FROM userfeed_dump"
         query += " WHERE type = 'Relation Change'"

@@ -46,7 +46,7 @@ class bonus(loadable.loadable):
 
         self.cursor.execute("SELECT max_tick(%s::smallint)", (irc_msg.round,))
         tick = int(self.cursor.fetchone()['max_tick'])
-        bonus = 25
+        bonus = 25.0
 
         m = self.paramre.search(irc_msg.command_parameters)
         if m:

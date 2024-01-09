@@ -116,7 +116,7 @@ class putships(loadable.loadable):
                 irc_msg.reply("Failed to find any ships to load from URL %s" % (url,))
         except psycopg2.errors.UniqueViolation as uv:
             self.cursor.execute("SELECT id FROM ship WHERE round=%s;", (irc_msg.round,))
-            irc_msg.reply("%d ships for this round have already been loaded" % (self.cursor.rowcount,))
+            irc_msg.reply("%d ships for round %d have already been loaded" % (self.cursor.rowcount, irc_msg.round,))
         return 0
 
     def load_stats(self, round, url, overwrite):

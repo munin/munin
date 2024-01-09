@@ -38,12 +38,9 @@ class maxcap(loadable.loadable):
         self.helptext = [
             "Show how many roids you will cap from a target. If you have your"
             " planet set, your actual cap rate will be used, otherwise max cap"
-            " is assumed. You can also manually specify attacker coords. Add"
-            " 'war' at the end to raise the cap rate by 20% (for when the"
-            " attacker is at war with the target) or 'ally_war' to raise it by"
-            " 12% (for when the attacker is at war with an ally of the target),"
-            " or 'other_war' to lower it by 12% (for when the attacker is at"
-            " war with someone else entirely)."
+            " is assumed. You can also manually specify attacker coords, and"
+            " add 'war', 'ally_war' or 'other_war' to indicate that you, one of"
+            " your allies, or someone else is at war with your target."
         ]
 
     def execute(self, user, access, irc_msg):

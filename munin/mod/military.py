@@ -33,7 +33,7 @@ class military(loadable.loadable):
         self.scan_prefix = "http://game.planetarion.com/showscan.pl?scan_id="
         self.paramsre = re.compile(r"(\d+)[. :-](\d+)[. :-](\d+)(?:\s+(base|[0-3]))?(?:\s+(l|li|lin|link|linkie))?")
         self.idre = re.compile(r"([a-z0-9]+)(?:\s+(base|[0-3]))?")
-        self.usage = self.__class__.__name__ + "[<x:y:z> [fleet number or base] [link]] | [<scan ID> [fleet number or base]]"
+        self.usage = self.__class__.__name__ + " [<x:y:z> [fleet number or base] [link]] | [<scan ID> [fleet number or base]]"
         self.helptext = None
 
     def execute(self, user, access, irc_msg):

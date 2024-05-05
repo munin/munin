@@ -30,7 +30,7 @@ SELECT curround, tick, anarchy_end_tick, pid FROM utmp WHERE anarchy_end_tick IS
 ON CONFLICT DO NOTHING;
 
 -- Extract alliance relation data.
-ALTER TABLE utmp ADD COLUMN relation_type varchar(4);
+ALTER TABLE utmp ADD COLUMN relation_type text;
 ALTER TABLE utmp ADD COLUMN alliance1_id integer;
 ALTER TABLE utmp ADD COLUMN alliance2_id integer;
 ALTER TABLE utmp ADD COLUMN relation_end_tick smallint DEFAULT 32767;

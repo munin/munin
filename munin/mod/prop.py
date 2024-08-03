@@ -100,7 +100,7 @@ class prop(loadable.loadable):
             if self.too_many_members(irc_msg):
                 return 1
             person = m.group(1).lower()
-            comment = m.group(3).lower()
+            comment = m.group(3)
             self.process_invite_proposal(irc_msg, u, person, comment)
 
         elif prop_type.lower() == "kick":
@@ -118,7 +118,7 @@ class prop(loadable.loadable):
                 return 1
 
             person = m.group(1).lower()
-            comment = m.group(3).lower()
+            comment = m.group(3)
             self.process_kick_proposal(irc_msg, u, person, comment)
 
         elif prop_type.lower() == "poll":

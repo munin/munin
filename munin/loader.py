@@ -7,7 +7,7 @@ import sys
 import os
 
 import traceback
-import imp
+import importlib
 
 
 class Loader(object):
@@ -115,7 +115,7 @@ class Loader(object):
         will have to be manually updated."""
 
         try:
-            newmod = imp.reload(self.loaded[name])
+            newmod = importlib.reload(self.loaded[name])
             self.loaded[name] = newmod
         except KeyError:
             print("Module %s not present. Import it first." % (name,))

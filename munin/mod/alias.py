@@ -63,14 +63,14 @@ class alias(loadable.loadable):
         if not alias:
             irc_msg.reply("You are %s, your alias is %s" % (u.pnick, u.alias_nick))
         elif m.group(3):
-            if m.group(3) == 'YES_I_AM_SURE':
+            if m.group(3) == 'YES_BREAK_MY_ACCOUNT':
                 self.update_own_alias(u, alias, irc_msg)
             else:
                 other_user = m.group(3)
                 self.update_other_alias(u, alias, irc_msg, other_user)
         else:
             if u.alias_nick == user:
-                irc_msg.reply("If you do this I will forget who you are. No one is going to fix that for you. If you're really sure, add \"YES_I_AM_SURE\"")
+                irc_msg.reply("If you do this I will forget who you are. No one is going to fix that for you. If you're really sure, add \"YES_BREAK_MY_ACCOUNT\"")
             else:
                 self.update_own_alias(u, alias, irc_msg)
         return 1

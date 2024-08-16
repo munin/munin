@@ -20,6 +20,7 @@
 # owners.
 
 import re
+import datetime
 
 
 class irc_message(object):
@@ -115,6 +116,8 @@ class irc_message(object):
         return self.privprefix.replace("|", "").find(self.prefix) > -1
 
     def reply(self, text):
+        if datetime.datetime.now().month == 6:
+            text = text.replace('bear', 'twink')
         if self.command.isupper():
             text = text.upper()
         self.client.reply(self.prefix_numeric(), self.nick, self.target, text)

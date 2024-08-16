@@ -147,11 +147,7 @@ class loadable(object):
     def pluralize(self, number, text):
         if number == 1:
             return text
-        if text.lower() == "cookie":
-            return text + "s"
-        elif text.lower() == "carebear":
-            return text + "s"
-        elif text.lower() == "day":
+        elif text.lower() in ['cookie', 'carebear', 'caretwink', 'day']:
             return text + "s"
         elif text.lower() == "match":
             return text + "es"

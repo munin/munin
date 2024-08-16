@@ -66,7 +66,8 @@ class alias(loadable.loadable):
             if m.group(3) == 'YES_I_AM_SURE':
                 self.update_own_alias(u, alias, irc_msg)
             else:
-                self.update_other_alias(u, alias, irc_msg, m.group(3))
+                other_user = m.group(3)
+                self.update_other_alias(u, alias, irc_msg, other_user)
         else:
             if u.alias_nick == user:
                 irc_msg.reply("If you do this I will forget who you are. No one is going to fix that for you. If you're really sure, add \"YES_I_AM_SURE\"")
@@ -82,21 +83,24 @@ class alias(loadable.loadable):
         self.cursor.execute(query, (alias,))
         if self.cursor.rowcount > 0:
             irc_msg.reply(
-                "That alias is already in use or is someone else's pnick (not allowed). Tough noogies."
+                "That alias is already in use as someone else's pnick (not allowed). Tough noogies."
             )
             return
-        try:
-            query = "UPDATE user_list SET alias_nick = %s WHERE pnick ilike %s"
-            self.cursor.execute(query, (alias, other_pnick))
-            if self.cursor.rowcount > 0:
-                irc_msg.reply("Update alias for %s to %s" % (other_pnick, alias))
-            else:
-                irc_msg.reply("If you see this message you are a winner. Fuck you.")
-        except BaseException:
-            irc_msg.reply(
-                "That alias is already in use or is someone else's pnick (not allowed). Tough noogies."
-            )
-        pass
+        u = self.load_user_from_pnick(other_pnick, irc_msg.round)
+        if u:
+            try:
+                query = "UPDATE user_list SET alias_nick = %s WHERE pnick = %s"
+                self.cursor.execute(query, (alias, u.pnick))
+                if self.cursor.rowcount > 0:
+                    irc_msg.reply("Update alias for %s to %s" % (u.pnick, alias))
+                else:
+                    irc_msg.reply("If you see this message you are a winner. Fuck you.")
+            except BaseException:
+                irc_msg.reply(
+                    "That alias is already in use or is someone else's pnick (not allowed). Tough noogies."
+                )
+        else:
+            irc_msg.reply("Why are you trying to set an alias for someone who doesn't exist? Weirdo.")
 
     def update_own_alias(self, u, alias, irc_msg):
         query = "SELECT pnick FROM user_list WHERE pnick ilike %s"

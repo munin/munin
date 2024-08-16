@@ -99,7 +99,7 @@ class prop(loadable.loadable):
                 return 1
             if self.too_many_members(irc_msg):
                 return 1
-            person = m.group(1).lower()
+            person = m.group(1).lower().removeprefix('@')
             comment = m.group(3)
             self.process_invite_proposal(irc_msg, u, person, comment)
 
@@ -117,7 +117,7 @@ class prop(loadable.loadable):
             ):
                 return 1
 
-            person = m.group(1).lower()
+            person = m.group(1).lower().removeprefix('@')
             comment = m.group(3)
             self.process_kick_proposal(irc_msg, u, person, comment)
 
@@ -189,7 +189,8 @@ class prop(loadable.loadable):
             m = self.match_or_usage(irc_msg, re.compile(r"\s*(\S+)"), m.group(2))
             if not m:
                 return 1
-            self.process_search_proposal(irc_msg, u, m.group(1).lower())
+            search = m.group(1).lower().removeprefix('@')
+            self.process_search_proposal(irc_msg, u, search)
         return 1
 
     def too_many_members(self, irc_msg):

@@ -55,7 +55,7 @@ class letmein(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        auther = m.group(1)
+        auther = m.group(1).removeprefix('@')
         passy = m.group(2)
 
         query = "SELECT pnick, userlevel FROM user_list"

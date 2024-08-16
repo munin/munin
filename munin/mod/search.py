@@ -138,6 +138,8 @@ class search(loadable.loadable):
             if '=' in s:
                 key, value = s.split('=')
                 if key in self.options:
+                    if key == 'nick':
+                        value = value.removeprefix('@')
                     if value in self.nulls:
                         value = None
                     if value in self.true:
@@ -148,5 +150,5 @@ class search(loadable.loadable):
                 # Silently ignore invalid options
             else:
                 # For simplicity, allow plain alliance and nick.
-                param_dict['nick_or_alliance'] = s
+                param_dict['nick_or_alliance'] = s.removeprefix('@')
         return param_dict

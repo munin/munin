@@ -793,7 +793,8 @@ class user(object):
         alias_nick=None,
     ):
         self.id = id
-        self.pnick = pnick
+        # Allow people to use use nick prefixes on Slack, Telegram, etc.
+        self.pnick = pnick.removeprefix('@')
         self.sponsor = sponsor
         self.userlevel = userlevel
         self.planet_id = planet_id

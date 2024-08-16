@@ -36,6 +36,7 @@ class status(loadable.loadable):
         super().__init__(cursor, 50)
         self.paramre = re.compile(r"^(\s+(.*))?")
         self.coordre = re.compile(r"^(\d+)[ .:-](\d+)([ .:-](\d+))?([ .:-](\d+))?")
+        # BUG: Can't ever look at someone else's bookings, nor at different ticks.
         self.nickre = re.compile(r"^(\D\S*)?(\s*(\d+))?$")
         self.usage = self.__class__.__name__ + " [<nick|user>|<x:y[:z]>] [tick]"
 

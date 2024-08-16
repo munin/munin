@@ -59,7 +59,7 @@ class alias(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        alias = m.group(1)
+        alias = m.group(1).removeprefix('@')
         if not alias:
             irc_msg.reply("You are %s, your alias is %s" % (u.pnick, u.alias_nick))
         elif m.group(3):

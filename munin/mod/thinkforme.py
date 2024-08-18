@@ -34,11 +34,15 @@ class thinkforme(loadable.loadable):
         self.paramre = re.compile(r"^\s*((\d+)[.:\s-](\d+)[.:\s-](\d+))?(.*)")
         self.govre = re.compile(r"\s*\b(cor|dem|nat|soc|tot|ana)[a-z]*\b")
         self.numre = re.compile(r"\s*\b([0-9]+)\b")
-        self.usage = self.__class__.__name__ + " [x:y:z] [government] [population on security] [target alert]"
+        self.usage = self.__class__.__name__ + " [x:y:z] [government] [population on security] [target alert] [expected average(ish) roids]"
         self.helptext = [
             "Get advice about whether to build refineries, FCs, or SCs. If no"
             " government is given, Totalitarianism is assumed. If no population"
-            " is given, 40% is assumed. Arguments may be given in any order."
+            " is given, 40% is assumed. If no roids are given, current roid"
+            " count is assumed. Arguments may be given in any order. The"
+            " calculation takes into account remaining ticks, construction time,"
+            " construction cost, guard wages, government ship production cost"
+            " discount, and government alert bonus."
         ]
         self.max_scan_age = 48
 
@@ -57,6 +61,7 @@ class thinkforme(loadable.loadable):
         gov = 'tot'
         goal_alert = None
         population = 40
+        size = None
 
         m = self.paramre.search(irc_msg.command_parameters)
         if m:
@@ -88,7 +93,9 @@ class thinkforme(loadable.loadable):
                     m = self.numre.search(word)
                     if m:
                         num = int(m.group(1))
-                        if num > 50:
+                        if num > 100:
+                            size = num
+                        elif num > 50:
                             goal_alert = num
                         else:
                             population = num
@@ -99,7 +106,7 @@ class thinkforme(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 1
 
-        result = self.calculate(p, goal_alert, population, gov, irc_msg)
+        result = self.calculate(p, goal_alert, population, gov, size, irc_msg)
         if result:
             irc_msg.reply(str(result))
             return 0
@@ -107,11 +114,12 @@ class thinkforme(loadable.loadable):
             return 1
 
     class result(object):
-        def __init__(self, planet, goal_alert, population, government):
+        def __init__(self, planet, goal_alert, population, government, size):
             self.planet     = planet
             self.goal_alert = goal_alert
             self.population = population
             self.government = government
+            self.size = size
 
             self.best         = None
             self.guards       = None
@@ -135,7 +143,7 @@ class thinkforme(loadable.loadable):
                     self.goal_alert,
                     self.population,
                     self.government.title(),
-                    self.planet.size,
+                    self.size,
                     self.first_income,
                 )
                 if self.last_income is not None:
@@ -147,7 +155,7 @@ class thinkforme(loadable.loadable):
                 string += " not build FCs, SCs, or Refs: they will not pay for themselves before round end"
             return string
 
-    def calculate(self, planet, goal_alert, population, gov, irc_msg):
+    def calculate(self, planet, goal_alert, population, gov, size, irc_msg):
         governments = {
             "cor": "corporatism",
             "dem": "democracy",
@@ -234,6 +242,9 @@ class thinkforme(loadable.loadable):
             irc_msg.reply("I need a recent development scan")
             return None
 
+        if size is None:
+            size = planet.size
+
         gov_construction_speed = float(self.config.get("Planetarion", "%s_construction_speed" % (government,)))
         race_cu = int(self.config.get("Planetarion", "%s_construction_speed" % (planet.race,)))
         cons_speed = race_cu * (1.35 + gov_construction_speed)
@@ -256,7 +267,7 @@ class thinkforme(loadable.loadable):
         gov_mining_bonus = float(self.config.get("Planetarion", "%s_mining_bonus" % (government,)))
         gov_alert_bonus = float(self.config.get("Planetarion", "%s_alert_bonus" % (government,)))
 
-        r = self.result(planet, goal_alert, population, government)
+        r = self.result(planet, goal_alert, population, government, size)
         again = True
         # In each iteration of this loop, we calculate for which 'next
         # structure' the payoff is the highest, between it finishing and round
@@ -279,12 +290,12 @@ class thinkforme(loadable.loadable):
             ticks_left = 1177 - tick
 
             bonus = 0.25 + 0.005 * fcs + gov_mining_bonus
-            unbuffed_income = 250 * planet.size + 60000 + 1100 * (refineries['metal'] + refineries['crystal'] + refineries['eonium'])
+            unbuffed_income = 250 * size + 60000 + 1100 * (refineries['metal'] + refineries['crystal'] + refineries['eonium'])
 
             # If no explicit goal alertness is given, assume the planet's
             # current alertness is the goal.
             if r.goal_alert is None:
-                r.goal_alert = int((50 + 5 * guards / (planet.size + 1)) * (1.0 + population / 100.0 + 0.0275 * scs + gov_alert_bonus))
+                r.goal_alert = int((50 + 5 * guards / (size + 1)) * (1.0 + population / 100.0 + 0.0275 * scs + gov_alert_bonus))
             def guards_needed(goal_alert,
                               scs,
                               gov_alert_speed,
@@ -297,11 +308,11 @@ class thinkforme(loadable.loadable):
             guards_with_current_scs = guards_needed(r.goal_alert,
                                                     scs,
                                                     gov_alert_bonus,
-                                                    planet.size)
+                                                    size)
             guards_with_one_more_sc = guards_needed(r.goal_alert,
                                                     scs + 1,
                                                     gov_alert_bonus,
-                                                    planet.size)
+                                                    size)
             extra_guards_without_sc = guards_with_current_scs - guards_with_one_more_sc
 
             ref_income = (1100 * (1 + bonus)           * (ticks_left - ref_build_time) - ref_cost) / gov_value_conversion
@@ -312,7 +323,7 @@ class thinkforme(loadable.loadable):
             fc_income_per_cons_tick  = round( fc_income * cons_speed /  fc_cu)
             sc_income_per_cons_tick  = round( sc_income * cons_speed /  sc_cu)
 
-            # print("!thinkforme: Refs: %s/%s/%s | Ref cost: %s | Ticks left: %s | Bonus %s | Ref build time: %s | Gov value conversion: %s | Net ref income: %s" % (
+            # print("!thinkforme: Refs: %s/%s/%s | Ref cost: %s | Ticks left: %.2f | Bonus %s | Ref build time: %.2f | Gov value conversion: %s | Net ref income: %s" % (
             #     refineries['metal'],
             #     refineries['crystal'],
             #     refineries['eonium'],
@@ -323,7 +334,7 @@ class thinkforme(loadable.loadable):
             #     gov_value_conversion,
             #     ref_income_per_cons_tick,
             # ))
-            # print("!thinkforme: FCs: %s | FC cost: %s | Ticks left: %s | FC build time: %s | Unbuffed income: %s | Gov value conversion: %s | Net FC income: %s" % (
+            # print("!thinkforme: FCs: %s | FC cost: %s | Ticks left: %.2f | FC build time: %.2f | Unbuffed income: %s | Gov value conversion: %s | Net FC income: %s" % (
             #     fcs,
             #     fc_cost,
             #     ticks_left,
@@ -332,7 +343,7 @@ class thinkforme(loadable.loadable):
             #     gov_value_conversion,
             #     fc_income_per_cons_tick,
             # ))
-            # print("!thinkforme: SCs: %s | SC cost: %s | Ticks left: %s | SC build time: %s | Goal alert: %s | Guards now: %s | Guards after extra SC: %s | Fireable guards: %s | Net SC income: %s" % (
+            # print("!thinkforme: SCs: %s | SC cost: %s | Ticks left: %.2f | SC build time: %.2f | Goal alert: %s | Guards now: %s | Guards after extra SC: %s | Fireable guards: %s | Net SC income: %s" % (
             #     scs,
             #     sc_cost,
             #     ticks_left,
@@ -343,8 +354,9 @@ class thinkforme(loadable.loadable):
             #     extra_guards_without_sc,
             #     sc_income_per_cons_tick,
             # ))
+            # print("!thinkforme: ---NEXT---")
 
-            # If building the next structure gives less value than it cost to
+            # If building the next structure gives less value than it costs to
             # build, then don't bother.
             if (ref_income < ref_cost / gov_value_conversion and
                 fc_income  <  fc_cost / gov_value_conversion and

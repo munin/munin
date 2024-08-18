@@ -34,7 +34,7 @@ class thinkforme(loadable.loadable):
         self.paramre = re.compile(r"^\s*((\d+)[.:\s-](\d+)[.:\s-](\d+))?(.*)")
         self.govre = re.compile(r"\s*\b(cor|dem|nat|soc|tot|ana)[a-z]*\b")
         self.numre = re.compile(r"\s*\b([0-9]+)\b")
-        self.usage = self.__class__.__name__ + " [x:y:z] [government] [population on security] [target alert] [expected average(ish) roids]"
+        self.usage = self.__class__.__name__ + " [x:y:z] [government] [population on security] [target alert] [expected roids]"
         self.helptext = [
             "Get advice about whether to build refineries, FCs, or SCs. If no"
             " government is given, Totalitarianism is assumed. If no population"

@@ -39,6 +39,13 @@ class xp(loadable.loadable):
         self.usage = (
             self.__class__.__name__ + " <defender coords> [attacker coords] [MCs] [Fleet admiral bonus]"
         )
+        self.helptext = [
+            "The PA bcalc has incorrectly implemented the XP fomula for years"
+            " and years (specifically: the fleet admiral bonus part), so there"
+            " is no way of double-checking whether or not Munin's calculator is"
+            " correct. Use with caution!"
+        ]
+
 
     def execute(self, user, access, irc_msg):
 
@@ -128,5 +135,6 @@ class xp(loadable.loadable):
             min_score,
             max_score
         )
+        reply += " ...maybe"
         irc_msg.reply(reply)
         return 1

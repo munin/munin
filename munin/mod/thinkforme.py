@@ -296,6 +296,9 @@ class thinkforme(loadable.loadable):
             # current alertness is the goal.
             if r.goal_alert is None:
                 r.goal_alert = int((50 + 5 * guards / (size + 1)) * (1.0 + population / 100.0 + 0.0275 * scs + gov_alert_bonus))
+            # ...up to a maximum of 100, since going higher is wasteful.
+            r.goal_alert = min(r.goal_alert,
+                               100)
             def guards_needed(goal_alert,
                               scs,
                               gov_alert_speed,

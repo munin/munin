@@ -62,31 +62,80 @@ class whois(loadable.loadable):
 
         minimum_userlevel = 100
         r = self.load_user_from_pnick(
-            search, irc_msg.round, minimum_userlevel=minimum_userlevel
+            search, irc_msg.round, minimum_userlevel=100
         )
-
+        if not r:
+            r = self.load_user_from_pnick(
+                search, irc_msg.round, minimum_userlevel=1
+            )
         reply = ""
 
-        if not r or r.userlevel < minimum_userlevel:
-            reply += "No members matching '%s'" % (search,)
+        if not r:
+            reply += "No members or galmates matching '%s'" % (search,)
         else:
-            if r.pnick == irc_msg.user:
-                subject = "You"
-                possessive = "Your"
-                reply += "You are"
-            else:
-                subject = "They"
-                possessive = "Their"
-                reply += "Information about"
-            reply += " %s. " % (r.pnick,)
-            if r.alias_nick:
-                reply += "%s are also known as %s." % (subject, r.alias_nick,)
+            if r.userlevel < 100:
+                reply += "No members matching '%s', but did find a galmate. " % (search,)
+            if r:
+                iswas = "was" if r.userlevel < 100 else "is"
+                if r.pnick == irc_msg.user:
+                    subject = "You"
+                    possessive = "Your"
+                    reply += "You are"
+                else:
+                    subject = "They"
+                    possessive = "Their"
+                    reply += "Information about"
+                reply += " %s." % (r.pnick,)
+                if r.alias_nick:
+                    reply += " %s are also known as %s." % (subject, r.alias_nick,)
+                if r.sponsor:
+                    reply += " %s daddy %s %s. %s Munin number %s %s." % (
+                        possessive, iswas, r.sponsor,
+                        possessive, iswas, self.munin_number_to_output(r),
+                    )
+                reply += " %s have %d %s." % (
+                    subject, r.carebears, self.pluralize(r.carebears, "carebear"),
+                )
+                if r.userlevel >= 100:
+                    reply += " %s are%s a lemming." % (
+                        subject, "" if r.lemming else " not",
+                    )
+                    query = """
+                    SELECT u.pnick AS proposer, i.comment_text
+                    FROM invite_proposal AS i
+                    INNER JOIN user_list AS u on u.id = i.proposer_id
+                    WHERE i.person = %s
+                    AND i.vote_result = 'yes'
+                    ORDER BY i.id DESC
+                    LIMIT 1
+                    """
+                    self.cursor.execute(query, (r.pnick,))
+                else:
+                    query = """
+                    SELECT u.pnick AS proposer, k.comment_text
+                    FROM kick_proposal AS k
+                    INNER JOIN user_list AS u on u.id = k.proposer_id
+                    INNER JOIN user_list on user_list.id = k.person_id
+                    WHERE k.person_id = %s
+                    AND k.vote_result = 'yes'
+                    ORDER BY k.id DESC
+                    LIMIT 1
+                    """
+                    self.cursor.execute(query, (r.id,))
+                i = self.cursor.fetchone()
+                if i:
+                    reply += " %s were prop %sed by %s with comment: %s" % (
+                        subject,
+                        "kick" if r.userlevel < 100 else "invit",
+                        i['proposer'],
+                        i['comment_text'],
+                    )
+                else:
+                    reply += " Could not find %s most recent %s prop." % (
+                        possessive.lower(),
+                        "invite" if r.userlevel >= 100 else "kick",
+                    )
 
-            reply += " %s sponsor is %s. %s Munin number is %s. %s have %d %s. %s are%s a lemming" % (
-                possessive, r.sponsor, possessive, self.munin_number_to_output(r),
-                subject, r.carebears, self.pluralize(r.carebears, "carebear"),
-                subject, "" if r.lemming else " not",
-            )
         irc_msg.reply(reply)
         return 1
 

@@ -40,7 +40,7 @@ class cookie(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 100)
         self.paramre = re.compile(r"^\s*(?:(\d+)\s+)?(\S+)\s+(\S.+)")
-        self.bifrostre = re.compile(r"^\s*(?:(\d+)\s+)?\(re @(bi+frost[^:]*: <(\S+)> .*|([^:]+): .*)\)")
+        self.bifrostre = re.compile(r"^\s*(?:(\d+)\s+)?\(re @(bi+frost[^:]*: <(\S+)> .*|([^:]+): .*)")
         self.statre = re.compile(r"^\s*statu?s?")
         self.usage = self.__class__.__name__ + " [howmany] <receiver> <reason> | [stat]"
         self.helptext = [

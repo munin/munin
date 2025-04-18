@@ -66,12 +66,13 @@ class loadable(object):
 
     def format_value(self, cost):
         value = cost / 100
-        if value / 1000000 > 9:
-            return str(round(value / 1000000)) + "m"
-        elif value / 1000 > 9:
-            return str(round(value / 1000)) + "k"
-        else:
-            return str(round(value))
+        suffixes = ['', 'k', 'm', 'b', 't']
+        index = 0
+        while value / 1000 > 9 and index < len(suffixes) - 1:
+            value /= 1000
+            index += 1
+        result = ('%.1f' % (value,)).replace('.0', '');
+        return '%s%s' % (result, suffixes[index],)
 
     def format_real_value(self, value):
         return self.format_value(value * 100)
@@ -86,14 +87,14 @@ class loadable(object):
         return param_dict
 
     def human_readable_number_to_integer(self, number):
-        if number[-1].lower() == "k":
-            number = 1000 * float(number[:-1])
-        elif number[-1].lower() == "m":
-            number = 1000000 * float(number[:-1])
-        else:
-            number = float(number)
-        number = int(number)
-        return number
+        suffixes = ['', 'k', 'm', 'b', 't']
+        power = 0
+        try:
+            power = suffixes.index(number[-1].lower())
+            return int(float(number[:-1]) * 1000 ** power)
+        except:
+            # int('1.2') fails, so pass it through float() first.
+            return int(float(number))
 
     def current_tick(self, round):
         self.cursor.execute("SELECT max_tick(%s::smallint)", (round,))

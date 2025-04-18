@@ -36,7 +36,7 @@ class searchdef(loadable.loadable):
 
     def __init__(self, cursor):
         super().__init__(cursor, 100)
-        self.paramre = re.compile(r"^\s*(\d+(?:\.\d+)?[MmKk]?)\s+(\S+)")
+        self.paramre = re.compile(r"^\s*(\d+(?:\.\d+)?[TtBbMmKk]?)\s+(\S+)")
         self.ship_classes = ["fi", "co", "fr", "de", "cr", "bs"]
         self.usage = self.__class__.__name__ + " <number> <ship>"
         self.helptext = None

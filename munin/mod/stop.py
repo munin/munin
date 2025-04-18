@@ -34,7 +34,7 @@ from munin import loadable
 class stop(loadable.loadable):
     def __init__(self, cursor):
         super().__init__(cursor, 1)
-        self.paramre = re.compile(r"^\s*(\d+(?:\.\d+)?[MmKk]?)\s+(\S+)(\s+(t1|t2|t3))?")
+        self.paramre = re.compile(r"^\s*(\d+(?:\.\d+)?[TtBbMmKk]?)\s+(\S+)(\s+(t1|t2|t3))?")
         self.usage = self.__class__.__name__ + " <number> <target> [t1|t2|t3]"
 
     def execute(self, user, access, irc_msg):

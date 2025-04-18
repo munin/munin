@@ -2,6 +2,7 @@
 mod/*.pyc
 custom/*.pyc
 muninrc
+munin.service
 botlog
 pid.*
 TAGS

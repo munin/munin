@@ -349,14 +349,13 @@ class prop(loadable.loadable):
             irc_msg.reply(reply)
             return
 
-        age = (datetime.datetime.now() - r["created"]).days
+        age = self.seconds_to_string((datetime.datetime.now() - r["created"]).total_seconds())
         if r["prop_type"] == "poll":
             reply = (
-                "proposition %s (%s %s old): poll. %s asked '%s?' and offered options"
+                "proposition %s (%s old): poll. %s asked '%s?' and offered options"
                 % (
                     r["id"],
                     age,
-                    self.pluralize(age, "day"),
                     r["proposer"],
                     r["question"],
                 )
@@ -372,18 +371,18 @@ class prop(loadable.loadable):
                 )
             reply += " %s" % ", ".join(answers)
         else:
-            reply = "proposition %s (%s %s old): %s %s. %s commented '%s'" % (
+            reply = "proposition %s (%s old): %s %s. %s commented '%s'" % (
                 r["id"],
                 age,
-                self.pluralize(age, "day"),
                 r["prop_type"],
                 r["person"],
                 r["proposer"],
                 r["comment_text"],
             )
         if not bool(r["active"]):
-            reply += ", this prop expired %d days ago." % (
-                (datetime.datetime.now() - r["closed"]).days,
+            reply += ", this prop was open for %s and was expired %s ago." % (
+                self.seconds_to_string((r["closed"] - r["created"]).total_seconds()),
+                self.seconds_to_string((datetime.datetime.now() - r["closed"]).total_seconds()),
             )
         elif (
             irc_msg.target[0] != "#"
@@ -603,12 +602,11 @@ class prop(loadable.loadable):
                 highest = outcome[o]["count"]
                 winner = o
 
-        age = (datetime.datetime.now() - prop["created"]).days
+        age = self.seconds_to_string((datetime.datetime.now() - prop["created"]).total_seconds())
         if prop["prop_type"] == "poll":
-            reply = "The poll raised by %s %s %s ago asking '%s?'" % (
+            reply = "The poll raised by %s %s ago asking '%s?'" % (
                 prop["proposer"],
                 age,
-                self.pluralize(age, "day"),
                 prop["question"],
             )
             if not winner:
@@ -643,10 +641,9 @@ class prop(loadable.loadable):
                 losing_total,
             ) = self.get_winners_and_losers(outcome)
 
-            reply = "The proposition raised by %s %s %s ago to %s has" % (
+            reply = "The proposition raised by %s %s ago to %s has" % (
                 prop["proposer"],
                 age,
-                self.pluralize(age, "day"),
                 '%s %s' % (prop["prop_type"], prop["person"],) if prop["person"] else prop["prop_type"],
             )
             yes = outcome["yes"]["count"]

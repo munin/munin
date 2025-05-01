@@ -148,11 +148,10 @@ class loadable(object):
     def pluralize(self, number, text):
         if number == 1:
             return text
-        elif text.lower() in ['cookie', 'carebear', 'caretwink', 'day']:
-            return text + "s"
         elif text.lower() == "match":
             return text + "es"
-        return text
+        else:
+            return text + "s"
 
     def match_or_usage(self, irc_msg, needle, haystack):
         m = needle.search(haystack)
@@ -224,6 +223,21 @@ class loadable(object):
         args = (nick, nick,)
         self.cursor.execute(query, args)
         return self.cursor.rowcount > 0
+
+    def seconds_to_string(self, seconds):
+        if seconds < 3 * 60:
+            return "%d %s" % (seconds, self.pluralize(seconds, "second"),)
+        else:
+            minutes = seconds / 60
+            if minutes < 3 * 60:
+                return "%d %s" % (minutes, self.pluralize(minutes, "minute"),)
+            else:
+                hours = minutes / 60
+                if hours < 3 * 24:
+                    return "%d %s" % (hours, self.pluralize(hours, "hour"),)
+                else:
+                    days = hours / 24
+                    return "%d %s" % (days, self.pluralize(days, "day"),)
 
 
 class defcall(object):

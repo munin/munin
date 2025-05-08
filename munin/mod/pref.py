@@ -73,7 +73,7 @@ class pref(loadable.loadable):
                     x = m.group(1)
                     y = m.group(2)
                     z = m.group(3)
-                    self.save_planet(irc_msg, u, x, y, z, user)
+                    self.save_planet(irc_msg, u, x, y, z)
                     self.save_lemming(irc_msg, u, "yes", access)
                 else:
                     irc_msg.reply(
@@ -92,7 +92,7 @@ class pref(loadable.loadable):
 
         return 1
 
-    def save_planet(self, irc_msg, u, x, y, z, user):
+    def save_planet(self, irc_msg, u, x, y, z):
         p = loadable.planet(x=x, y=y, z=z)
         if not p.load_most_recent(self.cursor, irc_msg.round):
             irc_msg.reply("%s:%s:%s is not a valid planet" % (x, y, z))
@@ -108,8 +108,9 @@ class pref(loadable.loadable):
                 i.load_from_db(self.cursor, irc_msg.round)
                 a = loadable.alliance(name=self.config.get("Auth", "alliance"))
                 have_alliance = a.load_most_recent(self.cursor, irc_msg.round)
+                nick = '%s/%s' % (u.pnick, u.alias_nick,) if u.alias_nick else u.pnick
                 if i.id:
-                    arguments = (user,)
+                    arguments = (nick,)
                     query = "UPDATE intel SET nick=%s"
                     if have_alliance:
                         arguments += (a.id,)
@@ -117,7 +118,7 @@ class pref(loadable.loadable):
                     arguments += (i.id,)
                     query += " WHERE id=%s"
                 else:
-                    arguments = (p.id, user,)
+                    arguments = (p.id, nick,)
                     query = "INSERT INTO intel (pid,nick,"
                     if have_alliance:
                         arguments += (a.id,)

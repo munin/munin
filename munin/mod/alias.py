@@ -59,20 +59,22 @@ class alias(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        alias = m.group(1).removeprefix('@')
+        alias = m.group(1)
         if not alias:
             irc_msg.reply("You are %s, your alias is %s" % (u.pnick, u.alias_nick))
-        elif m.group(3):
-            if m.group(3) == 'YES_BREAK_MY_ACCOUNT':
-                self.update_own_alias(u, alias, irc_msg)
-            else:
-                other_user = m.group(3)
-                self.update_other_alias(u, alias, irc_msg, other_user)
         else:
-            if u.alias_nick == user:
-                irc_msg.reply("If you do this I will forget who you are. No one is going to fix that for you. If you're really sure, add \"YES_BREAK_MY_ACCOUNT\"")
+            alias = alias.removeprefix('@')
+            if m.group(3):
+                if m.group(3) == 'YES_BREAK_MY_ACCOUNT':
+                    self.update_own_alias(u, alias, irc_msg)
+                else:
+                    other_user = m.group(3)
+                    self.update_other_alias(u, alias, irc_msg, other_user)
             else:
-                self.update_own_alias(u, alias, irc_msg)
+                if u.alias_nick == user:
+                    irc_msg.reply("If you do this I will forget who you are. No one is going to fix that for you. If you're really sure, add \"YES_BREAK_MY_ACCOUNT\"")
+                else:
+                    self.update_own_alias(u, alias, irc_msg)
         return 1
 
     def update_other_alias(self, u, alias, irc_msg, other_pnick):

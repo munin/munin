@@ -79,7 +79,7 @@ class stop(loadable.loadable):
                     "name": "Structure",
                     "class": "Struct",
                     "armor": 500,
-                    "total_cost": 150000,
+                    "total_cost": 20000,
                 }
             elif "resources".rfind(bogey) > -1:
                 ship = {

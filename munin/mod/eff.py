@@ -90,7 +90,7 @@ class eff(loadable.loadable):
                     ship["name"],
                     self.format_value(ship_number * ship["total_cost"]),
                     self.format_real_value(killed),
-                    self.format_value(killed * 150000),
+                    self.format_value(killed * 20000),
                 )
             )
         elif ship["target_1"] == "Rs":

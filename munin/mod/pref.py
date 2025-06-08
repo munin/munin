@@ -92,6 +92,19 @@ class pref(loadable.loadable):
 
         return 1
 
+    # If either is a substring of the other, return the longest. Otherwise,
+    # return both.
+    def make_nick_string(self, nick, alias):
+        if alias:
+            if alias in nick:
+                return nick
+            elif nick in alias:
+                return alias
+            else:
+                return '%s/%s' % (nick, alias,)
+        else:
+            return nick
+
     def save_planet(self, irc_msg, u, x, y, z):
         p = loadable.planet(x=x, y=y, z=z)
         if not p.load_most_recent(self.cursor, irc_msg.round):
@@ -102,13 +115,12 @@ class pref(loadable.loadable):
             query += " ON CONFLICT (user_id,round) DO"
             query += " UPDATE SET planet_id=EXCLUDED.planet_id"
             self.cursor.execute(query, (u.id, irc_msg.round, p.id,))
-            irc_msg.reply("Your planet has been saved as %s:%s:%s" % (x, y, z))
             if p.id > 0 and u.userlevel >= 100:
                 i = loadable.intel(pid=p.id)
                 i.load_from_db(self.cursor, irc_msg.round)
                 a = loadable.alliance(name=self.config.get("Auth", "alliance"))
                 have_alliance = a.load_most_recent(self.cursor, irc_msg.round)
-                nick = '%s/%s' % (u.pnick, u.alias_nick,) if u.alias_nick else u.pnick
+                nick = self.make_nick_string(u.pnick, u.alias_nick)
                 if i.id:
                     arguments = (nick,)
                     query = "UPDATE intel SET nick=%s"
@@ -126,6 +138,13 @@ class pref(loadable.loadable):
                     arguments += (irc_msg.round,)
                     query += "round) VALUES ({})".format(','.join(["%s"] * len(arguments)))
                 self.cursor.execute(query, arguments)
+                irc_msg.reply("Your planet and intel%s has been saved as %s:%s:%s" % (
+                    " and alliance" if have_alliance else "",
+                    x,
+                    y,
+                    z))
+            else:
+                irc_msg.reply("Your planet has been saved as %s:%s:%s" % (x, y, z))
 
     def save_stay(self, irc_msg, u, status, access):
         if access < 100:

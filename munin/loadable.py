@@ -71,7 +71,11 @@ class loadable(object):
         while value / 1000 > 9 and index < len(suffixes) - 1:
             value /= 1000
             index += 1
-        result = ('%.1f' % (value,)).replace('.0', '');
+        result = None
+        if index == 0:
+            result = '%.0f' % (round(value),)
+        else:
+            result = ('%.1f' % (value,)).replace('.0', '')
         return '%s%s' % (result, suffixes[index],)
 
     def format_real_value(self, value):

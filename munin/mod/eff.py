@@ -70,39 +70,39 @@ class eff(loadable.loadable):
             total_damage = ship["damage"] * ship_number
 
         if ship["target_1"] == "Roids":
-            killed = total_damage / 50
+            captured = int(total_damage / 50)
             irc_msg.reply(
                 "%s %s (%s) will capture Asteroid: %s (%s)"
                 % (
                     self.format_real_value(ship_number),
                     ship["name"],
                     self.format_value(ship_number * ship["total_cost"]),
-                    self.format_real_value(killed),
-                    self.format_value(killed * 20000),
+                    self.format_real_value(captured),
+                    self.format_value(captured * 20000),
                 )
             )
         elif ship["target_1"] == "Struct":
-            killed = total_damage / 500
+            destroyed = int(total_damage / 500)
             irc_msg.reply(
                 "%s %s (%s) will destroy Structure: %s (%s)"
                 % (
                     self.format_real_value(ship_number),
                     ship["name"],
                     self.format_value(ship_number * ship["total_cost"]),
-                    self.format_real_value(killed),
-                    self.format_value(killed * 20000),
+                    self.format_real_value(destroyed),
+                    self.format_value(destroyed * 20000),
                 )
             )
         elif ship["target_1"] == "Rs":
-            killed = total_damage * 50
+            stolen = total_damage * 50
             irc_msg.reply(
                 "%s %s (%s) will loot Resources: %s (%s)"
                 % (
                     self.format_real_value(ship_number),
                     ship["name"],
                     self.format_value(ship_number * ship["total_cost"]),
-                    self.format_real_value(killed),
-                    self.format_value(killed),
+                    self.format_real_value(stolen),
+                    self.format_value(stolen),
                 )
             )
         else:

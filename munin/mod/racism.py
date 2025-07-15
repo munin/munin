@@ -86,7 +86,7 @@ class racism(loadable.loadable):
             else:
                 irc_msg.reply("Nothing in intel matches your search '%s'" % (alliance_string,))
         else:
-            irc_msg.reply("No alliance matching '%s' found" % (alliance_string))
+            irc_msg.reply("No unique alliance matching '%s' found" % (alliance_string))
         return 0
 
     def profile(self, res):

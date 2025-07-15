@@ -82,7 +82,7 @@ class hoarders(loadable.loadable):
         else:
             alliance = loadable.alliance(name=alliance_name)
             if not alliance.load_most_recent(self.cursor, irc_msg.round):
-                irc_msg.reply("No alliance matching %s found" % (alliance_name,))
+                irc_msg.reply("No unique alliance matching %s found" % (alliance_name,))
                 return
             irc_msg.reply(self.alliance_hoarders(
                 irc_msg.round,

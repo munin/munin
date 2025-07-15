@@ -48,7 +48,7 @@ class cowards(loadable.loadable):
         alliance_name = m.group(1)
         a = loadable.alliance(name=alliance_name)
         if not a.load_most_recent(self.cursor, irc_msg.round):
-            irc_msg.reply("No alliance matching '%s' found" % (alliance_name))
+            irc_msg.reply("No unique alliance matching '%s' found" % (alliance_name))
             return 0
 
         query = "SELECT rel.type, rel.end_tick, canon1.name AS initiator, canon2.name AS acceptor"

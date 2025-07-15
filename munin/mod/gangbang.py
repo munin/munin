@@ -59,7 +59,7 @@ class gangbang(loadable.loadable):
         a = loadable.alliance(name=subject)
         if a.name.lower() != "unknown":
             if not a.load_most_recent(self.cursor, irc_msg.round):
-                irc_msg.reply("'%s' is not a valid alliance." % (subject,))
+                irc_msg.reply("No unique alliance matching '%s' found" % (subject,))
                 return 1
 
         if when and when < 32:

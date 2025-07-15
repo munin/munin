@@ -97,7 +97,7 @@ class topcunts(loadable.loadable):
 
         a = loadable.alliance(name=param.strip())
         if not a.load_most_recent(self.cursor, irc_msg.round):
-            irc_msg.reply("No alliance matching '%s' found" % (param,))
+            irc_msg.reply("No unique alliance matching '%s' found" % (param,))
             return 1
         reply = self.surprise(round=irc_msg.round, alliance=a.name)
         irc_msg.reply(reply)

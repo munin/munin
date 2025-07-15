@@ -76,7 +76,7 @@ class oomph(loadable.loadable):
             # lookup alliance
             alliance = loadable.alliance(name=alliance_name)
             if not alliance.load_most_recent(self.cursor, irc_msg.round):
-                irc_msg.reply(f"No alliance matching {alliance_name} found")
+                irc_msg.reply(f"No unique alliance matching {alliance_name} found")
                 return
             irc_msg.reply(self.alliance_oomph(
                 irc_msg.round,

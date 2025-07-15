@@ -47,12 +47,17 @@ class spam(loadable.loadable):
             irc_msg.reply("Usage: %s" % (self.usage,))
             return 0
 
-        params = m.group(1)
+        alliance_name = m.group(1)
+
+        a = loadable.alliance(name=alliance_name)
+        if not a.load_most_recent(self.cursor, irc_msg.round):
+            irc_msg.reply("No unique alliance matching '%s' found" % (alliance_name))
+            return 0
 
         args = (
             irc_msg.round,
             irc_msg.round,
-            "%" + params + "%",
+            "%" + alliance_name + "%",
         )
         query = "SELECT t1.x AS x,t1.y AS y,t1.z AS z,t1.size AS size,t1.score AS score,t1.value AS value,t1.race AS race,t6.name AS alliance,t2.nick AS nick,t2.reportchan AS reportchan,t2.comment AS comment"
         query += " FROM planet_dump AS t1 INNER JOIN planet_canon AS t3 ON t1.id=t3.id"
@@ -63,7 +68,7 @@ class spam(loadable.loadable):
 
         planets = self.cursor.fetchall()
         if not len(planets):
-            reply = "No planets in intel matching alliance: %s" % (params,)
+            reply = "No planets in intel matching alliance: %s" % (alliance_name,)
             irc_msg.reply(reply)
             return 1
 

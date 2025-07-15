@@ -53,13 +53,13 @@ class apenis(loadable.loadable):
         if search is not None:
             a = loadable.alliance(name=search)
             if not a.load_most_recent(self.cursor, irc_msg.round):
-                reply = "No alliances match %s" % (search,)
+                reply = "No unique alliance matches %s" % (search,)
                 irc_msg.reply(reply)
                 return 1
         elif u.load_from_db(self.cursor, irc_msg.round) and u.userlevel >= 100:
             a = loadable.alliance(name=self.config.get("Auth", "alliance"))
             if not a.load_most_recent(self.cursor, irc_msg.round):
-                reply = "No alliances match %s" % (search,)
+                reply = "No unique alliance matches %s (missing alliance in configuration file?)" % (search,)
                 irc_msg.reply(reply)
                 return 1
         elif u.id > -1 and u.planet is not None:

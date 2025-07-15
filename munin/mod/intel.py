@@ -103,7 +103,7 @@ class intel(loadable.loadable):
                 a = loadable.alliance(name=val)
                 if not a.load_most_recent(self.cursor, irc_msg.round):
                     irc_msg.reply(
-                        "'%s' is not a valid alliance, your information was not added."
+                        "No unique alliance matching '%s' found, your information was not added."
                         % (val,)
                     )
                     return 1

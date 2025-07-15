@@ -769,6 +769,8 @@ class alliance(object):
                 )
         else:
             raise Exception("Tried to load alliance with no unique identifiers")
+        if cursor.rowcount > 1:
+            return None
         a = cursor.fetchone()
         if not a:
             return None

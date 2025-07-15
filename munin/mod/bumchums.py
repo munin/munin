@@ -61,7 +61,7 @@ class bumchums(loadable.loadable):
         a = loadable.alliance(name=alliance)
 
         if not a.load_most_recent(self.cursor, irc_msg.round):
-            irc_msg.reply("No alliance matching '%s' found" % (alliance,))
+            irc_msg.reply("No unique alliance matching '%s' found" % (alliance,))
             return 1
 
         query = "SELECT x,y,count(*) AS bums FROM planet_dump AS t1"

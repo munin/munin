@@ -602,7 +602,9 @@ class planet(object):
     def war_xp_bonus(self, victim):
         # If this planet's alliance is at war with the target's alliance, you
         # get more XP. If another alliance was already at war with them when
-        # yours declared war, the XP bonus is halved.
+        # yours declared war, then the XP bonus is halved, except if they're
+        # ranked higher than you, in which case you still get the full bonus.
+        # Unless...! OK, no, that's all the conditions.
         return 0.0  # TODO:
 
     def bravery(self, victim):

@@ -1,12 +1,11 @@
 -- CREATE DATABASE patools17 WITH ENCODING = 'LATIN1';
 -- createlang plpgsql patest | CREATE LANGUAGE plpgqsl
 
-DROP FUNCTION IF EXISTS max_round();
-CREATE FUNCTION max_round() RETURNS smallint AS $PROC$
+CREATE OR REPLACE FUNCTION max_round() RETURNS smallint AS $PROC$
 BEGIN
 RETURN MAX(round) FROM updates;
 END
-$PROC$ LANGUAGE plpgsql;
+$PROC$ LANGUAGE plpgsql STABLE;
 
 CREATE TABLE updates (
 id serial,
@@ -227,12 +226,11 @@ ship_count integer
 );
 
 DROP FUNCTION IF EXISTS max_tick();
-DROP FUNCTION IF EXISTS max_tick(smallint);
-CREATE FUNCTION max_tick(r smallint) RETURNS smallint AS $PROC$
+CREATE OR REPLACE FUNCTION max_tick(r smallint) RETURNS smallint AS $PROC$
 BEGIN
 RETURN MAX(tick) FROM updates WHERE r = round;
 END
-$PROC$ LANGUAGE plpgsql;
+$PROC$ LANGUAGE plpgsql STABLE;
 
 CREATE TABLE fleet_log (
 id SERIAL PRIMARY KEY,
@@ -568,8 +566,7 @@ ALTER TABLE prop_vote DROP CONSTRAINT prop_vote_vote_check;
 
 -- BEGIN HUGIN RELATED FUNCTIONS
 
-DROP FUNCTION IF EXISTS trim_quotes(text,text);
-CREATE FUNCTION trim_quotes(tmptab text,colname text) RETURNS void AS $PROC$
+CREATE OR REPLACE FUNCTION trim_quotes(tmptab text,colname text) RETURNS void AS $PROC$
 BEGIN
 EXECUTE 'UPDATE '||tmptab||' SET '||colname||'=trim(''"'' FROM '||colname||')';
 END
@@ -578,8 +575,7 @@ $PROC$ LANGUAGE plpgsql;
 
 -- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS gen_planet_id();
-DROP FUNCTION IF EXISTS gen_planet_id(smallint);
-CREATE FUNCTION gen_planet_id(curround smallint) RETURNS void AS $PROC$
+CREATE OR REPLACE FUNCTION gen_planet_id(curround smallint) RETURNS void AS $PROC$
 DECLARE
 r RECORD;
 BEGIN
@@ -598,8 +594,7 @@ $PROC$ LANGUAGE plpgsql;
 
 -- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS gen_galaxy_id();
-DROP FUNCTION IF EXISTS gen_galaxy_id(curround smallint);
-CREATE FUNCTION gen_galaxy_id(curround smallint) RETURNS void AS $PROC$
+CREATE OR REPLACE FUNCTION gen_galaxy_id(curround smallint) RETURNS void AS $PROC$
 DECLARE
 r RECORD;
 BEGIN
@@ -616,8 +611,7 @@ $PROC$ LANGUAGE plpgsql;
 
 -- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS gen_alliance_id();
-DROP FUNCTION IF EXISTS gen_alliance_id(smallint);
-CREATE FUNCTION gen_alliance_id(curround smallint) RETURNS void AS $PROC$
+CREATE OR REPLACE FUNCTION gen_alliance_id(curround smallint) RETURNS void AS $PROC$
 DECLARE
 r RECORD;
 BEGIN
@@ -633,8 +627,7 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
-DROP FUNCTION IF EXISTS add_rank(text,text);
-CREATE FUNCTION add_rank(tmptab text,colname text) RETURNS void AS $PROC$
+CREATE OR REPLACE FUNCTION add_rank(tmptab text,colname text) RETURNS void AS $PROC$
 DECLARE
 r RECORD;
 rank INT := 0;
@@ -648,8 +641,7 @@ END LOOP;
 END
 $PROC$ LANGUAGE plpgsql;
 
-DROP FUNCTION IF EXISTS add_average(text,text,text,text);
-CREATE FUNCTION add_average(tmptab text,value_colname text,quantity_colname text,coltype text) RETURNS void AS $PROC$
+CREATE OR REPLACE FUNCTION add_average(tmptab text,value_colname text,quantity_colname text,coltype text) RETURNS void AS $PROC$
 BEGIN
 EXECUTE 'ALTER TABLE '||quote_ident(tmptab)||' ADD COLUMN '||quote_ident(value_colname)||'_avg '||coltype||' DEFAULT -1';
 EXECUTE 'UPDATE '||quote_ident(tmptab)||' SET '||quote_ident(value_colname)||'_avg='||quote_ident(value_colname)||'::bigint/'||quote_ident(quantity_colname)||'::bigint';
@@ -658,8 +650,7 @@ $PROC$ LANGUAGE plpgsql;
 
 -- PLANET SPECIFIC RANK FUNCTIONS FOR PERFORMANCE
 
-DROP FUNCTION IF EXISTS add_rank_planet_size();
-CREATE FUNCTION add_rank_planet_size() RETURNS void AS $PROC$
+CREATE OR REPLACE FUNCTION add_rank_planet_size() RETURNS void AS $PROC$
 DECLARE
 r RECORD;
 rank INT := 0;
@@ -672,8 +663,7 @@ END LOOP;
 END
 $PROC$ LANGUAGE plpgsql;
 
-DROP FUNCTION IF EXISTS add_rank_planet_score();
-CREATE FUNCTION add_rank_planet_score() RETURNS void AS $PROC$
+CREATE OR REPLACE FUNCTION add_rank_planet_score() RETURNS void AS $PROC$
 DECLARE
 r RECORD;
 rank INT := 0;
@@ -686,8 +676,7 @@ END LOOP;
 END
 $PROC$ LANGUAGE plpgsql;
 
-DROP FUNCTION IF EXISTS add_rank_planet_value();
-CREATE FUNCTION add_rank_planet_value() RETURNS void AS $PROC$
+CREATE OR REPLACE FUNCTION add_rank_planet_value() RETURNS void AS $PROC$
 DECLARE
 r RECORD;
 rank INT := 0;
@@ -700,8 +689,7 @@ END LOOP;
 END
 $PROC$ LANGUAGE plpgsql;
 
-DROP FUNCTION IF EXISTS add_rank_planet_xp();
-CREATE FUNCTION add_rank_planet_xp() RETURNS void AS $PROC$
+CREATE OR REPLACE FUNCTION add_rank_planet_xp() RETURNS void AS $PROC$
 DECLARE
 r RECORD;
 rank INT := 0;
@@ -715,8 +703,7 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
-DROP FUNCTION IF EXISTS add_planet_idle_ticks(smallint);
-CREATE FUNCTION add_planet_idle_ticks(curtick smallint) RETURNS void AS $PROC$
+CREATE OR REPLACE FUNCTION add_planet_idle_ticks(curtick smallint) RETURNS void AS $PROC$
 BEGIN
 ALTER TABLE ptmp ADD COLUMN idle smallint DEFAULT 0;
 ALTER TABLE ptmp ADD COLUMN vdiff integer DEFAULT 0;
@@ -734,8 +721,7 @@ $PROC$ LANGUAGE plpgsql;
 
 -- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS store_planets(smallint);
-DROP FUNCTION IF EXISTS store_planets(smallint, smallint);
-CREATE FUNCTION store_planets(curround smallint, curtick smallint) RETURNS void AS $PROC$
+CREATE OR REPLACE FUNCTION store_planets(curround smallint, curtick smallint) RETURNS void AS $PROC$
 DECLARE
 r RECORD;
 BEGIN
@@ -764,8 +750,7 @@ $PROC$ LANGUAGE plpgsql;
 
 -- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS store_galaxies(smallint);
-DROP FUNCTION IF EXISTS store_galaxies(smallint, smallint);
-CREATE FUNCTION store_galaxies(curround smallint, curtick smallint) RETURNS void AS $PROC$
+CREATE OR REPLACE FUNCTION store_galaxies(curround smallint, curtick smallint) RETURNS void AS $PROC$
 BEGIN
 --remove quotes from names added by the dumpfile generator
 PERFORM trim_quotes('gtmp','name');
@@ -787,8 +772,7 @@ $PROC$ LANGUAGE plpgsql;
 
 -- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS store_alliances(smallint);
-DROP FUNCTION IF EXISTS store_alliances(smallint, smallint);
-CREATE FUNCTION store_alliances(curround smallint, curtick smallint) RETURNS void AS $PROC$
+CREATE OR REPLACE FUNCTION store_alliances(curround smallint, curtick smallint) RETURNS void AS $PROC$
 BEGIN
 --remove quotes from names added by the dumpfile generator
 PERFORM trim_quotes('atmp','name');
@@ -821,8 +805,7 @@ $PROC$ LANGUAGE plpgsql;
 
 -- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS analyze_naps();
-DROP FUNCTION IF EXISTS analyze_naps(smallint);
-CREATE FUNCTION analyze_naps(curround smallint) RETURNS void AS $PROC$
+CREATE OR REPLACE FUNCTION analyze_naps(curround smallint) RETURNS void AS $PROC$
 BEGIN
 -- NAP start.
 UPDATE utmp as main
@@ -866,8 +849,7 @@ $PROC$ LANGUAGE plpgsql;
 
 -- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS analyze_alliances();
-DROP FUNCTION IF EXISTS analyze_alliances(smallint);
-CREATE FUNCTION analyze_alliances(curround smallint) RETURNS void AS $PROC$
+CREATE OR REPLACE FUNCTION analyze_alliances(curround smallint) RETURNS void AS $PROC$
 BEGIN
 
 -- Ally start.
@@ -913,8 +895,7 @@ $PROC$ LANGUAGE plpgsql;
 
 -- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS analyze_wars();
-DROP FUNCTION IF EXISTS analyze_wars(curround smallint);
-CREATE FUNCTION analyze_wars(curround smallint) RETURNS void AS $PROC$
+CREATE OR REPLACE FUNCTION analyze_wars(curround smallint) RETURNS void AS $PROC$
 BEGIN
 
 -- War start and default end tick.
@@ -957,8 +938,7 @@ END
 $PROC$ LANGUAGE plpgsql;
 
 
-DROP FUNCTION IF EXISTS analyze_auto_wars(curround smallint);
-CREATE FUNCTION analyze_auto_wars(curround smallint) RETURNS void AS $PROC$
+CREATE OR REPLACE FUNCTION analyze_auto_wars(curround smallint) RETURNS void AS $PROC$
 BEGIN
 
 -- War start and default end tick.
@@ -1003,8 +983,7 @@ $PROC$ LANGUAGE plpgsql;
 
 -- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS store_userfeed();
-DROP FUNCTION IF EXISTS store_userfeed(smallint);
-CREATE FUNCTION store_userfeed(curround smallint) RETURNS void AS $PROC$
+CREATE OR REPLACE FUNCTION store_userfeed(curround smallint) RETURNS void AS $PROC$
 BEGIN
 --remove quotes from names added by the dumpfile generator
 PERFORM trim_quotes('utmp','type');
@@ -1060,8 +1039,7 @@ $PROC$ LANGUAGE plpgsql;
 DROP FUNCTION IF EXISTS store_update(smallint,text,text,text);
 -- Backwards compatibility for single-round Munin
 DROP FUNCTION IF EXISTS store_update(smallint,text,text,text,text);
-DROP FUNCTION IF EXISTS store_update(smallint,smallint,text,text,text,text);
-CREATE FUNCTION store_update(curround smallint,curtick smallint,ptable text,gtable text,atable text,utable text) RETURNS void AS $PROC$
+CREATE OR REPLACE FUNCTION store_update(curround smallint,curtick smallint,ptable text,gtable text,atable text,utable text) RETURNS void AS $PROC$
 BEGIN
 INSERT INTO updates (round,tick,planets,galaxies,alliances,userfeed)
 VALUES (curround,

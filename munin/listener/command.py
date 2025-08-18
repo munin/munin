@@ -87,9 +87,9 @@ class command(object):
         else:
             irc_msg.reply(
                 "Munin help. For more information use: <"
-                + irc_msg.notprefix.replace("|", "")
-                + irc_msg.pubprefix.replace("|", "")
-                + irc_msg.privprefix.replace("|", "")
+                + irc_msg.notprefix.replace("|", "").replace("\\", "")
+                + irc_msg.pubprefix.replace("|", "").replace("\\", "")
+                + irc_msg.privprefix.replace("|", "").replace("\\", "")
                 + ">help <command>. Built-in commands: help"
             )
 

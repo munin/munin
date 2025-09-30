@@ -70,7 +70,7 @@ class getanewdaddy(loadable.loadable):
             return 1
 
         if (
-            access < 1000
+            access < 500
             and idiot.sponsor.lower() != voter.pnick.lower()
             and idiot.pnick.lower() != voter.pnick.lower()
         ):

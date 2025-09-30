@@ -33,7 +33,7 @@ from munin import loadable
 
 class putships(loadable.loadable):
     def __init__(self, cursor):
-        super().__init__(cursor, 1000)
+        super().__init__(cursor, 500)
         self.paramre = re.compile(r"^\s*(https?://\S+)?(\s*overwrite)?")
         self.usage = self.__class__.__name__ + " [url] [overwrite]"
         self.helptext = [

@@ -35,7 +35,7 @@ from munin.reboot import reboot
 
 class config(loadable.loadable):
     def __init__(self, cursor):
-        super().__init__(cursor, 1000)
+        super().__init__(cursor, 500)
         self.paramre = re.compile(r"^\s*(?:([^\s/ ]+)(?:/(\S+)(?:\s+(.+))?)?)?")
         self.usage = self.__class__.__name__ + " [<section>[/<option> [value]]"
         self.helptext = [

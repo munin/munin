@@ -105,7 +105,7 @@ class scan(threading.Thread):
         self.execute(page)
 
     def execute(self, page):
-        m = re.search(">([^>]+) on (\d+)\:(\d+)\:(\d+) in tick (\d+)", page)
+        m = re.search(r">([^>]+) on (\d+)\:(\d+)\:(\d+) in tick (\d+)", page)
         if not m:
             print("Expired/non-matching scan (id: %s)" % (self.rand_id,))
             return
@@ -204,7 +204,7 @@ class scan(threading.Thread):
             return name.split(" ")[0].lower();
 
     def parse_news(self, scan_id, page, round):
-        m = re.search("on (\d+)\:(\d+)\:(\d+) in tick (\d+)", page)
+        m = re.search(r"on (\d+)\:(\d+)\:(\d+) in tick (\d+)", page)
         x = m.group(1)
         y = m.group(2)
         z = m.group(3)
@@ -223,7 +223,7 @@ class scan(threading.Thread):
         # incoming fleets
         # <tr class="shadedbackground2"><td class="left vtop">Incoming</td><td class="vtop">277</td><td class="left vtop">We have detected an open jumpgate from Wonder Woman, located at <a class="coords" href="galaxy.pl?x=8&amp;y=3">8:3:3</a>. The fleet will approach our system in tick 285 and appears to have 0 visible ships.</td></tr>
         for m in re.finditer(
-                '<tr[^>]*><td[^>]*>Incoming</td><td[^>]*>(\d+)</td><td[^>]*>We have detected an open jumpgate from ([^<]+), located at <a[^>]*>(\d+):(\d+):(\d+)</a>. The fleet will approach our system in tick (\d+) and appears to have (\d+) visible ships.</td></tr>',
+                r'<tr[^>]*><td[^>]*>Incoming</td><td[^>]*>(\d+)</td><td[^>]*>We have detected an open jumpgate from ([^<]+), located at <a[^>]*>(\d+):(\d+):(\d+)</a>. The fleet will approach our system in tick (\d+) and appears to have (\d+) visible ships.</td></tr>',
                 page,
         ):
             newstick = m.group(1)
@@ -284,7 +284,7 @@ class scan(threading.Thread):
         # <tr class="shadedbackground"><td class="left vtop">Launch</td><td class="vtop">277</td><td class="left vtop">The time to go fleet has been launched, heading for <a class="coords" href="galaxy.pl?x=1&amp;y=2">1:2:2</a>, on a mission to Attack. Arrival tick: 284</td></tr>
 
         for m in re.finditer(
-                '<tr[^>]*><td[^>]*>Launch</td><td[^>]*>(\d+)</td><td[^>]*>The ([^,]+) fleet has been launched, heading for <a[^>]*>(\d+):(\d+):(\d+)</a>, on a mission to (Defend|Attack). Arrival tick: (\d+)</td></tr>',
+                r'<tr[^>]*><td[^>]*>Launch</td><td[^>]*>(\d+)</td><td[^>]*>The ([^,]+) fleet has been launched, heading for <a[^>]*>(\d+):(\d+):(\d+)</a>, on a mission to (Defend|Attack). Arrival tick: (\d+)</td></tr>',
                 page,
         ):
             newstick = m.group(1)
@@ -355,7 +355,7 @@ class scan(threading.Thread):
         # <td class=left valign=top>Tech</td><td valign=top>838</td><td class=left valign=top>Our scientists report that Portable EMP emitters has been finished. Please drop by the Research area and choose the next area of interest.</td>
         # <tr class="shadedbackground2"><td class="left vtop">Tech</td><td class="vtop">275</td><td class="left vtop">Our scientists report that Heavy Cargo Transfers IV has been finished. Please drop by the <a href="research.pl">Research area</a> and choose the next area of interest.</td></tr>
         for m in re.finditer(
-                '<tr[^>]*><td[^>]*>Tech</td><td[^>]*>(\d+)</td><td[^>]*>Our scientists report that ([^<]+) has been finished\. Please drop by the <a href="research\.pl">Research area</a> and choose the next area of interest\.</td></tr>',
+                r'<tr[^>]*><td[^>]*>Tech</td><td[^>]*>(\d+)</td><td[^>]*>Our scientists report that ([^<]+) has been finished\. Please drop by the <a href="research\.pl">Research area</a> and choose the next area of interest\.</td></tr>',
                 page,
         ):
             newstick = m.group(1)
@@ -367,7 +367,7 @@ class scan(threading.Thread):
         # <tr class="shadedbackground"><td class="left vtop">Security</td><td class="vtop">270</td><td class="left vtop">A covert operation was attempted by mz (<a class="coords" href="galaxy.pl?x=2&amp;y=3">2:3:1</a>), but our security guards were able to stop them from doing any harm. Your guards have successfully killed the intruders.</td></tr>
         # <td class=left valign=top>Security</td><td valign=top>873</td><td class=left valign=top>A covert operation was attempted by Ikaris (2:5:5), but our agents were able to stop them from doing any harm.</td>
         for m in re.finditer(
-                '<tr[^>]*><td[^>]*>Security</td><td[^>]*>(\d+)</td><td[^>]*>A covert operation was attempted by ([^<]+) \\(<a[^>]*">(\d+):(\d+):(\d+)</a>\\), but our security guards were able to stop them from doing any harm.[^<]*</td></tr>',
+                r'<tr[^>]*><td[^>]*>Security</td><td[^>]*>(\d+)</td><td[^>]*>A covert operation was attempted by ([^<]+) \(<a[^>]*">(\d+):(\d+):(\d+)</a>\), but our security guards were able to stop them from doing any harm.[^<]*</td></tr>',
                 page,
         ):
             newstick = m.group(1)
@@ -429,13 +429,13 @@ class scan(threading.Thread):
         # print("Parsed news scan on %s:%s:%s" % (x, y, z,))
 
     def parse_planet(self, scan_id, page):
-        m = re.search("on (\d+)\:(\d+)\:(\d+) in tick (\d+)", page)
+        m = re.search(r"on (\d+)\:(\d+)\:(\d+) in tick (\d+)", page)
         x = m.group(1)
         y = m.group(2)
         z = m.group(3)
         tick = m.group(4)
 
-        # m = re.search('<tr><td class="left">Asteroids</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><td class="left">Resources</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><th>Score</th><td>(\d+)</td><th>Value</th><td>(\d+)</td></tr>', page)
+        # m = re.search(r'<tr><td class="left">Asteroids</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><td class="left">Resources</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><th>Score</th><td>(\d+)</td><th>Value</th><td>(\d+)</td></tr>', page)
         # m = re.search(r"""<tr><td class="left">Asteroids</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><td class="left">Resources</td><td>(\d+)</td><td>(\d+)</td><td>(\d+)</td></tr><tr><th>Score</th><td>(\d+)</td><th>Value</th><td>(\d+)</td></tr>""", page)
 
         page = re.sub(",", "", page)
@@ -520,8 +520,7 @@ class scan(threading.Thread):
         print("Planet: " + x + ":" + y + ":" + z)
 
     def parse_development(self, scan_id, page):
-        # m = re.search('on (\d*)\:(\d*)\:(\d*) in tick (\d*)</th></tr><tr><td class="left">Light Factory</td><td>(\d*)</td></tr><tr><td class="left">Medium Factory</td><td>(\d*)</td></tr><tr><td class="left">Heavy Factory</td><td>(\d*)</td></tr><tr><td class="left">Wave Amplifier</td><td>(\d*)</td></tr><tr><td class="left">Wave Distorter</td><td>(\d*)</td></tr><tr><td class="left">Metal Refinery</td><td>(\d*)</td></tr><tr><td class="left">Crystal Refinery</td><td>(\d*)</td></tr><tr><td class="left">Eonium Refinery</td><td>(\d*)</td></tr><tr><td class="left">Research Laboratory</td><td>(\d*)</td></tr><tr><td class="left">Finance Centre</td><td>(\d*)</td></tr><tr><td class="left">Security Centre</td><td>(\d*)</td></tr>', page)
-        m = re.search("on (\d*)\:(\d*)\:(\d*) in tick (\d*)</h2>", page)
+        m = re.search(r"on (\d*)\:(\d*)\:(\d*) in tick (\d*)</h2>", page)
 
         x = m.group(1)
         y = m.group(2)
@@ -529,7 +528,7 @@ class scan(threading.Thread):
         tick = m.group(4)
 
         m = re.search(
-            """
+            r"""
             <tr><td[^>]*>Light\s+Factory</td><td[^>]*>(\d*)</td></tr>\s*
             <tr><td[^>]*>Medium\s+Factory</td><td[^>]*>(\d*)</td></tr>\s*
             <tr><td[^>]*>Heavy\s+Factory</td><td[^>]*>(\d*)</td></tr>\s*
@@ -580,7 +579,7 @@ class scan(threading.Thread):
         )
 
         m = re.search(
-            """
+            r"""
         <tr><td[^>]*>Space\s+Travel</td><td[^>]*>(\d+)\s*<span[^>]*>[^<]*</span></td></tr>\s*
         <tr><td[^>]*>Infrastructure</td><td[^>]*>(\d+)\s*<span[^>]*>[^<]*</span></td></tr>\s*
         <tr><td[^>]*>Hulls</td><td[^>]*>(\d+)\s*<span[^>]*>[^<]*</span></td></tr>\s*
@@ -614,7 +613,7 @@ class scan(threading.Thread):
         print("Development: " + x + ":" + y + ":" + z)
 
     def parse_incoming(self, _scan_id, page, _round):
-        m = re.search("on (\d*)\:(\d*)\:(\d*) in tick (\d*)", page)
+        m = re.search(r"on (\d*)\:(\d*)\:(\d*) in tick (\d*)", page)
         x = m.group(1)
         y = m.group(2)
         z = m.group(3)
@@ -622,14 +621,14 @@ class scan(threading.Thread):
         pass
 
     def parse_unit(self, scan_id, page, table, round):
-        m = re.search("on (\d*)\:(\d*)\:(\d*) in tick (\d*)", page)
+        m = re.search(r"on (\d*)\:(\d*)\:(\d*) in tick (\d*)", page)
         x = m.group(1)
         y = m.group(2)
         z = m.group(3)
         tick = m.group(4)
 
         for m in re.finditer(
-            "(\w+\s?\w*\s?\w*)</td><td[^>]*>(\d+(?:,\d{3})*)</td>", page
+            r"(\w+\s?\w*\s?\w*)</td><td[^>]*>(\d+(?:,\d{3})*)</td>", page
         ):
             shipname = m.group(1)
             amount = m.group(2).replace(",", "")
@@ -640,7 +639,7 @@ class scan(threading.Thread):
         # print("Unit: " + x + ":" + y + ":" + z)
 
     def parse_military(self, scan_id, page, table, round):
-        m = re.search("on (\d*)\:(\d*)\:(\d*) in tick (\d*)", page)
+        m = re.search(r"on (\d*)\:(\d*)\:(\d*) in tick (\d*)", page)
         x = m.group(1)
         y = m.group(2)
         z = m.group(3)
@@ -722,7 +721,7 @@ class scan(threading.Thread):
             tick,))
 
     def parse_jumpgate(self, scan_id, page, round):
-        m = re.search("on (\d+)\:(\d+)\:(\d+) in tick (\d+)", page)
+        m = re.search(r"on (\d+)\:(\d+)\:(\d+) in tick (\d+)", page)
         x = m.group(1)
         y = m.group(2)
         z = m.group(3)
@@ -742,7 +741,7 @@ class scan(threading.Thread):
         # <tr><td class="left">10:1:10</td><td class="left">Defend</td><td class="left">Pesticide IV</td><td class="right">1</td><td class="right">0</td></tr>
 
         for m in re.finditer(
-                "<td[^>]*><a[^>]*>(\d+)\:(\d+)\:(\d+)</a> \(<span[^>]*>[^<]*</span>\)</td><td[^>]*>([^<]+)</td><td[^>]*>([^<]+)</td><td[^>]*>(\d+)</td><td[^>]*>(\d+(?:,\d{3})*)</td>",
+                r"<td[^>]*><a[^>]*>(\d+)\:(\d+)\:(\d+)</a> \(<span[^>]*>[^<]*</span>\)</td><td[^>]*>([^<]+)</td><td[^>]*>([^<]+)</td><td[^>]*>(\d+)</td><td[^>]*>(\d+(?:,\d{3})*)</td>",
                 page,
         ):
             originx = m.group(1)

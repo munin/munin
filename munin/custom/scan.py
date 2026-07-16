@@ -25,6 +25,13 @@ import re
 import threading
 import traceback
 import urllib.request, urllib.error, urllib.parse
+
+# Hack to stop dateutil.parser.parse() from throwing the following error:
+#
+# AttributeError: module 'collections' has no attribute 'Callable'
+import collections
+collections.Callable = collections.abc.Callable
+
 import dateutil.parser
 
 
